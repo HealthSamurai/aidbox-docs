@@ -1,0 +1,49 @@
+---
+description: This guide shows how to set-up GitHub identity provider with Aidbox
+---
+
+# How to configure GitHub SSO for access to Aidbox UI
+
+## Register an OAuth application on GitHub
+
+Open your organization's page on GitHub then **Settings > Developer Settings > OAuth Apps > New Org OAuth App.**
+
+<figure><img src="../assets/6c6a95aa-046b-451e-a712-604af2d7db9b.png" alt="GitHub OAuth app registration form"><figcaption><p>GitHub registration OAuth app form</p></figcaption></figure>
+
+## Generate a new secret
+
+<figure><img src="../assets/0504664b-deee-4241-8bb0-5a2dcb19addf.png" alt="GitHub OAuth application settings page"><figcaption><p>OAuth application settings</p></figcaption></figure>
+
+## Create an IdentityProvider in Aidbox
+
+Using REST Console create an IdentityProvider config.
+
+```yaml
+PUT /IdentityProvider/github?_format=yaml&_pretty=true
+content-type: text/yaml
+
+type: github
+active: true
+system: https://github.com
+scopes:
+  - profile
+  - openid
+  - read:org
+  - user
+# not required
+organizations:
+  - <your-github-organization-name1>
+  - <your-github-organization-name2>
+client:
+  id: <client-id>
+  secret: <client-secret>
+  redirect_uri: <base-url>/auth/callback/github
+```
+
+## Login into Aidbox with GitHub
+
+Go to your Aidbox base URL, you will be redirected to the login page - you should see **"Sign in with \<provider.title or .type>"** button. Press this button and log in with GitHub user into Aidbox.
+
+<figure><img src="../assets/266c171e-bd2c-4bf9-a946-4646d90dcc00.png" alt="Aidbox login page with GitHub sign-in button"><figcaption><p>Aidbox login page</p></figcaption></figure>
+
+This user will be logged into Aidbox Console, but without any permissions. Read more in [Access Control Section](../../access-control/access-control.md) about permissions.
