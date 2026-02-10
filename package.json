@@ -1,0 +1,19 @@
+{
+  "name": "aidbox-docs",
+  "private": true,
+  "scripts": {
+    "lint": "docs-lint",
+    "lint:check": "docs-lint --check",
+    "lint:json": "docs-lint --json",
+    "images:check": "docs-images check",
+    "images:optimize": "docs-images optimize",
+    "images:dry-run": "docs-images optimize --dry-run",
+    "og:generate": "docs-og generate",
+    "og:dry-run": "docs-og generate --dry-run",
+    "og:diff": "docs-og generate --diff",
+    "postinstall": "install-hooks"
+  },
+  "devDependencies": {
+    "docs-tools": "github:HealthSamurai/docs-tools"
+  }
+}

@@ -184,7 +184,7 @@ issue:
 >
 > `BOX_AUTH_KEYS_PRIVATE` and `BOX_AUTH_KEYS_PUBLIC` environment variables.
 >
-> [See settings](https://docs.aidbox.app/reference/settings/security-and-access-control#security.auth.keys.public)
+> [See settings](../all-settings.md#securityauthkeyspublic)
 
 ## Save a QuestionnaireResponse - $save
 

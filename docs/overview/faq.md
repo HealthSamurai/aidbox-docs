@@ -1085,7 +1085,7 @@ Learn more:
 
 Aidbox provides extensive examples:
 
-- **Aidbox Examples** — production-ready code samples on [GitHub](https://github.com/Aidbox/examples) with curated selection at [health-samurai.io/docs/aidbox/examples](https://www.health-samurai.io/docs/aidbox/examples)
+- **Aidbox Examples** — production-ready code samples on [GitHub](https://github.com/Aidbox/examples) with curated selection in the [Examples](../developer-experience/developer-experience-overview.md) section
 - **Aidbox Notebooks** — built-in interactive documentation
 
 Learn more: [Developer Experience Overview](../developer-experience/developer-experience-overview.md)

@@ -362,7 +362,7 @@ In Aidbox mode, it is possible to search without specifying source type: GET /Pa
 BOX_FHIR_SEARCH_AUTHORIZE_INLINE_REQUESTS: true
 ```
 
-Authorize inline requests (`_revinclude` and `_include`) with access policies. [Learn more](https://www.health-samurai.io/docs/aidbox/api/rest-api/fhir-search/include-and-revinclude#authorize-inline-requests-mode)
+Authorize inline requests (`_revinclude` and `_include`) with access policies. [Learn more](../api/rest-api/fhir-search/include-and-revinclude.md#authorize-inline-requests-mode)
 
 <details><summary>Details</summary><table data-header-hidden="true"><thead><tr><th width="200"></th><th></th></tr></thead><tbody><tr><td>ID</td><td><code>fhir.search.authorize-inline-requests</code></td></tr><tr><td>Type</td><td>Bool</td></tr><tr><td>Recommended value</td><td><code>true</code></td></tr><tr><td>Default value</td><td><code>false</code></td></tr><tr><td>Environment variable</td><td><code>BOX_FHIR_SEARCH_AUTHORIZE_INLINE_REQUESTS</code></td></tr><tr><td>Deprecated environment variables</td><td><code>BOX_SEARCH_AUTHORIZE_INLINE_REQUESTS</code></td></tr><tr><td>Sensitive</td><td><code>false</code> — value will be visible in plaintext in Admin UI</td></tr><tr><td>Set via</td><td>Admin UI → Settings<br />Environment variables</td></tr><tr><td>Hot reload</td><td><code>true</code> — setting can be changed at runtime</td></tr></tbody></table></details>
 
@@ -718,7 +718,7 @@ If disabled, only access to $apply endpoints are verified.
 BOX_SECURITY_ENCRYPT_SECRET: "<String>"
 ```
 
-Secret key for encryption API. [Learn more](https://www.health-samurai.io/docs/aidbox/api/other/encryption-api)
+Secret key for encryption API. [Learn more](../api/other/encryption-api.md)
 
 <details><summary>Details</summary><table data-header-hidden="true"><thead><tr><th width="200"></th><th></th></tr></thead><tbody><tr><td>ID</td><td><code>security.encrypt-secret</code></td></tr><tr><td>Type</td><td>String</td></tr><tr><td>Default value</td><td>(no default)</td></tr><tr><td>Environment variable</td><td><code>BOX_SECURITY_ENCRYPT_SECRET</code></td></tr><tr><td>Deprecated environment variables</td><td><code>AIDBOX_ENCRYPT_KEY</code></td></tr><tr><td>Sensitive</td><td><code>true</code> — value will be masked in Admin UI</td></tr><tr><td>Set via</td><td>Environment variables</td></tr><tr><td>Hot reload</td><td><code>true</code> — setting can be changed at runtime</td></tr></tbody></table></details>
 
@@ -1937,7 +1937,7 @@ To disable metrics server, leave this setting empty
 BOX_OBSERVABILITY_METRICS_ENABLE_POSTGRES_METRICS: true
 ```
 
-Controls whether to provide metrics [related to PostgreSQL](https://www.health-samurai.io/docs/aidbox/modules/observability/metrics/monitoring/use-aidbox-metrics-server#postgres)
+Controls whether to provide metrics [related to PostgreSQL](../modules/observability/metrics/monitoring/use-aidbox-metrics-server.md#postgres)
 
 <details><summary>Details</summary><table data-header-hidden="true"><thead><tr><th width="200"></th><th></th></tr></thead><tbody><tr><td>ID</td><td><code>observability.metrics.enable-postgres-metrics</code></td></tr><tr><td>Type</td><td>Bool</td></tr><tr><td>Default value</td><td><code>true</code></td></tr><tr><td>Environment variable</td><td><code>BOX_OBSERVABILITY_METRICS_ENABLE_POSTGRES_METRICS</code></td></tr><tr><td>Deprecated environment variables</td><td><code>BOX_METRICS_POSTGRES_ON</code></td></tr><tr><td>Sensitive</td><td><code>false</code> — value will be visible in plaintext in Admin UI</td></tr><tr><td>Set via</td><td>Admin UI → Settings<br />Environment variables</td></tr><tr><td>Hot reload</td><td><code>false</code> — setting requires system restart</td></tr></tbody></table></details>
 

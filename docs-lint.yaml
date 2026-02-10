@@ -1,0 +1,21 @@
+docs_dir: docs
+assets_dir: assets
+summary: SUMMARY.md
+redirects: redirects.yaml
+
+checks:
+  warn_only:
+    - image-alt
+    - orphan-pages
+    - deprecated-links
+
+  # Only flag self-referencing absolute links (not cross-product links)
+  absolute-links:
+    domains:
+      - docs.aidbox.app
+      - www.health-samurai.io/docs/aidbox
+
+  # Release notes legitimately reference deprecated features
+  deprecated-links:
+    exclude_files:
+      - overview/release-notes.md
