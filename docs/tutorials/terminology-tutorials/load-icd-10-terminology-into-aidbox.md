@@ -117,7 +117,7 @@ entry:
 
 Or inspect concepts in Aidbox Console UI:
 
-![ICD-10 concepts in Aidbox Console UI](../assets/31b89cd1-c3f2-4a63-8591-2873f7d562f6.png)
+![ICD-10 concepts in Aidbox Console UI](../assets/31b89cd1-c3f2-4a63-8591-2873f7d562f6.webp)
 
 ### Indexing \_like search
 

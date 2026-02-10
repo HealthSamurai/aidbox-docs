@@ -17,7 +17,7 @@ It introduces you to:
 * Aidbox UI features that make the Aidbox instance transparent for you.
 
 {% hint style="warning" %}
-<img src="../../../assets/docker.png" alt="" data-size="original">
+<img src="../../../assets/docker.webp" alt="" data-size="original">
 
 Please **make sure** that both [Docker & Docker Compose](https://docs.docker.com/engine/install/) are installed.
 {% endhint %}
@@ -128,7 +128,7 @@ Go to the Notebooks section within [the Aidbox UI](../../../../overview/aidbox-u
 
 Use the pre-defined Getting Started Notebooks to explore the basic features of Aidbox through interactive steps with API queries:
 
-<figure><img src="../../../assets/notebooks.png" alt=""><figcaption></figcaption></figure>
+<figure><img src="../../../assets/notebooks.webp" alt=""><figcaption></figcaption></figure>
 
 {% hint style="info" %}
 **Aidbox Notebooks**

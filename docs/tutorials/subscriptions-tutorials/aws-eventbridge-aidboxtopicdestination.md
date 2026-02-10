@@ -103,7 +103,7 @@ In AidboxUI, go to **FHIR Packages -> io.healthsamurai.topic** and make sure tha
 * `aidboxtopicdestination-aws-eventbridge-best-effort`
 * `aidboxtopicdestination-aws-eventbridge-at-least-once`
 
-![aidbox fhir packages ui](../assets/eventbridge.png)
+![aidbox fhir packages ui](../assets/eventbridge.webp)
 
 ### 6. Create Event Bus in LocalStack
 

@@ -22,11 +22,11 @@ To create a SearchParameter, [FHIRSchema](../../../modules/profiling-and-validat
 
 In AidboxUI, go to **FHIR Packages -> hl7.fhir.r4.core** and click on "SearchParameters" tab:
 
-<figure><img src="../../assets/23d6129b-d369-4343-8130-fa2021bd8833.png" alt="FHIR Packages page showing hl7.fhir.r4.core SearchParameters tab"><figcaption></figcaption></figure>
+<figure><img src="../../assets/23d6129b-d369-4343-8130-fa2021bd8833.webp" alt="FHIR Packages page showing hl7.fhir.r4.core SearchParameters tab"><figcaption></figcaption></figure>
 
 Getting all Patient SearchParameters from r4:
 
-<figure><img src="../../assets/f580f1c7-ea30-4acf-b358-983585638c89.png" alt="Filtered list of Patient SearchParameters from FHIR R4 core package"><figcaption></figcaption></figure>
+<figure><img src="../../assets/f580f1c7-ea30-4acf-b358-983585638c89.webp" alt="Filtered list of Patient SearchParameters from FHIR R4 core package"><figcaption></figcaption></figure>
 
 Clicking on `Patient-active` SearchParameter gives us an actual definition of it:
 
@@ -90,7 +90,7 @@ The expression field uses [FHIRPath](https://hl7.org/fhir/fhirpath.html) and def
 
 You can find all SearchParameters created by you in **app.aidbox.main** package:
 
-<figure><img src="../../assets/c524b859-815a-4591-b2c2-2035981575e6.png" alt="Custom SearchParameters in app.aidbox.main package"><figcaption></figcaption></figure>
+<figure><img src="../../assets/c524b859-815a-4591-b2c2-2035981575e6.webp" alt="Custom SearchParameters in app.aidbox.main package"><figcaption></figcaption></figure>
 
 ## Test Search Parameter
 

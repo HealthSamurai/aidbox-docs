@@ -60,7 +60,7 @@ RabbitMQ natively uses AMQP 0-9-1 protocol and also supports AMQP 1.0 (since Rab
 
     Now, in AidboxUI, go to **FHIR Packages -> io.healthsamurai.topic** and make sure that AMQP profiles are present.
 
-![AMQP profiles](../assets/amqp.png)
+![AMQP profiles](../assets/amqp.webp)
 
 ## Basic usage with AMQP 1.0
 

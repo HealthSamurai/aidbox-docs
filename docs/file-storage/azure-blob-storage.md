@@ -325,7 +325,7 @@ For binary files, use `--data-binary` with a file:
 curl -X PUT "<signed-url>" \
   -H "x-ms-blob-type: BlockBlob" \
   -H "Content-Type: image/png" \
-  --data-binary @image.png
+  --data-binary @image.webp
 ```
 
 ### Download file

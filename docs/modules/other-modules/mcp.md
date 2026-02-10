@@ -220,4 +220,4 @@ Select `SSE` in `Transport Type` dropdown. And set URL to `<your-aidbox-base-url
 
 Now you can discover tools and use them.
 
-<figure><img src="../assets/2a76abd4-8667-4151-a6d4-59abdd785c1f.png" alt="MCP Inspector interface showing available Aidbox tools"><figcaption></figcaption></figure>
+<figure><img src="../assets/2a76abd4-8667-4151-a6d4-59abdd785c1f.webp" alt="MCP Inspector interface showing available Aidbox tools"><figcaption></figcaption></figure>

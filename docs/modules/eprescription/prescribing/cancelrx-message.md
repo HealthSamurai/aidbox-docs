@@ -34,4 +34,4 @@ It's expected to get a response from pharmacy within 48 hours. If no response is
 
 #### Status flow
 
-<figure><img src="../../assets/image (1) (1).png" alt="CancelRx message status flow diagram"><figcaption></figcaption></figure>
+<figure><img src="../../assets/image (1) (1).webp" alt="CancelRx message status flow diagram"><figcaption></figcaption></figure>

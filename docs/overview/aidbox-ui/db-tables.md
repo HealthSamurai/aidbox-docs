@@ -20,7 +20,7 @@ DB Tables provides info on the existing tables in the database and the following
 * last autoanalyze
 * last analyze
 
-![DB Tables view showing table statistics and attributes](../assets/d15a55b3-0182-4fd1-a5e6-76ca68891824.png)
+![DB Tables view showing table statistics and attributes](../assets/d15a55b3-0182-4fd1-a5e6-76ca68891824.webp)
 
 Table names are active links to extended info about the table:
 
@@ -28,4 +28,4 @@ Table names are active links to extended info about the table:
 * indexes
 * resource example
 
-![Extended info](../assets/75177166-14b3-4798-95cd-f201c8f1edee.png)
+![Extended info](../assets/75177166-14b3-4798-95cd-f201c8f1edee.webp)

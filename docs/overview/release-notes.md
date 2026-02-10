@@ -1192,7 +1192,7 @@ Starting from January 2022 we're switching to a new release cycle. We added`:lat
 
 * Released Aidbox Notebooks. Interactive notebooks for REST, SQL, RPC and Markdown. So now you can create your own notebooks or import community notebooks.
 
-![Aidbox notebooks](assets/2021-09-03_16-53-32.png)
+![Aidbox notebooks](assets/2021-09-03_16-53-32.webp)
 
 * Released a beta version of zen profiling. Advanced profiling with zen-lang to configure Aidboxes and validate data.
 * Added Asynchronous Batch Validation mode to validate data in Aidbox against new profiles

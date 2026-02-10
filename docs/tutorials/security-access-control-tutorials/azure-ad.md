@@ -12,19 +12,19 @@ This guide explains how to set-up Azure AD identity provider in Aidbox with a sy
 
 * Find **App Registration** in search bar
 
-![Azure App Registration search](../assets/azure7.png)
+![Azure App Registration search](../assets/azure7.webp)
 
 * Click **New Registration**
 
-<figure><img src="../assets/spaces_-LHqtKiuedlcKJLm337__uploads_git-blob-83834d5ed70499fcfd4585a9a56febbebaf46af8_azure0.png" alt="Azure New Registration button"><figcaption></figcaption></figure>
+<figure><img src="../assets/spaces_-LHqtKiuedlcKJLm337__uploads_git-blob-83834d5ed70499fcfd4585a9a56febbebaf46af8_azure0.webp" alt="Azure New Registration button"><figcaption></figcaption></figure>
 
 * Fill form. For Redirect URI choose `web` as a platform and input `https://<box-url>/auth/callback/azure`
 
-![Azure app registration form](../assets/azure4.png)
+![Azure app registration form](../assets/azure4.webp)
 
 * Click **Certificates & secrets > New client secret** and create a new secret. Save `Value` for next step
 
-<figure><img src="../assets/spaces_-LHqtKiuedlcKJLm337__uploads_git-blob-c80aad22e2b9fa1bee113d9ff9c19e226be35e8a_azure3.png" alt="Azure client secret creation page"><figcaption></figcaption></figure>
+<figure><img src="../assets/spaces_-LHqtKiuedlcKJLm337__uploads_git-blob-c80aad22e2b9fa1bee113d9ff9c19e226be35e8a_azure3.webp" alt="Azure client secret creation page"><figcaption></figcaption></figure>
 
 ## Create IdentityProvider in Aidbox
 
@@ -53,15 +53,15 @@ id: azure
 
 You can find application (client) id on **App Overview** page.
 
-<figure><img src="../assets/spaces_-LHqtKiuedlcKJLm337__uploads_git-blob-4833cc9444c2a38a76f8edc0759fb36622368c90_azure5.png" alt="Azure app overview page showing client ID"><figcaption></figcaption></figure>
+<figure><img src="../assets/spaces_-LHqtKiuedlcKJLm337__uploads_git-blob-4833cc9444c2a38a76f8edc0759fb36622368c90_azure5.webp" alt="Azure app overview page showing client ID"><figcaption></figcaption></figure>
 
 As for the endpoints, you'll find them by clicking on **Endpoints**, copying the URL from `OpenID Connect metadata document`, and then visiting this URL in your browser.
 
-<figure><img src="../assets/spaces_-LHqtKiuedlcKJLm337__uploads_git-blob-8f857e9e29de04af413036e10747e7eadf94bcad_azure2.png" alt="Azure endpoints page with OpenID Connect metadata"><figcaption></figcaption></figure>
+<figure><img src="../assets/spaces_-LHqtKiuedlcKJLm337__uploads_git-blob-8f857e9e29de04af413036e10747e7eadf94bcad_azure2.webp" alt="Azure endpoints page with OpenID Connect metadata"><figcaption></figcaption></figure>
 
 The JSON document will contain both `authorize_endpoint` and `token_endpoint`.
 
-<figure><img src="../assets/70e241e3-ffb6-47a4-a6e8-e6b52746aec1.png" alt="OpenID Connect metadata JSON showing endpoints"><figcaption></figcaption></figure>
+<figure><img src="../assets/70e241e3-ffb6-47a4-a6e8-e6b52746aec1.webp" alt="OpenID Connect metadata JSON showing endpoints"><figcaption></figcaption></figure>
 
 ## Log in to Aidbox
 

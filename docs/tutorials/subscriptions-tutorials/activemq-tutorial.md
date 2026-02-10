@@ -84,7 +84,7 @@ Both versions support AMQP 1.0 protocol, making them compatible with Aidbox's `a
 
     Now, in AidboxUI, go to **FHIR Packages -> io.healthsamurai.topic** and make sure that AMQP profiles are present.
 
-![AMQP profiles](../assets/amqp.png)
+![AMQP profiles](../assets/amqp.webp)
 
 ## Basic usage with AMQP 1.0
 

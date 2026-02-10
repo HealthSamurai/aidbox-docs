@@ -92,7 +92,7 @@ Content-Type: application/json
    2.  Specify Username as `postman` and Password as `secret` \
 
 
-       <figure><img src="../assets/image (1).png" alt="Postman Basic Auth configuration with username and password fields"><figcaption><p>Postman</p></figcaption></figure>
+       <figure><img src="../assets/image (1).webp" alt="Postman Basic Auth configuration with username and password fields"><figcaption><p>Postman</p></figcaption></figure>
 3. Set the request method to GET
 4. Set the URL to `{{base_url}}/fhir/Patient`
 5. Add the following header:

@@ -82,7 +82,7 @@ In Aidbox, create [AidboxTopicDestination](../../modules/topic-based-subscriptio
 
     Now, in AidboxUI, go to **FHIR Packages -> io.healthsamurai.topic** and make sure that NATS profiles are present.
 
-    <figure><img src="../assets/4a62dca0-18af-4614-a8da-7276a4ed4a27.png" alt="FHIR Packages showing NATS profiles in io.healthsamurai.topic package"><figcaption></figcaption></figure>
+    <figure><img src="../assets/4a62dca0-18af-4614-a8da-7276a4ed4a27.webp" alt="FHIR Packages showing NATS profiles in io.healthsamurai.topic package"><figcaption></figcaption></figure>
 
 ## Basic Usage
 

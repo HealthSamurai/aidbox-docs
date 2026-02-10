@@ -74,7 +74,7 @@ When a new workflow is created by [Broken link](broken-reference/) or by [servic
 
 Below is a representation of a Workflow Instance life cycle.
 
-<figure><img src="../../../../assets/f4c57dbe-ff6c-49d8-9037-d6158506821e.png" alt="" width="563"><figcaption><p>Workflow instance lifecycle</p></figcaption></figure>
+<figure><img src="../../../../assets/f4c57dbe-ff6c-49d8-9037-d6158506821e.webp" alt="" width="563"><figcaption><p>Workflow instance lifecycle</p></figcaption></figure>
 
 After the workflow is created, the decision task with the same definition is created to move the workflow to the `in-progress` state and to execute the workflow body until the new internal workflow activity is started. Then the decision task is completed with a successful outcome.
 
@@ -177,13 +177,13 @@ The decision task is a predefined task to implement workflow and once a workflow
 
 Suppose that we are implementing a simple workflow, in which we want to start Task-1 first, and only after its successful completion start Task-2. Successful completion of Task-2 means that this workflow was completed successfully. Thus, we need a decision task as the following flowchart indicates.
 
-<figure><img src="../../../../assets/Decision_task.png" alt="" width="375"><figcaption><p>Flowchart</p></figcaption></figure>
+<figure><img src="../../../../assets/Decision_task.webp" alt="" width="375"><figcaption><p>Flowchart</p></figcaption></figure>
 
 Given that the decision tasks are executed repeatedly, we need to determine which action it should take each time, using conditional branching.
 
 This decision task will be created the first time immediately after the workflow is started, and then each time either task-1 or task-2 is completed. Accordingly, we need to implement the entire workflow according to the following diagram. All Task-1, Task-2, and the decision task are supposed to be implemented as we explained in [#task-implementation](../task/#task-implementation).
 
-<figure><img src="../../../../assets/Implement_workflow.png" alt=""><figcaption></figcaption></figure>
+<figure><img src="../../../../assets/Implement_workflow.webp" alt=""><figcaption></figcaption></figure>
 
 Here, to run **Task-1**, the decision task returns _`action:`_**`awf.workflow.action/schedule-task`** with the definition for Task-1, the unique label within this workflow, and the parameters for Task-1.
 

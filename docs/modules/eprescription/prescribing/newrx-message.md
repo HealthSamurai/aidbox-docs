@@ -66,7 +66,7 @@ Once accepted, system will update the MedicationRequest status to `active` with 
 
 #### Status flow
 
-<figure><img src="../../assets/image (1) (1) (1).png" alt="NewRx message status flow diagram"><figcaption></figcaption></figure>
+<figure><img src="../../assets/image (1) (1) (1).webp" alt="NewRx message status flow diagram"><figcaption></figcaption></figure>
 
 #### Status structure
 

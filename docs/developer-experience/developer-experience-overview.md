@@ -170,7 +170,7 @@ These built-in tools accelerate development cycles by providing immediate feedba
 * Visual resource browser and editor
 * REST API console for direct API testing
 
-![Aidbox UI REST Console](assets/rest-console.png)
+![Aidbox UI REST Console](assets/rest-console.webp)
 
 See also:
 
