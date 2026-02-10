@@ -19,7 +19,7 @@ jobs:
       - run: bun install
       - run: bun lint
 
-  images:
+  update:
     runs-on: ubuntu-latest
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     steps:
@@ -30,13 +30,14 @@ jobs:
           bun-version: latest
 
       - run: bun install
+      - run: bun update docs-tools
       - run: bun images:optimize
       - run: bun og:generate
 
-      - name: Commit optimized assets
+      - name: Commit changes
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add assets/ docs/ 2>/dev/null || true
-          git diff --cached --quiet || git commit -m "chore: optimize images + generate OG previews"
+          git add bun.lock assets/ docs/ 2>/dev/null || true
+          git diff --cached --quiet || git commit -m "chore: update docs-tools + optimize assets"
           git push
