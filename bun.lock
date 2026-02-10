@@ -84,7 +84,7 @@
 
     "detect-libc": ["detect-libc@2.1.2", "", {}, "sha512-Btj2BOOO83o3WyH59e8MgXsxEQVcarkUOpEYrubB0urwnN10yQ364rsiByU11nZlqWYZm05i/of7io4mzihBtQ=="],
 
-    "docs-tools": ["docs-tools@github:HealthSamurai/docs-tools#8e23033", { "dependencies": { "js-yaml": "^4.1.0", "satori": "^0.19.1", "sharp": "^0.34.5" }, "bin": { "docs-lint": "./src/cli.ts", "docs-images": "./src/images/cli.ts", "docs-og": "./src/og/cli.ts", "install-hooks": "./src/install-hooks.ts" } }, "HealthSamurai-docs-tools-8e23033"],
+    "docs-tools": ["docs-tools@github:HealthSamurai/docs-tools#f6d64cf", { "dependencies": { "js-yaml": "^4.1.0", "satori": "^0.19.1", "sharp": "^0.34.5" }, "bin": { "docs-lint": "./src/cli.ts", "docs-images": "./src/images/cli.ts", "docs-og": "./src/og/cli.ts", "install-hooks": "./src/install-hooks.ts" } }, "HealthSamurai-docs-tools-f6d64cf"],
 
     "emoji-regex-xs": ["emoji-regex-xs@2.0.1", "", {}, "sha512-1QFuh8l7LqUcKe24LsPUNzjrzJQ7pgRwp1QMcZ5MX6mFplk2zQ08NVCM84++1cveaUUYtcCYHmeFEuNg16sU4g=="],
 
