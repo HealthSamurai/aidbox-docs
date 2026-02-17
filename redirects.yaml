@@ -537,6 +537,7 @@ redirects:
   modules/other-modules/mdm: modules/mdm/README.md
   modules/other-modules/mdm/find-duplicates-match: modules/mdm/find-duplicates-match.md
   modules/other-modules/mdm/find-duplicates-usdmatch.md: modules/mdm/find-duplicates-match.md
+  modules/mpi: modules/mdm/README.md
   modules/other-modules/mpi: modules/mdm/README.md
   modules/other-modules/mdm/get-started: modules/mdm/README.md
   modules/other-modules/mdm/get-started/configure-mpi-module: modules/mdm/configure-mdm-module.md
