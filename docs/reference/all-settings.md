@@ -157,6 +157,16 @@ Format:
 
 <details><summary>Details</summary><table data-header-hidden="true"><thead><tr><th width="200"></th><th></th></tr></thead><tbody><tr><td>ID</td><td><code>module-jar</code></td></tr><tr><td>Type</td><td>String</td></tr><tr><td>Default value</td><td>(no default)</td></tr><tr><td>Environment variable</td><td><code>BOX_MODULE_JAR</code></td></tr><tr><td>Available from</td><td><code>2505</code></td></tr><tr><td>Sensitive</td><td><code>false</code> — value will be visible in plaintext in Admin UI</td></tr><tr><td>Set via</td><td>Environment variables</td></tr><tr><td>Hot reload</td><td><code>false</code> — setting requires system restart</td></tr></tbody></table></details>
 
+### Scheduler executor threads<a href="#scheduler-executors" id="scheduler-executors"></a>
+
+```yaml
+BOX_SCHEDULER_EXECUTORS: 4
+```
+
+Number of executor threads for the async task scheduler.
+
+<details><summary>Details</summary><table data-header-hidden="true"><thead><tr><th width="200"></th><th></th></tr></thead><tbody><tr><td>ID</td><td><code>scheduler-executors</code></td></tr><tr><td>Type</td><td>Int</td></tr><tr><td>Default value</td><td><code>4</code></td></tr><tr><td>Environment variable</td><td><code>BOX_SCHEDULER_EXECUTORS</code></td></tr><tr><td>Available from</td><td><code>2602</code></td></tr><tr><td>Sensitive</td><td><code>false</code> — value will be visible in plaintext in Admin UI</td></tr><tr><td>Set via</td><td>Environment variables</td></tr><tr><td>Hot reload</td><td><code>false</code> — setting requires system restart</td></tr></tbody></table></details>
+
 ## FHIR
 
 FHIR settings
@@ -362,7 +372,7 @@ In Aidbox mode, it is possible to search without specifying source type: GET /Pa
 BOX_FHIR_SEARCH_AUTHORIZE_INLINE_REQUESTS: true
 ```
 
-Authorize inline requests (`_revinclude` and `_include`) with access policies. [Learn more](../api/rest-api/fhir-search/include-and-revinclude.md#authorize-inline-requests-mode)
+Authorize inline requests (`_revinclude` and `_include`) with access policies. [Learn more](https://www.health-samurai.io/docs/aidbox/api/rest-api/fhir-search/include-and-revinclude#authorize-inline-requests-mode)
 
 <details><summary>Details</summary><table data-header-hidden="true"><thead><tr><th width="200"></th><th></th></tr></thead><tbody><tr><td>ID</td><td><code>fhir.search.authorize-inline-requests</code></td></tr><tr><td>Type</td><td>Bool</td></tr><tr><td>Recommended value</td><td><code>true</code></td></tr><tr><td>Default value</td><td><code>false</code></td></tr><tr><td>Environment variable</td><td><code>BOX_FHIR_SEARCH_AUTHORIZE_INLINE_REQUESTS</code></td></tr><tr><td>Deprecated environment variables</td><td><code>BOX_SEARCH_AUTHORIZE_INLINE_REQUESTS</code></td></tr><tr><td>Sensitive</td><td><code>false</code> — value will be visible in plaintext in Admin UI</td></tr><tr><td>Set via</td><td>Admin UI → Settings<br />Environment variables</td></tr><tr><td>Hot reload</td><td><code>true</code> — setting can be changed at runtime</td></tr></tbody></table></details>
 
@@ -718,7 +728,7 @@ If disabled, only access to $apply endpoints are verified.
 BOX_SECURITY_ENCRYPT_SECRET: "<String>"
 ```
 
-Secret key for encryption API. [Learn more](../api/other/encryption-api.md)
+Secret key for encryption API. [Learn more](https://www.health-samurai.io/docs/aidbox/api/other/encryption-api)
 
 <details><summary>Details</summary><table data-header-hidden="true"><thead><tr><th width="200"></th><th></th></tr></thead><tbody><tr><td>ID</td><td><code>security.encrypt-secret</code></td></tr><tr><td>Type</td><td>String</td></tr><tr><td>Default value</td><td>(no default)</td></tr><tr><td>Environment variable</td><td><code>BOX_SECURITY_ENCRYPT_SECRET</code></td></tr><tr><td>Deprecated environment variables</td><td><code>AIDBOX_ENCRYPT_KEY</code></td></tr><tr><td>Sensitive</td><td><code>true</code> — value will be masked in Admin UI</td></tr><tr><td>Set via</td><td>Environment variables</td></tr><tr><td>Hot reload</td><td><code>true</code> — setting can be changed at runtime</td></tr></tbody></table></details>
 
@@ -1671,22 +1681,22 @@ Maximum timeout (in milliseconds) to close idle connection.
 #### Pool minimum idle<a href="#db.pool.minimum-idle" id="db.pool.minimum-idle"></a>
 
 ```yaml
-BOX_DB_POOL_MINIMUM_IDLE: 0
+BOX_DB_POOL_MINIMUM_IDLE: 2
 ```
 
 Minimum number of connections.
 
-<details><summary>Details</summary><table data-header-hidden="true"><thead><tr><th width="200"></th><th></th></tr></thead><tbody><tr><td>ID</td><td><code>db.pool.minimum-idle</code></td></tr><tr><td>Type</td><td>Int</td></tr><tr><td>Default value</td><td><code>0</code></td></tr><tr><td>Environment variable</td><td><code>BOX_DB_POOL_MINIMUM_IDLE</code></td></tr><tr><td>Deprecated environment variables</td><td><code>BOX_DB_POOL_MINIMUM__IDLE</code></td></tr><tr><td>Sensitive</td><td><code>false</code> — value will be visible in plaintext in Admin UI</td></tr><tr><td>Set via</td><td>Admin UI → Settings<br />Environment variables</td></tr><tr><td>Hot reload</td><td><code>false</code> — setting requires system restart</td></tr></tbody></table></details>
+<details><summary>Details</summary><table data-header-hidden="true"><thead><tr><th width="200"></th><th></th></tr></thead><tbody><tr><td>ID</td><td><code>db.pool.minimum-idle</code></td></tr><tr><td>Type</td><td>Int</td></tr><tr><td>Default value</td><td><code>2</code></td></tr><tr><td>Environment variable</td><td><code>BOX_DB_POOL_MINIMUM_IDLE</code></td></tr><tr><td>Deprecated environment variables</td><td><code>BOX_DB_POOL_MINIMUM__IDLE</code></td></tr><tr><td>Sensitive</td><td><code>false</code> — value will be visible in plaintext in Admin UI</td></tr><tr><td>Set via</td><td>Admin UI → Settings<br />Environment variables</td></tr><tr><td>Hot reload</td><td><code>false</code> — setting requires system restart</td></tr></tbody></table></details>
 
 #### Pool size<a href="#db.pool.maximum-pool-size" id="db.pool.maximum-pool-size"></a>
 
 ```yaml
-BOX_DB_POOL_MAXIMUM_POOL_SIZE: 8
+BOX_DB_POOL_MAXIMUM_POOL_SIZE: 16
 ```
 
 Maximum number of simultaneous database connections.
 
-<details><summary>Details</summary><table data-header-hidden="true"><thead><tr><th width="200"></th><th></th></tr></thead><tbody><tr><td>ID</td><td><code>db.pool.maximum-pool-size</code></td></tr><tr><td>Type</td><td>Int</td></tr><tr><td>Default value</td><td><code>8</code></td></tr><tr><td>Environment variable</td><td><code>BOX_DB_POOL_MAXIMUM_POOL_SIZE</code></td></tr><tr><td>Deprecated environment variables</td><td><code>BOX_DB_POOL_MAXIMUM__POOL__SIZE</code></td></tr><tr><td>Sensitive</td><td><code>false</code> — value will be visible in plaintext in Admin UI</td></tr><tr><td>Set via</td><td>Admin UI → Settings<br />Environment variables</td></tr><tr><td>Hot reload</td><td><code>false</code> — setting requires system restart</td></tr></tbody></table></details>
+<details><summary>Details</summary><table data-header-hidden="true"><thead><tr><th width="200"></th><th></th></tr></thead><tbody><tr><td>ID</td><td><code>db.pool.maximum-pool-size</code></td></tr><tr><td>Type</td><td>Int</td></tr><tr><td>Default value</td><td><code>16</code></td></tr><tr><td>Environment variable</td><td><code>BOX_DB_POOL_MAXIMUM_POOL_SIZE</code></td></tr><tr><td>Deprecated environment variables</td><td><code>BOX_DB_POOL_MAXIMUM__POOL__SIZE</code></td></tr><tr><td>Sensitive</td><td><code>false</code> — value will be visible in plaintext in Admin UI</td></tr><tr><td>Set via</td><td>Admin UI → Settings<br />Environment variables</td></tr><tr><td>Hot reload</td><td><code>false</code> — setting requires system restart</td></tr></tbody></table></details>
 
 #### Propagate DB health status to Aidbox<a href="#db.propagate-db-health-status-to-box" id="db.propagate-db-health-status-to-box"></a>
 
@@ -1705,6 +1715,30 @@ If enabled, the health status of the database will be reflected in the overall h
 ### Read-only replica
 
 Read-only database replica settings
+
+#### JDBC Application name<a href="#db.application-name" id="db.application-name"></a>
+
+```yaml
+BOX_DB_APPLICATION_NAME: "HealthSamurai Aidbox"
+```
+
+Controls the application name of the connection.
+
+This name is visible for example in pg_stat_activity view.
+
+<details><summary>Details</summary><table data-header-hidden="true"><thead><tr><th width="200"></th><th></th></tr></thead><tbody><tr><td>ID</td><td><code>db.application-name</code></td></tr><tr><td>Type</td><td>String</td></tr><tr><td>Default value</td><td><code>HealthSamurai Aidbox</code></td></tr><tr><td>Environment variable</td><td><code>BOX_DB_APPLICATION_NAME</code></td></tr><tr><td>Available from</td><td><code>2603</code></td></tr><tr><td>Sensitive</td><td><code>false</code> — value will be visible in plaintext in Admin UI</td></tr><tr><td>Set via</td><td>Environment variables</td></tr><tr><td>Hot reload</td><td><code>false</code> — setting requires system restart</td></tr></tbody></table></details>
+
+#### JDBC Application name<a href="#db.maintenance.application-name" id="db.maintenance.application-name"></a>
+
+```yaml
+BOX_DB_MAINTENANCE_APPLICATION_NAME: "HealthSamurai Aidbox"
+```
+
+Controls the application name of the connection.
+
+This name is visible for example in pg_stat_activity view.
+
+<details><summary>Details</summary><table data-header-hidden="true"><thead><tr><th width="200"></th><th></th></tr></thead><tbody><tr><td>ID</td><td><code>db.maintenance.application-name</code></td></tr><tr><td>Type</td><td>String</td></tr><tr><td>Default value</td><td><code>HealthSamurai Aidbox</code></td></tr><tr><td>Environment variable</td><td><code>BOX_DB_MAINTENANCE_APPLICATION_NAME</code></td></tr><tr><td>Available from</td><td><code>2603</code></td></tr><tr><td>Sensitive</td><td><code>false</code> — value will be visible in plaintext in Admin UI</td></tr><tr><td>Set via</td><td>Environment variables</td></tr><tr><td>Hot reload</td><td><code>false</code> — setting requires system restart</td></tr></tbody></table></details>
 
 #### Read-only replica enable<a href="#db.ro-replica.enabled" id="db.ro-replica.enabled"></a>
 
@@ -1777,6 +1811,18 @@ AIDBOX_EXTENSION_SCHEMA: "<String>"
 The database extension schema.
 
 <details><summary>Details</summary><table data-header-hidden="true"><thead><tr><th width="200"></th><th></th></tr></thead><tbody><tr><td>ID</td><td><code>db.ro-replica.extension-schema</code></td></tr><tr><td>Type</td><td>String</td></tr><tr><td>Default value</td><td>(no default)</td></tr><tr><td>Environment variable</td><td><code>AIDBOX_EXTENSION_SCHEMA</code></td></tr><tr><td>Deprecated environment variables</td><td><code>AIDBOX_DB_PARAM_CURRENT_SCHEMA</code></td></tr><tr><td>Available from</td><td><code>2507</code></td></tr><tr><td>Sensitive</td><td><code>false</code> — value will be visible in plaintext in Admin UI</td></tr><tr><td>Set via</td><td>Admin UI → Settings<br />Environment variables</td></tr><tr><td>Hot reload</td><td><code>false</code> — setting requires system restart</td></tr></tbody></table></details>
+
+#### JDBC Application name<a href="#db.ro-replica.application-name" id="db.ro-replica.application-name"></a>
+
+```yaml
+AIDBOX_DB_RO_REPLICA_APPLICATION_NAME: "HealthSamurai Aidbox"
+```
+
+Controls the application name of the connection.
+
+This name is visible for example in pg_stat_activity view.
+
+<details><summary>Details</summary><table data-header-hidden="true"><thead><tr><th width="200"></th><th></th></tr></thead><tbody><tr><td>ID</td><td><code>db.ro-replica.application-name</code></td></tr><tr><td>Type</td><td>String</td></tr><tr><td>Default value</td><td><code>HealthSamurai Aidbox</code></td></tr><tr><td>Environment variable</td><td><code>AIDBOX_DB_RO_REPLICA_APPLICATION_NAME</code></td></tr><tr><td>Available from</td><td><code>2603</code></td></tr><tr><td>Sensitive</td><td><code>false</code> — value will be visible in plaintext in Admin UI</td></tr><tr><td>Set via</td><td>Environment variables</td></tr><tr><td>Hot reload</td><td><code>false</code> — setting requires system restart</td></tr></tbody></table></details>
 
 #### Maximum wait time<a href="#db.ro-replica.pool.connection-timeout" id="db.ro-replica.pool.connection-timeout"></a>
 
@@ -1967,7 +2013,7 @@ To disable metrics server, leave this setting empty
 BOX_OBSERVABILITY_METRICS_ENABLE_POSTGRES_METRICS: true
 ```
 
-Controls whether to provide metrics [related to PostgreSQL](../modules/observability/metrics/monitoring/use-aidbox-metrics-server.md#postgres)
+Controls whether to provide metrics [related to PostgreSQL](https://www.health-samurai.io/docs/aidbox/modules/observability/metrics/monitoring/use-aidbox-metrics-server#postgres)
 
 <details><summary>Details</summary><table data-header-hidden="true"><thead><tr><th width="200"></th><th></th></tr></thead><tbody><tr><td>ID</td><td><code>observability.metrics.enable-postgres-metrics</code></td></tr><tr><td>Type</td><td>Bool</td></tr><tr><td>Default value</td><td><code>true</code></td></tr><tr><td>Environment variable</td><td><code>BOX_OBSERVABILITY_METRICS_ENABLE_POSTGRES_METRICS</code></td></tr><tr><td>Deprecated environment variables</td><td><code>BOX_METRICS_POSTGRES_ON</code></td></tr><tr><td>Sensitive</td><td><code>false</code> — value will be visible in plaintext in Admin UI</td></tr><tr><td>Set via</td><td>Admin UI → Settings<br />Environment variables</td></tr><tr><td>Hot reload</td><td><code>false</code> — setting requires system restart</td></tr></tbody></table></details>
 
