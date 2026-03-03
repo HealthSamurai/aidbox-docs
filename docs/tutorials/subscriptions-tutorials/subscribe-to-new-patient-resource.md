@@ -36,7 +36,7 @@ channel:
 
 After that, aidbox sends a handshake notification on channel.endpoint, which you can see on your opened tab with RequestCatcher.
 
-![Handshake notification in RequestCatcher](../assets/934d33aa-6883-4db3-8c48-9212eeb583c0.webp)
+![Handshake notification in RequestCatcher](../assets/934d33aa-6883-4db3-8c48-9212eeb583c0.avif)
 
 Let's create a new patient then.
 
@@ -53,7 +53,7 @@ name:
 
 Then you can back to RequestCatcher service and see a new notification.
 
-![Patient creation notification in RequestCatcher](../assets/78e69454-3a13-40e3-9aaf-3017706c4370.webp)
+![Patient creation notification in RequestCatcher](../assets/78e69454-3a13-40e3-9aaf-3017706c4370.avif)
 
 And next, you can see **SubsNotification** resource created for this notification in Aidbox.
 
