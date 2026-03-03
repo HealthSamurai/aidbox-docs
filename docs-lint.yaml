@@ -14,6 +14,8 @@ checks:
     domains:
       - docs.aidbox.app
       - www.health-samurai.io/docs/aidbox
+    exclude_files:
+      - reference/all-settings.md
 
   # Release notes legitimately reference deprecated features
   deprecated-links:
