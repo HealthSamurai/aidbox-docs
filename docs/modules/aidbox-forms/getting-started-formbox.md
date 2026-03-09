@@ -7,7 +7,7 @@ description: Follow these steps to launch Formbox locally using Docker
 ## Prerequisites
 
 {% hint style="warning" %}
-<img src="../../../assets/docker.png" alt="Docker logo" data-size="original">
+<img src="../../../assets/docker.avif" alt="Docker logo" data-size="original">
 
 Please **make sure** that both [Docker & Docker Compose](https://docs.docker.com/engine/install/) are installed.
 {% endhint %}
