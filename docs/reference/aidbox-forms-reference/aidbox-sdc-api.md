@@ -183,9 +183,9 @@ issue:
 
 > Aidbox uses HS256 to sign JWT token by default. To use RS256 you need to set
 >
-> `BOX_AUTH_KEYS_PRIVATE` and `BOX_AUTH_KEYS_PUBLIC` environment variables.
+> `BOX_SECURITY_AUTH_KEYS_PRIVATE` and `BOX_SECURITY_AUTH_KEYS_PUBLIC` environment variables.
 >
-> [See settings](../all-settings.md#securityauthkeyspublic)
+> [See settings](https://docs.aidbox.app/reference/settings/security-and-access-control#security.auth.keys.public)
 
 ## Save a QuestionnaireResponse - $save
 
@@ -493,7 +493,7 @@ subject: New form available
 template: 'A new form is ready for you. Open: {{link}}'
 ```
 
-It's possible to create other templates [see docs](../../../docs/modules/integration-toolkit/email-providers/README.md)
+It's possible to create other templates [see docs](../../modules/integration-toolkit/email-providers/README.md)
 
 ### Output Parameters
 

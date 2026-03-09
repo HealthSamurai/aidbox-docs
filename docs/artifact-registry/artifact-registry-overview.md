@@ -25,8 +25,8 @@ Aidbox stores canonical resources in a dedicated database schema called `far` (F
 ```mermaid
 graph LR
     subgraph "Aidbox Database"
-        A(Regular FHIR Resources</br>public schema):::neutral2
-        B(Artifact Registry<br/>Canonical Resources</br>far schema):::blue2
+        A(Regular FHIR Resources<br/>public schema):::neutral2
+        B(Artifact Registry<br/>Canonical Resources<br/>far schema):::blue2
     end
 ```
 
@@ -48,7 +48,7 @@ Canonical resources are accessible through standard FHIR REST endpoints followin
 
 Aidbox provides a web-based interface for package management operations. Through this UI, you can import FHIR packages from external registries, view installed packages and their contents, and delete packages when no longer needed.
 
-<figure><img src="assets/far.avif" alt="Artifact Registry web interface showing package management options"><figcaption></figcaption></figure>
+<figure><img src="../../assets/far.jpg" alt="Artifact Registry web interface showing package management options"><figcaption></figcaption></figure>
 
 ### Registry Scope and Limitations
 

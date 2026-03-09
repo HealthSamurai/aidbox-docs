@@ -26,7 +26,7 @@ AIDBOX_IMAGE=healthsamurai/aidboxone:edge
 
 ## Start with a zen project
 
-The Aidbox starter repository you cloned by following the guide from [Prerequisites](extend-an-ig-with-a-custom-zen-profile.md#prerequisites) is already a zen project. It has `zen-package.edn`, the project package file, and `zrc/system.edn`, the project entry file.
+The Aidbox starter repository you cloned by following the guide from [Prerequisites](write-a-custom-zen-profile.md) is already a zen project. It has `zen-package.edn`, the project package file, and `zrc/system.edn`, the project entry file.
 
 ## Add the required IG packages as dependencies
 
@@ -108,11 +108,11 @@ docker compose up
 
 Open Aidbox in your browser and click `Profiles` tab in the left menu:
 
-![](../../../assets/933f22cc-01ba-4360-ad12-25740507c1d5.avif)
+![](../../../../../assets/933f22cc-01ba-4360-ad12-25740507c1d5.png)
 
 You should see the list of zen namespaces loaded.
 
-![](../../../assets/83831180-ea97-4757-8429-470369ff856e.avif)
+![](../../../../../assets/83831180-ea97-4757-8429-470369ff856e.png)
 
 {% hint style="info" %}
 On this page you see the namespaces that are explicitly included in the zen project or used by Aidbox
@@ -120,7 +120,7 @@ On this page you see the namespaces that are explicitly included in the zen proj
 
 Open your profile by clicking its name
 
-![](../../../assets/1cc50e54-b61a-4043-ab71-8351bd27244e.avif)
+![](../../../../../assets/1cc50e54-b61a-4043-ab71-8351bd27244e.png)
 
 ## Start validation
 

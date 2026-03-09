@@ -16,6 +16,10 @@ Objectives
 
 Limitation: currently works with only FHIR R4 version. If you need to support R5 or DSTU2, please contact us.
 
+{% hint style="info" %}
+Not all operations generate AuditEvents. Bulk operations (`$import`, `$load`), auth token issuance, and configuration changes are not audited. See [Audit coverage](../../access-control/audit-and-logging.md#audit-coverage) and [Known limitations](../../access-control/audit-and-logging.md#known-limitations) for details.
+{% endhint %}
+
 ## Configure FHIR Audit Log
 
 ### Enable FHIR Audit Log
@@ -58,7 +62,7 @@ To see audit logs with the Audit event viewer app, navigate to the **IAM -> Audi
 
 And find the audit event, produced by the patient create operation.
 
-<figure><img src="../assets/01d17537-0703-43a2-a5c5-8c1c7baa0536.avif" alt="Audit Log viewer showing patient create event"><figcaption></figcaption></figure>
+<figure><img src="../../../assets/01d17537-0703-43a2-a5c5-8c1c7baa0536.png" alt="Audit Log viewer showing patient create event"><figcaption></figcaption></figure>
 
 ## External Audit Repository Configuration
 

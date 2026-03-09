@@ -58,7 +58,7 @@ FROM patient p
 
 In DB Console, we get results:
 
-<figure><img src="../../assets/d50d4b50-48a9-46b8-9654-62695f3785d9.avif" alt="DB Console query results showing patient records filtered by email domain"><figcaption></figcaption></figure>
+<figure><img src="../../../../assets/d50d4b50-48a9-46b8-9654-62695f3785d9.png" alt="DB Console query results showing patient records filtered by email domain"><figcaption></figcaption></figure>
 
 Then we can rewrite it like this:
 
@@ -97,7 +97,7 @@ GET /fhir/Patient?email-domain=somecompany.com
 This returned both patients. See the SQL:
 
 ```
-GET /fhir/Patient?email-domain=somecompany.com&_explain=1
+GET /fhir/Patient?email-domain=somecompany.com&_explain=plan
 ```
 
 ```

@@ -370,7 +370,7 @@ Learn more: [FHIR Search](../api/rest-api/fhir-search/README.md)
 
 ### What search features are supported?
 
-Aidbox supports **all** FHIR Search features:
+Aidbox supports FHIR Search with standard types and modifiers; a few limitations apply (see [Known limitations](../api/rest-api/fhir-search/README.md#known-limitations)):
 
 - All search parameter types: string, token, reference, date, number, quantity, uri, composite
 - All modifiers: `:exact`, `:contains`, `:missing`, `:not`, `:text`, `:in`, `:below`, etc.
@@ -1086,7 +1086,7 @@ Learn more:
 
 Aidbox provides extensive examples:
 
-- **Aidbox Examples** — production-ready code samples on [GitHub](https://github.com/Aidbox/examples) with curated selection in the [Examples](../developer-experience/developer-experience-overview.md) section
+- **Aidbox Examples** — production-ready code samples on [GitHub](https://github.com/Aidbox/examples) with curated selection at [health-samurai.io/docs/aidbox/examples](https://www.health-samurai.io/docs/aidbox/examples)
 - **Aidbox Notebooks** — built-in interactive documentation
 
 Learn more: [Developer Experience Overview](../developer-experience/developer-experience-overview.md)
@@ -1345,6 +1345,18 @@ Learn more: [Create Indexes Manually](../deployment-and-maintenance/indexes/crea
 Aidbox provides observability features including metrics, logging, and tracing for monitoring system health and performance.
 
 Learn more: [Observability](../modules/observability/README.md)
+
+### Aidbox fails to start with an auth key error
+
+Starting from version **2602**, Aidbox validates JWT signing keys at startup and will not become healthy or ready if keys are misconfigured. Previously, these errors were only detected at runtime when authentication flows were triggered. If you see an error about auth keys, check the following:
+
+* **Both keys must be set together.** If you set `BOX_SECURITY_AUTH_KEYS_PRIVATE` (or `BOX_AUTH_KEYS_PRIVATE`), you must also set the corresponding public key, and vice versa.
+* **Keys must be in full PEM format**, including `-----BEGIN ...-----` and `-----END ...-----` headers. Bare base64 content without headers is not accepted.
+* **Base64 content must be valid.** Truncated or corrupted key content will cause a startup failure.
+* **The keypair must match.** The public key must correspond to the private key. Regenerate both if unsure.
+* **Watch out for quoting issues.** When passing keys via environment variables, ensure newlines are preserved (use `\n` in single-line values or YAML multi-line `|` syntax).
+
+Learn more: [Configure keys](../configuration/configure-aidbox-and-multibox.md#key-format-requirements)
 
 ### What are PostgreSQL requirements?
 

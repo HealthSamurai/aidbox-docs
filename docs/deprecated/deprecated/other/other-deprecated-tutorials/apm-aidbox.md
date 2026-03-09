@@ -10,7 +10,7 @@ Please pay attention! APM via Kibana is deprecated starting from [February 2022]
 
 First step to get started with APM is to read official [tutorial](https://www.elastic.co/guide/en/apm/server/current/getting-started-apm-server.html):
 
-To setup Aidbox monitoring please read this [article](../../../../modules/observability/logging-and-audit/how-to-guides/elastic-logs-and-monitoring-integration.md#elastic-apm-monitoring).
+To setup Aidbox monitoring please read this [article](../../../../modules/observability/logs/how-to-guides/elastic-logs-and-monitoring-integration.md#elastic-apm-monitoring).
 
 After you've successfully installed APM URL, you can see APM in main Kibana menu and in services submenu you can see Aidbox. Refer to below screenshots:
 
@@ -35,8 +35,8 @@ JAVA_OPTS='-javaagent:/app/elastic-apm-agent.jar
 
 ```
 
-![](../../../assets/8319e3ff-e93b-4806-a883-bb28fea8d46c.avif)
+![](../../../../../assets/8319e3ff-e93b-4806-a883-bb28fea8d46c.png)
 
-![](../../../assets/562b2f9f-e2a8-4f89-bd94-5e90134f6daf.avif)
+![](../../../../../assets/562b2f9f-e2a8-4f89-bd94-5e90134f6daf.png)
 
-![](../../../assets/dd9a45f1-a6ca-43aa-b66b-3633073928d4.avif)
+![](../../../../../assets/dd9a45f1-a6ca-43aa-b66b-3633073928d4.png)

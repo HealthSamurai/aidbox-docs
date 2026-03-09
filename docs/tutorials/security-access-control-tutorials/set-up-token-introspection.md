@@ -90,6 +90,76 @@ jwt:
 Only one of the options listed above can be configured for each TokenIntrospector resource.
 {% endhint %}
 
+### Configure Cache TTL (Optional)
+
+The `cache_ttl` property controls how long Aidbox caches validation data. This is important for handling temporary unavailability of external endpoints.
+
+{% hint style="info" %}
+**Important: What gets cached?**
+
+- **JWT with JWKS URI**: `cache_ttl` caches the **public keys** fetched from the JWKS endpoint, not the JWT tokens themselves. Each JWT is still validated on every request, but using cached public keys. Different tokens can use the same cached keys.
+
+- **Opaque tokens**: `cache_ttl` caches the **introspection result for each specific token**. The cache key includes the token value itself, meaning each unique token has its own cache entry. If the same token is used in multiple requests within the cache TTL, the introspection result is reused from cache.
+
+- **ASPXAUTH tokens**: Similar to opaque tokens - caches the **introspection result for each specific cookie value**. Each unique cookie has its own cache entry.
+{% endhint %}
+
+**Configuration:**
+
+```yaml
+cache_ttl: 3600  # Cache duration in seconds
+```
+
+**Valid range:** 1-86400 seconds (1 second to 24 hours)
+**Default:** 300 seconds (5 minutes)
+
+#### Why configure cache TTL?
+
+When using JWKS URI or introspection endpoints, Aidbox needs to fetch data from external servers. If these endpoints become temporarily unavailable:
+
+- **Without caching:** Aidbox fails to validate tokens immediately when the endpoint is down
+- **With longer cache:** Aidbox continues to work using cached public keys/results until cache expires
+
+**Example with JWKS URI:**
+
+```http
+PUT /TokenIntrospector/external-auth-server
+content-type: text/yaml
+
+resourceType: TokenIntrospector
+id: external-auth-server
+type: jwt
+cache_ttl: 3600  # Cache public keys for 1 hour
+jwt:
+  iss: https://auth.example.com
+jwks_uri: https://auth.example.com/.well-known/jwks.json
+```
+
+**Example with Opaque Token:**
+
+```http
+PUT /TokenIntrospector/external-auth-server
+content-type: text/yaml
+
+resourceType: TokenIntrospector
+id: external-auth-server
+type: opaque
+cache_ttl: 7200  # Cache introspection results for 2 hours
+introspection_endpoint:
+  url: https://auth.example.com/introspect
+  authorization: Basic base64credentials
+```
+
+{% hint style="warning" %}
+**Security considerations:**
+
+- **JWT with JWKS URI**: Longer cache TTL means revoked or rotated public keys will continue to be used until cache expires. However, individual JWT tokens are still validated (expiration, signature) on every request.
+
+- **Opaque/ASPXAUTH tokens**: Longer cache TTL means a revoked token will continue to work in Aidbox until its cache entry expires. If you revoke a token at the identity provider, it can still be used in Aidbox for up to `cache_ttl` seconds.
+
+Balance availability needs with security requirements when choosing cache duration.
+{% endhint %}
+
 ### Define `AccessPolicy`
 
 ```http
@@ -125,6 +195,27 @@ data:
   email: basic@example.com
 ```
 
+Aidbox resolves the user by matching the JWT `sub` claim to `User.id`. In the example above, the JWT must contain `"sub": "some-user-id"`.
+
+#### Using `box_user` claim
+
+If your external identity provider uses its own user IDs in the `sub` claim (e.g., a UUID from Keycloak), you can add a custom `box_user` claim to the JWT to map it to an Aidbox user. When `box_user` is present, it takes priority over `sub` for user resolution.
+
+For example, with the User above, your JWT payload would include:
+
+```json
+{
+  "iss": "https://auth.example.com",
+  "sub": "keycloak-uuid-1234",
+  "box_user": "some-user-id",
+  "exp": 1700000000
+}
+```
+
+Aidbox will resolve `User/some-user-id` using the `box_user` claim, while `sub` remains available in the JWT claims for [AccessPolicy](../../access-control/authorization/access-policies.md) evaluation.
+
+See [User Resolution](../../access-control/authentication/token-introspector.md#user-resolution) for more details.
+
 ### Validating introspector works
 
 Build `JWT`
@@ -133,7 +224,7 @@ Use [this tool](http://jwtbuilder.jamiekurtz.com/) to build your JWT. Mind the c
 
 * `issuer` should be `https://auth.example.com`
 * `expiration` should be in the future
-* `subject` should be `basic` (user id)
+* `subject` should be `basic` (user id, or use `box_user` claim to map to it)
 * `key` should be `very-secret` string
 
 Press `Create Signed JWT` button to get signed JWT. The generated `JWT` looks like this

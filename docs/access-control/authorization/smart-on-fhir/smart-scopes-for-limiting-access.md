@@ -11,11 +11,11 @@ The [FHIR Schema Validator Engine](../../../modules/profiling-and-validation/fhi
 
 Aidbox fully supports [version 1 ](https://www.hl7.org/fhir/smart-app-launch/1.0.0/scopes-and-launch-context/index.html)of SMART on FHIR scopes:
 
-<figure><img src="../../assets/smart-scopes-v1.avif" alt="SMART scopes version 1 syntax showing scope patterns for user, patient, and system contexts"><figcaption><p>SMART scopes V1</p></figcaption></figure>
+<figure><img src="../../../../assets/smart-scopes-v1.png" alt="SMART scopes version 1 syntax showing scope patterns for user, patient, and system contexts"><figcaption><p>SMART scopes V1</p></figcaption></figure>
 
 And [version 2](https://build.fhir.org/ig/HL7/smart-app-launch/scopes-and-launch-context.html) of SMART on FHIR scopes with partial support of [search parameters](smart-scopes-for-limiting-access.md#scopes-with-search-parameters) in scopes:
 
-<figure><img src="../../assets/scope_v2.avif" alt="SMART scopes version 2 syntax showing enhanced scope patterns with granular permissions"><figcaption></figcaption></figure>
+<figure><img src="../../../../assets/scope_v2.jpg" alt="SMART scopes version 2 syntax showing enhanced scope patterns with granular permissions"><figcaption></figcaption></figure>
 
 If a requested operation is not permitted by the scopes, Aidbox will deny access. If access is granted, Aidbox will retrieve and return only the data allowed by the specified scopes and context.
 
@@ -161,7 +161,7 @@ accept: application/json
 Authorization: "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdHYiOjIsImF1ZCI6Imh0dHBzOi8vZzEwdGVzdC5lZGdlLmFpZGJveC5hcHAvZmhpciIsInN1YiI6IjNkMGVmYjgwLTkwMTktNDdhMS1iMzYxLWUwNDUzOGQ4NzFmZSIsImlzcyI6Imh0dHBzOi8vYXV0aC5leGFtcGxlLmNvbSIsImV4cCI6MTczMzIzNDk0ODQsInNjb3BlIjoibGF1bmNoL3BhdGllbnQgb3BlbmlkIGZoaXJVc2VyIG9mZmxpbmVfYWNjZXNzIHBhdGllbnQvUGF0aWVudC5yZWFkIHBhdGllbnQvT2JzZXJ2YXRpb24ucmVhZCIsImp0aSI6IjUzZWQ1MTZhLTNjODEtNGRjZC05NTUxLTdlOTUzYTkzZmMwZSIsImNvbnRleHQiOnsicGF0aWVudCI6InRlc3QtcHQtMSJ9LCJpYXQiOjE3MzMyMzQ2NDh9.PsYalqkaN-6V0tBqLn_9pkDrR0cLmEg237W8xz5Ymdo"
 
 {
-  "resoruceType": "Bundle",
+  "resourceType": "Bundle",
   "type": "batch",
   "entry": [
     {
@@ -262,7 +262,7 @@ Aidbox will limit access and filter retrieved data based on [FHIR Patient Compar
 GET /fhir/Observation
 content-type: application/json
 accept: application/json
-// Token with "patient/Observation.read" scope and "contest.patient" = "test-pt-1"
+// Token with "patient/Observation.read" scope and "context.patient" = "test-pt-1"
 Authorization: "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdHYiOjIsImF1ZCI6Imh0dHBzOi8vZzEwdGVzdC5lZGdlLmFpZGJveC5hcHAvZmhpciIsInN1YiI6IjNkMGVmYjgwLTkwMTktNDdhMS1iMzYxLWUwNDUzOGQ4NzFmZSIsImlzcyI6Imh0dHBzOi8vYXV0aC5leGFtcGxlLmNvbSIsImV4cCI6MTczMzIzNDk0ODQsInNjb3BlIjoibGF1bmNoL3BhdGllbnQgb3BlbmlkIGZoaXJVc2VyIG9mZmxpbmVfYWNjZXNzIHBhdGllbnQvUGF0aWVudC5yZWFkIHBhdGllbnQvT2JzZXJ2YXRpb24ucmVhZCIsImp0aSI6IjUzZWQ1MTZhLTNjODEtNGRjZC05NTUxLTdlOTUzYTkzZmMwZSIsImNvbnRleHQiOnsicGF0aWVudCI6InRlc3QtcHQtMSJ9LCJpYXQiOjE3MzMyMzQ2NDh9.PsYalqkaN-6V0tBqLn_9pkDrR0cLmEg237W8xz5Ymdo"
 ```
 {% endtab %}
@@ -270,7 +270,7 @@ Authorization: "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdHYiOjIsImF1ZCI6
 {% tab title="Response" %}
 ```json
 // 200 OK Return Observation only 
-// with reference to "test-pt-1" Patient (from "contest.patient" claim)
+// with reference to "test-pt-1" Patient (from "context.patient" claim)
 
 {
   "resourceType": "Bundle",

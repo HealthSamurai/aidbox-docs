@@ -8,7 +8,7 @@ description: >-
 
 The Client Credentials grant is used when applications request an access token to access their own resources, not on behalf of a user (for example, background services and daemons). It must be used only by confidential clients.
 
-![Basic scheme](<../assets/f1f7a1f5-30e2-46e6-a7e2-e6e4a8fd4efd (1).svg>)
+![Basic scheme](<../../../assets/f1f7a1f5-30e2-46e6-a7e2-e6e4a8fd4efd (1).svg>)
 
 Aidbox OAuth module supports Client Credentials Grant flow in different formats. The first one is in strict adherence to [specification](https://tools.ietf.org/html/rfc6749#section-4.4.2) for better compatibility. The second one uses JSON request as a more modern and simple way. Read the official [OAuth 2.0 specification](https://tools.ietf.org/html/rfc6749#section-4.4) for more details.
 
@@ -16,7 +16,7 @@ Aidbox OAuth module supports Client Credentials Grant flow in different formats.
 
 The easiest way to test Client Credentials Grant flow is to run through the [Aidbox Sandbox UI](client-credentials-grant.md#auth-sandbox) (_Auth -> Sandbox -> Client Credentials_).
 
-<figure><img src="../assets/016836ab-2b47-4ff1-bd81-5fd5f8896f6d.avif" alt="Sandbox UI for Client Credentials Grant testing"><figcaption><p>Sandbox UI</p></figcaption></figure>
+<figure><img src="../../../assets/016836ab-2b47-4ff1-bd81-5fd5f8896f6d.png" alt="Sandbox UI for Client Credentials Grant testing"><figcaption><p>Sandbox UI</p></figcaption></figure>
 
 ### Configure Client
 
@@ -55,6 +55,27 @@ auth:
     refresh_token: true
     refresh_token_expiration: 86400 # 1 day
 ```
+
+#### SMART App client with scopes
+
+For SMART on FHIR backend services, create a Client with `type: smart-app` and list the allowed scopes:
+
+```yaml
+PUT /Client/my-smart-client
+Accept: text/yaml
+Content-Type: text/yaml
+
+secret: verysecret
+type: smart-app
+grant_types:
+  - client_credentials
+scope:
+  - system/*.read
+```
+
+{% hint style="info" %}
+Only `system/` scopes are allowed for `client_credentials` grant. Scopes with `patient/` or `user/` prefix will be rejected since there is no user or patient context in this flow.
+{% endhint %}
 
 Since by default new client has no access to any resources, you probably want to configure AccessPolicy for this specific client:
 
@@ -98,6 +119,20 @@ Content-Type: application/json
 }
 ```
 {% endtab %}
+
+{% tab title="Request with scopes (SMART App)" %}
+```yaml
+POST /auth/token
+Content-Type: application/json
+
+{
+  "grant_type": "client_credentials",
+  "client_id": "my-smart-client",
+  "client_secret": "verysecret",
+  "scope": "system/*.read"
+}
+```
+{% endtab %}
 {% endtabs %}
 
 {% tabs %}
@@ -124,6 +159,20 @@ status: 200
  "expires_in": 3000,
  "access_token": "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJodHRwOi8vbG9jYWxob3N0OjgwODEiLCJzdWIiOiJhdXRoLWNsaWVudCIsImlhdCI6MTU1NDQ3MDA3NCwianRpIjoiOWJlMTY1YzMtOTQzZS00NGU0LTkxMWEtYzk1OGY3MWRhMTdkIiwiYXVkIjoiaHR0cDovL3Jlc291cmNlLnNlcnZlci5jb20iLCJleHAiOjE1NTQ0NzMwNzR9.cR9N1Z-pKidENTrtYu5aVADRzAigZM6RvoFAzbeLkBecRcY03j4VVXnqRG1yJo744FvJ0qfetHQ2JTSQFxLrtQ",
  "refresh_token": "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJodHRwOi8vbG9jYWxob3N0OjgwODEiLCJzdWIiOiJhdXRoLWNsaWVudCIsImp0aSI6IjliZTE2NWMzLTk0M2UtNDRlNC05MTFhLWM5NThmNzFkYTE3ZCIsInR5cCI6InJlZnJlc2gifQ.lsxtjkW0MVku4lh1W-vOEz-4wJjRN-Dkmbt2NpjezPAGj-z7FBGVyKVfH8Q0nY0smuvUnkXEAxajIb_zZdXQtw"
+}
+```
+{% endtab %}
+
+{% tab title="Response with scopes (SMART App)" %}
+Wildcard scopes are expanded to individual resource types in the response:
+
+```yaml
+status: 200
+
+{
+ "token_type": "Bearer",
+ "access_token": "ZDg3YTY...",
+ "scope": "system/Patient.read system/Observation.read system/Encounter.read ..."
 }
 ```
 {% endtab %}

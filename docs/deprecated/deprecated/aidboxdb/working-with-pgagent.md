@@ -219,17 +219,17 @@ Refer to [https://www.pgadmin.org/](https://www.pgadmin.org/) for pgAdmin and pg
 
 Now when pgagent is up and running we can define some jobs and see if they're actually scheduled.
 
-![Create server connection](../../assets/screen-shot-2021-08-06-at-04-24-22.avif)
+![Create server connection](../../../../assets/screen-shot-2021-08-06-at-04-24-22.png)
 
-![It's important that Maintenance database is the same database where pgagent data is stored.](../../assets/screen-shot-2021-08-06-at-04-25-08.avif)
+![It's important that Maintenance database is the same database where pgagent data is stored.](../../../../assets/screen-shot-2021-08-06-at-04-25-08.png)
 
-![Create pgAgent job](../../assets/screen-shot-2021-08-06-at-05-27-24.avif)
+![Create pgAgent job](../../../../assets/screen-shot-2021-08-06-at-05-27-24.png)
 
-![pgAgent job general settings](../../assets/screen-shot-2021-08-06-at-04-31-00.avif)
+![pgAgent job general settings](../../../../assets/screen-shot-2021-08-06-at-04-31-00.png)
 
-![pgAgent job steps configuration](../../assets/screen-shot-2021-08-06-at-04-27-19.avif)
+![pgAgent job steps configuration](../../../../assets/screen-shot-2021-08-06-at-04-27-19.png)
 
-![The job will be run every minute.](../../assets/screen-shot-2021-08-06-at-04-27-56.avif)
+![The job will be run every minute.](../../../../assets/screen-shot-2021-08-06-at-04-27-56.png)
 
 #### Test if jobs are running
 

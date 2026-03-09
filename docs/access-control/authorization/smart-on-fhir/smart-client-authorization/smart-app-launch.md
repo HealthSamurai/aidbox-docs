@@ -125,7 +125,7 @@ accept: application/json
 
 SMART Launch Interaction Diagram:
 
-<figure><img src="../../../assets/svgviewer-output.svg" alt="SMART App Launch flow sequence diagram showing interactions between user, client, authorization server, and resource server"><figcaption><p>SMART App Lunch Ffow</p></figcaption></figure>
+<figure><img src="../../../../../assets/svgviewer-output.svg" alt="SMART App Launch flow sequence diagram showing interactions between user, client, authorization server, and resource server"><figcaption><p>SMART App Lunch Ffow</p></figcaption></figure>
 
 ## Standalone launch
 

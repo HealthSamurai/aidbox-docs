@@ -59,7 +59,7 @@ Currently supported content types:
 
 ```clojure
 {:type aidbox.sdc/media-viewer
- :src "https://example.com/image.avif"
+ :src "https://example.com/image.png"
  :width 500
  :height 300}
 ```

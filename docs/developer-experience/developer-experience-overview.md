@@ -60,7 +60,7 @@ var settings = new FhirClientSettings
 
 var client = new FhirClient("https://your-aidbox.io/fhir", settings);
 
-// Optional: Add Basic Ayth
+// Optional: Add Basic Auth
 client.RequestHeaders.Add("Authorization", "Basic <Base64-encoded client:secret>");
 
 // Create a patient
@@ -170,7 +170,7 @@ These built-in tools accelerate development cycles by providing immediate feedba
 * Visual resource browser and editor
 * REST API console for direct API testing
 
-![Aidbox UI REST Console](assets/rest-console.avif)
+![Aidbox UI REST Console](../../assets/rest-console.png)
 
 See also:
 

@@ -15,8 +15,8 @@ Supports `If-Match` header, with `versionId` as ETAG.
 To get `204 No Content` instead of `200 OK`, use the `_no-content=true` query parameter.
 
 * **`200` OK** - resource successfully deleted
-* **`204` No Content** - resource already deleted
-* **`404` Not Found** - resource not found
+* **`204` No Content** - resource already deleted / non-existing resource
+* **`404` Not Found** - resource type not found
 * **`412`** **Precondition Failed** - requested ETAG doesn't match actual
 
 {% hint style="info" %}
@@ -60,8 +60,6 @@ resourceType: Patient
 meta:
   lastUpdated: '2018-11-29T14:33:17.429Z'
   versionId: '44'
-  tag:
-  - {system: 'https://aidbox.app', code: deleted}
 ```
 {% endtab %}
 {% endtabs %}
@@ -91,7 +89,7 @@ DELETE [base]/[type]?[search parameters]
 
 Depending on the number of resources meeting the search criteria, different actions will be performed and response codes will be returned:
 
-* **No matches:** Respond with `404 Not Found`
+* **No matches:** Respond with `204 No Content`
 * **One Match**: The server performs an ordinary `delete` on the matching resource
 * **Multiple matches**: Servers respond with `412 Precondition Failed` error indicating the client's criteria were not selective enough
 

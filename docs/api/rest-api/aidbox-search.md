@@ -123,9 +123,9 @@ params:
     type: integer
     default: 10
 # sql query with parameters {{path.to.ctx.elements}}
-query: 'SELECT * from patient where id ilike = {{params.filter}} limit {{params.count}}'
+query: 'SELECT * from patient where id ilike {{params.filter}} limit {{params.count}}'
 # if count-query is present - it will be evaluated for total property in response
-count-query: 'SELECT count(*) from patient where id ilike = {{params.filter}}'
+count-query: 'SELECT count(*) from patient where id ilike {{params.filter}}'
 # not required. enable links in response, see the section below
 enable-links: false
 # not required. omit sql in query response
@@ -261,10 +261,10 @@ ctx:
 
 ### Debug AidboxQuery
 
-You can debug AidboxQuery with `_explain=true` parameter:
+You can debug AidboxQuery with `_explain=plan` parameter:
 
 ```
-GET /$query/daily-report?date=2013-06-08&_explain=true
+GET /$query/daily-report?date=2013-06-08&_explain=plan
 
 plan: |-
   HashAggregate  (cost=27.27..27.97 rows=56 width=40) (actual time=0.443..0.459 rows=1 loops=1)
@@ -275,7 +275,7 @@ plan: |-
   Planning Time: 3.222 ms
   Execution Time: 0.600 ms
 ctx:
-  params: {date: '2013-06-08', _explain: 'true'}
+  params: {date: '2013-06-08', _explain: 'plan'}
   resourceType: null
   safe-paths:
   - [resourceType]
@@ -297,8 +297,8 @@ GET /Patient?.name.0.family=Johnson
 GET /Patient?.name.0.family$contains=Joh
 => WHERE resource#>>'{name,0,family}' ilike '%John%'
 
-GET /Encounter?.start::timestamptz$gt=2015-01-01
-=> WHERE (resource#>>'{start}')::timestamptz > '2015-01-01'
+GET /Encounter?.period.start::timestamptz$gt=2015-01-01
+=> WHERE (resource#>>'{period,start}')::timestamptz > '2015-01-01'
 
 GET /Patient?.contact$isnull=true
 => WHERE resource#>>'{contact}' IS NULL
@@ -356,6 +356,35 @@ Note: Each path expression should point to a primitive element!
 
 Use `_explain` parameter to inspect the search query execution plan.
 
+#### Supported options
+
+| Value | PostgreSQL EXPLAIN clause | Description |
+|-------|--------------------------|-------------|
+| `plan` | `EXPLAIN` | Plan only, no execution |
+| `analyze` | `EXPLAIN (ANALYZE)` | Plan with execution stats |
+| `buffers` | `EXPLAIN (BUFFERS)` | Buffer usage info |
+| `costs` | `EXPLAIN (COSTS)` | Cost estimates (default on) |
+| `timing` | `EXPLAIN (TIMING)` | Per-node timing (default on with analyze) |
+| `format-json` | `EXPLAIN (FORMAT JSON)` | JSON output format |
+| `no-timing` | `TIMING OFF` | Disable per-node timing |
+| `no-costs` | `COSTS OFF` | Disable cost estimates |
+| `no-buffers` | `BUFFERS OFF` | Disable buffer info |
+| `no-analyze` | `ANALYZE OFF` | Disable analyze |
+
+Multiple options can be combined with commas:
+
+```
+GET /fhir/Patient?name=john&_explain=analyze,buffers,no-timing
+```
+
+{% hint style="info" %}
+`plan` and `analyze` are mutually exclusive — use one or the other.
+{% endhint %}
+
+{% hint style="info" %}
+Prior to version 2602, any value passed to `_explain` (e.g. `_explain=1`, `_explain=true`, `_explain=0`) was treated as `_explain=analyze`. These values are no longer supported and return HTTP 422. Use `_explain=plan` or `_explain=analyze` explicitly instead.
+{% endhint %}
+
 ```
 GET /fhir/Encounter?subject:Patient._ilike=john&_explain=analyze
 ```
@@ -385,7 +414,7 @@ If your query is slow and you see Seq Scans , it's time to build indexes. Do not
 This parameter can be used for debugging too. If an SQL error happens, `_explain` will show the original query:
 
 ```
-GET /fhir/Patient?error-demo=1&_explain=0
+GET /fhir/Patient?error-demo=1&_explain=plan
 
 exception: |-
   ERROR: division by zero

@@ -1,19 +1,19 @@
 ---
 description: >-
-  Embedding the Aidbox Form Builder and Renderer into your application using web
+  Embedding the Formbox Builder and Renderer into your application using web
   components.
 ---
 
 # Embedding
 
-## Embedding Aidbox Form Builder and Renderer
+## Embedding Formbox Builder and Renderer
 
 You can embed the **Builder** and **Renderer** into your application or website using web components.
 The Renderer can also be embedded directly as an iframe using SDC SMART Web Messaging (SWM).
 
 ### Renderer in an iframe (SDC SWM)
 
-The Aidbox Forms renderer also supports [SDC SMART Web Messaging](https://github.com/brianpos/sdc-smart-web-messaging). You can embed it directly in an iframe and communicate via `postMessage`, without the web component wrapper.
+The Formbox renderer also supports [SDC SMART Web Messaging](https://github.com/brianpos/sdc-smart-web-messaging). You can embed it directly in an iframe and communicate via `postMessage`, without the web component wrapper.
 
 * **Builder** allows users to create and manage forms directly within your application.
 * **Renderer** enables users to fill out forms within your application without leaving your platform.
@@ -74,7 +74,7 @@ These attributes control various aspects of the form’s behavior and appearance
 * `language` (optional): Default language for the builder.
 * `translation-languages` (optional): Comma-separated list of allowed languages.
 * `base-url` (optional): The base URL of your Aidbox instance.
-* `style` (optional): Custom styling for the iframe.
+* `style` (optional): Custom styling applied to both iframe and loader container.
 * `config` (optional): The [configuration](configuration.md) as a JSON string.
 * `theme` (optional): Theme settings as a JSON string.
 * `token` (optional): JWT token for authentication.
@@ -87,7 +87,7 @@ These attributes control various aspects of the form’s behavior and appearance
 * `hide-footer` (optional): Hides the form footer.
 * `hide-language-selector` (optional): Hides language selector.
 * `base-url` (optional): The base URL of your Aidbox instance.
-* `style` (optional): Custom styling for the iframe.
+* `style` (optional): Custom styling applied to both iframe and loader container.
 * `config` (optional): The [configuration](configuration.md) as a JSON string.
 * `theme` (optional): Theme settings as a JSON string.
 * `token` (optional): JWT token for authentication.
@@ -114,6 +114,7 @@ Unlike **attributes**, which can only store string values and are defined in the
 * `onAlert` (optional): A custom alert handler that allows you to intercept and handle alerts, overriding the visual alert display. The function receives the alert object as an argument.
 * `onChange` (optional): A custom callback function that is invoked when the questionnaire response is modified, without affecting the default behavior. The function receives the updated questionnaire response as an argument.
 * `onPreviewAttachment` (optional): A custom callback function that allows you to handle attachment previews, enabling external editors or viewers. The function receives the attachment object as an argument.
+* `submit()` (optional): Triggers the same validation and submit flow as the built-in Submit button and returns a Promise. The Promise resolves with the renderer reply payload when submission succeeds and rejects when submission is rejected or fails.
 {% endtab %}
 {% endtabs %}
 
@@ -197,7 +198,7 @@ For more complex use cases, such as attaching authorization headers or storing q
 
 Allows to preview attachments in an external editor or viewer.
 
-Return `false` to use default Aidbox Forms attachment preview, or `true` to prevent default behavior and show your previewer.
+Return `false` to use default Formbox attachment preview, or `true` to prevent default behavior and show your previewer.
 
 ```html
 <aidbox-form-renderer id="aidbox-form-renderer" />
@@ -293,6 +294,84 @@ Additionally, you can set the height of the component dynamically based on the c
 <aidbox-form-renderer id="aidbox-form-renderer" style="height: auto" /> 
 ```
 
+### Step 4: Optional Custom Loading Content
+
+Both web components support a `loading` slot. You can place any HTML in this slot, from a simple text message to a complex, fully styled loader (for example: spinners, SVG animations, skeleton screens, or branded layouts). The element you place in `slot="loading"` is fully styleable with your own CSS.
+The component `style` attribute is applied to both iframe and loader container.
+
+{% tabs %}
+{% tab title="Builder" %}
+```html
+<aidbox-form-builder
+  id="aidbox-form-builder"
+  style="width: 100%; height: 640px; border: none; display: flex"
+  form-id="{{ FORM_ID }}"
+>
+  <div slot="loading">Loading builder...</div>
+</aidbox-form-builder>
+```
+{% endtab %}
+
+{% tab title="Renderer" %}
+```html
+<aidbox-form-renderer
+  id="aidbox-form-renderer"
+  style="width: 100%; height: 640px; border: none; display: flex"
+  questionnaire-id="{{ ID }}"
+>
+  <div slot="loading">Loading form...</div>
+</aidbox-form-renderer>
+```
+{% endtab %}
+{% endtabs %}
+
+If needed, you can also observe loading state with events:
+
+```html
+<script>
+  const builder = document.getElementById('aidbox-form-builder');
+
+  builder.addEventListener('loading', (event) => {
+    console.log('Loading state:', event.detail.loading); // true | false
+  });
+
+  builder.addEventListener('ready', () => {
+    console.log('Builder is ready');
+  });
+</script>
+```
+
+### Step 5: Optional Custom Submit Button
+
+If you use your own submit button outside the renderer component, call `submit()` on the web component instance.
+The method uses the same validation and disabled-state rules as the built-in footer submit action.
+It returns a Promise with the submission result.
+
+```html
+<button id="custom-submit">Submit</button>
+<aidbox-form-renderer
+  id="aidbox-form-renderer"
+  questionnaire-id="{{ ID }}"
+  hide-footer
+/>
+
+<script>
+  const renderer = document.getElementById('aidbox-form-renderer');
+  const customSubmit = document.getElementById('custom-submit');
+
+  customSubmit.addEventListener('click', async () => {
+    try {
+      const result = await renderer.submit();
+      console.log('Form submitted:', result);
+    } catch (error) {
+      console.error('Submission failed:', error.payload || error);
+    }
+  });
+</script>
+```
+
+For message-based integrations, `sdc.aidbox.submit` is also supported as an inbound message type.
+
 ## Controlled Mode (Deprecated)
 
 Controlled mode gives full manual control over loading, updating, and persisting a Questionnaire and QuestionnaireResponse at the application level. The system does not automatically save changes, so the developer must handle data flow and storage. Depending on the use case, making requests to the intended endpoints, as normal mode does, may still be necessary.
@@ -303,7 +382,7 @@ This approach is useful when custom validation is required, such as enforcing bu
 Controlled mode is deprecated in favor of request interception, as the latter provides full control over the component’s interaction with Aidbox, extending beyond just Questionnaire and QuestionnaireResponse.
 {% endhint %}
 
-### Step 4: Enable Controlled Mode
+### Step 6: Enable Controlled Mode
 
 {% tabs %}
 {% tab title="Builder" %}
@@ -352,13 +431,14 @@ Below is a list of events you can listen for:
 * `back`: Emitted when the back button is clicked.
 * `save`: Emitted when the form is saved.
 * `select`: Emitted when an item is selected.
+* `loading`: Emitted when loading state changes. `event.detail.loading` is `true` during load and `false` when done.
 * `ready`: Emitted when the builder is loaded.
 {% endtab %}
 
 {% tab title="Renderer" %}
 * `change`: Triggered when the questionnaire response is updated.
-* `submit`: Emitted when the Submit button is clicked.
 * `extracted`: Emitted when data extraction occurs.
+* `loading`: Emitted when loading state changes. `event.detail.loading` is `true` during load and `false` when done.
 * `ready`: Emitted when the renderer is loaded.
 {% endtab %}
 {% endtabs %}

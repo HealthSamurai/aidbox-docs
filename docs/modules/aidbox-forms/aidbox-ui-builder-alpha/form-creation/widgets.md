@@ -4,9 +4,9 @@ description: This page is under construction.
 
 # Widgets
 
-Aidbox Forms provides a set of widgets that allow you to build comprehensive and user-friendly medical forms. Widgets are pre-defined elements that you can add to your forms to capture various types of data from users.
+Formbox provides a set of widgets that allow you to build comprehensive and user-friendly medical forms. Widgets are pre-defined elements that you can add to your forms to capture various types of data from users.
 
-This section details the various widgets available in Aidbox Forms and their corresponding settings.
+This section details the various widgets available in Formbox and their corresponding settings.
 
 ## Common Widget’s Settings
 
@@ -103,7 +103,7 @@ This feature enhances the usability of forms by ensuring users have access to ad
 
 ### Attributes section
 
-Each widget in Aidbox Forms has its own set of customisable attributes that define its behavior, appearance, and functionality.
+Each widget in Formbox has its own set of customisable attributes that define its behavior, appearance, and functionality.
 
 ### Rules section
 
@@ -165,7 +165,7 @@ For detailed instructions and example of populating data visit the[ Population p
 
 ### Extensions
 
-Aidbox Forms provide ability to add and edit extensions that are not covered in Forms Builder. Users can edit raw Questionnaire json.
+Formbox provide ability to add and edit extensions that are not covered in Forms Builder. Users can edit raw Questionnaire json.
 
 Extensions editor represents three fields for adding your own custom extension. To add extension you need follow three simple steps:
 
@@ -261,6 +261,7 @@ The Choice widget allows users to select one or more options from a predefined l
   * Each option should have a display text, code and system. The user can fill in values ​​or use the import option. In this case, the user will be given the opportunity to select a terminology server, select a valueset in it and find the needed coded value, then the code, system and display will be automatically filled in.
   * Optionally, the user can include a score to each option and show the score if needed, which will be taken into account in the calculations. To do this, need to click on the include score and show score boxes.
   * Optionally, the user can add an option prefix to each answer option and the prefix will be displayed in front of an option (e.g. "(a)", or "1.").
+  * Optionally, the user can enable "Include exclusiveness" option. When enabled, an additional Exclusive column appears with a checkbox for each answer option. Marking an option as exclusive (e.g., “None of the above”) makes it mutually exclusive with all other options—selecting it automatically clears any other selected answers.
   * Instead of inlining options into the form, the use can use a ValueSet that is stored in the Aidbox instance. To do this, the user need to click on the ValueSet box and select the ValueSet.
 * **ValueSet**: Use predefined options in ValueSet
   * **Use external terminology server**: You can specify external terminology server which will be used to `$expand` ValueSet options
@@ -290,6 +291,7 @@ it is displayed on the form as a drop-down list.
   * Each option should have a display text, code and system. The user can fill in values ​​or use the import option. In this case, the user will be given the opportunity to select a terminology server, select a valueset in it and find the needed coded value, then the code, system and display will be automatically filled in.
   * Optionally, the user can include a score to each option and show the score if needed, which will be taken into account in the calculations. To do this, need to click on the include score and show score boxes.
   * Optionally, the user can add an option prefix to each answer option and the prefix will be displayed in front of an option (e.g. "(a)", or "1.").
+  * Optionally, same as with the choice input, the user can enable "Include exclusiveness" feature if "repeats" is enabled. To make an answer option exclusive, tick Exclusive checkbox for the corresponding option. 
   * Instead of inlining options into the form, the use can use a ValueSet that is stored in the Aidbox instance. To do this, the user need to click on the ValueSet box and select the ValueSet.
 * **ValueSet**: Use predefined options in ValueSet
   * **Use external terminology server**: You can specify external terminology server which will be used to `$expand` ValueSet options
@@ -360,6 +362,7 @@ The Checkbox List widget allows users to select multiple options from a predefin
   * Optionally, the user can include a score to each option and show the score if needed, which will be taken into account in the calculations. To do this, need to click on the include score and show score boxes.
   * Optionally, the user can add an option prefix to each answer option and the prefix will be displayed in front of an option (e.g. "(a)", or "1.").
   * Instead of inlining options into the form, the use can use a ValueSet that is stored in the Aidbox instance. To do this, the user need to click on the ValueSet box and select the ValueSet.
+  * Optionally, the user can enable "Include Exclusiveness" option. When an option is marked as exclusive, it cannot be selected together with any other option and will automatically clear conflicting selections.
   * The user can optionally choose to attach media, adding an additional field to each answer option. This makes it possible to include images or animated GIFs in the answer options.
 * **ValueSet**: Use predefined options in ValueSet
   * **Use external terminology server**: You can specify external terminology server which will be used to `$expand` ValueSet options

@@ -31,7 +31,7 @@ FHIR Search API supports various search features to help retrieve exactly the da
 | Include related resources | `GET /fhir/Patient?_include=Patient:organization`                       | Get patients and include their referenced organization resources                                                                                                           |
 | Reverse include           | `GET /fhir/Organization?_revinclude=Patient:organization`               | Get organizations and include all patients that reference them                                                                                                             |
 | Field selection           | `GET /fhir/Patient?_elements=name,birthDate`                            | Return only name and birthDate fields for matching patients                                                                                                                |
-| Chaining                  | `GET /fhir/Patient?organization.name=Mayo`                              | Search for patients in organizations with name containing "Mayo"                                                                                                           |
+| Chaining                  | `GET /fhir/Patient?organization:Organization.name=Mayo`                 | Search for patients in organizations with name containing "Mayo"                                                                                                           |
 | Reverse Chaining          | `GET /fhir/Organization?_has:Patient:organization:name=John`            | Search for organizations that have patients with name containing "John"                                                                                                    |
 | Modifiers                 | `GET /fhir/Patient?name:exact=John`                                     | Search for patients with name exactly matching "John"                                                                                                                      |
 | Advanced filtering        | `GET /fhir/Patient?_filter=name eq 'John' or birthdate eq '1990-01-01'` | Search for patients with name equal to "John" or birthdate equal to "1990-01-01". There's no other way to express this multiple search parameters OR logic in FHIR Search. |
@@ -154,7 +154,7 @@ List of supported modifiers:
 | :not               | token                 | Negates the search value                                                                                                                             | `gender:not=male`                                     |
 | :of-type           | token                 | Search for resource identifier                                                                                                                       | `identifier:of-type=system`                           |
 | :i                 | token                 | Case-insensitive search                                                                                                                              | `email:i=foo@bar.baz`                                 |
-| :below             | uri                   | Tests whether the value in a resource is or is subsumed by the supplied parameter value (is-a, or hierarchical relationships)                        | `url:below=http://acme.org/fhir/`                     |
+| :below             | uri                   | Not supported for **url** parameter (ValueSet, CodeSystem, etc.) — returns 500. See [uri](searchparameter.md#uri).                                      | `_source:below=` supported; `url:below=` returns 500                                   |
 | :not               | uri, reference, token | Negates the search value                                                                                                                             | `url:not=http://acme.org/fhir/`                       |
 | :identifier        | reference             | Search by identifier of referenced resource                                                                                                          | `subject:identifier=urn:oid:1.2.3.4`                  |
 | :btw               | date                  | Search for dates between two values. Defined by Aidbox, not FHIR.                                                                                    | `birthdate:btw=1980,1981`                             |
@@ -200,6 +200,14 @@ See also:
 {% content-ref url="chaining.md" %}
 [chaining.md](chaining.md)
 {% endcontent-ref %}
+
+## Known limitations
+
+| Feature | Limitation |
+|--------|-------------|
+| **Quantity search with unit** | Specifying a unit in the value (e.g. `value-quantity=75.5\|\|kg`) is not implemented; returns 400. Only numeric value comparison is supported. See [quantity](searchparameter.md#quantity). |
+| **url :below modifier** | The `:below` modifier for the **url** search parameter (ValueSet, CodeSystem, StructureDefinition) is not supported; returns 500. `_source:below` works. See [uri](searchparameter.md#uri). |
+| **Component-level composite** | `component-code-value-quantity` (and similar component composites) may not return results; top-level composite search works. See [composite](searchparameter.md#composite). |
 
 ## Other ways to search
 
