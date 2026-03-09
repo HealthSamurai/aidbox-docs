@@ -8,14 +8,7 @@ checks:
     - image-alt
     - orphan-pages
     - deprecated-links
-
-  # Only flag self-referencing absolute links (not cross-product links)
-  absolute-links:
-    domains:
-      - docs.aidbox.app
-      - www.health-samurai.io/docs/aidbox
-    exclude_files:
-      - reference/all-settings.md
+    - absolute-links
 
   # Release notes legitimately reference deprecated features
   deprecated-links:
