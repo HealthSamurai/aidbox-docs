@@ -13,7 +13,7 @@ Since the 2405 release, using Aidbox in FHIRSchema mode is recommended, which is
 {% endhint %}
 
 {% hint style="warning" %}
-The current package is a pre-built version of the VSAC contents 0.7.0 (2022-06-11). Please [reach out to us](../../../../overview/contact-us.md) if you need a newer version.
+The current package is a pre-built version of the VSAC contents 0.7.0 (2022-06-11). Please [reach out to us](../../../../contact-us.md) if you need a newer version.
 {% endhint %}
 
 ## How to set up Aidbox with VSAC value sets
