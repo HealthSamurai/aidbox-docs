@@ -643,3 +643,122 @@ redirects:
   database/other/migrate-to-aidboxdb-16: deprecated/deprecated/aidboxdb/migrate-to-aidboxdb-16.md
   deprecated/deprecated/other/subscribe-to-new-patient-resource: tutorials/subscriptions-tutorials/subscribe-to-new-patient-resource.md
   tutorials/security-access-control-tutorials/rbac/rbac-with-acl: deprecated/deprecated/zen-related/rbac-with-acl.md
+
+  # === Redirects from 404 report (2026-03-13) ===
+
+  # modules/compliance/* → solutions/*
+  modules/compliance: solutions/overview.md
+  modules/compliance/aidbox-+-fhir-app-portal: solutions/aidbox-+-fhir-app-portal/README.md
+  modules/compliance/payers-or-cms-0057-f: solutions/CMS-0057-F/README.md
+  modules/compliance/payers-or-cms-0057-f/patient-access-api: solutions/CMS-0057-F/README.md
+  modules/compliance/payers-or-cms-0057-f/payer-to-payer-api: solutions/CMS-0057-F/README.md
+  modules/compliance/payers-or-cms-0057-f/prior-auth-api: solutions/CMS-0057-F/prior-authorization-support-pas-api.md
+  modules/compliance/payers-or-cms-0057-f/provider-access-api: solutions/CMS-0057-F/README.md
+  modules/compliance/payers-or-cms-0057-f/provider-directory-api: solutions/CMS-0057-F/README.md
+  modules/compliance/providers-or-onc-health-it-certification-program: solutions/providers-or-onc-health-it-certification-program/README.md
+  modules/compliance/providers-or-onc-health-it-certification-program/b10: solutions/providers-or-onc-health-it-certification-program/README.md
+  modules/compliance/providers-or-onc-health-it-certification-program/g-10-standardized-api-for-patient-and-population-services: solutions/providers-or-onc-health-it-certification-program/g-10-standardized-api-for-patient-and-population-services/README.md
+  modules/compliance/providers-or-onc-health-it-certification-program/g-10-standardized-api-for-patient-and-population-services/pass-inferno-tests-with-aidbox: solutions/providers-or-onc-health-it-certification-program/g-10-standardized-api-for-patient-and-population-services/pass-inferno-tests-with-aidbox.md
+  modules/compliance/providers-or-onc-health-it-certification-program/g-10-standardized-api-for-patient-and-population-services/pass-inferno-visual-inspection-and-attestation: solutions/providers-or-onc-health-it-certification-program/g-10-standardized-api-for-patient-and-population-services/pass-inferno-visual-inspection-and-attestation.md
+  modules/compliance/providers-or-onc-health-it-certification-program/g6: solutions/providers-or-onc-health-it-certification-program/README.md
+  modules/compliance/providers-or-onc-health-it-certification-program/g7: solutions/providers-or-onc-health-it-certification-program/g-7-application-access-patient-selection.md
+  modules/compliance/providers-or-onc-health-it-certification-program/g9: solutions/providers-or-onc-health-it-certification-program/g-9-application-access-all-data-request.md
+
+  # modules/smartbox/* → deprecated/deprecated/smartbox/*
+  modules/smartbox: deprecated/deprecated/smartbox/README.md
+  modules/smartbox/background-information/considerations-for-testing-with-inferno-onc: deprecated/deprecated/smartbox/background-information/considerations-for-testing-with-inferno-onc.md
+  modules/smartbox/background-information/email-templating: deprecated/deprecated/smartbox/background-information/email-templating.md
+  modules/smartbox/background-information/multitenancy-approach: deprecated/deprecated/smartbox/background-information/multitenancy-approach.md
+  modules/smartbox/background-information/what-is-tenant: deprecated/deprecated/smartbox/background-information/what-is-tenant.md
+  modules/smartbox/docs-g-docs-10-standardized-api-for-patient-and-population-services: deprecated/deprecated/smartbox/docs-g-docs-10-standardized-api-for-patient-and-population-services.md
+  modules/smartbox/get-started/deploy-smartbox-with-kubernetes: deprecated/deprecated/smartbox/get-started/deploy-smartbox-with-kubernetes.md
+  modules/smartbox/get-started/set-up-smartbox-locally: deprecated/deprecated/smartbox/get-started/set-up-smartbox-locally.md
+  modules/smartbox/how-to-guides: deprecated/deprecated/smartbox/how-to-guides/README.md
+  modules/smartbox/how-to-guides/check-email-templates: deprecated/deprecated/smartbox/how-to-guides/check-email-templates.md
+  modules/smartbox/how-to-guides/find-documentation-endpoint: deprecated/deprecated/smartbox/how-to-guides/find-documentation-endpoint.md
+  modules/smartbox/how-to-guides/find-out-what-resources-were-exported-during-the-export-operation: deprecated/deprecated/smartbox/how-to-guides/find-out-what-resources-were-exported-during-the-export-operation.md
+  modules/smartbox/how-to-guides/perform-ehr-launch: deprecated/deprecated/smartbox/how-to-guides/perform-ehr-launch.md
+  modules/smartbox/how-to-guides/publish-terms-of-use-link-onto-the-documentation-page: deprecated/deprecated/smartbox/how-to-guides/publish-terms-of-use-link-onto-the-documentation-page.md
+  modules/smartbox/how-to-guides/register-users: deprecated/deprecated/smartbox/how-to-guides/register-users.md
+  modules/smartbox/how-to-guides/revoke-granted-access: deprecated/deprecated/smartbox/how-to-guides/revoke-granted-access.md
+  modules/smartbox/how-to-guides/set-up-ehr-level-customization: deprecated/deprecated/smartbox/how-to-guides/set-up-ehr-level-customization.md
+  modules/smartbox/how-to-guides/set-up-sso-with-auth0: deprecated/deprecated/smartbox/how-to-guides/set-up-sso-with-auth0.md
+  modules/smartbox/how-to-guides/setup-email-provider: deprecated/deprecated/smartbox/how-to-guides/setup-email-provider.md
+  modules/smartbox/the-b11-decision-support-interventions: deprecated/deprecated/smartbox/the-b11-decision-support-interventions/README.md
+  modules/smartbox/the-b11-decision-support-interventions/feedback-sections: deprecated/deprecated/smartbox/the-b11-decision-support-interventions/feedback-sections.md
+  modules/smartbox/the-b11-decision-support-interventions/source-attributes: deprecated/deprecated/smartbox/the-b11-decision-support-interventions/source-attributes.md
+
+  # modules-1/smartbox/* → deprecated/deprecated/smartbox/*
+  modules-1/smartbox: deprecated/deprecated/smartbox/README.md
+  modules-1/smartbox/background-information/considerations-for-testing-with-inferno-onc: deprecated/deprecated/smartbox/background-information/considerations-for-testing-with-inferno-onc.md
+  modules-1/smartbox/background-information/email-templating: deprecated/deprecated/smartbox/background-information/email-templating.md
+  modules-1/smartbox/background-information/multitenancy-approach: deprecated/deprecated/smartbox/background-information/multitenancy-approach.md
+  modules-1/smartbox/background-information/what-is-tenant: deprecated/deprecated/smartbox/background-information/what-is-tenant.md
+  modules-1/smartbox/how-to-guides/register-users: deprecated/deprecated/smartbox/how-to-guides/register-users.md
+  modules-1/smartbox/how-to-guides/revoke-granted-access: deprecated/deprecated/smartbox/how-to-guides/revoke-granted-access.md
+  modules-1/smartbox/how-to-guides/set-up-ehr-level-customization: deprecated/deprecated/smartbox/how-to-guides/set-up-ehr-level-customization.md
+  modules-1/smartbox/how-to-guides/setup-email-provider: deprecated/deprecated/smartbox/how-to-guides/setup-email-provider.md
+  modules-1/smartbox/the-b11-decision-support-interventions/source-attributes: deprecated/deprecated/smartbox/the-b11-decision-support-interventions/source-attributes.md
+
+  # modules/mpi/* → modules/mdm/*
+  modules/mpi: modules/mdm/README.md
+  modules/mpi/find-duplicates-match: modules/mdm/find-duplicates-match.md
+  modules/mpi/get-started: modules/mdm/README.md
+  modules/mpi/get-started/configure-mpi-module: modules/mdm/configure-mdm-module.md
+  modules/mpi/get-started/deploy-mpi-with-kubernetes: modules/mdm/README.md
+  modules/mpi/get-started/run-mdm-locally: modules/mdm/run-mdm-locally.md
+  modules/mpi/matching-model-explanation: modules/mdm/matching-model-explanation.md
+  modules/mpi/mathematical-details: modules/mdm/mathematical-details.md
+  modules/mpi/merging-and-unmerging-records-usdmerge-and-usdunmerge: modules/mdm/merging-and-unmerging-records-usdmerge-and-usdunmerge.md
+
+  # modules/aidbox-forms/aidbox-code-editor/* → deprecated/deprecated/forms/aidbox-code-editor/*
+  modules/aidbox-forms/aidbox-code-editor: deprecated/deprecated/forms/aidbox-code-editor/README.md
+  modules/aidbox-forms/aidbox-code-editor/aidbox-form-workflow: deprecated/deprecated/forms/aidbox-code-editor/aidbox-form-workflow.md
+  modules/aidbox-forms/aidbox-code-editor/changing-data-after-form-signing: deprecated/deprecated/forms/aidbox-code-editor/changing-data-after-form-signing.md
+  modules/aidbox-forms/aidbox-code-editor/dynamic-form-creation: deprecated/deprecated/forms/aidbox-code-editor/dynamic-form-creation.md
+  modules/aidbox-forms/aidbox-code-editor/fhir-questionnaire-to-aidbox-forms-and-back-conversion: deprecated/deprecated/forms/aidbox-code-editor/fhir-questionnaire-to-aidbox-forms-and-back-conversion.md
+  modules/aidbox-forms/aidbox-code-editor/form-creation: deprecated/deprecated/forms/aidbox-code-editor/form-creation.md
+  modules/aidbox-forms/aidbox-code-editor/form-customisation: deprecated/deprecated/forms/aidbox-code-editor/form-customisation.md
+  modules/aidbox-forms/aidbox-code-editor/form-sharing: deprecated/deprecated/forms/aidbox-code-editor/form-sharing.md
+  modules/aidbox-forms/aidbox-code-editor/versioning: deprecated/deprecated/forms/aidbox-code-editor/versioning.md
+  modules/aidbox-forms/any-familiar-form-editor-docs-deprecated: deprecated/deprecated/forms/any-familiar-form-editor-docs-deprecated.md
+
+  # modules/fhir-topic-based-subscriptions → topic-based-subscriptions
+  modules/fhir-topic-based-subscriptions: modules/topic-based-subscriptions/README.md
+
+  # reference/* redirects
+  reference/system-resources-reference/subscriptions-module-resources: reference/system-resources-reference/README.md
+  reference/system-resources-reference/bulk-module-resources: reference/system-resources-reference/README.md
+  reference/system-resources-reference/iam-module-resources: reference/system-resources-reference/README.md
+  reference/system-resources-reference/awf-module-resources: reference/system-resources-reference/README.md
+
+  # solutions/* redirects (case changes, old paths)
+  solutions/payers-or-cms-0057-f: solutions/CMS-0057-F/README.md
+  solutions/payers-or-cms-0057-f/patient-access-api: solutions/CMS-0057-F/README.md
+  solutions/payers-or-cms-0057-f/payer-to-payer-api: solutions/CMS-0057-F/README.md
+  solutions/payers-or-cms-0057-f/prior-auth-api: solutions/CMS-0057-F/prior-authorization-support-pas-api.md
+  solutions/payers-or-cms-0057-f/provider-access-api: solutions/CMS-0057-F/README.md
+  solutions/payers-or-cms-0057-f/provider-directory-api: solutions/CMS-0057-F/README.md
+  solutions/providers-or-onc-health-it-certification-program/b10: solutions/providers-or-onc-health-it-certification-program/README.md
+  solutions/providers-or-onc-health-it-certification-program/g6: solutions/providers-or-onc-health-it-certification-program/README.md
+  solutions/providers-or-onc-health-it-certification-program/g7: solutions/providers-or-onc-health-it-certification-program/g-7-application-access-patient-selection.md
+  solutions/providers-or-onc-health-it-certification-program/g9: solutions/providers-or-onc-health-it-certification-program/g-9-application-access-all-data-request.md
+  solutions/CMS-0057-F/coverage-requirements-discovery-crd/crd-api: solutions/CMS-0057-F/coverage-requirements-discovery-crd/cds-hooks-api.md
+
+  # modules/observability/* redirects
+  modules/observability/metrics/monitoring/set-up-grafana-integration: deprecated/deprecated/other/monitoring/set-up-grafana-integration.md
+
+  # modules-1/observability
+  modules-1/observability/traces: modules/observability/traces/README.md
+
+  # modules-1/aidbox-forms
+  modules-1/aidbox-forms/aidbox-ui-builder-alpha/form-creation: modules/aidbox-forms/aidbox-ui-builder-alpha/form-creation/README.md
+
+  # tutorials/* redirects (two-factor-authentication and local-terminlogy already exist above)
+
+  # modules/profiling-and-validation
+  modules/profiling-and-validation/fhir-schema-validator/aidbox-fhir-igs-registry: tutorials/artifact-registry-tutorials/upload-fhir-implementation-guide/README.md
+
+  # modules/eprescription
+  modules/eprescription/prescribing/rx-change: modules/eprescription/prescribing/README.md
+  modules/eprescription/prescribing/rx-renewal: modules/eprescription/prescribing/README.md
