@@ -2584,6 +2584,14 @@ Batch validation run resource for tracking validation processes.
   "type" : "dateTime",
   "desc" : "Export only resources modified after this date."
 }, {
+  "path" : "params.until",
+  "name" : "until",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "dateTime",
+  "desc" : "Export only resources modified before this date."
+}, {
   "path" : "params.requester",
   "name" : "requester",
   "lvl" : 1,
