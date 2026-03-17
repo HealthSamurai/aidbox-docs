@@ -572,6 +572,69 @@ Now, if `org-b` is a child organization of `org-a`, (**Organization.partOf** ref
 GET /Organization/org-b/fhir/Practitioner/prac-1
 ```
 
+## System-shared resource mode
+
+While the [shared resource mode](#shared-resource-mode) makes a resource visible only to child organizations of the owning organization, the **system-shared** mode makes a resource visible to **all** organizations globally.
+
+System-shared resources are created at the root level (via the root FHIR API, not through any organization-scoped API) and are automatically visible to every organization in the system.
+
+{% hint style="warning" %}
+System-shared resources are **read-only** from organization-scoped APIs. To create, update, or delete a system-shared resource, use the root API. Attempting to modify a system-shared resource from an organization API returns `403 Forbidden`.
+{% endhint %}
+
+{% hint style="warning" %}
+A system-shared resource **cannot** have an organization binding (`tenant-organization-id` extension). Attempting to create a resource with both `system-shared` mode and an organization reference returns `422 Unprocessable Entity`.
+{% endhint %}
+
+### Create a system-shared resource
+
+Use the root FHIR API with the `https://aidbox.app/tenant-resource-mode` extension set to `system-shared`:
+
+```
+PUT /fhir/Practitioner/global-prac-1
+content-type: text/yaml
+
+meta:
+  extension:
+  - url: https://aidbox.app/tenant-resource-mode
+    valueString: "system-shared"
+name:
+- given: [Global]
+  family: Practitioner
+```
+
+### Access system-shared resource from any organization
+
+The resource is now readable from any organization-scoped API:
+
+```
+GET /Organization/org-a/fhir/Practitioner/global-prac-1
+# 200 OK
+
+GET /Organization/org-b/fhir/Practitioner/global-prac-1
+# 200 OK
+
+GET /Organization/org-d/fhir/Practitioner/global-prac-1
+# 200 OK
+```
+
+System-shared resources also appear in search results for all organizations:
+
+```
+GET /Organization/org-b/fhir/Practitioner?_sort=id
+# Returns: global-prac-1 + org-b's own practitioners
+```
+
+### Comparison: shared vs system-shared
+
+| Behavior | `shared` | `system-shared` |
+|---|---|---|
+| Visibility | Child organizations only | All organizations |
+| Created via | Organization-scoped API | Root API only |
+| Organization binding | Required (belongs to an org) | Forbidden (no org binding) |
+| Modifiable from org API | No (read-only from children) | No (read-only from all orgs) |
+| Use case | Share within org hierarchy | Global templates / references |
+
 ## See also
 
 {% content-ref url="../../../tutorials/security-access-control-tutorials/how-to-enable-hierarchical-access-control.md" %}

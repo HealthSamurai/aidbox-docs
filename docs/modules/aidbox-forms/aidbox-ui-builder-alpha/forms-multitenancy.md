@@ -166,7 +166,10 @@ Multitenancy introduces several rules to ensure proper isolation and hierarchy b
 **3. Root-Level Forms**
 
 * If a form is created when no organization is selected, it becomes a **root-level form**.
-* Root-level forms are visible outside any organizational context.
+* **Without `system-shared` flag**: root-level forms are visible only via the root API and are **not** accessible from organization-scoped APIs.
+* **With `system-shared` flag**: root-level forms become visible to **all** organizations via organization-scoped APIs. This enables a "global form template" pattern — you can manage one form template at the root level and share it across all tenants (e.g., 100+ independent organizations) without creating a parent-child hierarchy.
+* To set the `system-shared` flag, create or update the form via the root API with the `https://aidbox.app/tenant-resource-mode` extension set to `system-shared`. See [System-shared resource mode](../../../access-control/authorization/scoped-api/organization-based-hierarchical-access-control.md#system-shared-resource-mode) for details.
+* System-shared root-level forms are **read-only** from organization APIs — manage them exclusively via the root API.
 
 ### **Responses**
 
