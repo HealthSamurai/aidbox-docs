@@ -33,6 +33,10 @@ For Hybrid Mode, configure the external terminology server URL:
 </strong>BOX_FHIR_TERMINOLOGY_ENGINE_HYBRID_EXTERNAL_TX_SERVER: https://tx.health-samurai.io/fhir
 </code></pre>
 
+{% hint style="warning" %}
+After enabling hybrid mode, you must reinstall the core FHIR package (e.g. `hl7.fhir.r4.core`) via the Aidbox UI at `/ui/console#/ig`. This ensures all necessary resources and dependencies are present for the hybrid engine to function correctly.
+{% endhint %}
+
 ## Implementation Guide Loading
 
 To populate the local terminology content, configure FHIR packages to load at startup:
