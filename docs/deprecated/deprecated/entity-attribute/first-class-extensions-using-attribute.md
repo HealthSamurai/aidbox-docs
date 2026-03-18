@@ -548,7 +548,7 @@ subject:
 
 ## Using FHIR extensions
 
-Let's create an attribute for the [servicerequest-precondition](http://hl7.org/fhir/extension-servicerequest-precondition.html) extension:
+Let's create an attribute for the [servicerequest-precondition](https://hl7.org/fhir/extensions/StructureDefinition-servicerequest-precondition.html) extension:
 
 ```yaml
 PUT /Attribute/ServiceRequest.precondition
