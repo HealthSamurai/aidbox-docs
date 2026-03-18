@@ -105,11 +105,10 @@ See also:
 
 * [Type Schema for FHIR SDKs](https://www.health-samurai.io/articles/type-schema-a-pragmatic-approach-to-build-fhir-sdk)
 * [Python SDK implementation](https://www.health-samurai.io/articles/type-schema-python-sdk-for-fhir)
-* [FHIR Type Schema GitHub Repository](https://github.com/fhir-clj/type-schema)
-* [FHIR Schema CodeGen GitHub Repository](https://github.com/fhir-schema/fhir-schema-codegen)
-  * TypeScript SDK Example: [GitHub](https://github.com/fhir-schema/fhir-schema-codegen/tree/main/example/typescript)
-  * Python SDK Example: [GitHub](https://github.com/fhir-schema/fhir-schema-codegen/tree/main/example/python)
-  * C# SDK Example: [GitHub](https://github.com/fhir-schema/fhir-schema-codegen/tree/main/example/csharp)
+* [FHIR Schema CodeGen GitHub Repository](https://github.com/atomic-ehr/codegen)
+  * TypeScript SDK Example: [GitHub](https://github.com/atomic-ehr/codegen/tree/main/examples/typescript-r4)
+  * Python SDK Example: [GitHub](https://github.com/atomic-ehr/codegen/tree/main/examples/python)
+  * C# SDK Example: [GitHub](https://github.com/atomic-ehr/codegen/tree/main/examples/csharp)
 
 ## App framework for custom operations
 
