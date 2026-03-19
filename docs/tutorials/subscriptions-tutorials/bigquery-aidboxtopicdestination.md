@@ -35,7 +35,7 @@ The BigQuery Topic Destination module exports FHIR resources from Aidbox to Goog
 1. Download the BigQuery module JAR file and place it next to your **docker-compose.yaml**:
 
    ```sh
-   curl -O https://storage.googleapis.com/aidbox-modules/topic-destination-bigquery/topic-destination-bigquery-2603.1.jar
+   curl -O https://storage.googleapis.com/aidbox-modules/topic-destination-bigquery/topic-destination-bigquery-2603.2.jar
    ```
 
 2. Edit your **docker-compose.yaml** and add these lines to the Aidbox service:
@@ -43,7 +43,7 @@ The BigQuery Topic Destination module exports FHIR resources from Aidbox to Goog
    ```yaml
    aidbox:
      volumes:
-       - ./topic-destination-bigquery-2603.1.jar:/topic-destination-bigquery.jar
+       - ./topic-destination-bigquery-2603.2.jar:/topic-destination-bigquery.jar
        # ... other volumes ...
      environment:
        BOX_MODULE_LOAD: io.healthsamurai.topic-destination.bigquery.core
@@ -85,7 +85,7 @@ spec:
             - |
               apt-get -y update && apt-get -y install curl
               curl -L -o /modules/topic-destination-bigquery.jar \
-                https://storage.googleapis.com/aidbox-modules/topic-destination-bigquery/topic-destination-bigquery-2603.1.jar
+                https://storage.googleapis.com/aidbox-modules/topic-destination-bigquery/topic-destination-bigquery-2603.2.jar
               chmod 644 /modules/topic-destination-bigquery.jar
           volumeMounts:
             - mountPath: /modules
@@ -128,7 +128,7 @@ All requests in this tutorial use `Content-Type: application/json`.
 | `projectId`         | string      | Google Cloud project ID             |
 | `dataset`           | string      | BigQuery dataset name               |
 | `destinationTable`  | string      | Target table name in BigQuery       |
-| `viewDefinition`    | string      | Name of the ViewDefinition resource |
+| `viewDefinition`    | string      | The `name` field of the ViewDefinition resource (not `id`) |
 | `batchSize`         | unsignedInt | Number of messages per batch        |
 | `sendIntervalMs`    | unsignedInt | Maximum time between sends (ms)     |
 
@@ -141,7 +141,7 @@ All requests in this tutorial use `Content-Type: application/json`.
 | Parameter              | Type    | Description                                                                        |
 | ---------------------- | ------- | ---------------------------------------------------------------------------------- |
 | `serviceAccountKey`    | string  | Google Service Account JSON key (omit when using Workload Identity or ADC)         |
-| `skipInitialExport`    | string  | Skip initial export of existing data. Set to `"true"` to skip.                     |
+| `skipInitialExport`    | boolean | Skip initial export of existing data (default: `false`)                            |
 | `cloudSqlConnectionId` | string  | BigQuery Connection ID for Cloud SQL federated query (initial export optimization) |
 | `location`             | string  | GCP location for the BigQuery Connection (default: `us`)                           |
 | `emulatorUrl`          | string  | BigQuery emulator REST URL, e.g., `http://bigquery:9050` (skips authentication)    |
@@ -281,8 +281,6 @@ Attach a service account with the required BigQuery roles to your Cloud Run serv
 
 ### Step 6: Configure BigQuery Destination
 
-**With Service Account key:**
-
 ```http
 POST /fhir/AidboxTopicDestination
 
@@ -308,31 +306,9 @@ POST /fhir/AidboxTopicDestination
 }
 ```
 
-**Without Service Account key (ADC):**
-
-```http
-POST /fhir/AidboxTopicDestination
-
-{
-  "resourceType": "AidboxTopicDestination",
-  "id": "patient-bigquery",
-  "topic": "http://example.org/subscriptions/patient-updates",
-  "kind": "bigquery-at-least-once",
-  "meta": {
-    "profile": [
-      "http://aidbox.app/StructureDefinition/aidboxtopicdestination-bigquery-at-least-once"
-    ]
-  },
-  "parameter": [
-    {"name": "projectId", "valueString": "your-gcp-project-id"},
-    {"name": "dataset", "valueString": "your_dataset"},
-    {"name": "destinationTable", "valueString": "patients"},
-    {"name": "viewDefinition", "valueString": "patient_flat"},
-    {"name": "batchSize", "valueUnsignedInt": 50},
-    {"name": "sendIntervalMs", "valueUnsignedInt": 5000}
-  ]
-}
-```
+{% hint style="info" %}
+For Cloud Run / GKE with Workload Identity (ADC), omit the `serviceAccountKey` parameter — the module will use the attached service account automatically.
+{% endhint %}
 
 ### Step 7: Verify
 
@@ -377,7 +353,7 @@ To skip the initial export (e.g., the table is already populated or you only nee
 ### How it works
 
 1. Reads existing data from PostgreSQL via the materialized ViewDefinition using a streaming JDBC cursor
-2. Sends data to BigQuery in batches of 500 rows using the Storage Write API [pending stream](https://cloud.google.com/bigquery/docs/write-api#pending_type)
+2. Sends data to BigQuery in internal batches of 500 rows (hardcoded, separate from the `batchSize` parameter which controls real-time delivery) using the Storage Write API [pending stream](https://cloud.google.com/bigquery/docs/write-api#pending_type)
 3. After all rows are sent, finalizes and commits the stream — data becomes visible atomically
 4. Reports progress via the `$status` endpoint (`initialExportProgress_rowsSent`)
 
@@ -434,13 +410,29 @@ The `location` must match the region where the BigQuery Connection was created.
 GET /fhir/AidboxTopicDestination/patient-bigquery/$status
 ```
 
-Returns current metrics:
+Returns a FHIR [Parameters](https://www.hl7.org/fhir/parameters.html) resource:
+
+```json
+{
+  "resourceType": "Parameters",
+  "parameter": [
+    {"name": "status", "valueString": "active"},
+    {"name": "messagesDelivered", "valueDecimal": 100},
+    {"name": "messagesQueued", "valueDecimal": 0},
+    {"name": "messagesInProcess", "valueDecimal": 0},
+    {"name": "messagesDeliveryAttempts", "valueDecimal": 100},
+    {"name": "initialExportStatus", "valueString": "completed"},
+    {"name": "initialExportProgress_rowsSent", "valueDecimal": 100}
+  ]
+}
+```
 
 - `messagesDelivered` — total messages sent to BigQuery
-- `messagesQueued` — messages waiting in queue
+- `messagesQueued` — messages waiting in the PG queue
 - `messagesInProcess` — messages currently being sent
 - `messagesDeliveryAttempts` — total delivery attempts (including retries)
-- `initialExportStatus` — `not_started`, `export-in-progress`, `completed`, or `failed`
+- `initialExportStatus` — `not_started`, `export-in-progress`, `completed`, `skipped`, or `failed`
+- `initialExportProgress_rowsSent` — number of rows sent during initial export
 
 ## Data Transformation
 
@@ -450,25 +442,36 @@ The module automatically:
 2. **Adds deletion flag**: Sets `is_deleted = 0` for create/update, `is_deleted = 1` for delete operations
 3. **Batches messages**: Groups messages according to `batchSize` and `sendIntervalMs` parameters
 
-### Soft Deletes
+### Soft Deletes and Updates
 
-BigQuery is an append-only store — you cannot delete or update individual rows in place. When a FHIR resource is deleted in Aidbox, the module appends a new row with `is_deleted = 1` (`INT64`). When a resource is created or updated, `is_deleted = 0`.
+BigQuery is an append-only store — you cannot delete or update individual rows in place. Every change to a FHIR resource (create, update, or delete) appends a **new row** to BigQuery:
 
-This means a single resource may have multiple rows in BigQuery (one per change). To query only the current, non-deleted state, filter by `is_deleted`:
+- **Create**: new row with `is_deleted = 0`
+- **Update**: new row with `is_deleted = 0` (old row remains unchanged)
+- **Delete**: new row with `is_deleted = 1`
+
+This means a resource that was created and then updated 3 times will have 4 rows in BigQuery, all with the same `id`. The `is_deleted` column is `INT64` (not `BOOL`) for compatibility with the ClickHouse module which uses `UInt8`.
+
+To query only non-deleted resources (ignoring history):
 
 ```sql
 SELECT * FROM your_dataset.patients WHERE is_deleted = 0;
 ```
 
-To get the latest version of each resource (handling updates), use a window function:
+To get the latest version of each resource (handling both updates and deletes), add a timestamp column to your table and ViewDefinition, then use a window function:
 
 ```sql
-SELECT * FROM (
-  SELECT *, ROW_NUMBER() OVER (PARTITION BY id ORDER BY _PARTITIONTIME DESC) as rn
+-- Requires a timestamp column (e.g., ts from meta.lastUpdated) in the table
+SELECT * EXCEPT(rn) FROM (
+  SELECT *, ROW_NUMBER() OVER (PARTITION BY id ORDER BY ts DESC) as rn
   FROM your_dataset.patients
 )
 WHERE rn = 1 AND is_deleted = 0;
 ```
+
+{% hint style="info" %}
+To track versions, add `meta.lastUpdated` to your ViewDefinition as a `ts` column (type `TIMESTAMP` in BigQuery). Each update appends a new row with a newer `ts`, so you can always find the latest state.
+{% endhint %}
 
 ## Local Testing with BigQuery Emulator
 
@@ -476,8 +479,9 @@ You can test the BigQuery integration locally without a GCP account using the [B
 
 ### Start the Emulator
 
+Add the BigQuery emulator to your existing `docker-compose.yaml`:
+
 ```yaml
-# docker-compose.yaml
 services:
   bigquery:
     image: ghcr.io/goccy/bigquery-emulator:latest
@@ -555,6 +559,29 @@ curl -s -X POST 'http://localhost:9050/bigquery/v2/projects/test-project/queries
 {% hint style="warning" %}
 The emulator has a known limitation: `DATE` columns may return `null` when data is written via the Storage Write API (gRPC). `STRING`, `INTEGER`, and `TIMESTAMP` columns work correctly. This does not affect real BigQuery.
 {% endhint %}
+
+## Delivery Guarantees and Retry
+
+The module provides **at-least-once delivery**. Messages are persisted in a PostgreSQL queue before being sent to BigQuery. If delivery fails, the message remains in the queue and is retried on the next batch cycle (every `sendIntervalMs`). There is a 1-second backoff between failed delivery attempts to prevent log storms.
+
+If the gRPC connection to BigQuery drops (network issue, server maintenance), the writer is automatically reconnected with exponential backoff. Messages are not lost during reconnection — they stay in the PG queue.
+
+Initial export retries up to 3 times with exponential backoff (1s, 2s, 4s) on failure.
+
+## Multiple Destinations
+
+You can create multiple destinations for the same topic, e.g., to export the same data to different BigQuery tables with different ViewDefinitions. Each destination operates independently with its own queue, writer, and status.
+
+## Schema Evolution
+
+If you need to add a column to the BigQuery table:
+
+1. Add the column to your BigQuery table (`ALTER TABLE ... ADD COLUMN ...`)
+2. Update the ViewDefinition with the new column
+3. Re-materialize the ViewDefinition (`POST /fhir/ViewDefinition/{id}/$materialize`)
+4. Delete and recreate the destination to pick up the new schema
+
+Existing rows will have `NULL` in the new column. New rows will include the new data.
 
 ## Troubleshooting
 
