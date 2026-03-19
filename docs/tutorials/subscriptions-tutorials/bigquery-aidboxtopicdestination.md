@@ -142,8 +142,6 @@ All requests in this tutorial use `Content-Type: application/json`.
 | ---------------------- | ------- | ---------------------------------------------------------------------------------- |
 | `serviceAccountKey`    | string  | Google Service Account JSON key (omit when using Workload Identity or ADC)         |
 | `skipInitialExport`    | boolean | Skip initial export of existing data (default: `false`)                            |
-| `cloudSqlConnectionId` | string  | BigQuery Connection ID for Cloud SQL federated query (initial export optimization) |
-| `location`             | string  | GCP location for the BigQuery Connection (default: `us`)                           |
 | `emulatorUrl`          | string  | BigQuery emulator REST URL, e.g., `http://bigquery:9050` (skips authentication)    |
 | `emulatorGrpcHost`     | string  | BigQuery emulator gRPC host:port, e.g., `bigquery:9060` (uses plaintext gRPC)      |
 
@@ -363,47 +361,30 @@ The export runs in a single thread. For small to medium datasets (up to ~100K ro
 The pending stream commit is atomic — if the export fails partway through (e.g., on row 999,999 of 1,000,000), **no data is committed** and the export is retried from scratch (up to 3 attempts). This guarantees no partial data in BigQuery, but means large exports may take multiple attempts on transient failures.
 {% endhint %}
 
-### Cloud SQL Optimization
+### Large Datasets: Manual Initial Export via Cloud SQL
 
-If your Aidbox PostgreSQL database runs on [Google Cloud SQL](https://cloud.google.com/sql), you can significantly speed up initial export using BigQuery's [federated query](https://cloud.google.com/bigquery/docs/cloud-sql-federated-queries) feature. Instead of streaming data row-by-row through the module (PG → JDBC → JVM → gRPC → BigQuery), BigQuery reads directly from Cloud SQL over Google's internal network.
+For large datasets (1M+ rows), the default initial export may be slow (single-threaded PG → JVM → gRPC). If your Aidbox runs on [Google Cloud SQL](https://cloud.google.com/sql), you can do the initial export manually using BigQuery's [federated query](https://cloud.google.com/bigquery/docs/cloud-sql-federated-queries) — BigQuery reads directly from Cloud SQL over Google's internal network.
 
-The module executes the following query via the BigQuery Jobs API:
+1. [Create a BigQuery Connection](https://cloud.google.com/bigquery/docs/create-cloud-sql-connection) to your Cloud SQL instance
+2. Run this query in the BigQuery Console:
 
 ```sql
-INSERT INTO `{project}.{dataset}.{table}`
+INSERT INTO `your_project.your_dataset.patients`
 SELECT *, 0 as is_deleted
 FROM EXTERNAL_QUERY(
-  'projects/{project}/locations/{location}/connections/{connectionId}',
-  'SELECT * FROM sof.{viewDefinitionName}'
+  'projects/your_project/locations/your_region/connections/your_connection_id',
+  'SELECT * FROM sof.patient_flat'
 )
 ```
 
-BigQuery connects to Cloud SQL, runs the `SELECT` against the materialized ViewDefinition view in the `sof` schema, adds the `is_deleted` column, and inserts the results directly into the destination table.
-
-**Setup:**
-
-1. In the BigQuery console, go to **Add data > External data sources > Cloud SQL**
-2. [Create a BigQuery Connection](https://cloud.google.com/bigquery/docs/create-cloud-sql-connection) to your Cloud SQL instance
-3. Note the connection ID and the region where you created it
-4. Add these parameters to your destination:
+3. Create the destination with `skipInitialExport` to avoid duplicates:
 
 ```json
-{"name": "cloudSqlConnectionId", "valueString": "your-connection-id"},
-{"name": "location", "valueString": "us-central1"}
+{"name": "skipInitialExport", "valueBoolean": true}
 ```
 
-The `location` must match the region where the BigQuery Connection was created.
-
 {% hint style="warning" %}
-**Location constraint:** The BigQuery dataset, the BigQuery Connection, and the Cloud SQL instance must all be in the same region (e.g., `us-east1`). If your dataset is in a multi-region location like `US`, federated queries will fail with "Dataset not found in location". You need to create the dataset in the same regional location as your Cloud SQL instance.
-{% endhint %}
-
-{% hint style="info" %}
-**When to use this:** The default Storage Write API path works well for datasets up to ~100K rows. For larger datasets (1M+ rows), federated query is significantly faster because it eliminates the single-threaded JVM bottleneck. The trade-off is the one-time setup of a BigQuery Connection and the regional location constraint.
-{% endhint %}
-
-{% hint style="warning" %}
-**Limitations:** Federated queries are subject to [BigQuery quotas](https://cloud.google.com/bigquery/quotas#cloud_sql_federated_queries): results are limited to approximately 20 GB of uncompressed data, and queries have a 6-hour timeout. This only applies to the initial export — real-time streaming is not affected. If your dataset exceeds these limits, omit `cloudSqlConnectionId` to use the default Storage Write API path instead.
+The BigQuery dataset, the Connection, and the Cloud SQL instance must all be in the same region (e.g., `us-east1`).
 {% endhint %}
 
 ## Monitoring
