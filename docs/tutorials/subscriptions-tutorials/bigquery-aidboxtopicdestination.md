@@ -450,7 +450,7 @@ BigQuery is an append-only store — you cannot delete or update individual rows
 - **Update**: new row with `is_deleted = 0` (old row remains unchanged)
 - **Delete**: new row with `is_deleted = 1`
 
-This means a resource that was created and then updated 3 times will have 4 rows in BigQuery, all with the same `id`. The `is_deleted` column is `INT64` (not `BOOL`) for compatibility with the ClickHouse module which uses `UInt8`.
+This means a resource that was created and then updated 3 times will have 4 rows in BigQuery, all with the same `id`. The `is_deleted` column uses `INT64` with values `0` and `1`.
 
 To query only non-deleted resources (ignoring history):
 
