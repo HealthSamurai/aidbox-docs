@@ -46,6 +46,7 @@ Aidbox provides several implementations of subscriptions. For enhanced capabilit
           <li><a href="../../tutorials/subscriptions-tutorials/clickhouse-aidboxtopicdestination.md">ClickHouse</a></li>
           <li><a href="../../tutorials/subscriptions-tutorials/bigquery-aidboxtopicdestination.md">BigQuery</a></li>
         </ul>
+        *additional channels will be implemented by request
       </td>
       <td>Maintained</td>
     </tr>
