@@ -122,7 +122,7 @@ Each rule is a map with at least two keys:
 Where `[...]` - is a path in the intermediate tree of an input document. Detailed explanation of the intermediate tree will be provided later.
 
 {% hint style="info" %}
-Use the endpoint `/v2/ccda/to-fhir?intermediate=true` to get the intermediate tree for input FHIR-bundle and `/v2/ccda/to-ccda?intermediate=true` to get the one for input C-CDA document.
+Use the endpoint `/ccda/v2/to-ccda?intermediate=true` to get the intermediate tree for input FHIR-bundle and `/ccda/v2/to-fhir?intermediate=true` to get the one for input C-CDA document.
 {% endhint %}
 
 The path is a combination of nodes of the intermediate tree that leeds to the value of some particulare field.
