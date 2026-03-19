@@ -138,13 +138,14 @@ All requests in this tutorial use `Content-Type: application/json`.
 
 ### Optional Parameters
 
-| Parameter              | Type   | Description                                                                        |
-| ---------------------- | ------ | ---------------------------------------------------------------------------------- |
-| `serviceAccountKey`    | string | Google Service Account JSON key (omit when using Workload Identity or ADC)         |
-| `cloudSqlConnectionId` | string | BigQuery Connection ID for Cloud SQL federated query (initial export optimization) |
-| `location`             | string | GCP location for the BigQuery Connection (default: `us`)                           |
-| `emulatorUrl`          | string | BigQuery emulator REST URL, e.g., `http://bigquery:9050` (skips authentication)    |
-| `emulatorGrpcHost`     | string | BigQuery emulator gRPC host:port, e.g., `bigquery:9060` (uses plaintext gRPC)      |
+| Parameter              | Type    | Description                                                                        |
+| ---------------------- | ------- | ---------------------------------------------------------------------------------- |
+| `serviceAccountKey`    | string  | Google Service Account JSON key (omit when using Workload Identity or ADC)         |
+| `skipInitialExport`    | boolean | Skip initial export of existing data (default: `false`)                            |
+| `cloudSqlConnectionId` | string  | BigQuery Connection ID for Cloud SQL federated query (initial export optimization) |
+| `location`             | string  | GCP location for the BigQuery Connection (default: `us`)                           |
+| `emulatorUrl`          | string  | BigQuery emulator REST URL, e.g., `http://bigquery:9050` (skips authentication)    |
+| `emulatorGrpcHost`     | string  | BigQuery emulator gRPC host:port, e.g., `bigquery:9060` (uses plaintext gRPC)      |
 
 ### Authentication
 
@@ -361,6 +362,12 @@ This stops the export and cleans up the internal message queue. Data already wri
 
 When a new destination is created, the module automatically exports all existing data that matches the subscription topic. This ensures your BigQuery table has complete historical data.
 
+To skip the initial export (e.g., the table is already populated or you only need real-time data), add `skipInitialExport`:
+
+```json
+{"name": "skipInitialExport", "valueBoolean": true}
+```
+
 ### How it works
 
 1. Reads existing data from PostgreSQL via the materialized ViewDefinition using a streaming JDBC cursor
@@ -376,7 +383,20 @@ The pending stream commit is atomic — if the export fails partway through (e.g
 
 ### Cloud SQL Optimization
 
-If your Aidbox PostgreSQL database runs on [Google Cloud SQL](https://cloud.google.com/sql), you can significantly speed up initial export using BigQuery's [federated query](https://cloud.google.com/bigquery/docs/cloud-sql-federated-queries) feature. Instead of streaming data row-by-row through the module (PG → JDBC → JVM → gRPC → BigQuery), BigQuery reads directly from Cloud SQL over Google's internal network using `EXTERNAL_QUERY`.
+If your Aidbox PostgreSQL database runs on [Google Cloud SQL](https://cloud.google.com/sql), you can significantly speed up initial export using BigQuery's [federated query](https://cloud.google.com/bigquery/docs/cloud-sql-federated-queries) feature. Instead of streaming data row-by-row through the module (PG → JDBC → JVM → gRPC → BigQuery), BigQuery reads directly from Cloud SQL over Google's internal network.
+
+The module executes the following query via the BigQuery Jobs API:
+
+```sql
+INSERT INTO `{project}.{dataset}.{table}`
+SELECT *, 0 as is_deleted
+FROM EXTERNAL_QUERY(
+  'projects/{project}/locations/{location}/connections/{connectionId}',
+  'SELECT * FROM sof.{viewDefinitionName}'
+)
+```
+
+BigQuery connects to Cloud SQL, runs the `SELECT` against the materialized ViewDefinition view in the `sof` schema, adds the `is_deleted` column, and inserts the results directly into the destination table.
 
 **Setup:**
 
