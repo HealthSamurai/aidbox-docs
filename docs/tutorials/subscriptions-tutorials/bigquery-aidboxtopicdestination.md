@@ -394,8 +394,12 @@ BigQuery connects to Cloud SQL, runs the `SELECT` against the materialized ViewD
 
 The `location` must match the region where the BigQuery Connection was created.
 
+{% hint style="warning" %}
+**Location constraint:** The BigQuery dataset, the BigQuery Connection, and the Cloud SQL instance must all be in the same region (e.g., `us-east1`). If your dataset is in a multi-region location like `US`, federated queries will fail with "Dataset not found in location". You need to create the dataset in the same regional location as your Cloud SQL instance.
+{% endhint %}
+
 {% hint style="info" %}
-**When to use this:** The default Storage Write API path works well for datasets up to ~100K rows. For larger datasets (1M+ rows), federated query is significantly faster because it eliminates the single-threaded JVM bottleneck. The trade-off is the one-time setup of a BigQuery Connection.
+**When to use this:** The default Storage Write API path works well for datasets up to ~100K rows. For larger datasets (1M+ rows), federated query is significantly faster because it eliminates the single-threaded JVM bottleneck. The trade-off is the one-time setup of a BigQuery Connection and the regional location constraint.
 {% endhint %}
 
 {% hint style="warning" %}
