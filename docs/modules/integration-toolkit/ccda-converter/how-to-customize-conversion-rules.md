@@ -161,7 +161,7 @@ The table below describes all kind of special symbols:
 | :\*                           | for each                                                                                              | `[:component :*]`                                  |
 | 0-N number                    | get N-th element                                                                                      | `[:component 0]`                                   |
 | {:resourceType "Observation"} | filtering expression, select all maps where there is a key `:resourceType` with value `"Observation"` | `[:entry.Organizer {:resourceType "Observation"}]` |
-| "AuthorParticipation" | ensures that rule with only use the field typed as the string-named class / template | `["AuthorParticipation" :* :-typeCode]` |
+| "AuthorParticipation" | ensures that rule will only use the field typed as the string-named class / template | `["AuthorParticipation" :* :-typeCode]` |
 | :entry.ImmunizationActivityV3 | only selects entries under a key (before the period) with a given type (after the period) | `[:entry.AllergyConcernActV3 :* "AuthorParticipation" 0]` |
 | :_revinclude "Resource" path ...| selects a resource that refers to the current one under a given path | `[_revinclude "Task" :ext/pertains-to-goal :value :Reference]` |
 
