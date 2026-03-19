@@ -144,6 +144,7 @@ There are several options you may pass to the `/ccda/v2/to-fhir` endpoint. Optio
 | `sections`         | <p>Proceed to the <a href="./#list-of-supported-sections">Section Aliases</a> table to find all possible values.<br>Default: all</p> | Comma-separated list of section aliases to process. By default all sections are processed. |
 | `patient-id`       | `id` that will be inserted and propagated as `uri` , `id` or `fullURl` in resulting FHIR Bundle.                                     | Arbitrary string that corresponds to id.                                                   |
 | `post-process`     | Different useful utils that are applied after conversion                                                                             | `single-entry-organizer` - will remove organizers with single Observation entry            |
+| `intermediate`| `true` | Return intermediate tree instead of end result of conversion |
 
 Example
 
@@ -270,6 +271,15 @@ Authorization: ...
   ]
 }
 ```
+
+#### Endpoint Options
+
+
+| Option             | Values                                                                                                                               | Description                                                                                |
+| ------------------ | ------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------ |
+| `format`           | `aidbox` (default ,) `fhir` | Whether the source document is in Aidbox or FHIR format. Taken from `Content-Type` header (`application/json` for Aidbox, `application/fhir+json` for FHIR) if not provided. |
+| `intermediate`     | `true` | Whether to return intermediate tree instead of final conversion result. |
+| `sections` | Comma-separated list of section aliases from [section docs](sections/)| A list of sections to include in the final document. |
 
 ### Persisting result of C-CDA to FHIR conversion
 
