@@ -169,7 +169,7 @@ The table below describes all kind of special symbols:
 
 Aidbox users can define conversion rules for specific sections.
 
-Existing CCDA rules are displayed in `aidbox/ccda/rules` folder of zen-ui .
+Existing CCDA rules are displayed in `aidbox/ccda/rules` folder of zen-ui.
 
 Let it be Vital Signs section narrative. It is available via `#aidbox.ccda.rules.vital-signs/narrative`. We do not want to display just the most popular observations, but we want to see only those observations in the dataset, without any placeholders.
 
