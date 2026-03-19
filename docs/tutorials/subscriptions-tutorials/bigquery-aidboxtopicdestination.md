@@ -424,6 +424,26 @@ The module automatically:
 2. **Adds deletion flag**: Sets `is_deleted = 0` for create/update, `is_deleted = 1` for delete operations
 3. **Batches messages**: Groups messages according to `batchSize` and `sendIntervalMs` parameters
 
+### Soft Deletes
+
+BigQuery is an append-only store — you cannot delete or update individual rows in place. When a FHIR resource is deleted in Aidbox, the module appends a new row with `is_deleted = 1` (`INT64`). When a resource is created or updated, `is_deleted = 0`.
+
+This means a single resource may have multiple rows in BigQuery (one per change). To query only the current, non-deleted state, filter by `is_deleted`:
+
+```sql
+SELECT * FROM your_dataset.patients WHERE is_deleted = 0;
+```
+
+To get the latest version of each resource (handling updates), use a window function:
+
+```sql
+SELECT * FROM (
+  SELECT *, ROW_NUMBER() OVER (PARTITION BY id ORDER BY _PARTITIONTIME DESC) as rn
+  FROM your_dataset.patients
+)
+WHERE rn = 1 AND is_deleted = 0;
+```
+
 ## Local Testing with BigQuery Emulator
 
 You can test the BigQuery integration locally without a GCP account using the [BigQuery Emulator](https://github.com/goccy/bigquery-emulator).
