@@ -225,11 +225,12 @@ aidbox.ccda.rules.discharge-diagnosis/rules:
             fhir: [entry * meta]
 ```
 
-You can see the example of this config [here](https://github.com/Aidbox/aidbox-project-template/tree/aidbox-ccda-custom-rules). Three important details for custom rules to be applied:
+You can see the example of this config [here](https://github.com/Aidbox/aidbox-project-template/tree/aidbox-ccda-custom-rules). Four important details for custom rules to be applied:
 
 * They should be saved as `.yaml` file;
 * This file should be accessible to Aidbox (for `docker-compose`, it should be mapped in `volumes`);
-* And the path to this file should be provided in `CCDA_CUSTOM_RULES` environment variable.
+* The path to this file should be provided in `CCDA_CUSTOM_RULES` environment variable.
+* And the syntax used in this YAML file should be converted from the Zen syntax by removing colons from all colon-prefixed keywords
 
 {% hint style="warning" %}
 The work with Override DSL is in progress.
