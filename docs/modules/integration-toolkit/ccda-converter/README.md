@@ -40,8 +40,8 @@ Authorization: .....
 Content-Type: application/cda+xml
 
 <?xml version="1.0" encoding="UTF-8"?>
-<ClinicalDocument 
-  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+<ClinicalDocument
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xmlns="urn:hl7-org:v3" ... >
   ....
 </ClinicalDocument>
@@ -101,7 +101,7 @@ If conversion was successful, you'll get a [FHIR Document](https://www.hl7.org/f
         }, {
           "uri" : "urn:uuid:b8b29b52-ecb1-7e69-bee9-52af94d0c174"
         } ]
-        
+
         ....
 ```
 
@@ -153,8 +153,8 @@ Authorization: .....
 Content-Type: application/cda+xml
 
 <?xml version="1.0" encoding="UTF-8"?>
-<ClinicalDocument 
-  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+<ClinicalDocument
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xmlns="urn:hl7-org:v3" ...>
   ....
 </ClinicalDocument>
@@ -226,8 +226,8 @@ Authorization: ...
 // HTTP/1.1 200 OK
 
 <?xml version="1.0" encoding="UTF-8"?>
-<ClinicalDocument 
-  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+<ClinicalDocument
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xmlns="urn:hl7-org:v3" ...>
   ....
 </ClinicalDocument>
@@ -246,7 +246,7 @@ Authorization: ...
     "resourceType": "Bundle",
     "type": "document",
     // Reference is in FHIR format
-    "subject": {"reference": "urn:uuid:xxxxxxxxxxxxxxx"} 
+    "subject": {"reference": "urn:uuid:xxxxxxxxxxxxxxx"}
 }
 ```
 
@@ -281,8 +281,8 @@ Authorization: .....
 Content-Type: application/cda+xml
 
 <?xml version="1.0" encoding="UTF-8"?>
-<ClinicalDocument 
-  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+<ClinicalDocument
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xmlns="urn:hl7-org:v3" ...>
   ....
 </ClinicalDocument>
@@ -341,8 +341,8 @@ Authorization: .....
 Content-Type: application/cda+xml
 
 <?xml version="1.0" encoding="UTF-8"?>
-<ClinicalDocument 
-  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+<ClinicalDocument
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xmlns="urn:hl7-org:v3" ...>
   ....
 </ClinicalDocument>
