@@ -307,6 +307,7 @@ In addition to the FHIR resources that are converted from C-CDA data, the `/ccda
 If the `create-docref` option is provided, this endpoint will also create a [DocumentReference](https://build.fhir.org/documentreference.html) resource that contains a base64-encoded copy of the original C-CDA XML document in its `content` attribute. This feature is useful if you want to store the original document in the Aidbox database for rare use cases. By default, the `create-docref` option is set to false, so no DocumentReference resource is created.
 The created DocumentReference has the following structure in its content:
 
+``` json
 {
   "content": [{
     "attachment": {
@@ -315,6 +316,7 @@ The created DocumentReference has the following structure in its content:
     }
   }]
 }
+```
 
 #### Endpoint Options
 
