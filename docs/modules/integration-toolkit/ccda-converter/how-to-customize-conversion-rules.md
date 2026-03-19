@@ -172,7 +172,7 @@ Let it be Vital Signs section narrative. It is available via `#aidbox.ccda.rules
 
 We create `.yaml` file where we say:
 
-```
+``` yaml
 aidbox.ccda.rules.vital-signs/narrative:
   replace:
     - cda: [text 0]
@@ -193,11 +193,11 @@ aidbox.ccda.rules.vital-signs/narrative:
           cda: [2]
 ```
 
-`aidbox.ccda.rules.vital-signs/narrative` - means that we are going to override the narrative in Vital Signs namespace `replace` - this instruction means that we substitute all conversion rules to the given in `.yaml` file
+`aidbox.ccda.rules.vital-signs/narrative`—means that we are going to override the narrative in Vital Signs namespace `replace`—this instruction means that we substitute all conversion rules to the given in `.yaml` file
 
 If you need to substitute just one rule and leave all the rest there is `select` instruction:
 
-```
+``` yaml
 aidbox.ccda.rules.encounters/narrative:
   select:
     - selector:
@@ -212,6 +212,15 @@ Code here says that you:
 
 * find the rule in `aidbox.ccda.rules.encounters/narrative` that is equal to the rule declared in `selector`
 * substitue the rule that was found to the rule that was declared in `override`
+
+There also are `remove` rules, removing the mapping with a matching `selector`:
+
+``` yaml
+aidbox.ccda.rules.discharge-diagnosis/rules:
+    remove:
+        - selector:
+            fhir: [entry * meta]
+```
 
 You can see the example of this config [here](https://github.com/Aidbox/aidbox-project-template/tree/aidbox-ccda-custom-rules). Three important details for custom rules to be applied:
 
@@ -253,7 +262,7 @@ to-ccda:
 
 Please take into account that it also requires following steps:
 
-* CCDA\_CUSTOM\_CODEMAPS variable is set to path where custom codemaps are located
-* path where custom codemaps are located is added to Kubernetes volumes (e.g. [example](https://github.com/Aidbox/aidbox-project-template/blob/aidbox-ccda-custom-rules/docker-compose.yaml) )
+* `CCDA_CUSTOM_CODEMAPS` variable is set to path where custom codemaps are located
+* path where custom codemaps are located is added to Kubernetes volumes (e.g. [example](https://github.com/Aidbox/aidbox-project-template/blob/aidbox-ccda-custom-rules/docker-compose.yaml))
 
 ## DSL description
