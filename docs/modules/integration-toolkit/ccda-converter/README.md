@@ -15,6 +15,11 @@ To meet these data exchange requirements, Aidbox offers a module that performs C
 
 {% hint style="info" %}
 C-CDA / FHIR Converter provides bidirectional mapping for all data elements from the [USCDI v1](https://www.healthit.gov/isa/sites/isa/files/2020-10/USCDI-Version-1-July-2020-Errata-Final_0.pdf) list.
+And FHIR->CCDA mapping for all data elements from the [USCDI v3](https://isp.healthit.gov/sites/default/files/USCDI-Version-3-1_2025_508.pdf) list.
+{% endhint %}
+
+{% hint style="info" %}
+The converter also supports conversion of [eLTSS Care Plans](https://hl7.org/fhir/us/eltss/STU2/StructureDefinition-CarePlan-eltss.html) to C-CDA.
 {% endhint %}
 
 {% hint style="info" %}
