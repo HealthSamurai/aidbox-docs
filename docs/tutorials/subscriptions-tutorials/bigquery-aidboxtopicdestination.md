@@ -591,6 +591,7 @@ Existing rows will have `NULL` in the new column. New rows will include the new 
 2. **Table not found**: Ensure the BigQuery table exists and the project/dataset/table names are correct
 3. **Schema mismatch**: The BigQuery table columns must match the ViewDefinition output columns plus `is_deleted`
 4. **Initial export timeout**: For large datasets, the initial export may take time. Monitor progress via `$status`
+5. **Duplicate rows after recreating destination**: Deleting and recreating a destination triggers initial export again, adding duplicate rows to BigQuery. To avoid this, set `skipInitialExport: true` when recreating a destination that already has its data exported
 
 ### Debug Tips
 
