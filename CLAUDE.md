@@ -1,6 +1,6 @@
 # Aidbox Documentation
 
-This is a documentation repository for Aidbox. It uses Health Samurai's `docs-tools` for linting, image optimization, and OG image generation.
+This is a documentation repository for Aidbox. It uses Health Samurai's `docs-tools` for linting and image optimization.
 
 All documentation is written in **English**.
 
@@ -9,7 +9,6 @@ All documentation is written in **English**.
 ```
 docs/           — markdown files (documentation pages)
 assets/         — images and downloadable files
-assets/og/      — auto-generated Open Graph images (do not edit)
 SUMMARY.md      — table of contents and navigation
 docs-lint.yaml  — linter configuration
 redirects.yaml  — URL redirects
@@ -72,7 +71,6 @@ Place images in `assets/` directory (use subdirectories to organize, e.g. `asset
 - Supported formats: PNG, JPG, JPEG, GIF, SVG, WebP, AVIF
 - CI automatically converts images to AVIF and updates references — commit as PNG/JPG, optimization happens on push
 - To optimize locally before pushing: `bun images:optimize`
-- Do not edit files in `assets/og/` — these are auto-generated Open Graph images
 
 ### Mermaid Diagrams
 
@@ -254,4 +252,4 @@ Common lint errors and how to fix them:
 - **deprecated-links** — link points to a page in a deprecated directory. Update to current page.
 - **absolute-links** — hardcoded absolute URL to own docs domain. Use relative markdown links instead.
 
-CI automatically optimizes images and generates OG images on push.
+CI automatically optimizes images on push.
