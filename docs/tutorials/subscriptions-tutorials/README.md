@@ -32,6 +32,10 @@ description: Learn to configure Aidbox subscriptions with FHIR Subscriptions, Ka
 [clickhouse-aidboxtopicdestination.md](clickhouse-aidboxtopicdestination.md)
 {% endcontent-ref %}
 
+{% content-ref url="bigquery-aidboxtopicdestination.md" %}
+[bigquery-aidboxtopicdestination.md](bigquery-aidboxtopicdestination.md)
+{% endcontent-ref %}
+
 {% content-ref url="aidboxtopicsubscription-nats-tutorial.md" %}
 [aidboxtopicsubscription-nats-tutorial.md](aidboxtopicsubscription-nats-tutorial.md)
 {% endcontent-ref %}

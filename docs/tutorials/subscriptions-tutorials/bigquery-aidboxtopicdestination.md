@@ -1,5 +1,5 @@
 ---
-description: Export FHIR resources to Google BigQuery analytics using SQL-on-FHIR ViewDefinitions for real-time reporting.
+description: Export FHIR resources to Google BigQuery for real-time analytics using SQL-on-FHIR ViewDefinitions.
 ---
 
 # BigQuery AidboxTopicDestination
@@ -10,9 +10,17 @@ This functionality is available starting from version 2603.
 
 ## Overview
 
-The BigQuery Topic Destination module provides integration between Aidbox's topic-based subscriptions and Google BigQuery. It enables real-time export of FHIR resources from Aidbox to BigQuery in a flattened format using [ViewDefinitions](../../modules/sql-on-fhir/defining-flat-views-with-view-definitions.md) and SQL-on-FHIR technology.
+The BigQuery Topic Destination module exports FHIR resources from Aidbox to Google BigQuery in a flattened format using [ViewDefinitions](../../modules/sql-on-fhir/defining-flat-views-with-view-definitions.md) and SQL-on-FHIR technology. Data is written using the [Storage Write API](https://cloud.google.com/bigquery/docs/write-api) (gRPC) for high throughput.
 
-Data is written to BigQuery using the [Storage Write API](https://cloud.google.com/bigquery/docs/write-api) (gRPC), which provides exactly-once delivery semantics and high throughput.
+**Delivery guarantee:** The module uses an at-least-once delivery queue internally — messages are persisted in PostgreSQL and retried on failure. The BigQuery Storage Write API provides exactly-once semantics at the API level, so duplicate delivery attempts do not result in duplicate rows.
+
+## Key Features
+
+- **Real-time data export**: Automatically exports FHIR resources to BigQuery as they are created, updated, or deleted
+- **Data flattening**: Uses ViewDefinitions to transform complex FHIR resources into flat, analytical-friendly tables
+- **At-least-once delivery**: Persistent message queue with guaranteed delivery and batch processing
+- **Initial export**: Automatically exports existing data when setting up a new destination
+- **Monitoring**: Built-in metrics and status reporting via `$status` endpoint
 
 ## Before you begin
 
@@ -20,12 +28,14 @@ Data is written to BigQuery using the [Storage Write API](https://cloud.google.c
 - Set up a local Aidbox instance using the getting started [guide](../../getting-started/run-aidbox-locally.md)
 - Have a Google Cloud project with BigQuery enabled, or use the [BigQuery Emulator](#local-testing-with-bigquery-emulator) for local testing
 
-## Setting up
+## Installation
+
+### Docker Compose
 
 1. Download the BigQuery module JAR file and place it next to your **docker-compose.yaml**:
 
    ```sh
-   curl -O https://storage.googleapis.com/aidbox-modules/topic-destination-bigquery/topic-destination-bigquery-2603.jar
+   curl -O https://storage.googleapis.com/aidbox-modules/topic-destination-bigquery/topic-destination-bigquery-2603.1.jar
    ```
 
 2. Edit your **docker-compose.yaml** and add these lines to the Aidbox service:
@@ -33,8 +43,8 @@ Data is written to BigQuery using the [Storage Write API](https://cloud.google.c
    ```yaml
    aidbox:
      volumes:
-       - ./topic-destination-bigquery-2603.jar:/topic-destination-bigquery.jar
-     # ... other volumes ...
+       - ./topic-destination-bigquery-2603.1.jar:/topic-destination-bigquery.jar
+       # ... other volumes ...
      environment:
        BOX_MODULE_LOAD: io.healthsamurai.topic-destination.bigquery.core
        BOX_MODULE_JAR: "/topic-destination-bigquery.jar"
@@ -50,7 +60,13 @@ Data is written to BigQuery using the [Storage Write API](https://cloud.google.c
 4. Verify the module is loaded. In Aidbox UI, go to **FHIR Packages** and check that the BigQuery profile is present:
    `http://aidbox.app/StructureDefinition/aidboxtopicdestination-bigquery-at-least-once`
 
+{% hint style="info" %}
+The profile URL above is a FHIR canonical identifier, not an HTTP endpoint. You can find it in the Aidbox UI under FHIR Packages.
+{% endhint %}
+
 ### Kubernetes
+
+For Kubernetes deployments, the module is downloaded automatically using an init container:
 
 ```yaml
 apiVersion: apps/v1
@@ -69,7 +85,7 @@ spec:
             - |
               apt-get -y update && apt-get -y install curl
               curl -L -o /modules/topic-destination-bigquery.jar \
-                https://storage.googleapis.com/aidbox-modules/topic-destination-bigquery/topic-destination-bigquery-2603.jar
+                https://storage.googleapis.com/aidbox-modules/topic-destination-bigquery/topic-destination-bigquery-2603.1.jar
               chmod 644 /modules/topic-destination-bigquery.jar
           volumeMounts:
             - mountPath: /modules
@@ -84,6 +100,7 @@ spec:
               value: "/modules/topic-destination-bigquery.jar"
             - name: BOX_FHIR_SCHEMA_VALIDATION
               value: "true"
+            # ... other environment variables ...
           volumeMounts:
             - name: modules-volume
               mountPath: /modules
@@ -92,43 +109,70 @@ spec:
           emptyDir: {}
 ```
 
-## Key Features
+{% hint style="info" %}
+This is a partial Deployment manifest showing only the module-related configuration. You still need your existing Aidbox environment variables, Service, and other Kubernetes resources. Use a pinned Aidbox version (e.g., `healthsamurai/aidboxone:2603`) for production instead of `edge`.
+{% endhint %}
 
-- **Real-time data export**: Automatically exports FHIR resources to BigQuery as they are created, updated, or deleted
-- **Data flattening**: Uses ViewDefinitions to transform complex FHIR resources into flat, analytical-friendly tables
-- **At-least-once delivery**: Persistent message queue with guaranteed delivery and batch processing
-- **Initial export**: Automatically exports existing data when setting up a new destination
-- **Storage Write API**: Uses BigQuery's gRPC-based Storage Write API for high throughput and exactly-once semantics
-- **Monitoring**: Built-in metrics and status reporting via `$status` endpoint
+### Updating the module
+
+When a new version is released, update the JAR URL/filename in your deployment configuration and restart Aidbox. Available versions are listed in `gs://aidbox-modules/topic-destination-bigquery/`.
 
 ## Configuration
 
-### Parameters
+### Required Parameters
 
-| Parameter           | Type        | Required | Description                         |
-| ------------------- | ----------- | -------- | ----------------------------------- |
-| `projectId`         | string      | Yes      | Google Cloud project ID             |
-| `dataset`           | string      | Yes      | BigQuery dataset name               |
-| `destinationTable`  | string      | Yes      | Target table name in BigQuery       |
-| `viewDefinition`    | string      | Yes      | Name of the ViewDefinition resource |
-| `serviceAccountKey` | string      | Yes      | Google Service Account JSON key     |
-| `batchSize`         | unsignedInt | Yes      | Number of messages per batch        |
-| `sendIntervalMs`    | unsignedInt | Yes      | Maximum time between sends (ms)     |
+All requests in this tutorial use `Content-Type: application/json`.
+
+| Parameter           | Type        | Description                         |
+| ------------------- | ----------- | ----------------------------------- |
+| `projectId`         | string      | Google Cloud project ID             |
+| `dataset`           | string      | BigQuery dataset name               |
+| `destinationTable`  | string      | Target table name in BigQuery       |
+| `viewDefinition`    | string      | Name of the ViewDefinition resource |
+| `batchSize`         | unsignedInt | Number of messages per batch        |
+| `sendIntervalMs`    | unsignedInt | Maximum time between sends (ms)     |
+
+{% hint style="info" %}
+**Choosing batch parameters:** For low-latency dashboards, use small batches (e.g., `batchSize: 10`, `sendIntervalMs: 1000`). For high-throughput bulk workloads, use larger batches (e.g., `batchSize: 500`, `sendIntervalMs: 5000`). Start with `batchSize: 50` and `sendIntervalMs: 5000` as a reasonable default.
+{% endhint %}
 
 ### Optional Parameters
 
 | Parameter              | Type   | Description                                                                        |
 | ---------------------- | ------ | ---------------------------------------------------------------------------------- |
+| `serviceAccountKey`    | string | Google Service Account JSON key (omit when using Workload Identity or ADC)         |
 | `cloudSqlConnectionId` | string | BigQuery Connection ID for Cloud SQL federated query (initial export optimization) |
 | `location`             | string | GCP location for the BigQuery Connection (default: `us`)                           |
+| `emulatorUrl`          | string | BigQuery emulator REST URL, e.g., `http://bigquery:9050` (skips authentication)    |
+| `emulatorGrpcHost`     | string | BigQuery emulator gRPC host:port, e.g., `bigquery:9060` (uses plaintext gRPC)      |
+
+### Authentication
+
+The module supports three authentication methods:
+
+1. **Service Account JSON key** — pass the full JSON key content as the `serviceAccountKey` parameter. Suitable for Docker Compose and environments without Workload Identity.
+2. **Application Default Credentials (ADC)** — omit `serviceAccountKey`. The module automatically uses the attached service account credentials. Recommended for Cloud Run and GKE with Workload Identity.
+3. **Emulator mode** — set `emulatorUrl` and `emulatorGrpcHost`. No authentication required.
+
+{% hint style="warning" %}
+Avoid hardcoding the Service Account JSON key directly in resource definitions. Use environment variables or a secrets manager to inject it at deployment time.
+{% endhint %}
+
+### Required IAM Roles
+
+The service account (whether explicit key or ADC) needs these roles:
+
+| Role | Purpose |
+| ---- | ------- |
+| `roles/bigquery.user` | Run queries, create jobs (healthcheck, federated queries) |
+| `roles/bigquery.dataEditor` | Insert data, create/update tables via Storage Write API |
 
 ## Usage Example: Patient Data Export
 
 ### Step 1: Create Subscription Topic
 
-```yaml
+```http
 POST /fhir/AidboxSubscriptionTopic
-Content-Type: application/json
 
 {
   "resourceType": "AidboxSubscriptionTopic",
@@ -146,9 +190,8 @@ Content-Type: application/json
 
 ### Step 2: Create ViewDefinition
 
-```yaml
+```http
 POST /fhir/ViewDefinition
-Content-Type: application/json
 
 {
   "resourceType": "ViewDefinition",
@@ -177,9 +220,10 @@ Content-Type: application/json
 
 ### Step 3: Materialize ViewDefinition
 
-```yaml
+The ViewDefinition must be [materialized](../../modules/sql-on-fhir/operation-materialize.md) as a database view before the BigQuery module can use it to transform data. Materialization creates a SQL view in the `sof` schema that maps FHIR resources to the flat column structure you defined.
+
+```http
 POST /fhir/ViewDefinition/patient_flat/$materialize
-Content-Type: application/json
 
 {
   "resourceType": "Parameters",
@@ -193,7 +237,7 @@ Content-Type: application/json
 ```
 
 {% hint style="info" %}
-The ViewDefinition must be materialized as a **view** (not a table). This is required for the BigQuery module to transform data correctly.
+The ViewDefinition must be materialized as a **view** (not a table). See the [`$materialize` operation](../../modules/sql-on-fhir/operation-materialize.md) documentation for details.
 {% endhint %}
 
 ### Step 4: Create BigQuery Table
@@ -215,18 +259,25 @@ CREATE TABLE your_project.your_dataset.patients (
 The table **must** include an `is_deleted` column (`INT64 NOT NULL`). The module sets this to `0` for create/update operations and `1` for delete operations.
 {% endhint %}
 
-### Step 5: Create Service Account
+### Step 5: Configure Authentication
+
+**Option A: Service Account key (Docker Compose)**
 
 1. Go to [Google Cloud IAM](https://console.cloud.google.com/iam-admin/serviceaccounts)
 2. Create a new Service Account
-3. Grant it the **BigQuery Data Editor** role on your dataset
+3. Grant it `roles/bigquery.user` and `roles/bigquery.dataEditor` on your project
 4. Create a JSON key and download it
+
+**Option B: Application Default Credentials (Cloud Run / GKE)**
+
+Attach a service account with the required BigQuery roles to your Cloud Run service or GKE workload. No key file needed — omit `serviceAccountKey` from the destination configuration.
 
 ### Step 6: Configure BigQuery Destination
 
-```yaml
+**With Service Account key:**
+
+```http
 POST /fhir/AidboxTopicDestination
-Content-Type: application/json
 
 {
   "resourceType": "AidboxTopicDestination",
@@ -243,24 +294,45 @@ Content-Type: application/json
     {"name": "dataset", "valueString": "your_dataset"},
     {"name": "destinationTable", "valueString": "patients"},
     {"name": "viewDefinition", "valueString": "patient_flat"},
-    {"name": "serviceAccountKey", "valueString": "{\"type\":\"service_account\",\"project_id\":\"...\"}"},
+    {"name": "serviceAccountKey", "valueString": "<contents of your service account JSON key>"},
     {"name": "batchSize", "valueUnsignedInt": 50},
     {"name": "sendIntervalMs", "valueUnsignedInt": 5000}
   ]
 }
 ```
 
-{% hint style="info" %}
-The `serviceAccountKey` parameter should contain the full JSON content of the Service Account key file as a string.
-{% endhint %}
+**Without Service Account key (ADC):**
+
+```http
+POST /fhir/AidboxTopicDestination
+
+{
+  "resourceType": "AidboxTopicDestination",
+  "id": "patient-bigquery",
+  "topic": "http://example.org/subscriptions/patient-updates",
+  "kind": "bigquery-at-least-once",
+  "meta": {
+    "profile": [
+      "http://aidbox.app/StructureDefinition/aidboxtopicdestination-bigquery-at-least-once"
+    ]
+  },
+  "parameter": [
+    {"name": "projectId", "valueString": "your-gcp-project-id"},
+    {"name": "dataset", "valueString": "your_dataset"},
+    {"name": "destinationTable", "valueString": "patients"},
+    {"name": "viewDefinition", "valueString": "patient_flat"},
+    {"name": "batchSize", "valueUnsignedInt": 50},
+    {"name": "sendIntervalMs", "valueUnsignedInt": 5000}
+  ]
+}
+```
 
 ### Step 7: Verify
 
 Create a test patient:
 
-```yaml
+```http
 POST /fhir/Patient
-Content-Type: application/json
 
 {
   "name": [{"use": "official", "family": "Smith", "given": ["John"]}],
@@ -275,6 +347,16 @@ Then query your BigQuery table to confirm the data arrived:
 SELECT * FROM your_project.your_dataset.patients;
 ```
 
+### Stopping the export
+
+To stop exporting data, delete the `AidboxTopicDestination` resource:
+
+```http
+DELETE /fhir/AidboxTopicDestination/patient-bigquery
+```
+
+This stops the export and cleans up the internal message queue. Data already written to BigQuery is not affected.
+
 ## Initial Export
 
 When a new destination is created, the module automatically exports all existing data that matches the subscription topic. This ensures your BigQuery table has complete historical data.
@@ -288,12 +370,14 @@ The initial export process:
 
 ### Cloud SQL Optimization
 
-If your Aidbox PostgreSQL database runs on [Google Cloud SQL](https://cloud.google.com/sql), you can speed up initial export using BigQuery's federated query feature. Add the `cloudSqlConnectionId` parameter:
+If your Aidbox PostgreSQL database runs on [Google Cloud SQL](https://cloud.google.com/sql), you can speed up initial export using BigQuery's [federated query](https://cloud.google.com/bigquery/docs/cloud-sql-federated-queries) feature. Add the `cloudSqlConnectionId` parameter:
 
 ```json
 {"name": "cloudSqlConnectionId", "valueString": "your-connection-id"},
 {"name": "location", "valueString": "us-central1"}
 ```
+
+The `cloudSqlConnectionId` is the ID of a [BigQuery Connection](https://cloud.google.com/bigquery/docs/create-cloud-sql-connection) to your Cloud SQL instance. Create it in the BigQuery console under **Add data > External data sources > Cloud SQL**. The `location` must match the region where the connection was created.
 
 This allows BigQuery to read directly from Cloud SQL without routing data through the module.
 
@@ -365,9 +449,8 @@ curl -X POST http://localhost:9050/bigquery/v2/projects/test-project/datasets/te
 
 When using the emulator, omit `serviceAccountKey` and add emulator endpoints instead:
 
-```yaml
+```http
 POST /fhir/AidboxTopicDestination
-Content-Type: application/json
 
 {
   "resourceType": "AidboxTopicDestination",
@@ -380,14 +463,14 @@ Content-Type: application/json
     ]
   },
   "parameter": [
-    { "name": "projectId", "valueString": "test-project" },
-    { "name": "dataset", "valueString": "test" },
-    { "name": "destinationTable", "valueString": "patients" },
-    { "name": "viewDefinition", "valueString": "patient_flat" },
-    { "name": "batchSize", "valueUnsignedInt": 10 },
-    { "name": "sendIntervalMs", "valueUnsignedInt": 100 },
-    { "name": "emulatorUrl", "valueString": "http://bigquery:9050" },
-    { "name": "emulatorGrpcHost", "valueString": "bigquery:9060" }
+    {"name": "projectId", "valueString": "test-project"},
+    {"name": "dataset", "valueString": "test"},
+    {"name": "destinationTable", "valueString": "patients"},
+    {"name": "viewDefinition", "valueString": "patient_flat"},
+    {"name": "batchSize", "valueUnsignedInt": 10},
+    {"name": "sendIntervalMs", "valueUnsignedInt": 100},
+    {"name": "emulatorUrl", "valueString": "http://bigquery:9050"},
+    {"name": "emulatorGrpcHost", "valueString": "bigquery:9060"}
   ]
 }
 ```
@@ -412,7 +495,7 @@ The emulator has a known limitation: `DATE` columns may return `null` when data 
 
 ### Common Issues
 
-1. **Authentication errors**: Verify the Service Account JSON key is valid and has BigQuery Data Editor permissions
+1. **Authentication errors**: Verify the Service Account JSON key is valid and has the required IAM roles, or check that ADC is properly configured
 2. **Table not found**: Ensure the BigQuery table exists and the project/dataset/table names are correct
 3. **Schema mismatch**: The BigQuery table columns must match the ViewDefinition output columns plus `is_deleted`
 4. **Initial export timeout**: For large datasets, the initial export may take time. Monitor progress via `$status`
@@ -427,5 +510,6 @@ The emulator has a known limitation: `DATE` columns may return `null` when data 
 ## Related Documentation
 
 - [ViewDefinitions](../../modules/sql-on-fhir/defining-flat-views-with-view-definitions.md)
+- [`$materialize` operation](../../modules/sql-on-fhir/operation-materialize.md)
 - [Topic-based Subscriptions](../../modules/topic-based-subscriptions/README.md)
 - [BigQuery Storage Write API](https://cloud.google.com/bigquery/docs/write-api)
