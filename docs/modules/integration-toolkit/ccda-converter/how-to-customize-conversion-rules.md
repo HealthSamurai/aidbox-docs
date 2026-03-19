@@ -24,7 +24,7 @@ Current conversion rules are stored in `.edn` files in the zen project.
 
 The `core.edn` file describes a top-level configuration of the service:
 
-```
+``` clojure
 default-config
  {:docdefs
   {:discharge-summary aidbox.ccda.docdefs/discharge-summary}
@@ -63,7 +63,7 @@ Each key inside `:section-rules` references mappings for the section entries and
 
 For example, this entry
 
-```
+``` clojure
   {"VitalSignsSectionentriesrequired"    {:entries aidbox.ccda.rules.vital-signs/rules
                                           :narrative aidbox.ccda.rules.vital-signs/narrative}
 ```
@@ -72,7 +72,7 @@ is related to Vital signs section mapping.
 
 The reference `:entries aidbox.ccda.rules.vital-signs/rules` points to the file with corresponding mappings:
 
-```
+``` clojure
 {ns aidbox.ccda.rules.vital-signs
  import #{aidbox.ccda.rules.shared.observation
           aidbox.ccda.rules.shared.narrative-fns
@@ -114,7 +114,7 @@ Here is a description of the rules syntax.
 
 Each rule is a map with at least two keys:
 
-```
+``` clojure
 {:cda [...]
  :fhir [...]}
 ```
@@ -129,13 +129,13 @@ The path is a combination of nodes of the intermediate tree that leeds to the va
 
 For example, the path
 
-```
+``` clojure
 [:entry.VitalSignsOrganizerV3 :* :component :* "VitalSignObservationV2" :value]
 ```
 
 means get a value of the "VitalSignObservationV2" by path in the tree:
 
-```
+``` clojure
 - :entry.VitalSignsOrganizerV3
   - [
       :component
