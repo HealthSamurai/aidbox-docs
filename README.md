@@ -1,6 +1,6 @@
 # Aidbox Documentation
 
-Documentation for [Aidbox](https://www.health-samurai.io/aidbox) — open-source FHIR platform.
+Documentation for [Aidbox FHIR platform](https://www.health-samurai.io/aidbox).
 
 ## Prerequisites
 
