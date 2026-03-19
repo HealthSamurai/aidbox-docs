@@ -370,7 +370,8 @@ For large datasets (1M+ rows), the default initial export may be slow (single-th
 
 ```sql
 INSERT INTO `your_project.your_dataset.patients`
-SELECT *, 0 as is_deleted
+  (id, gender, birth_date, family_name, given_name, is_deleted)
+SELECT id, gender, CAST(birth_date AS DATE), family_name, given_name, 0 as is_deleted
 FROM EXTERNAL_QUERY(
   'projects/your_project/locations/your_region/connections/your_connection_id',
   'SELECT * FROM sof.patient_flat'
