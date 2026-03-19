@@ -361,16 +361,24 @@ This stops the export and cleans up the internal message queue. Data already wri
 
 When a new destination is created, the module automatically exports all existing data that matches the subscription topic. This ensures your BigQuery table has complete historical data.
 
-The initial export process:
+### How it works
 
-1. Reads existing data from PostgreSQL via the materialized ViewDefinition
-2. Sends data to BigQuery in batches using the Storage Write API (pending mode)
-3. Commits all data atomically — either all data appears or none
-4. Reports progress via the `$status` endpoint
+1. Reads existing data from PostgreSQL via the materialized ViewDefinition using a streaming JDBC cursor
+2. Sends data to BigQuery in batches of 500 rows using the Storage Write API [pending stream](https://cloud.google.com/bigquery/docs/write-api#pending_type)
+3. After all rows are sent, finalizes and commits the stream — data becomes visible atomically
+4. Reports progress via the `$status` endpoint (`initialExportProgress_rowsSent`)
+
+The export runs in a single thread. For small to medium datasets (up to ~100K rows) this completes in seconds to minutes. For larger datasets (1M+ rows), consider using the Cloud SQL optimization below.
+
+{% hint style="warning" %}
+The pending stream commit is atomic — if the export fails partway through (e.g., on row 999,999 of 1,000,000), **no data is committed** and the export is retried from scratch (up to 3 attempts). This guarantees no partial data in BigQuery, but means large exports may take multiple attempts on transient failures.
+{% endhint %}
 
 ### Cloud SQL Optimization
 
-If your Aidbox PostgreSQL database runs on [Google Cloud SQL](https://cloud.google.com/sql), you can speed up initial export using BigQuery's [federated query](https://cloud.google.com/bigquery/docs/cloud-sql-federated-queries) feature. Add the `cloudSqlConnectionId` parameter:
+If your Aidbox PostgreSQL database runs on [Google Cloud SQL](https://cloud.google.com/sql), you can significantly speed up initial export using BigQuery's [federated query](https://cloud.google.com/bigquery/docs/cloud-sql-federated-queries) feature. Instead of streaming data through the module, BigQuery reads directly from Cloud SQL over Google's internal network.
+
+To use this, first [create a BigQuery Connection](https://cloud.google.com/bigquery/docs/create-cloud-sql-connection) to your Cloud SQL instance in the BigQuery console (**Add data > External data sources > Cloud SQL**). Then add the connection parameters to your destination:
 
 ```json
 {"name": "cloudSqlConnectionId", "valueString": "your-connection-id"},
