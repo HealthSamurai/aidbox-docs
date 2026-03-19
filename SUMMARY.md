@@ -94,6 +94,7 @@
     * [AidboxTopicSubscription AWS EventBridge tutorial](tutorials/subscriptions-tutorials/aws-eventbridge-aidboxtopicdestination.md)
     * [AidboxTopicSubscription AWS SNS tutorial](tutorials/subscriptions-tutorials/aidboxtopicsubscription-sns-tutorial.md)
     * [Subscribe to New Patient Resource](tutorials/subscriptions-tutorials/subscribe-to-new-patient-resource.md)
+    * [BigQuery AidboxTopicDestination](tutorials/subscriptions-tutorials/bigquery-aidboxtopicdestination.md)
   * [Artifact Registry Tutorials](tutorials/artifact-registry-tutorials/README.md)
     * [How to create FHIR npm package](tutorials/artifact-registry-tutorials/how-to-create-fhir-npm-package.md)
     * [Define Extensions](tutorials/artifact-registry-tutorials/define-extensions/README.md)
