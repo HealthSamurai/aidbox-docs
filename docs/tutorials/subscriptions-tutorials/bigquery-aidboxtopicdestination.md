@@ -35,7 +35,7 @@ The BigQuery Topic Destination module exports FHIR resources from Aidbox to Goog
 1. Download the BigQuery module JAR file and place it next to your **docker-compose.yaml**:
 
    ```sh
-   curl -O https://storage.googleapis.com/aidbox-modules/topic-destination-bigquery/topic-destination-bigquery-2603.3.jar
+   curl -O https://storage.googleapis.com/aidbox-modules/topic-destination-bigquery/topic-destination-bigquery-2603.1.jar
    ```
 
 2. Edit your **docker-compose.yaml** and add these lines to the Aidbox service:
@@ -43,7 +43,7 @@ The BigQuery Topic Destination module exports FHIR resources from Aidbox to Goog
    ```yaml
    aidbox:
      volumes:
-       - ./topic-destination-bigquery-2603.3.jar:/topic-destination-bigquery.jar
+       - ./topic-destination-bigquery-2603.1.jar:/topic-destination-bigquery.jar
        # ... other volumes ...
      environment:
        BOX_MODULE_LOAD: io.healthsamurai.topic-destination.bigquery.core
@@ -85,7 +85,7 @@ spec:
             - |
               apt-get -y update && apt-get -y install curl
               curl -L -o /modules/topic-destination-bigquery.jar \
-                https://storage.googleapis.com/aidbox-modules/topic-destination-bigquery/topic-destination-bigquery-2603.3.jar
+                https://storage.googleapis.com/aidbox-modules/topic-destination-bigquery/topic-destination-bigquery-2603.1.jar
               chmod 644 /modules/topic-destination-bigquery.jar
           volumeMounts:
             - mountPath: /modules
