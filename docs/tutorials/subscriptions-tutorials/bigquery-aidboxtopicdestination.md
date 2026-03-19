@@ -141,7 +141,7 @@ All requests in this tutorial use `Content-Type: application/json`.
 | Parameter              | Type    | Description                                                                        |
 | ---------------------- | ------- | ---------------------------------------------------------------------------------- |
 | `serviceAccountKey`    | string  | Google Service Account JSON key (omit when using Workload Identity or ADC)         |
-| `skipInitialExport`    | boolean | Skip initial export of existing data (default: `false`)                            |
+| `skipInitialExport`    | string  | Skip initial export of existing data. Set to `"true"` to skip.                     |
 | `cloudSqlConnectionId` | string  | BigQuery Connection ID for Cloud SQL federated query (initial export optimization) |
 | `location`             | string  | GCP location for the BigQuery Connection (default: `us`)                           |
 | `emulatorUrl`          | string  | BigQuery emulator REST URL, e.g., `http://bigquery:9050` (skips authentication)    |
@@ -191,6 +191,10 @@ POST /fhir/AidboxSubscriptionTopic
 
 ### Step 2: Create ViewDefinition
 
+A [ViewDefinition](../../modules/sql-on-fhir/defining-flat-views-with-view-definitions.md) defines how to transform a complex FHIR resource into a flat table structure suitable for analytics. Each `column` maps a [FHIRPath](https://hl7.org/fhirpath/) expression to a named column in the output table.
+
+In this example, we flatten Patient into 5 columns: `id`, `gender`, `birth_date` from top-level fields, and `family_name`, `given_name` from the first official name (using `forEach` to navigate into the nested `name` array).
+
 ```http
 POST /fhir/ViewDefinition
 
@@ -218,6 +222,8 @@ POST /fhir/ViewDefinition
   ]
 }
 ```
+
+The column names you define here must match the columns in the BigQuery table (Step 4). See [ViewDefinition documentation](../../modules/sql-on-fhir/defining-flat-views-with-view-definitions.md) for the full syntax including `where` filters, `unionAll`, and type casting.
 
 ### Step 3: Materialize ViewDefinition
 
@@ -365,7 +371,7 @@ When a new destination is created, the module automatically exports all existing
 To skip the initial export (e.g., the table is already populated or you only need real-time data), add `skipInitialExport`:
 
 ```json
-{"name": "skipInitialExport", "valueBoolean": true}
+{"name": "skipInitialExport", "valueString": "true"}
 ```
 
 ### How it works
