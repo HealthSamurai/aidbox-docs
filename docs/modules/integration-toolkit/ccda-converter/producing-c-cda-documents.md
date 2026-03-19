@@ -29,7 +29,7 @@ Below are some details about each of these features.
 To simplify the creation of Document bundles, Aidbox offers a feature called Document Definition, which enables the description of document contents using the FHIR Search API. The example below illustrates how to define a Document Definition:
 
 ```clojure
-{:type {:code "34133-9" 
+{:type {:code "34133-9"
         :display "Summarization of Episode Note"
         :system "http://loinc.org"}
 
@@ -79,7 +79,7 @@ To simplify the creation of Document bundles, Aidbox offers a feature called Doc
    :entry
    {:method "GET"
     :url "/Condition?patient=Patient/{{pid}}&category=problem-list-item"}}
-    
+
   {:title "Hospital Course"
     :code {:code "8648-8" :display "Hospital course Narrative" :system "http://loinc.org"}
     :text {:method "GET" :url "/Observation?subject=Patient/{{pid}}&code=8648-8"}}
@@ -205,20 +205,20 @@ Another pseudo-code example on how to populate section narrative from section en
 ```javascript
 function generateVitalSignsNarrative(section, bundle) {
   var result = '';
-  
+
   for (i = 0; i < section.entry.length; i++) {
     var vs = bundle.findByRef(section.entry[i]);
-    
-    result += '<paragraph>' + 
+
+    result += '<paragraph>' +
       formatCode(vs.code) + " " +
       formatDate(vs.effective) + " " +
       formatValue(vs.value) + '</paragraph>';
   }
-  
+
   if (section.entry.length == 0) {
     result = 'No vital signs available';
   }
-  
+
   return result;
 }
 
@@ -229,7 +229,7 @@ var composition = bundle.entry[0].resource;
 
 for (i = 0; i < composition.section.length; i++) {
   var section = composition.section[i];
-  
+
   if (section.code.coding[0].code == '8716-3') {
     section.text = {
       // this function receives all the data it needs to populate narrative
