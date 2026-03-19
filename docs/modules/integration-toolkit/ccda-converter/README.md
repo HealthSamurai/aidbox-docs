@@ -274,12 +274,11 @@ Authorization: ...
 
 #### Endpoint Options
 
-
 | Option             | Values                                                                                                                               | Description                                                                                |
 | ------------------ | ------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------ |
 | `format`           | `aidbox` (default ,) `fhir` | Whether the source document is in Aidbox or FHIR format. Taken from `Content-Type` header (`application/json` for Aidbox, `application/fhir+json` for FHIR) if not provided. |
 | `intermediate`     | `true` | Whether to return intermediate tree instead of final conversion result. |
-| `sections` | Comma-separated list of section aliases from [section docs](sections/)| A list of sections to include in the final document. |
+| `sections` | Comma-separated list of section aliases from [section docs](sections/). Defaults to all. | A list of sections to include in the final document. |
 
 ### Persisting result of C-CDA to FHIR conversion
 
