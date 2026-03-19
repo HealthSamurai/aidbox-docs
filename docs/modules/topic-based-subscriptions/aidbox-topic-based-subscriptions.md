@@ -233,6 +233,10 @@ graph TD
 [clickhouse-aidboxtopicdestination.md](../../tutorials/subscriptions-tutorials/clickhouse-aidboxtopicdestination.md)
 {% endcontent-ref %}
 
+{% content-ref url="../../tutorials/subscriptions-tutorials/bigquery-aidboxtopicdestination.md" %}
+[bigquery-aidboxtopicdestination.md](../../tutorials/subscriptions-tutorials/bigquery-aidboxtopicdestination.md)
+{% endcontent-ref %}
+
 {% content-ref url="../../tutorials/subscriptions-tutorials/aidboxtopicsubscription-nats-tutorial.md" %}
 [aidboxtopicsubscription-nats-tutorial.md](../../tutorials/subscriptions-tutorials/aidboxtopicsubscription-nats-tutorial.md)
 {% endcontent-ref %}

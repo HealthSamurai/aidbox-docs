@@ -65,6 +65,7 @@ description: >-
   * [GCP Pub/Sub](tutorials/subscriptions-tutorials/gcp-pub-sub-aidboxtopicdestination.md)
   * [AMQP](modules/topic-based-subscriptions/aidbox-topic-based-subscriptions.md#currently-supported-channels)
   * [ClickHouse](tutorials/subscriptions-tutorials/clickhouse-aidboxtopicdestination.md) for real-time analytics
+  * [BigQuery](tutorials/subscriptions-tutorials/bigquery-aidboxtopicdestination.md) for real-time analytics
   * Webhook
 * [Organization-based hierarchical filtering](modules/topic-based-subscriptions/aidbox-topic-based-subscriptions.md#organization-based-hierarchical-filtering) in subscriptions
 * %previous and %current functions for tracking changes between resource versions
