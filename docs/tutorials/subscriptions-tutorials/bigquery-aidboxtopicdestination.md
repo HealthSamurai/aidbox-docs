@@ -376,18 +376,29 @@ The pending stream commit is atomic — if the export fails partway through (e.g
 
 ### Cloud SQL Optimization
 
-If your Aidbox PostgreSQL database runs on [Google Cloud SQL](https://cloud.google.com/sql), you can significantly speed up initial export using BigQuery's [federated query](https://cloud.google.com/bigquery/docs/cloud-sql-federated-queries) feature. Instead of streaming data through the module, BigQuery reads directly from Cloud SQL over Google's internal network.
+If your Aidbox PostgreSQL database runs on [Google Cloud SQL](https://cloud.google.com/sql), you can significantly speed up initial export using BigQuery's [federated query](https://cloud.google.com/bigquery/docs/cloud-sql-federated-queries) feature. Instead of streaming data row-by-row through the module (PG → JDBC → JVM → gRPC → BigQuery), BigQuery reads directly from Cloud SQL over Google's internal network using `EXTERNAL_QUERY`.
 
-To use this, first [create a BigQuery Connection](https://cloud.google.com/bigquery/docs/create-cloud-sql-connection) to your Cloud SQL instance in the BigQuery console (**Add data > External data sources > Cloud SQL**). Then add the connection parameters to your destination:
+**Setup:**
+
+1. In the BigQuery console, go to **Add data > External data sources > Cloud SQL**
+2. [Create a BigQuery Connection](https://cloud.google.com/bigquery/docs/create-cloud-sql-connection) to your Cloud SQL instance
+3. Note the connection ID and the region where you created it
+4. Add these parameters to your destination:
 
 ```json
 {"name": "cloudSqlConnectionId", "valueString": "your-connection-id"},
 {"name": "location", "valueString": "us-central1"}
 ```
 
-The `cloudSqlConnectionId` is the ID of a [BigQuery Connection](https://cloud.google.com/bigquery/docs/create-cloud-sql-connection) to your Cloud SQL instance. Create it in the BigQuery console under **Add data > External data sources > Cloud SQL**. The `location` must match the region where the connection was created.
+The `location` must match the region where the BigQuery Connection was created.
 
-This allows BigQuery to read directly from Cloud SQL without routing data through the module.
+{% hint style="info" %}
+**When to use this:** The default Storage Write API path works well for datasets up to ~100K rows. For larger datasets (1M+ rows), federated query is significantly faster because it eliminates the single-threaded JVM bottleneck. The trade-off is the one-time setup of a BigQuery Connection.
+{% endhint %}
+
+{% hint style="warning" %}
+**Limitations:** Federated queries are subject to [BigQuery quotas](https://cloud.google.com/bigquery/quotas#cloud_sql_federated_queries): results are limited to approximately 20 GB of uncompressed data, and queries have a 6-hour timeout. This only applies to the initial export — real-time streaming is not affected. If your dataset exceeds these limits, omit `cloudSqlConnectionId` to use the default Storage Write API path instead.
+{% endhint %}
 
 ## Monitoring
 
