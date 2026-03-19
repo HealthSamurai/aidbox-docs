@@ -247,14 +247,14 @@ Codemap is basically a hash-map that we use to perform:
 
 This is URI to OID codemap, URI is a key, OID is a values:
 
-```
+``` clojure
 {"http://terminology.hl7.org/CodeSystem/hsloc"    "2.16.840.1.113883.6.259",
  "http://hl7.org/fhir/ValueSet/provider-taxonomy" "2.16.840.1.113883.6.101"}
 ```
 
 You can see example of codemap [here](https://github.com/Aidbox/aidbox-project-template/blob/aidbox-ccda-custom-rules/custom-rules/custom-codemaps.yaml), it is just a YAML file:
 
-```
+``` yaml
 to-ccda:
   - urn: http://hl7.org/fhir/sid/icd-10-cm
     oid: 2.16.840.1.113883.6.90
@@ -264,5 +264,3 @@ Please take into account that it also requires following steps:
 
 * `CCDA_CUSTOM_CODEMAPS` variable is set to path where custom codemaps are located
 * path where custom codemaps are located is added to Kubernetes volumes (e.g. [example](https://github.com/Aidbox/aidbox-project-template/blob/aidbox-ccda-custom-rules/docker-compose.yaml))
-
-## DSL description
