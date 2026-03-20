@@ -361,7 +361,7 @@ The export retries up to 3 times on failure.
 
 If your Aidbox PostgreSQL runs on [Google Cloud SQL](https://cloud.google.com/sql), you can populate the BigQuery table manually using a [federated query](https://cloud.google.com/bigquery/docs/cloud-sql-federated-queries) instead of the built-in initial export. This can be useful if you want more control over the process or need to re-populate the table without recreating the destination.
 
-1. [Create a BigQuery Connection](https://cloud.google.com/bigquery/docs/create-cloud-sql-connection) to your Cloud SQL instance
+1. [Create a BigQuery Connection](https://cloud.google.com/bigquery/docs/connect-to-sql) to your Cloud SQL instance
 2. Run this query in the BigQuery Console:
 
 ```sql
