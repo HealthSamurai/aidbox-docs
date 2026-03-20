@@ -355,15 +355,11 @@ To skip the initial export (e.g., the table is already populated or you only nee
 3. After all rows are sent, finalizes and commits the stream — data becomes visible atomically
 4. Reports progress via the `$status` endpoint (`initialExportProgress_rowsSent`)
 
-The export runs in a single thread. For small to medium datasets (up to ~100K rows) this completes in seconds to minutes. For larger datasets (1M+ rows), consider using the Cloud SQL optimization below.
+The export retries up to 3 times on failure.
 
-{% hint style="warning" %}
-The pending stream commit is atomic — if the export fails partway through (e.g., on row 999,999 of 1,000,000), **no data is committed** and the export is retried from scratch (up to 3 attempts). This guarantees no partial data in BigQuery, but means large exports may take multiple attempts on transient failures.
-{% endhint %}
+### Alternative: Federated Query (Cloud SQL only)
 
-### Large Datasets: Manual Initial Export via Cloud SQL
-
-For large datasets (1M+ rows), the default initial export may be slow (single-threaded PG → JVM → gRPC). If your Aidbox runs on [Google Cloud SQL](https://cloud.google.com/sql), you can do the initial export manually using BigQuery's [federated query](https://cloud.google.com/bigquery/docs/cloud-sql-federated-queries) — BigQuery reads directly from Cloud SQL over Google's internal network.
+If your Aidbox PostgreSQL runs on [Google Cloud SQL](https://cloud.google.com/sql), you can populate the BigQuery table manually using a [federated query](https://cloud.google.com/bigquery/docs/cloud-sql-federated-queries) instead of the built-in initial export. This can be useful if you want more control over the process or need to re-populate the table without recreating the destination.
 
 1. [Create a BigQuery Connection](https://cloud.google.com/bigquery/docs/create-cloud-sql-connection) to your Cloud SQL instance
 2. Run this query in the BigQuery Console:
