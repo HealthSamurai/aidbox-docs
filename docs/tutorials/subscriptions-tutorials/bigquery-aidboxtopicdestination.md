@@ -153,8 +153,8 @@ The module supports three authentication methods:
 2. **Application Default Credentials (ADC)** — omit `serviceAccountKey`. The module automatically uses the attached service account credentials. Recommended for Cloud Run and GKE with Workload Identity.
 3. **Emulator mode** — set `emulatorUrl` and `emulatorGrpcHost`. No authentication required.
 
-{% hint style="warning" %}
-Avoid hardcoding the Service Account JSON key directly in resource definitions. Prefer **Application Default Credentials** (ADC) when running on Cloud Run or GKE — no key needed at all. For other environments, see [External Secrets](../../configuration/secret-files.md) to store the key in a vault config file instead of in the resource.
+{% hint style="info" %}
+On GCP (Cloud Run, GKE) you don't need a Service Account key — omit `serviceAccountKey` and the module will use Application Default Credentials automatically.
 {% endhint %}
 
 ### Required IAM Roles
