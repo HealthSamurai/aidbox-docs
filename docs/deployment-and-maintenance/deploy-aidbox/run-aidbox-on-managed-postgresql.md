@@ -50,7 +50,7 @@ CREATE USER aidbox WITH CREATEDB ENCRYPTED PASSWORD 'aidboxpass';
 
 #### Configure Aidbox
 
-Lakebase uses OAuth token-based authentication. Aidbox supports both **Provisioned** and **Autoscaling** deployment modes.
+Lakebase uses OAuth token-based authentication. Aidbox supports both Lakebase deployment modes: [Provisioned](https://docs.databricks.com/aws/en/oltp/instances/) (fixed-capacity instances) and [Autoscaling](https://docs.databricks.com/aws/en/oltp/projects/about) (scale-to-zero projects).
 
 Aidbox fetches short-lived tokens (1 hour expiry) from Databricks and caches them for 45 minutes (configurable via `BOX_DB_CREDENTIAL_REFRESH_INTERVAL`). When the cache expires, a fresh token is fetched on the next connection. HikariCP `max-lifetime` is set to match the cache TTL so existing connections rotate before tokens expire. SSL is enforced automatically.
 
@@ -68,6 +68,7 @@ BOX_DB_DATABRICKS_HOST=https://your-workspace.cloud.databricks.com
 BOX_DB_DATABRICKS_PROVISIONED_INSTANCE_NAME=<instance-name>
 BOX_DB_DATABRICKS_CLIENT_ID=<client-id>
 BOX_DB_DATABRICKS_CLIENT_SECRET=<client-secret>
+BOX_DB_DATABRICKS_SCOPE=all-apis
 ```
 {% endtab %}
 {% tab title="Autoscaling" %}
@@ -83,6 +84,7 @@ BOX_DB_DATABRICKS_HOST=https://your-workspace.cloud.databricks.com
 BOX_DB_DATABRICKS_AUTOSCALE_ENDPOINT=projects/<project-id>/branches/<branch-id>/endpoints/<endpoint-id>
 BOX_DB_DATABRICKS_CLIENT_ID=<client-id>
 BOX_DB_DATABRICKS_CLIENT_SECRET=<client-secret>
+BOX_DB_DATABRICKS_SCOPE=all-apis
 ```
 {% endtab %}
 {% endtabs %}
