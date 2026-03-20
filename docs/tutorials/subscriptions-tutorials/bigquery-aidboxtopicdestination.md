@@ -66,7 +66,7 @@ The profile URL above is a FHIR canonical identifier, not an HTTP endpoint. You 
 
 ### Kubernetes
 
-For Kubernetes deployments, the module is downloaded automatically using an init container:
+For Kubernetes deployments, the module can be downloaded automatically using an init container:
 
 ```yaml
 apiVersion: apps/v1
@@ -154,7 +154,7 @@ The module supports three authentication methods:
 3. **Emulator mode** — set `emulatorUrl` and `emulatorGrpcHost`. No authentication required.
 
 {% hint style="warning" %}
-Avoid hardcoding the Service Account JSON key directly in resource definitions. Use environment variables or a secrets manager to inject it at deployment time.
+Avoid hardcoding the Service Account JSON key directly in resource definitions. Prefer **Application Default Credentials** (ADC) when running on Cloud Run or GKE — no key needed at all. For other environments, see [External Secrets](../../configuration/secret-files.md) to store the key in a vault config file instead of in the resource.
 {% endhint %}
 
 ### Required IAM Roles
@@ -264,6 +264,21 @@ CREATE TABLE your_project.your_dataset.patients (
 The table **must** include an `is_deleted` column (`INT64 NOT NULL`). The module sets this to `0` for create/update operations and `1` for delete operations.
 {% endhint %}
 
+**Type mapping:** The BigQuery table columns must match the types returned by the ViewDefinition SQL. Common mappings:
+
+| FHIR / ViewDefinition type | BigQuery type |
+|----------------------------|--------------|
+| `id`, `string`, `code` | `STRING` |
+| `date` | `DATE` |
+| `dateTime`, `instant` | `TIMESTAMP` |
+| `integer`, `positiveInt` | `INT64` |
+| `decimal` | `FLOAT64` |
+| `boolean` | `BOOL` |
+
+{% hint style="info" %}
+If unsure about types, materialize the ViewDefinition first, then check the SQL view column types: `SELECT column_name, data_type FROM information_schema.columns WHERE table_schema = 'sof' AND table_name = 'patient_flat'` via the Aidbox `/$sql` endpoint.
+{% endhint %}
+
 ### Step 5: Configure Authentication
 
 **Option A: Service Account key (Docker Compose)**
@@ -342,10 +357,19 @@ This stops the export and cleans up the internal message queue. Data already wri
 
 When a new destination is created, the module automatically exports all existing data that matches the subscription topic. This ensures your BigQuery table has complete historical data.
 
-To skip the initial export (e.g., the table is already populated or you only need real-time data), add `skipInitialExport`:
+To skip the initial export (e.g., the table is already populated or you only need real-time data), add `skipInitialExport` to the destination's `parameter` array:
 
-```json
-{"name": "skipInitialExport", "valueBoolean": true}
+```http
+POST /fhir/AidboxTopicDestination
+
+{
+  "resourceType": "AidboxTopicDestination",
+  ...
+  "parameter": [
+    ...
+    {"name": "skipInitialExport", "valueBoolean": true}
+  ]
+}
 ```
 
 ### How it works
