@@ -45,11 +45,14 @@ CREATE USER aidbox WITH CREATEDB ENCRYPTED PASSWORD 'aidboxpass';
 
 * A Databricks workspace with [Lakebase Postgres](https://docs.databricks.com/aws/en/oltp/) enabled
 * A [service principal](https://docs.databricks.com/aws/en/admin/users-groups/service-principals) with a generated OAuth secret, [added to the workspace](https://docs.databricks.com/aws/en/admin/users-groups/service-principals#add-a-service-principal-to-a-workspace)
-* Follow [Databricks documentation](https://docs.databricks.com/aws/en/oltp/instances/pg-roles?language=PostgreSQL) to create a PostgreSQL role for the service principal.
+* Follow [Databricks documentation](https://docs.databricks.com/aws/en/oltp/instances/pg-roles?language=PostgreSQL) to create a PostgreSQL role for the service principal
+* The database must already exist before starting Aidbox — Aidbox will not create it automatically when using Databricks authentication
 
 #### Configure Aidbox
 
 Lakebase uses OAuth token-based authentication. Aidbox supports both **Provisioned** and **Autoscaling** deployment modes.
+
+Aidbox fetches short-lived tokens (1 hour expiry) from Databricks and caches them for 45 minutes (configurable via `BOX_DB_CREDENTIAL_REFRESH_INTERVAL`). When the cache expires, a fresh token is fetched on the next connection. HikariCP `max-lifetime` is set to match the cache TTL so existing connections rotate before tokens expire. SSL is enforced automatically.
 
 {% tabs %}
 {% tab title="Provisioned" %}
@@ -88,7 +91,9 @@ BOX_DB_DATABRICKS_CLIENT_SECRET=<client-secret>
 `BOX_DB_USER` and `BOX_DB_DATABRICKS_CLIENT_ID` are both the service principal's application ID.
 `BOX_DB_PASSWORD` is a placeholder — the credentials provider overrides it.
 `BOX_DB_DATABRICKS_HOST` is the workspace URL (from your browser), not the database hostname.
-The same auth settings are available for read-only replica with the `BOX_DB_RO_REPLICA_*` prefix.
+`BOX_DB_DATABRICKS_SCOPE` defaults to `all-apis`. Do not change unless you know your workspace requires a different scope.
+`BOX_DB_CREDENTIAL_REFRESH_INTERVAL` controls the token cache TTL in milliseconds (default: `2700000`, i.e. 45 minutes). Should be less than the Databricks token expiry (60 minutes).
+The same auth settings are available for read-only replica with the `BOX_DB_RO_REPLICA_*` prefix (e.g. `BOX_DB_RO_REPLICA_AUTH_METHOD`, `BOX_DB_RO_REPLICA_DATABRICKS_HOST`, etc.).
 {% endhint %}
 
 ### Disable installation of PostgreSQL extensions on Aidbox startup&#x20;

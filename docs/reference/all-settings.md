@@ -1716,6 +1716,86 @@ If enabled, the health status of the database will be reflected in the overall h
 
 <details><summary>Details</summary><table data-header-hidden="true"><thead><tr><th width="200"></th><th></th></tr></thead><tbody><tr><td>ID</td><td><code>db.propagate-db-health-status-to-box</code></td></tr><tr><td>Type</td><td>Bool</td></tr><tr><td>Default value</td><td><code>false</code></td></tr><tr><td>Environment variable</td><td><code>BOX_PROPAGATE_DB_HEALTH_STATUS_TO_BOX</code></td></tr><tr><td>Available from</td><td><code>2509</code></td></tr><tr><td>Sensitive</td><td><code>false</code> — value will be visible in plaintext in Admin UI</td></tr><tr><td>Set via</td><td>Admin UI → Settings<br />Environment variables</td></tr><tr><td>Hot reload</td><td><code>true</code> — setting can be changed at runtime</td></tr></tbody></table></details>
 
+#### Database authentication method<a href="#db.auth-method" id="db.auth-method"></a>
+
+```yaml
+BOX_DB_AUTH_METHOD: "password"
+```
+
+Authentication method for the database connection. `password` — static password. `databricks-provisioned` — Databricks Lakebase Provisioned OAuth token (BYOT). `databricks-autoscale` — Databricks Lakebase Autoscaling OAuth token.
+
+<details><summary>Details</summary><table data-header-hidden="true"><thead><tr><th width="200"></th><th></th></tr></thead><tbody><tr><td>ID</td><td><code>db.auth-method</code></td></tr><tr><td>Type</td><td>String (enum: password, databricks-provisioned, databricks-autoscale)</td></tr><tr><td>Default value</td><td><code>password</code></td></tr><tr><td>Environment variable</td><td><code>BOX_DB_AUTH_METHOD</code></td></tr><tr><td>Available from</td><td><code>2603</code></td></tr><tr><td>Sensitive</td><td><code>false</code> — value will be visible in plaintext in Admin UI</td></tr><tr><td>Set via</td><td>Environment variables</td></tr><tr><td>Hot reload</td><td><code>false</code> — setting requires system restart</td></tr></tbody></table></details>
+
+#### Databricks workspace host<a href="#db.databricks-host" id="db.databricks-host"></a>
+
+```yaml
+BOX_DB_DATABRICKS_HOST: "https://your-workspace.cloud.databricks.com"
+```
+
+Databricks workspace URL. Required when `auth-method` is `databricks-provisioned` or `databricks-autoscale`.
+
+<details><summary>Details</summary><table data-header-hidden="true"><thead><tr><th width="200"></th><th></th></tr></thead><tbody><tr><td>ID</td><td><code>db.databricks-host</code></td></tr><tr><td>Type</td><td>String</td></tr><tr><td>Default value</td><td>(no default)</td></tr><tr><td>Environment variable</td><td><code>BOX_DB_DATABRICKS_HOST</code></td></tr><tr><td>Available from</td><td><code>2603</code></td></tr><tr><td>Sensitive</td><td><code>false</code> — value will be visible in plaintext in Admin UI</td></tr><tr><td>Set via</td><td>Environment variables</td></tr><tr><td>Hot reload</td><td><code>false</code> — setting requires system restart</td></tr></tbody></table></details>
+
+#### Databricks Provisioned instance name<a href="#db.databricks-provisioned-instance-name" id="db.databricks-provisioned-instance-name"></a>
+
+```yaml
+BOX_DB_DATABRICKS_PROVISIONED_INSTANCE_NAME: "<instance-name>"
+```
+
+Name of the Databricks Lakebase Provisioned instance. Required when `auth-method` is `databricks-provisioned`.
+
+<details><summary>Details</summary><table data-header-hidden="true"><thead><tr><th width="200"></th><th></th></tr></thead><tbody><tr><td>ID</td><td><code>db.databricks-provisioned-instance-name</code></td></tr><tr><td>Type</td><td>String</td></tr><tr><td>Default value</td><td>(no default)</td></tr><tr><td>Environment variable</td><td><code>BOX_DB_DATABRICKS_PROVISIONED_INSTANCE_NAME</code></td></tr><tr><td>Available from</td><td><code>2603</code></td></tr><tr><td>Sensitive</td><td><code>false</code> — value will be visible in plaintext in Admin UI</td></tr><tr><td>Set via</td><td>Environment variables</td></tr><tr><td>Hot reload</td><td><code>false</code> — setting requires system restart</td></tr></tbody></table></details>
+
+#### Databricks client ID<a href="#db.databricks-client-id" id="db.databricks-client-id"></a>
+
+```yaml
+BOX_DB_DATABRICKS_CLIENT_ID: "<client-id>"
+```
+
+Databricks service principal client ID. Required when `auth-method` is `databricks-provisioned` or `databricks-autoscale`.
+
+<details><summary>Details</summary><table data-header-hidden="true"><thead><tr><th width="200"></th><th></th></tr></thead><tbody><tr><td>ID</td><td><code>db.databricks-client-id</code></td></tr><tr><td>Type</td><td>String</td></tr><tr><td>Default value</td><td>(no default)</td></tr><tr><td>Environment variable</td><td><code>BOX_DB_DATABRICKS_CLIENT_ID</code></td></tr><tr><td>Available from</td><td><code>2603</code></td></tr><tr><td>Sensitive</td><td><code>true</code> — value will be masked in Admin UI</td></tr><tr><td>Set via</td><td>Environment variables</td></tr><tr><td>Hot reload</td><td><code>false</code> — setting requires system restart</td></tr></tbody></table></details>
+
+#### Databricks client secret<a href="#db.databricks-client-secret" id="db.databricks-client-secret"></a>
+
+```yaml
+BOX_DB_DATABRICKS_CLIENT_SECRET: "<client-secret>"
+```
+
+Databricks service principal client secret. Required when `auth-method` is `databricks-provisioned` or `databricks-autoscale`.
+
+<details><summary>Details</summary><table data-header-hidden="true"><thead><tr><th width="200"></th><th></th></tr></thead><tbody><tr><td>ID</td><td><code>db.databricks-client-secret</code></td></tr><tr><td>Type</td><td>String</td></tr><tr><td>Default value</td><td>(no default)</td></tr><tr><td>Environment variable</td><td><code>BOX_DB_DATABRICKS_CLIENT_SECRET</code></td></tr><tr><td>Available from</td><td><code>2603</code></td></tr><tr><td>Sensitive</td><td><code>true</code> — value will be masked in Admin UI</td></tr><tr><td>Set via</td><td>Environment variables</td></tr><tr><td>Hot reload</td><td><code>false</code> — setting requires system restart</td></tr></tbody></table></details>
+
+#### Databricks OAuth scope<a href="#db.databricks-scope" id="db.databricks-scope"></a>
+
+```yaml
+BOX_DB_DATABRICKS_SCOPE: "all-apis"
+```
+
+OAuth scope for the Databricks token request.
+
+<details><summary>Details</summary><table data-header-hidden="true"><thead><tr><th width="200"></th><th></th></tr></thead><tbody><tr><td>ID</td><td><code>db.databricks-scope</code></td></tr><tr><td>Type</td><td>String</td></tr><tr><td>Default value</td><td><code>all-apis</code></td></tr><tr><td>Environment variable</td><td><code>BOX_DB_DATABRICKS_SCOPE</code></td></tr><tr><td>Available from</td><td><code>2603</code></td></tr><tr><td>Sensitive</td><td><code>false</code> — value will be visible in plaintext in Admin UI</td></tr><tr><td>Set via</td><td>Environment variables</td></tr><tr><td>Hot reload</td><td><code>false</code> — setting requires system restart</td></tr></tbody></table></details>
+
+#### Databricks Autoscaling endpoint<a href="#db.databricks-autoscale-endpoint" id="db.databricks-autoscale-endpoint"></a>
+
+```yaml
+BOX_DB_DATABRICKS_AUTOSCALE_ENDPOINT: "projects/<project-id>/branches/<branch-id>/endpoints/<endpoint-id>"
+```
+
+Lakebase Autoscaling endpoint path. Required when `auth-method` is `databricks-autoscale`.
+
+<details><summary>Details</summary><table data-header-hidden="true"><thead><tr><th width="200"></th><th></th></tr></thead><tbody><tr><td>ID</td><td><code>db.databricks-autoscale-endpoint</code></td></tr><tr><td>Type</td><td>String</td></tr><tr><td>Default value</td><td>(no default)</td></tr><tr><td>Environment variable</td><td><code>BOX_DB_DATABRICKS_AUTOSCALE_ENDPOINT</code></td></tr><tr><td>Available from</td><td><code>2603</code></td></tr><tr><td>Sensitive</td><td><code>false</code> — value will be visible in plaintext in Admin UI</td></tr><tr><td>Set via</td><td>Environment variables</td></tr><tr><td>Hot reload</td><td><code>false</code> — setting requires system restart</td></tr></tbody></table></details>
+
+#### Credential refresh interval<a href="#db.credential-refresh-interval" id="db.credential-refresh-interval"></a>
+
+```yaml
+BOX_DB_CREDENTIAL_REFRESH_INTERVAL: 2700000
+```
+
+Token cache TTL in milliseconds. Controls how often Aidbox fetches a fresh database credential token. Also sets HikariCP `max-lifetime` so existing connections rotate before tokens expire. Default is 45 minutes (2700000 ms), which is less than the Databricks token expiry of 60 minutes.
+
+<details><summary>Details</summary><table data-header-hidden="true"><thead><tr><th width="200"></th><th></th></tr></thead><tbody><tr><td>ID</td><td><code>db.credential-refresh-interval</code></td></tr><tr><td>Type</td><td>Int (milliseconds)</td></tr><tr><td>Default value</td><td><code>2700000</code></td></tr><tr><td>Environment variable</td><td><code>BOX_DB_CREDENTIAL_REFRESH_INTERVAL</code></td></tr><tr><td>Available from</td><td><code>2603</code></td></tr><tr><td>Sensitive</td><td><code>false</code> — value will be visible in plaintext in Admin UI</td></tr><tr><td>Set via</td><td>Environment variables</td></tr><tr><td>Hot reload</td><td><code>false</code> — setting requires system restart</td></tr></tbody></table></details>
+
 ### Read-only replica
 
 Read-only database replica settings
@@ -1877,6 +1957,86 @@ BOX_DB_RO_REPLICA_POOL_CONNECTION_INIT_SQL: "select 1"
 The pool connection initialization SQL statement.
 
 <details><summary>Details</summary><table data-header-hidden="true"><thead><tr><th width="200"></th><th></th></tr></thead><tbody><tr><td>ID</td><td><code>db.ro-replica.pool.connection-init-sql</code></td></tr><tr><td>Type</td><td>String</td></tr><tr><td>Default value</td><td><code>select 1</code></td></tr><tr><td>Environment variable</td><td><code>BOX_DB_RO_REPLICA_POOL_CONNECTION_INIT_SQL</code></td></tr><tr><td>Available from</td><td><code>2507</code></td></tr><tr><td>Sensitive</td><td><code>false</code> — value will be visible in plaintext in Admin UI</td></tr><tr><td>Set via</td><td>Admin UI → Settings<br />Environment variables</td></tr><tr><td>Hot reload</td><td><code>false</code> — setting requires system restart</td></tr></tbody></table></details>
+
+#### RO replica authentication method<a href="#db.ro-replica.auth-method" id="db.ro-replica.auth-method"></a>
+
+```yaml
+BOX_DB_RO_REPLICA_AUTH_METHOD: "password"
+```
+
+Authentication method for the read-only replica connection.
+
+<details><summary>Details</summary><table data-header-hidden="true"><thead><tr><th width="200"></th><th></th></tr></thead><tbody><tr><td>ID</td><td><code>db.ro-replica.auth-method</code></td></tr><tr><td>Type</td><td>String (enum: password, databricks-provisioned, databricks-autoscale)</td></tr><tr><td>Default value</td><td><code>password</code></td></tr><tr><td>Environment variable</td><td><code>BOX_DB_RO_REPLICA_AUTH_METHOD</code></td></tr><tr><td>Available from</td><td><code>2603</code></td></tr><tr><td>Sensitive</td><td><code>false</code> — value will be visible in plaintext in Admin UI</td></tr><tr><td>Set via</td><td>Admin UI → Settings<br />Environment variables</td></tr><tr><td>Hot reload</td><td><code>false</code> — setting requires system restart</td></tr></tbody></table></details>
+
+#### RO replica Databricks workspace host<a href="#db.ro-replica.databricks-host" id="db.ro-replica.databricks-host"></a>
+
+```yaml
+BOX_DB_RO_REPLICA_DATABRICKS_HOST: "https://your-workspace.cloud.databricks.com"
+```
+
+Databricks workspace URL for the read-only replica.
+
+<details><summary>Details</summary><table data-header-hidden="true"><thead><tr><th width="200"></th><th></th></tr></thead><tbody><tr><td>ID</td><td><code>db.ro-replica.databricks-host</code></td></tr><tr><td>Type</td><td>String</td></tr><tr><td>Default value</td><td>(no default)</td></tr><tr><td>Environment variable</td><td><code>BOX_DB_RO_REPLICA_DATABRICKS_HOST</code></td></tr><tr><td>Available from</td><td><code>2603</code></td></tr><tr><td>Sensitive</td><td><code>false</code> — value will be visible in plaintext in Admin UI</td></tr><tr><td>Set via</td><td>Admin UI → Settings<br />Environment variables</td></tr><tr><td>Hot reload</td><td><code>false</code> — setting requires system restart</td></tr></tbody></table></details>
+
+#### RO replica Databricks Provisioned instance name<a href="#db.ro-replica.databricks-provisioned-instance-name" id="db.ro-replica.databricks-provisioned-instance-name"></a>
+
+```yaml
+BOX_DB_RO_REPLICA_DATABRICKS_PROVISIONED_INSTANCE_NAME: "<instance-name>"
+```
+
+Lakebase Provisioned instance name for the read-only replica.
+
+<details><summary>Details</summary><table data-header-hidden="true"><thead><tr><th width="200"></th><th></th></tr></thead><tbody><tr><td>ID</td><td><code>db.ro-replica.databricks-provisioned-instance-name</code></td></tr><tr><td>Type</td><td>String</td></tr><tr><td>Default value</td><td>(no default)</td></tr><tr><td>Environment variable</td><td><code>BOX_DB_RO_REPLICA_DATABRICKS_PROVISIONED_INSTANCE_NAME</code></td></tr><tr><td>Available from</td><td><code>2603</code></td></tr><tr><td>Sensitive</td><td><code>false</code> — value will be visible in plaintext in Admin UI</td></tr><tr><td>Set via</td><td>Admin UI → Settings<br />Environment variables</td></tr><tr><td>Hot reload</td><td><code>false</code> — setting requires system restart</td></tr></tbody></table></details>
+
+#### RO replica Databricks client ID<a href="#db.ro-replica.databricks-client-id" id="db.ro-replica.databricks-client-id"></a>
+
+```yaml
+BOX_DB_RO_REPLICA_DATABRICKS_CLIENT_ID: "<client-id>"
+```
+
+Databricks service principal client ID for the read-only replica.
+
+<details><summary>Details</summary><table data-header-hidden="true"><thead><tr><th width="200"></th><th></th></tr></thead><tbody><tr><td>ID</td><td><code>db.ro-replica.databricks-client-id</code></td></tr><tr><td>Type</td><td>String</td></tr><tr><td>Default value</td><td>(no default)</td></tr><tr><td>Environment variable</td><td><code>BOX_DB_RO_REPLICA_DATABRICKS_CLIENT_ID</code></td></tr><tr><td>Available from</td><td><code>2603</code></td></tr><tr><td>Sensitive</td><td><code>true</code> — value will be masked in Admin UI</td></tr><tr><td>Set via</td><td>Admin UI → Settings<br />Environment variables</td></tr><tr><td>Hot reload</td><td><code>false</code> — setting requires system restart</td></tr></tbody></table></details>
+
+#### RO replica Databricks client secret<a href="#db.ro-replica.databricks-client-secret" id="db.ro-replica.databricks-client-secret"></a>
+
+```yaml
+BOX_DB_RO_REPLICA_DATABRICKS_CLIENT_SECRET: "<client-secret>"
+```
+
+Databricks service principal client secret for the read-only replica.
+
+<details><summary>Details</summary><table data-header-hidden="true"><thead><tr><th width="200"></th><th></th></tr></thead><tbody><tr><td>ID</td><td><code>db.ro-replica.databricks-client-secret</code></td></tr><tr><td>Type</td><td>String</td></tr><tr><td>Default value</td><td>(no default)</td></tr><tr><td>Environment variable</td><td><code>BOX_DB_RO_REPLICA_DATABRICKS_CLIENT_SECRET</code></td></tr><tr><td>Available from</td><td><code>2603</code></td></tr><tr><td>Sensitive</td><td><code>true</code> — value will be masked in Admin UI</td></tr><tr><td>Set via</td><td>Admin UI → Settings<br />Environment variables</td></tr><tr><td>Hot reload</td><td><code>false</code> — setting requires system restart</td></tr></tbody></table></details>
+
+#### RO replica Databricks OAuth scope<a href="#db.ro-replica.databricks-scope" id="db.ro-replica.databricks-scope"></a>
+
+```yaml
+BOX_DB_RO_REPLICA_DATABRICKS_SCOPE: "all-apis"
+```
+
+OAuth scope for the read-only replica token request.
+
+<details><summary>Details</summary><table data-header-hidden="true"><thead><tr><th width="200"></th><th></th></tr></thead><tbody><tr><td>ID</td><td><code>db.ro-replica.databricks-scope</code></td></tr><tr><td>Type</td><td>String</td></tr><tr><td>Default value</td><td><code>all-apis</code></td></tr><tr><td>Environment variable</td><td><code>BOX_DB_RO_REPLICA_DATABRICKS_SCOPE</code></td></tr><tr><td>Available from</td><td><code>2603</code></td></tr><tr><td>Sensitive</td><td><code>false</code> — value will be visible in plaintext in Admin UI</td></tr><tr><td>Set via</td><td>Admin UI → Settings<br />Environment variables</td></tr><tr><td>Hot reload</td><td><code>false</code> — setting requires system restart</td></tr></tbody></table></details>
+
+#### RO replica Databricks Autoscaling endpoint<a href="#db.ro-replica.databricks-autoscale-endpoint" id="db.ro-replica.databricks-autoscale-endpoint"></a>
+
+```yaml
+BOX_DB_RO_REPLICA_DATABRICKS_AUTOSCALE_ENDPOINT: "projects/<project-id>/branches/<branch-id>/endpoints/<endpoint-id>"
+```
+
+Lakebase Autoscaling endpoint for the read-only replica.
+
+<details><summary>Details</summary><table data-header-hidden="true"><thead><tr><th width="200"></th><th></th></tr></thead><tbody><tr><td>ID</td><td><code>db.ro-replica.databricks-autoscale-endpoint</code></td></tr><tr><td>Type</td><td>String</td></tr><tr><td>Default value</td><td>(no default)</td></tr><tr><td>Environment variable</td><td><code>BOX_DB_RO_REPLICA_DATABRICKS_AUTOSCALE_ENDPOINT</code></td></tr><tr><td>Available from</td><td><code>2603</code></td></tr><tr><td>Sensitive</td><td><code>false</code> — value will be visible in plaintext in Admin UI</td></tr><tr><td>Set via</td><td>Admin UI → Settings<br />Environment variables</td></tr><tr><td>Hot reload</td><td><code>false</code> — setting requires system restart</td></tr></tbody></table></details>
+
+#### RO replica credential refresh interval<a href="#db.ro-replica.credential-refresh-interval" id="db.ro-replica.credential-refresh-interval"></a>
+
+```yaml
+BOX_DB_RO_REPLICA_CREDENTIAL_REFRESH_INTERVAL: 2700000
+```
+
+Token cache TTL in milliseconds for the read-only replica.
+
+<details><summary>Details</summary><table data-header-hidden="true"><thead><tr><th width="200"></th><th></th></tr></thead><tbody><tr><td>ID</td><td><code>db.ro-replica.credential-refresh-interval</code></td></tr><tr><td>Type</td><td>Int (milliseconds)</td></tr><tr><td>Default value</td><td><code>2700000</code></td></tr><tr><td>Environment variable</td><td><code>BOX_DB_RO_REPLICA_CREDENTIAL_REFRESH_INTERVAL</code></td></tr><tr><td>Available from</td><td><code>2603</code></td></tr><tr><td>Sensitive</td><td><code>false</code> — value will be visible in plaintext in Admin UI</td></tr><tr><td>Set via</td><td>Admin UI → Settings<br />Environment variables</td></tr><tr><td>Hot reload</td><td><code>false</code> — setting requires system restart</td></tr></tbody></table></details>
 
 ## Web Server
 
