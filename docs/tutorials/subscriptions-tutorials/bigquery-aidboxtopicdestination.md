@@ -430,7 +430,7 @@ The module automatically:
 
 ### Soft Deletes and Updates
 
-BigQuery is an append-only store — you cannot delete or update individual rows in place. Every change to a FHIR resource (create, update, or delete) appends a **new row** to BigQuery:
+The module writes to BigQuery via the Storage Write API, which is append-only. Every change to a FHIR resource (create, update, or delete) appends a **new row** to BigQuery:
 
 - **Create**: new row with `is_deleted = 0`
 - **Update**: new row with `is_deleted = 0` (old row remains unchanged)
