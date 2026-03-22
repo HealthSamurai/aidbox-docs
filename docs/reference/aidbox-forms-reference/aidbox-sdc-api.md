@@ -8,6 +8,8 @@ description: Custom SDC operations supported by Aidbox Forms.
 * [$save](aidbox-sdc-api.md#save-a-questionnaireresponse-save)
 * [$submit](aidbox-sdc-api.md#submit-a-questionnaireresponse-submit)
 * [$notify-patient](aidbox-sdc-api.md#notify-a-patient-notify-patient)
+* [$send](aidbox-sdc-api.md#send-a-questionnaire-to-a-patient-send)
+* [$stop-notification](aidbox-sdc-api.md#stop-notification-stop-notification)
 
 ## Generate a link to a QuestionnaireResponse - $generate-link
 
@@ -439,10 +441,9 @@ parameter:
 
 ## Notify a Patient - $notify-patient
 
-This operation sends an email notification to a patient (or to a provided email) with a generated form link for a QuestionnaireResponse. It sends a single email per request.
+This is an asynchronous operation that sends an email notification to a patient with a generated form link for an existing QuestionnaireResponse. It supports scheduled sending, follow-up reminders, form expiration, and clinician notifications on completion or expiration.
 
-If `email` is not provided in a context, the operation tries to resolve the patient email from `QuestionnaireResponse.subject` -> `Patient.telecom.where(system = 'email')`.
-
+The operation returns immediately with HTTP 202.
 
 ### URLs
 
@@ -459,19 +460,32 @@ NOTE: All parameters wrapped with `Parameters` object
 resourceType: Parameters
 parameter:
 - name: provider
-  valueString: smtp-provider # required. One of: smtp-provider, postmark-provider, mailgun-provider, sendgrid-provider
+  valueString: sendgrid-provider # required. One of: smtp-provider, postmark-provider, mailgun-provider, sendgrid-provider
 - name: response
   valueReference:
-    reference: QuestionnaireResponse/qr1 # required
+    reference: QuestionnaireResponse/qr-1 # required
 - name: email
-  valueString: joe@mail.com # optional
-- name: template
-  valueReference:
-    reference: NotificationTemplate/my-template # optional
-- name: context
+  valueString: patient@example.com # required
+- name: email-subject
+  valueString: "Please complete this form" # optional
+- name: email-message
+  valueString: "Hi {{patient.firstName}}, please complete the {{form.title}} form." # optional, mustache
+- name: clinician-email
+  valueString: doctor@example.com # optional
+- name: send-at
+  valueString: "2026-03-25T14:00:00Z" # optional, ISO 8601
+- name: config
   part:
-  - name: any-other-field
-    valueString: foo # optional, passed to email template payload
+  - name: deadline-days
+    valueInteger: 7 # optional, default: 7
+  - name: follow-up-enabled
+    valueBoolean: true # optional, default: false
+  - name: follow-up-delay-days
+    valueInteger: 3 # optional, default: 3
+  - name: follow-up-time
+    valueString: "10:00" # optional, HH:mm UTC, default: 10:00
+  - name: follow-up-message
+    valueString: "Reminder: please complete the form" # optional, mustache
 ```
 {% endhint %}
 
@@ -479,30 +493,45 @@ The operation takes:
 
 * **provider** (required): Email provider name. Must be one of `smtp-provider`, `postmark-provider`, `mailgun-provider`, `sendgrid-provider`.
 * **response** (required): QuestionnaireResponse reference.
-* **email** (optional): Direct recipient email. If missing, patient email from `QuestionnaireResponse.subject` is used.
-* **template** (optional): NotificationTemplate reference. If not provided, the default template `sdc-form-link-email` is used.
-* **context** (optional): Custom payload fields for template rendering. All fields are passed to the email template payload along with the generated `link`
+* **email** (required): Recipient email address.
+* **email-subject** (optional): Custom email subject line. If not provided, the default subject like `"Please complete this form"` is used.
+* **email-message** (optional): Custom email body message. Supports mustache templates with `{{patient.firstName}}`, `{{patient.lastName}}`, `{{form.title}}`, `{{form.link}}`. If not provided, a default message is used.
+* **clinician-email** (optional): Practitioner email to notify when the patient completes or misses the form.
+* **send-at** (optional): ISO 8601 datetime for scheduled sending. If not provided, the email is sent immediately.
+* **config** (optional): Configuration:
+  * **deadline-days** (optional, default `7`): Number of days before the form link expires.
+  * **follow-up-enabled** (optional, default `false`): Enable follow-up reminder emails.
+  * **follow-up-delay-days** (optional, default `3`): Days after initial send to send the reminder.
+  * **follow-up-time** (optional, default `"10:00"`): Time of day (HH:mm, UTC) to send the reminder.
+  * **follow-up-message** (optional): Custom reminder message. Supports the same mustache templates as `email-message`.
 
+### Output
 
-System takes by default preexisted `NotificationTemplate`, that looks like this.
+**Success Response** — HTTP 202 Accepted
 
+```yaml
+resourceType: OperationOutcome
+text:
+  status: generated
+  div: "Workflow accepted"
+issue:
+- severity: information
+  code: informational
+  diagnostics: "Workflow accepted"
 ```
-resourceType: NotificationTemplate
-id: sdc-form-link-email
-subject: New form available
-template: 'A new form is ready for you. Open: {{link}}'
+
+**Validation Error** — HTTP 422
+
+```yaml
+resourceType: OperationOutcome
+text:
+  status: generated
+  div: "'provider' is required and should be one of: smtp-provider, postmark-provider, mailgun-provider, sendgrid-provider"
+issue:
+- severity: fatal
+  code: invalid
+  diagnostics: "'provider' is required and should be one of: smtp-provider, postmark-provider, mailgun-provider, sendgrid-provider"
 ```
-
-It's possible to create other templates [see docs](../../modules/integration-toolkit/email-providers/README.md)
-
-### Output Parameters
-
-The operation returns `Parameters` that includes:
-
-* **response**: QuestionnaireResponse reference
-* **email**: Resolved recipient email
-* **status**: `"sent"` or `"failed"`
-* **message**: Error message if status is `"failed"`
 
 ### Usage Example
 
@@ -515,32 +544,33 @@ content-type: text/yaml
 resourceType: Parameters
 parameter:
 - name: provider
-  valueString: smtp-provider
+  valueString: sendgrid-provider
 - name: response
   valueReference:
-    reference: QuestionnaireResponse/qr-direct
+    reference: QuestionnaireResponse/qr-1
 - name: email
-  valueString: direct@mail.com
-- name: context
+  valueString: patient@example.com
+- name: clinician-email
+  valueString: doctor@clinic.com
+- name: config
   part:
-  - name: foo
-    valueString: bar
+  - name: deadline-days
+    valueInteger: 7
 ```
 {% endtab %}
 
 {% tab title="Success Response" %}
-HTTP status: 200
+HTTP status: 202
 
 ```yaml
-resourceType: Parameters
-parameter:
-- name: response
-  valueReference:
-    reference: QuestionnaireResponse/qr-direct
-- name: email
-  valueString: direct@mail.com
-- name: status
-  valueString: sent
+resourceType: OperationOutcome
+text:
+  status: generated
+  div: "Workflow accepted"
+issue:
+- severity: information
+  code: informational
+  diagnostics: "Workflow accepted"
 ```
 {% endtab %}
 
@@ -551,11 +581,254 @@ HTTP status: 422
 resourceType: OperationOutcome
 text:
   status: generated
-  div: <div xmlns="http://www.w3.org/1999/xhtml"><p>'provider' parameter id is not provided. Should be one of: smtp-provider, postmark-provider, mailgun-provider, sendgrid-provider</p></div>
+  div: "'provider' is required and should be one of: smtp-provider, postmark-provider, mailgun-provider, sendgrid-provider"
 issue:
 - severity: fatal
   code: invalid
-  diagnostics: "'provider' parameter id is not provided. Should be one of: smtp-provider, postmark-provider, mailgun-provider, sendgrid-provider"
+  diagnostics: "'provider' is required and should be one of: smtp-provider, postmark-provider, mailgun-provider, sendgrid-provider"
+```
+{% endtab %}
+{% endtabs %}
+
+## Send a Questionnaire to a Patient - $send
+
+This is an asynchronous operation that populates a QuestionnaireResponse from a Questionnaire, generates a form link, and sends it to the patient via email. It supports scheduled sending, follow-up reminders, form expiration, and clinician notifications on completion or expiration.
+
+This is the same as [`$notify-patient`](aidbox-sdc-api.md#notify-a-patient-notify-patient), but called at the Questionnaire level.
+
+The operation returns immediately with HTTP 202.
+
+### URLs
+
+```
+POST [base]/fhir/Questionnaire/$send
+```
+
+### Parameters
+
+{% hint style="warning" %}
+NOTE: All parameters wrapped with `Parameters` object
+
+```yaml
+resourceType: Parameters
+parameter:
+- name: provider
+  valueString: sendgrid-provider # required. One of: smtp-provider, postmark-provider, mailgun-provider, sendgrid-provider
+- name: questionnaire
+  valueReference:
+    reference: Questionnaire/intake-form # required
+- name: email
+  valueString: patient@example.com # required
+- name: subject
+  valueReference:
+    reference: Patient/pt-1 # optional
+- name: encounter
+  valueReference:
+    reference: Encounter/enc-1 # optional
+- name: email-subject
+  valueString: "Please complete this form" # optional
+- name: email-message
+  valueString: "Hi {{patient.firstName}}, please complete the {{form.title}} form." # optional, mustache
+- name: clinician-email
+  valueString: doctor@example.com # optional
+- name: send-at
+  valueString: "2026-03-25T14:00:00Z" # optional, ISO 8601
+- name: config
+  part:
+  - name: deadline-days
+    valueInteger: 7 # optional, default: 7
+  - name: follow-up-enabled
+    valueBoolean: true # optional, default: false
+  - name: follow-up-delay-days
+    valueInteger: 3 # optional, default: 3
+  - name: follow-up-time
+    valueString: "10:00" # optional, HH:mm UTC, default: 10:00
+  - name: follow-up-message
+    valueString: "Reminder: please complete the form" # optional, mustache
+```
+{% endhint %}
+
+The operation takes:
+
+* **provider** (required): Email provider name. Must be one of `smtp-provider`, `postmark-provider`, `mailgun-provider`, `sendgrid-provider`.
+* **questionnaire** (required): Questionnaire reference. The operation will populate a new QuestionnaireResponse from it.
+* **email** (required): Recipient email address.
+* **subject** (optional): Patient reference. Used for populating the QuestionnaireResponse and personalizing the email template (e.g. `{{patient.firstName}}`).
+* **encounter** (optional): Encounter reference. Passed to `$populate` for context.
+* **email-subject** (optional): Custom email subject line. If not provided, the default subject `"Please complete this form"` is used.
+* **email-message** (optional): Custom email body message. Supports mustache templates with `{{patient.firstName}}`, `{{patient.lastName}}`, `{{form.title}}`, `{{form.link}}`. If not provided, a default message is used.
+* **clinician-email** (optional): Practitioner email to notify when the patient completes or misses the form.
+* **send-at** (optional): ISO 8601 datetime for scheduled sending. If not provided, the email is sent immediately after population.
+* **config** (optional): Configuration:
+  * **deadline-days** (optional, default `7`): Number of days before the form link expires.
+  * **follow-up-enabled** (optional, default `false`): Enable follow-up reminder emails.
+  * **follow-up-delay-days** (optional, default `3`): Days after initial send to send the reminder.
+  * **follow-up-time** (optional, default `"10:00"`): Time of day (HH:mm, UTC) to send the reminder.
+  * **follow-up-message** (optional): Custom reminder message. Supports the same mustache templates as `email-message`.
+
+### Steps
+
+The operation performs the following steps:
+
+1. **populate-form** — Calls `Questionnaire/$populate` to create a QuestionnaireResponse.
+2. **send-form** — Generates a shared link and sends the email. If `send-at` is provided, the email is scheduled for later.
+3. **check-completed** — Periodically checks if the patient completed the form. If a follow-up is configured and the form is not yet completed, proceeds to `send-reminder`. If the deadline expires, proceeds to `notify-failure`.
+4. **send-reminder** — Sends a follow-up reminder email and returns to `check-completed`.
+5. **notify-success** — Notifies the clinician (if `clinician-email` is provided) that the form was completed.
+6. **notify-failure** — Notifies the clinician (if `clinician-email` is provided) that the form expired without completion.
+
+### Output
+
+**Success Response** — HTTP 202 Accepted
+
+```yaml
+resourceType: OperationOutcome
+text:
+  status: generated
+  div: "Workflow accepted"
+issue:
+- severity: information
+  code: informational
+  diagnostics: "Workflow accepted"
+```
+
+**Validation Error** — HTTP 422
+
+```yaml
+resourceType: OperationOutcome
+text:
+  status: generated
+  div: "'provider' is required and should be one of: smtp-provider, postmark-provider, mailgun-provider, sendgrid-provider"
+issue:
+- severity: fatal
+  code: invalid
+  diagnostics: "'provider' is required and should be one of: smtp-provider, postmark-provider, mailgun-provider, sendgrid-provider"
+```
+
+### Usage Example
+
+{% tabs %}
+{% tab title="Request" %}
+```yaml
+POST [base]/fhir/Questionnaire/$send
+content-type: text/yaml
+
+resourceType: Parameters
+parameter:
+- name: provider
+  valueString: sendgrid-provider
+- name: questionnaire
+  valueReference:
+    reference: Questionnaire/intake-form
+- name: email
+  valueString: patient@example.com
+- name: subject
+  valueReference:
+    reference: Patient/pt-1
+- name: email-subject
+  valueString: "Please complete the intake form"
+- name: email-message
+  valueString: "Hi {{patient.firstName}}, please fill out your intake form before the visit."
+- name: clinician-email
+  valueString: doctor@clinic.com
+- name: config
+  part:
+  - name: deadline-days
+    valueInteger: 14
+  - name: follow-up-enabled
+    valueBoolean: true
+  - name: follow-up-delay-days
+    valueInteger: 3
+  - name: follow-up-time
+    valueString: "09:00"
+```
+{% endtab %}
+
+{% tab title="Success Response" %}
+HTTP status: 202
+
+```yaml
+resourceType: OperationOutcome
+text:
+  status: generated
+  div: "Workflow accepted"
+issue:
+- severity: information
+  code: informational
+  diagnostics: "Workflow accepted"
+```
+{% endtab %}
+
+{% tab title="Failure Response" %}
+HTTP status: 422
+
+```yaml
+resourceType: OperationOutcome
+text:
+  status: generated
+  div: "'provider' is required and should be one of: smtp-provider, postmark-provider, mailgun-provider, sendgrid-provider"
+issue:
+- severity: fatal
+  code: invalid
+  diagnostics: "'provider' is required and should be one of: smtp-provider, postmark-provider, mailgun-provider, sendgrid-provider"
+```
+{% endtab %}
+{% endtabs %}
+
+## Stop Notification - $stop-notification
+
+This operation cancels all in-progress notifications associated with a given QuestionnaireResponse. It stops pending email sends, follow-up reminders, and completion checks.
+
+### URLs
+
+```
+POST [base]/fhir/QuestionnaireResponse/{id}/$stop-notification
+```
+
+### Parameters
+
+This operation takes no body parameters. The QuestionnaireResponse ID is provided in the URL path.
+
+### Output
+
+**Success Response** — HTTP 200
+
+Returns the number of cancelled notifications.
+
+```yaml
+resourceType: OperationOutcome
+text:
+  status: generated
+  div: "Cancelled 1 notification workflow(s)"
+issue:
+- severity: information
+  code: informational
+  diagnostics: "Cancelled 1 notification workflow(s)"
+```
+
+If no in-progress notifications are found for the given QuestionnaireResponse, the operation still returns 200 with a count of 0.
+
+### Usage Example
+
+{% tabs %}
+{% tab title="Request" %}
+```yaml
+POST [base]/fhir/QuestionnaireResponse/qr-123/$stop-notification
+```
+{% endtab %}
+
+{% tab title="Response" %}
+HTTP status: 200
+
+```yaml
+resourceType: OperationOutcome
+text:
+  status: generated
+  div: "Cancelled 1 notification workflow(s)"
+issue:
+- severity: information
+  code: informational
+  diagnostics: "Cancelled 1 notification workflow(s)"
 ```
 {% endtab %}
 {% endtabs %}
