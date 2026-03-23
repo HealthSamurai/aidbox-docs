@@ -4,11 +4,7 @@ description: Use RPC to run a validation operation to check a resource conforman
 
 # Asynchronous resource validation
 
-### Asynchronous Batch Validation `draft`
-
-{% hint style="info" %}
-This is a draft API. We appreciate your feedback and ideas in [this discussion](https://github.com/Aidbox/Issues/discussions/409)
-{% endhint %}
+### Asynchronous Batch Validation 
 
 It may happen that you updated your profiles when data is already in your database or you want to do efficiently load a batch of data and validate it later. API consists of 4 procedures and a couple of resources:
 
