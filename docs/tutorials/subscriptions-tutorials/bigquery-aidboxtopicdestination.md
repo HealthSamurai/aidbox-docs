@@ -147,11 +147,12 @@ All requests in this tutorial use `Content-Type: application/json`.
 
 ### Authentication
 
-The module supports three authentication methods:
+The module supports four authentication methods:
 
-1. **Service Account JSON key** — pass the full JSON key content as the `serviceAccountKey` parameter. Suitable for Docker Compose and environments without Workload Identity.
-2. **Application Default Credentials (ADC)** — omit `serviceAccountKey`. The module automatically uses the attached service account credentials. Recommended for Cloud Run and GKE with Workload Identity.
-3. **Emulator mode** — set `emulatorUrl` and `emulatorGrpcHost`. No authentication required.
+1. **Service Account JSON key (inline)** — pass the full JSON key content as the `serviceAccountKey` parameter. Suitable for quick setup and development.
+2. **Service Account JSON key (via Vault)** — store the key in a file on disk and reference it using Aidbox [External Secrets](../../configuration/secret-files.md). The key is never stored in the database. Recommended for production with Docker or Kubernetes.
+3. **Application Default Credentials (ADC)** — omit `serviceAccountKey`. The module automatically uses the attached service account credentials. Recommended for Cloud Run and GKE with Workload Identity.
+4. **Emulator mode** — set `emulatorUrl` and `emulatorGrpcHost`. No authentication required.
 
 {% hint style="info" %}
 On GCP (Cloud Run, GKE) you don't need a Service Account key — omit `serviceAccountKey` and the module will use Application Default Credentials automatically.
@@ -288,11 +289,36 @@ If unsure about types, materialize the ViewDefinition first, then check the SQL 
 3. Grant it `roles/bigquery.user` and `roles/bigquery.dataEditor` on your project
 4. Create a JSON key and download it
 
-**Option B: Application Default Credentials (Cloud Run / GKE)**
+**Option B: Service Account key via Vault (recommended for production)**
+
+Instead of embedding the key inline, store it in a file and use Aidbox [External Secrets](../../configuration/secret-files.md):
+
+1. Place the Service Account JSON key file on disk (e.g., via [Kubernetes Secrets](https://kubernetes.io/docs/concepts/configuration/secret/), [Docker Secrets](https://docs.docker.com/engine/swarm/secrets/), or [Secrets Store CSI Driver](../../tutorials/other-tutorials/hashicorp-vault-external-secrets.md))
+
+2. Create a vault config file (e.g., `vault-config.json`):
+
+   ```json
+   {
+     "secret": {
+       "bq-sa-key": {
+         "path": "/run/secrets/bq-sa-key.json",
+         "scope": {"resource_type": "AidboxTopicDestination"}
+       }
+     }
+   }
+   ```
+
+3. Set `BOX_VAULT_CONFIG` environment variable to point to the vault config file
+
+4. Reference the secret in the destination configuration using the FHIR primitive extension pattern (see [Step 6](#step-6-configure-bigquery-destination) below)
+
+**Option C: Application Default Credentials (Cloud Run / GKE)**
 
 Attach a service account with the required BigQuery roles to your Cloud Run service or GKE workload. No key file needed — omit `serviceAccountKey` from the destination configuration.
 
 ### Step 6: Configure BigQuery Destination
+
+**With inline Service Account key:**
 
 ```http
 POST /fhir/AidboxTopicDestination
@@ -319,8 +345,40 @@ POST /fhir/AidboxTopicDestination
 }
 ```
 
+**With Vault secret reference:**
+
+```http
+POST /fhir/AidboxTopicDestination
+
+{
+  "resourceType": "AidboxTopicDestination",
+  "id": "patient-bigquery",
+  "topic": "http://example.org/subscriptions/patient-updates",
+  "kind": "bigquery-at-least-once",
+  "meta": {
+    "profile": [
+      "http://aidbox.app/StructureDefinition/aidboxtopicdestination-bigquery-at-least-once"
+    ]
+  },
+  "parameter": [
+    {"name": "projectId", "valueString": "your-gcp-project-id"},
+    {"name": "dataset", "valueString": "your_dataset"},
+    {"name": "destinationTable", "valueString": "patients"},
+    {"name": "viewDefinition", "valueString": "patient_flat"},
+    {"name": "serviceAccountKey", "_valueString": {"extension": [
+      {"url": "http://hl7.org/fhir/StructureDefinition/data-absent-reason", "valueCode": "masked"},
+      {"url": "http://health-samurai.io/fhir/secret-reference", "valueString": "bq-sa-key"}
+    ]}},
+    {"name": "batchSize", "valueUnsignedInt": 50},
+    {"name": "sendIntervalMs", "valueUnsignedInt": 5000}
+  ]
+}
+```
+
+The `_valueString` extension tells Aidbox to resolve the value from the vault secret named `bq-sa-key` at runtime. The actual key is never stored in the database — only the secret reference name. See [External Secrets](../../configuration/secret-files.md) for details on the extension format.
+
 {% hint style="info" %}
-For Cloud Run / GKE with Workload Identity (ADC), omit the `serviceAccountKey` parameter — the module will use the attached service account automatically.
+For Cloud Run / GKE with Workload Identity (ADC), omit the `serviceAccountKey` parameter entirely — the module will use the attached service account automatically.
 {% endhint %}
 
 ### Step 7: Verify
@@ -611,4 +669,7 @@ Existing rows will have `NULL` in the new column. New rows will include the new 
 - [ViewDefinitions](../../modules/sql-on-fhir/defining-flat-views-with-view-definitions.md)
 - [`$materialize` operation](../../modules/sql-on-fhir/operation-materialize.md)
 - [Topic-based Subscriptions](../../modules/topic-based-subscriptions/README.md)
+- [External Secrets (Vault)](../../configuration/secret-files.md) — storing sensitive parameters like `serviceAccountKey` as file-backed secrets
+- [HashiCorp Vault Integration](../../tutorials/other-tutorials/hashicorp-vault-external-secrets.md) — step-by-step tutorial for Kubernetes with Secrets Store CSI Driver
+- [Azure Key Vault Integration](../../tutorials/other-tutorials/azure-key-vault-external-secrets.md) — step-by-step tutorial for AKS with Azure Key Vault
 - [BigQuery Storage Write API](https://cloud.google.com/bigquery/docs/write-api)
