@@ -24,7 +24,7 @@ The core of the CRD Implementation Guide is built on [CDS Hooks](https://cds-hoo
 
 ## Decision Making Service
 
-The CMS-0057-F Aidbox module (`healthsamurai/cms-0057:edge`) proxies validated CDS Hooks requests to an external decision-making service. To configure the decision service URL, set the following environment variable:
+The CMS-0057-F Aidbox module (`healthsamurai/prior-auth:edge`) proxies validated CDS Hooks requests to an external decision-making service. To configure the decision service URL, set the following environment variable:
 
 ```
 CDS_DECISION_SERVICE_URL=https://your-decision-service.example.com

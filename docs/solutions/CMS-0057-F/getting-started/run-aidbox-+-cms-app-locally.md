@@ -96,7 +96,7 @@ services:
       - cms-network
 
   app:
-    image: healthsamurai/cms-0057:edge
+    image: healthsamurai/prior-auth:edge
     pull_policy: always
     depends_on:
       aidbox:
