@@ -628,9 +628,22 @@ The emulator has a known limitation: `DATE` columns may return `null` when data 
 
 The module provides **at-least-once delivery**. Messages are persisted in a PostgreSQL queue before being sent to BigQuery. If delivery fails, the message remains in the queue and is retried on the next batch cycle (every `sendIntervalMs`). There is a 1-second backoff between failed delivery attempts to prevent log storms.
 
-If the gRPC connection to BigQuery drops (network issue, server maintenance), the writer is automatically reconnected with exponential backoff. Messages are not lost during reconnection — they stay in the PG queue.
+### gRPC Reconnect
 
-Initial export retries up to 3 times with exponential backoff (1s, 2s, 4s) on failure.
+If the gRPC connection to BigQuery drops (e.g., `UNAVAILABLE`, `ABORTED`, `INTERNAL`, stream closed, or connection reset), the module automatically closes and recreates both the `JsonStreamWriter` and `BigQueryWriteClient`. Messages are not lost during reconnection — they stay in the PostgreSQL queue and are delivered once the connection is restored.
+
+### Worker Crash Recovery
+
+If the delivery worker thread crashes with an unexpected error, it automatically restarts with exponential backoff (1 second initially, up to 60 seconds maximum). The PostgreSQL queue ensures no messages are lost between restarts.
+
+### Initial Export Retry
+
+Initial export retries up to 3 times with exponential backoff (1s → 2s → 4s, capped at 30s). If all attempts fail:
+
+- The `initialExportStatus` is set to `failed`
+- The error message is available via the `$status` endpoint
+- Real-time delivery continues to work — only the initial export is affected
+- To retry, delete and recreate the destination
 
 ## Multiple Destinations
 
