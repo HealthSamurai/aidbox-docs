@@ -156,6 +156,27 @@ You can also use YAML multi-line strings for passing values of the keys:
 
 Keys must be provided in full PEM format, including the `BEGIN` and `END` headers.
 
+**Supported key formats:**
+
+| Format | PEM Header | Supported | Generation Command |
+|--------|------------|-----------|-------------------|
+| PKCS#1 RSA | `BEGIN RSA PRIVATE KEY` | Yes | `openssl genrsa -traditional -out key.pem 2048` |
+| SEC1 EC | `BEGIN EC PRIVATE KEY` | Yes | `openssl ecparam -name prime256v1 -genkey -noout -out key.pem` |
+| PKCS#8 | `BEGIN PRIVATE KEY` | No | `openssl genpkey -algorithm RSA` |
+| OpenSSH | `BEGIN OPENSSH PRIVATE KEY` | No | `ssh-keygen -t rsa` |
+
+The `-traditional` flag in the RSA generation command ensures OpenSSL outputs PKCS#1 format (`BEGIN RSA PRIVATE KEY`) rather than PKCS#8 (`BEGIN PRIVATE KEY`). PKCS#8 is the default in newer OpenSSL versions and is not currently supported.
+
+If you already have a key in an unsupported format, convert it before use:
+
+```bash
+# Convert OpenSSH to PKCS#1:
+ssh-keygen -p -m PEM -f key.pem
+
+# Convert PKCS#8 to PKCS#1:
+openssl rsa -in key.pem -traditional -out key-pkcs1.pem
+```
+
 {% hint style="danger" %}
 Starting from version **2602**, Aidbox validates the keypair at startup and **will not start** if:
 
@@ -173,7 +194,7 @@ The service will fail health and readiness checks, and will log a clear error me
 | Bare base64 without PEM headers | Setting the key value without `-----BEGIN ...-----` / `-----END ...-----` wrappers |
 | Truncated key | Key content is cut off, often due to environment variable quoting issues |
 | Mismatched key pair | Public key was generated from a different private key |
-| Unsupported key type | Using a key type other than RSA or EC (e.g. DSA) |
+| Unsupported key type | Using a DSA key, or a PKCS#8 or OpenSSH format key |
 
 #### Generate secret
 

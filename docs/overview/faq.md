@@ -1356,6 +1356,8 @@ Starting from version **2602**, Aidbox validates JWT signing keys at startup and
 * **Base64 content must be valid.** Truncated or corrupted key content will cause a startup failure.
 * **The keypair must match.** The public key must correspond to the private key. Regenerate both if unsure.
 * **Watch out for quoting issues.** When passing keys via environment variables, ensure newlines are preserved (use `\n` in single-line values or YAML multi-line `|` syntax).
+* **Key format must be PKCS#1 (RSA) or SEC1 (EC).** If you generated your key with `ssh-keygen`, the default OpenSSH format (`BEGIN OPENSSH PRIVATE KEY`) is not supported. Convert it with `ssh-keygen -p -m PEM -f key.pem`.
+* **PKCS#8 format is not supported.** If you see `PrivateKeyInfo cannot be cast to PEMKeyPair`, your key has a `BEGIN PRIVATE KEY` header (PKCS#8). Convert it with `openssl rsa -in key.pem -traditional -out key-pkcs1.pem`.
 
 Learn more: [Configure keys](../configuration/configure-aidbox-and-multibox.md#key-format-requirements)
 
