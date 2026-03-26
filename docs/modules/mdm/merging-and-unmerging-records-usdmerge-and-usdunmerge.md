@@ -6,6 +6,10 @@ description: >-
 
 # Merging and Unmerging Records: $merge and $unmerge
 
+{% hint style="warning" %}
+The MDM module is currently available for **testing and evaluation purposes only**. If you plan to use it with real data in a production environment, please [contact us](https://www.health-samurai.io/#contact-form) or reach out to your Aidbox customer success manager.
+{% endhint %}
+
 ## Overview
 
 We use a **hybrid merge strategy** that combines elements of both the **golden record** and **survivor record** approaches:

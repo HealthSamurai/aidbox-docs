@@ -4,6 +4,10 @@ description: Configure MDM module with matching models for deduplication includi
 
 # Configure MDM module
 
+{% hint style="warning" %}
+The MDM module is currently available for **testing and evaluation purposes only**. If you plan to use it with real data in a production environment, please [contact us](https://www.health-samurai.io/#contact-form) or reach out to your Aidbox customer success manager.
+{% endhint %}
+
 {% hint style="info" %}
 The matching model defines the target resource type via the `resource` field (for example, `Patient`, `Practitioner`, `Organization`, or any custom FHIR resource).
 {% endhint %}

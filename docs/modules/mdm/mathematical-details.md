@@ -4,6 +4,10 @@ description: MDM Mathematical Details for matching and deduplication in FHIR.
 
 # Mathematical Details
 
+{% hint style="warning" %}
+The MDM module is currently available for **testing and evaluation purposes only**. If you plan to use it with real data in a production environment, please [contact us](https://www.health-samurai.io/#contact-form) or reach out to your Aidbox customer success manager.
+{% endhint %}
+
 See the [fastlink](https://imai.fas.harvard.edu/research/files/linkage.pdf) paper for more details.
 
 The algorithm is based on comparisons.

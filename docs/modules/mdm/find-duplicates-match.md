@@ -5,6 +5,10 @@ description: Use $match operation to find potential duplicate records with confi
 # Find duplicates: $match
 
 {% hint style="warning" %}
+The MDM module is currently available for **testing and evaluation purposes only**. If you plan to use it with real data in a production environment, please [contact us](https://www.health-samurai.io/#contact-form) or reach out to your Aidbox customer success manager.
+{% endhint %}
+
+{% hint style="warning" %}
 To use the `$match` operation, you need to set up an MDM module. Read the [MDM manual](./) to learn how to run and use it.
 {% endhint %}
 

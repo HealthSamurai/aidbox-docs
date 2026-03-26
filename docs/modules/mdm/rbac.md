@@ -1,5 +1,9 @@
 # RBAC configuration
 
+{% hint style="warning" %}
+The MDM module is currently available for **testing and evaluation purposes only**. If you plan to use it with real data in a production environment, please [contact us](https://www.health-samurai.io/#contact-form) or reach out to your Aidbox customer success manager.
+{% endhint %}
+
 > **Note:** RBAC in MPI is minimal and early-stage. It supports only two roles with no granular permissions. We are open to feedback and suggestions on how access control should evolve.
 
 ## How it works

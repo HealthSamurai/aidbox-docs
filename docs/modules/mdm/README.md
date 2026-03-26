@@ -6,6 +6,10 @@ description: >-
 
 # MDM — Master Data Management
 
+{% hint style="warning" %}
+The MDM module is currently available for **testing and evaluation purposes only**. If you plan to use it with real data in a production environment, please [contact us](https://www.health-samurai.io/#contact-form) or reach out to your Aidbox customer success manager.
+{% endhint %}
+
 **Master Data Management (MDM)** is a module in Aidbox that ensures **accurate entity identification** by detecting and removing duplicate records. It helps maintain consistent and reliable data across healthcare systems.
 
 **MDM enables:**

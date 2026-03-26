@@ -6,6 +6,10 @@ description: >-
 
 # Matching Model Explanation
 
+{% hint style="warning" %}
+The MDM module is currently available for **testing and evaluation purposes only**. If you plan to use it with real data in a production environment, please [contact us](https://www.health-samurai.io/#contact-form) or reach out to your Aidbox customer success manager.
+{% endhint %}
+
 {% hint style="info" %}
 This page provides the **matching model code** and explains its elements.\
 For an overview of probabilistic matching concepts and match score calculation, see our article [Master Patient Index and Record Linkage](https://www.health-samurai.io/articles/master-patient-index-and-record-linkage).

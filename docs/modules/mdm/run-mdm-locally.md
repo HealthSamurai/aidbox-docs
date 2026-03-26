@@ -4,6 +4,10 @@ description: Follow these steps to launch Aidbox MDM module locally using Docker
 
 # Run MDM locally
 
+{% hint style="warning" %}
+The MDM module is currently available for **testing and evaluation purposes only**. If you plan to use it with real data in a production environment, please [contact us](https://www.health-samurai.io/#contact-form) or reach out to your Aidbox customer success manager.
+{% endhint %}
+
 ## Prerequisites
 
 {% hint style="warning" %}
