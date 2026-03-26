@@ -127,6 +127,16 @@ Ensure that the resource metadata contains the kind-specific `AidboxTopicDestina
         <code>full-resource</code> is the default value.
       </td>
     </tr>
+    <tr>
+      <td><code>includeEntryAction</code></td>
+      <td>boolean</td>
+      <td>When <code>true</code>, each <code>Bundle.entry</code> includes the <code>bundle-entryActionCode</code> extension indicating the CRUD action (<code>create</code> | <code>update</code> | <code>delete</code>) that triggered the notification. Default: <code>false</code>.</td>
+    </tr>
+    <tr>
+      <td><code>includeVersionId</code></td>
+      <td>boolean</td>
+      <td>When <code>true</code>, each <code>Bundle.entry</code> includes the <code>bundle-entryVersionId</code> extension containing the resource's <code>meta.versionId</code> at the time of the notification. Default: <code>false</code>.</td>
+    </tr>
   </tbody>
 </table>
 
@@ -309,6 +319,30 @@ graph TD
 
 Notification is a [FHIR Bundle](https://build.fhir.org/bundle.html) resource with `history` type, containing relevant resources in its entries. The first entry is a `AidboxSubscriptionStatus` resource, which describes the payload.\
 The other entries depend on `AidboxTopicDestination` `content` parameter. This parameter is the binding to the FHIR [subscription-payload-content](https://hl7.org/fhir/valueset-subscription-payload-content.html) value set: `full-resource` | `id-only` | `empty`
+
+### Entry extensions
+
+When `includeEntryAction` or `includeVersionId` is enabled on the `AidboxTopicDestination`, each resource `Bundle.entry` (except the `AidboxSubscriptionStatus` entry) will include an `extension` array with the corresponding values:
+
+```json
+{
+  "resource": { ... },
+  "fullUrl": "...",
+  "request": { ... },
+  "extension": [
+    {
+      "url": "http://health-samurai.io/fhir/core/StructureDefinition/bundle-entryActionCode",
+      "valueCode": "create"
+    },
+    {
+      "url": "http://health-samurai.io/fhir/core/StructureDefinition/bundle-entryVersionId",
+      "valueId": "1970"
+    }
+  ]
+}
+```
+
+Only the extensions corresponding to the enabled flags are included. The extensions appear on entries for both `full-resource` and `id-only` content modes. In `empty` mode there are no resource entries, so extensions are not included.
 
 {% tabs %}
 {% tab title="full-resource" %}
