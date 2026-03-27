@@ -318,7 +318,7 @@ graph TD
 ## Notification Shape
 
 Notification is a [FHIR Bundle](https://build.fhir.org/bundle.html) resource with `history` type, containing relevant resources in its entries. The first entry is a `AidboxSubscriptionStatus` resource, which describes the payload.\
-The other entries depend on `AidboxTopicDestination` `content` parameter. This parameter is the binding to the FHIR [subscription-payload-content](https://hl7.org/fhir/valueset-subscription-payload-content.html) value set: `full-resource` | `id-only` | `empty`
+The other entries depend on `AidboxTopicDestination.content` element. This element has the binding to the FHIR [subscription-payload-content](https://hl7.org/fhir/valueset-subscription-payload-content.html) value set: `full-resource` | `id-only` | `empty`
 
 {% tabs %}
 {% tab title="full-resource" %}

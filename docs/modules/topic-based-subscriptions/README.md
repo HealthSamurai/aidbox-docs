@@ -8,7 +8,7 @@ Subscriptions enable real-time notifications and updates between servers and cli
 \
 By leveraging the subscriptions, developers can specify notification criteria, define delivery channels, and monitor specific events or changes in healthcare data. This push-based approach minimizes the need for constant polling, optimizing resource utilization and improving the timeliness of information dissemination.\
 \
-Aidbox provides several implementations of subscriptions. For enhanced capabilities and ongoing support, please use Aidbox topic-based subscriptions. This newer implementation offers improved performance, flexibility, and will continue to be developed to meet future needs.
+Aidbox provides several implementations of subscriptions. For enhanced capabilities and ongoing support, please use **Aidbox topic-based subscriptions**. This newer implementation offers improved performance, flexibility, and will continue to be developed to meet future needs.
 
 <table>
   <thead>
@@ -64,4 +64,3 @@ Aidbox provides several implementations of subscriptions. For enhanced capabilit
     </tr>
   </tbody>
 </table>
-
