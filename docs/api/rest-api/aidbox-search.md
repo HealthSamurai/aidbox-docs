@@ -169,15 +169,6 @@ GET /fhir/Encounter?_query=daily-report&date=2013-06-08
 
 When called via `/fhir/<ResourceType>`, the `{{resourceType}}` variable is available in the query context and resolves to the resource type from the URL.
 
-If the query parameters are too long to fit in the URL, you can use `POST` and pass parameters in the request body instead:
-
-```http
-POST /$query/daily-report
-Content-Type: application/json
-
-{"params": {"date": "2013-06-08"}}
-```
-
 ### Query types <a href="#query-types" id="query-types"></a>
 
 AidboxQuery has `type` field, which can be either `query` or `execute`. Default type is query. This means that _SELECT_ statement in query parameter is expected. If you want to make SQL query with execute statements e.g. _TRUNCATE_, use `execute` type.
