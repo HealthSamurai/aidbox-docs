@@ -161,13 +161,13 @@ Call it like this (data and query keys):
 GET /$query/daily-report?date=2013-06-08
 ```
 
-Or like this (Search Bundle):
+Or via the FHIR Search Bundle endpoint, using `_query` to reference the query name:
 
 ```
-GET /fhir/Patient?_query=get-by-id&rid=patient1
+GET /fhir/Encounter?_query=daily-report&date=2013-06-08
 ```
 
-The main difference is that such a query can use an additional variable available in the context of `{{resourceType}}`.
+When called via `/fhir/<ResourceType>`, the `{{resourceType}}` variable is available in the query context and resolves to the resource type from the URL.
 
 ### Query types <a href="#query-types" id="query-types"></a>
 
@@ -200,10 +200,9 @@ count-query: |
 enable-links: true
 
 params:
-  patient: 
+  patient:
     type: string
     isRequired: true
-    default: "pt1"
   _count:
     type: integer
     default: 100
