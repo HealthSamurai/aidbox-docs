@@ -5,10 +5,35 @@ description: >-
 ---
 
 # Release Notes
+## April 2026 _`edge`_
 
-## March 2026 _`edge`_
+## March 2026 _`latest, 2603`_
 
-## February 2026 _`latest, 2602`_
+*   Aidbox FHIR server
+
+    **Features**
+
+    * The new open-source [Aidbox UI](https://github.com/HealthSamurai/aidbox-ui) is now **enabled by default** Aidbox Console.
+    * Added [BigQuery](../tutorials/subscriptions-tutorials/bigquery-aidboxtopicdestination.md) as an AidboxTopicDestination.
+    * **Lazy FHIRSchema compilation** — FHIRSchema is now compiled from StructureDefinition on read instead of eagerly on write, eliminating data duplication.
+    * [**FHIR NPM Package dependency overrides**](../reference/package-registry-api.md#dependency-overrides) — override or exclude problematic transitive dependencies when loading FHIR packages.
+    * Added `includeEntryAction` and `entryVersionId` to [AidboxTopicDestination](../modules/topic-based-subscriptions/aidbox-topic-based-subscriptions.md#entry-extensions) notification bundles to distinguish between create and update events.
+    * Added support for [Databricks identities](../deployment-and-maintenance/deploy-aidbox/run-aidbox-on-managed-postgresql.md#databricks-lakebase) for Lakebase connections.
+    * Bulk [`$import`](../api/bulk-api/import-and-fhir-import.md) and [`$load`](../api/bulk-api/load-and-fhir-load.md) operations now generate AuditEvents.
+
+    **Bug fixes and improvements**
+
+    * Fixed [`total_`](../api/graphql-api.md) field support in GraphQL API.
+    * Fixed `pg_notify` race condition in multi-instance cache replication.
+    * Fixed concurrent Aidbox initialization error when multiple instances start in parallel.
+    * Fixed FHIR validation for profiles using `contentReference`.
+    * Fixed BALP audit event agent role codes (110152/110153 were swapped between server and client).
+    * Fixed [`$run`](../modules/sql-on-fhir/operation-run.md) Binary response missing `resourceType` field.
+    * Fixed terminology `$validate-code` error when `display` parameter is passed to GET endpoint.
+    * Fixed [FAR](../artifact-registry/artifact-registry-overview.md) package deletion that could lead to broken validator cache on other instances.
+    * Performance optimizations for CRUD operations and FHIR bundles.
+
+## February 2026 _`stable, 2602`_
 
 *   Aidbox FHIR server
 
@@ -60,7 +85,7 @@ description: >-
     * Supported language and translation extensions for string and markdown content.
     * Supported the signatureRequired extension at both questionnaire and item levels.
 
-## January 2026 _`stable, 2601`_
+## January 2026 _`2601`_
 
 * Aidbox FHIR server
   * Improved support for [FHIR Topic-based subscriptions](../modules/topic-based-subscriptions/fhir-topic-based-subscriptions.md).
@@ -91,7 +116,7 @@ description: >-
   * `2512.1` - Optimize memory usage and improve performance.
   * `2512.2` - Fix FHIR validation issues.
 
-## December 2025 _`stable, 2512, LTS`_
+## December 2025 _`2512, LTS`_
 
 * Aidbox FHIR server
   * [FHIR Topic-based Subscriptions](../modules/topic-based-subscriptions/fhir-topic-based-subscriptions.md) are now supported.
@@ -110,7 +135,7 @@ description: >-
 * Minor updates
   * `2507.4` - Fixed vulnerabilities
 
-## November 2025 _`stable, 2511`_
+## November 2025 _`2511`_
 
 * Aidbox FHIR server
   * Improvements in **Implementation Guide (IG) Management**:
