@@ -38,7 +38,7 @@ description: >-
   * Added the ability to configure a [list of terminology servers](https://www.health-samurai.io/docs/formbox/aidbox-ui-builder-alpha/integration-with-external-terminology-servers).
   * Implemented a new [Form Builder layout](https://www.health-samurai.io/docs/formbox/aidbox-ui-builder-alpha/ui-builder-interface#ui-builder-interface-overview), which will become the default in the next release.
   * Added the ability to include a [header](https://www.health-samurai.io/docs/formbox/aidbox-ui-builder-alpha/form-creation/widgets) and [footer](https://www.health-samurai.io/docs/formbox/aidbox-ui-builder-alpha/form-creation/widgets) in a form.
-  * Implemented workflow automation for sending forms from UI to patients via [email](https://www.health-samurai.io/docs/formbox/reference/aidbox-sdc-api#notify-a-patient---dollar-notify-patient).
+  * Implemented workflow automation for [sending forms from UI](https://www.health-samurai.io/docs/formbox/aidbox-ui-builder-alpha/form-sending) to patients via [email](https://www.health-samurai.io/docs/formbox/reference/aidbox-sdc-api#notify-a-patient---dollar-notify-patient).
   * Added support for connecting AI agents to Formbox Builder via [MCP](https://www.health-samurai.io/docs/formbox/aidbox-ui-builder-alpha/mcp).
   * Added the ability to replace the loading spinner with a [custom one](https://www.health-samurai.io/docs/formbox/aidbox-ui-builder-alpha/embedding#step-4-optional-custom-loading-content).
   * Extended customization options for the embedded Form Builder, including the ability to hide the adaptive form feature and custom renderer selection in [Configuration](https://www.health-samurai.io/docs/formbox/aidbox-ui-builder-alpha/configuration#configuration-resource-structure).
