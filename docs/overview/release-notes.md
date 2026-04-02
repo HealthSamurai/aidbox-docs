@@ -33,6 +33,20 @@ description: >-
     * Fixed [FAR](../artifact-registry/artifact-registry-overview.md) package deletion that could lead to broken validator cache on other instances.
     * Performance optimizations for CRUD operations and FHIR bundles.
 
+* Formbox (formerly Aidbox Forms)
+  * Supported the ability to run Formbox in [Sandbox mode](https://www.health-samurai.io/docs/formbox/getting-started-formbox).
+  * Added the ability to configure a [list of terminology servers](https://www.health-samurai.io/docs/formbox/aidbox-ui-builder-alpha/integration-with-external-terminology-servers).
+  * Implemented a new [Form Builder layout](https://www.health-samurai.io/docs/formbox/aidbox-ui-builder-alpha/ui-builder-interface#ui-builder-interface-overview), which will become the default in the next release.
+  * Added the ability to include a [header](https://www.health-samurai.io/docs/formbox/aidbox-ui-builder-alpha/form-creation/widgets) and [footer](https://www.health-samurai.io/docs/formbox/aidbox-ui-builder-alpha/form-creation/widgets) in a form.
+  * Implemented workflow automation for sending forms from UI to patients via [email](https://www.health-samurai.io/docs/formbox/reference/aidbox-sdc-api#notify-a-patient---dollar-notify-patient).
+  * Added support for connecting AI agents to Formbox Builder via [MCP](https://www.health-samurai.io/docs/formbox/aidbox-ui-builder-alpha/mcp).
+  * Added the ability to replace the loading spinner with a [custom one](https://www.health-samurai.io/docs/formbox/aidbox-ui-builder-alpha/embedding#step-4-optional-custom-loading-content).
+  * Extended customization options for the embedded Form Builder, including the ability to hide the adaptive form feature and custom renderer selection in [Configuration](https://www.health-samurai.io/docs/formbox/aidbox-ui-builder-alpha/configuration#configuration-resource-structure).
+  * Added full [Form Builder translations](https://www.health-samurai.io/docs/formbox/aidbox-ui-builder-alpha/configuration#translations), including support for Arabic, and enabled Arabic for [multilingual forms](https://www.health-samurai.io/docs/formbox/aidbox-ui-builder-alpha/form-creation/multilingual-forms).
+  * Supported [form sharing from the root level across tenants](https://www.health-samurai.io/docs/formbox/aidbox-ui-builder-alpha/forms-multitenancy#form-templates) in multi-tenancy mode.
+  * Added the ability to configure a [session timeout parameter](https://www.health-samurai.io/docs/formbox/aidbox-ui-builder-alpha/form-sharing) for automatic logout in forms.
+  * Optimized form loading time for the embedded Form Renderer and Form Builder.
+
 ## February 2026 _`stable, 2602`_
 
 *   Aidbox FHIR server
