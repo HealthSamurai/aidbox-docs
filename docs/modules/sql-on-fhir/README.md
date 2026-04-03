@@ -22,6 +22,12 @@ Once your flat view is defined and materialized, you can query data from it usin
 
 See [Query data from flat views](./query-data-from-flat-views.md).
 
+## De-identification
+
+ViewDefinition columns can be annotated with de-identification methods to transform sensitive data during SQL generation. Supported methods include redact, cryptoHash, dateshift, encrypt, substitute, perturb, and custom PostgreSQL functions.
+
+See [De-identification](./de-identification.md).
+
 ## SQL on FHIR reference
 
 To dive deeper into the nuances of using SQL on FHIR in Aidbox, consult the reference page.

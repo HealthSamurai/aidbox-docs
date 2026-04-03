@@ -327,6 +327,7 @@
   * [Defining flat views with view definitions](modules/sql-on-fhir/defining-flat-views-with-view-definitions.md)
   * [Migrate to the spec-compliant ViewDefinition format](modules/sql-on-fhir/migrate-to-the-spec-compliant-viewdefinition-format.md)
   * [Query data from flat views](modules/sql-on-fhir/query-data-from-flat-views.md)
+  * [De-identification](modules/sql-on-fhir/de-identification.md)
   * [Reference](modules/sql-on-fhir/reference.md)
 * [Integration Toolkit](modules/integration-toolkit/README.md)
   * [C-CDA / FHIR Converter](modules/integration-toolkit/ccda-converter/README.md)
