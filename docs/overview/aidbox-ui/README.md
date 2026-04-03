@@ -43,15 +43,15 @@ Configure Aidbox instance settings from the UI.
 
 {% tabs %}
 {% tab title="DB Console" %}
-<video src="../../assets/overview/aidbox-ui/db.mp4" autoplay loop muted playsinline class="w-full rounded-lg" loading="lazy"></video>
+<video src="../../assets/overview/aidbox-ui/db.mp4" autoplay loop muted playsinline controls class="w-full rounded-lg" loading="lazy"></video>
 {% endtab %}
 {% tab title="REST Console" %}
-<video src="../../assets/overview/aidbox-ui/rest-4k.mp4" autoplay loop muted playsinline class="w-full rounded-lg" loading="lazy"></video>
+<video src="../../assets/overview/aidbox-ui/rest-4k.mp4" autoplay loop muted playsinline controls class="w-full rounded-lg" loading="lazy"></video>
 {% endtab %}
 {% tab title="ViewDefinition Builder" %}
-<video src="../../assets/overview/aidbox-ui/vd.mp4" autoplay loop muted playsinline class="w-full rounded-lg" loading="lazy"></video>
+<video src="../../assets/overview/aidbox-ui/vd.mp4" autoplay loop muted playsinline controls class="w-full rounded-lg" loading="lazy"></video>
 {% endtab %}
 {% tab title="FHIR Packages" %}
-<video src="../../assets/overview/aidbox-ui/far.mp4" autoplay loop muted playsinline class="w-full rounded-lg" loading="lazy"></video>
+<video src="../../assets/overview/aidbox-ui/far.mp4" autoplay loop muted playsinline controls class="w-full rounded-lg" loading="lazy"></video>
 {% endtab %}
 {% endtabs %}
