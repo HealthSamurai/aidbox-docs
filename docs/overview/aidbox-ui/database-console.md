@@ -1,4 +1,5 @@
 ---
+hidden: true
 description: Learn how to use DB Console to work with your Aidbox.
 ---
 

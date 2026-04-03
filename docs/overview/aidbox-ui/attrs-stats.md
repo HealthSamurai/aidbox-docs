@@ -1,4 +1,5 @@
 ---
+hidden: true
 description: >-
   This page will help you get a deeper understanding of the Aidbox Attrs stats
   tab and how it can help you on a daily basis.

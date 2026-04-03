@@ -1,4 +1,5 @@
 ---
+hidden: true
 description: >-
   This doc will help you get a deeper understanding of Aidbox notebooks and how
   they can help you on a daily basis.

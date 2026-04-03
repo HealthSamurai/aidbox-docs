@@ -1,4 +1,5 @@
 ---
+hidden: true
 description: Learn how to use REST Console to work with your Aidbox via REST API.
 ---
 

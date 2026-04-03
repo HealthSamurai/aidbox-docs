@@ -1,4 +1,5 @@
 ---
+hidden: true
 description: View database table statistics in Aidbox including rows, size, indexes, vacuum status, and disk usage for FHIR resources.
 ---
 
