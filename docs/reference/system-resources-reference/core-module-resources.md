@@ -319,6 +319,39 @@ Configuration resource for Aidbox settings.
 ```
 
 
+## AidboxInitialExportStatus
+
+Status of the initial data export for a topic destination. Possible values: pending, in-progress, completed, failed.
+
+```fhir-structure
+[ {
+  "path" : "extension",
+  "name" : "extension",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "url",
+  "name" : "url",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "value[x]",
+  "name" : "value[x]",
+  "lvl" : 0,
+  "min" : 1,
+  "max" : 1,
+  "type" : "string",
+  "desc" : ""
+} ]
+```
+
+
 ## AidboxJob
 
 Aidbox Job resource for scheduling and executing periodic tasks.
@@ -1068,6 +1101,12 @@ Defines the data sources and events that clients can subscribe to. Acts as a con
 } ]
 ```
 
+### Search Parameters
+
+| SearchParameter | Type | Expression | Description |
+|---|---|---|---|
+| url | uri | `url` | Search AidboxSubscriptionTopic by url |
+
 
 ## AidboxTask
 
@@ -1472,6 +1511,22 @@ Configures where and how notifications triggered by a subscription topic should 
   "max" : 1,
   "type" : "string",
   "desc" : "empty | id-only | full-resource. \n\n**Allowed values**: `empty` | `id-only` | `full-resource`"
+}, {
+  "path" : "includeEntryAction",
+  "name" : "includeEntryAction",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "boolean",
+  "desc" : "Include entry action code in notification bundle entries."
+}, {
+  "path" : "includeVersionId",
+  "name" : "includeVersionId",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "boolean",
+  "desc" : "Include resource versionId in notification bundle entries."
 }, {
   "path" : "kind",
   "name" : "kind",
@@ -2671,6 +2726,14 @@ Batch validation run resource for tracking validation processes.
   "max" : 1,
   "type" : "string",
   "desc" : "ID of the group to export data for, when export-level is 'group'."
+}, {
+  "path" : "params.type-filters",
+  "name" : "type-filters",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : "*",
+  "type" : "string",
+  "desc" : "FHIR search query strings for filtering exported resources in ResourceType?params format."
 }, {
   "path" : "params.storage",
   "name" : "storage",
@@ -7478,6 +7541,14 @@ Terminology bundle file tracking resource.
   "type" : "BackboneElement",
   "desc" : "A column to be produced in the resulting table."
 }, {
+  "path" : "select.column.extension",
+  "name" : "extension",
+  "lvl" : 2,
+  "min" : 0,
+  "max" : "*",
+  "type" : "Extension",
+  "desc" : ""
+}, {
   "path" : "select.column.path",
   "name" : "path",
   "lvl" : 2,
@@ -10107,6 +10178,431 @@ AWS SNS best-effort delivery profile for AidboxTopicDestination.
   "max" : 1,
   "type" : "",
   "desc" : ""
+}, {
+  "path" : "parameter.name",
+  "name" : "name",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 1,
+  "max" : 1,
+  "type" : "string",
+  "desc" : ""
+}, {
+  "path" : "parameter.resource",
+  "name" : "resource",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part",
+  "name" : "part",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+} ]
+```
+
+
+## aidboxtopicdestination-bigquery-at-least-once
+
+BigQuery at-least-once delivery profile for AidboxTopicDestination.
+
+```fhir-structure
+[ {
+  "path" : "kind",
+  "name" : "kind",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter:batchSize",
+  "lvl" : 0,
+  "min" : 1,
+  "max" : 1,
+  "type" : "",
+  "desc" : "Number of messages per batch"
+}, {
+  "path" : "parameter.name",
+  "name" : "name",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 1,
+  "max" : 1,
+  "type" : "unsignedInt",
+  "desc" : ""
+}, {
+  "path" : "parameter.resource",
+  "name" : "resource",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part",
+  "name" : "part",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter:dataset",
+  "lvl" : 0,
+  "min" : 1,
+  "max" : 1,
+  "type" : "",
+  "desc" : "BigQuery dataset name"
+}, {
+  "path" : "parameter.name",
+  "name" : "name",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 1,
+  "max" : 1,
+  "type" : "string",
+  "desc" : ""
+}, {
+  "path" : "parameter.resource",
+  "name" : "resource",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part",
+  "name" : "part",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter:destinationTable",
+  "lvl" : 0,
+  "min" : 1,
+  "max" : 1,
+  "type" : "",
+  "desc" : "Target table name in BigQuery"
+}, {
+  "path" : "parameter.name",
+  "name" : "name",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 1,
+  "max" : 1,
+  "type" : "string",
+  "desc" : ""
+}, {
+  "path" : "parameter.resource",
+  "name" : "resource",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part",
+  "name" : "part",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter:emulatorGrpcHost",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : "BigQuery emulator gRPC host:port (e.g. bigquery:9060). Uses plaintext gRPC."
+}, {
+  "path" : "parameter.name",
+  "name" : "name",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 1,
+  "max" : 1,
+  "type" : "string",
+  "desc" : ""
+}, {
+  "path" : "parameter.resource",
+  "name" : "resource",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part",
+  "name" : "part",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter:emulatorUrl",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : "BigQuery emulator REST URL (e.g. http://bigquery:9050). Skips authentication."
+}, {
+  "path" : "parameter.name",
+  "name" : "name",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 1,
+  "max" : 1,
+  "type" : "string",
+  "desc" : ""
+}, {
+  "path" : "parameter.resource",
+  "name" : "resource",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part",
+  "name" : "part",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter:projectId",
+  "lvl" : 0,
+  "min" : 1,
+  "max" : 1,
+  "type" : "",
+  "desc" : "Google Cloud project ID"
+}, {
+  "path" : "parameter.name",
+  "name" : "name",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 1,
+  "max" : 1,
+  "type" : "string",
+  "desc" : ""
+}, {
+  "path" : "parameter.resource",
+  "name" : "resource",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part",
+  "name" : "part",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter:sendIntervalMs",
+  "lvl" : 0,
+  "min" : 1,
+  "max" : 1,
+  "type" : "",
+  "desc" : "Maximum time between sends in milliseconds"
+}, {
+  "path" : "parameter.name",
+  "name" : "name",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 1,
+  "max" : 1,
+  "type" : "unsignedInt",
+  "desc" : ""
+}, {
+  "path" : "parameter.resource",
+  "name" : "resource",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part",
+  "name" : "part",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter:serviceAccountKey",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : "Google Service Account JSON key (optional, omit for ADC/Workload Identity)"
+}, {
+  "path" : "parameter.name",
+  "name" : "name",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "string",
+  "desc" : ""
+}, {
+  "path" : "parameter.resource",
+  "name" : "resource",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part",
+  "name" : "part",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter:skipInitialExport",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : "Skip initial export of existing data (default: false)"
+}, {
+  "path" : "parameter.name",
+  "name" : "name",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 1,
+  "max" : 1,
+  "type" : "boolean",
+  "desc" : ""
+}, {
+  "path" : "parameter.resource",
+  "name" : "resource",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part",
+  "name" : "part",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter:viewDefinition",
+  "lvl" : 0,
+  "min" : 1,
+  "max" : 1,
+  "type" : "",
+  "desc" : "Name of the ViewDefinition resource for data transformation"
 }, {
   "path" : "parameter.name",
   "name" : "name",
@@ -14338,6 +14834,329 @@ Webhook at-least-once delivery profile for AidboxTopicDestination.
 ```
 
 
+## deIdentification
+
+Extension for ViewDefinition columns that specifies a de-identification method and its parameters. Applied during SQL generation to wrap column expressions with the corresponding aidbox_deident_* PostgreSQL function.
+
+```fhir-structure
+[ {
+  "path" : "extension",
+  "name" : "extension",
+  "lvl" : 0,
+  "min" : 1,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "extension",
+  "name" : "extension:cryptoHashKey",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : "HMAC-SHA256 key for cryptoHash method."
+}, {
+  "path" : "extension.url",
+  "name" : "url",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "extension.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 1,
+  "max" : 1,
+  "type" : "string",
+  "desc" : ""
+}, {
+  "path" : "extension",
+  "name" : "extension:custom_arg",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : "Optional second argument passed to the custom function."
+}, {
+  "path" : "extension.url",
+  "name" : "url",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "extension.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 1,
+  "max" : 1,
+  "type" : "string",
+  "desc" : ""
+}, {
+  "path" : "extension",
+  "name" : "extension:custom_function",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : "Name of a custom PostgreSQL function to apply. First argument is the column value (text), optional second argument via custom_arg."
+}, {
+  "path" : "extension.url",
+  "name" : "url",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "extension.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 1,
+  "max" : 1,
+  "type" : "string",
+  "desc" : ""
+}, {
+  "path" : "extension",
+  "name" : "extension:dateShiftKey",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : "HMAC key for deterministic date shifting. Offset is derived from HMAC(key, resource.id)."
+}, {
+  "path" : "extension.url",
+  "name" : "url",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "extension.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 1,
+  "max" : 1,
+  "type" : "string",
+  "desc" : ""
+}, {
+  "path" : "extension",
+  "name" : "extension:encryptKey",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : "AES-128-CBC encryption key as hex string (32 hex chars = 16 bytes)."
+}, {
+  "path" : "extension.url",
+  "name" : "url",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "extension.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 1,
+  "max" : 1,
+  "type" : "string",
+  "desc" : ""
+}, {
+  "path" : "extension",
+  "name" : "extension:method",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : "De-identification method to apply. Required unless custom_function is used."
+}, {
+  "path" : "extension.url",
+  "name" : "url",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "extension.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 1,
+  "max" : 1,
+  "type" : "code",
+  "desc" : ""
+}, {
+  "path" : "extension",
+  "name" : "extension:rangeType",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : "Noise range type for perturb: fixed (absolute) or proportional (relative to value)."
+}, {
+  "path" : "extension.url",
+  "name" : "url",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "extension.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 1,
+  "max" : 1,
+  "type" : "code",
+  "desc" : ""
+}, {
+  "path" : "extension",
+  "name" : "extension:replaceWith",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : "Fixed replacement value for substitute method."
+}, {
+  "path" : "extension.url",
+  "name" : "url",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "extension.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 1,
+  "max" : 1,
+  "type" : "string",
+  "desc" : ""
+}, {
+  "path" : "extension",
+  "name" : "extension:roundTo",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : "Decimal places to round to after perturbation. 0 means round to integer."
+}, {
+  "path" : "extension.url",
+  "name" : "url",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "extension.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 1,
+  "max" : 1,
+  "type" : "integer",
+  "desc" : ""
+}, {
+  "path" : "extension",
+  "name" : "extension:span",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : "Noise magnitude for perturb method."
+}, {
+  "path" : "extension.url",
+  "name" : "url",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "extension.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 1,
+  "max" : 1,
+  "type" : "decimal",
+  "desc" : ""
+}, {
+  "path" : "url",
+  "name" : "url",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "value[x]",
+  "name" : "value[x]",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+} ]
+```
+
+
+## entryActionCode
+
+Describes the action to perform for a Bundle entry.
+
+```fhir-structure
+[ {
+  "path" : "url",
+  "name" : "url",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "value[x]",
+  "name" : "value[x]",
+  "lvl" : 0,
+  "min" : 1,
+  "max" : 1,
+  "type" : "code",
+  "desc" : "create | update | delete"
+} ]
+```
+
+
+## entryVersionId
+
+The versionId of the resource at the time the notification was triggered.
+
+```fhir-structure
+[ {
+  "path" : "url",
+  "name" : "url",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "value[x]",
+  "name" : "value[x]",
+  "lvl" : 0,
+  "min" : 1,
+  "max" : 1,
+  "type" : "id",
+  "desc" : "Resource versionId"
+} ]
+```
+
+
 ## fhir-package-install-parameters
 
 Profile for FHIR package installation parameters.
@@ -14479,6 +15298,29 @@ Profile for FHIR package uninstallation parameters.
   "min" : 0,
   "max" : 1,
   "type" : "",
+  "desc" : ""
+} ]
+```
+
+
+## internalError
+
+```fhir-structure
+[ {
+  "path" : "url",
+  "name" : "url",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "value[x]",
+  "name" : "value[x]",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "string",
   "desc" : ""
 } ]
 ```
