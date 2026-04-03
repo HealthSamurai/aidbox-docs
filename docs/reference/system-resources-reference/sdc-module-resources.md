@@ -527,6 +527,30 @@ Configuration resource for SDC system settings including language, theme, storag
   "type" : "boolean",
   "desc" : "Hide back button in builder"
 }, {
+  "path" : "builder.hide-form-entry-mode",
+  "name" : "hide-form-entry-mode",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "boolean",
+  "desc" : "Hide entry mode control in builder settings"
+}, {
+  "path" : "builder.hide-form-adaptive-form",
+  "name" : "hide-form-adaptive-form",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "boolean",
+  "desc" : "Hide adaptive form control in builder settings"
+}, {
+  "path" : "builder.hide-preview-renderer-selector",
+  "name" : "hide-preview-renderer-selector",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "boolean",
+  "desc" : "Hide preview renderer selector in builder toolbar"
+}, {
   "path" : "builder.hide-publish",
   "name" : "hide-publish",
   "lvl" : 1,
