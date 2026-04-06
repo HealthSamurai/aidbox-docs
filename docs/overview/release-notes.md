@@ -1105,7 +1105,7 @@ Minor updates:
 * Released [Seed v2 service](../deprecated/deprecated/zen-related/aidbox-zen-lang-project/seed-v2.md) for [Aidbox configuration projects](../deprecated/deprecated/zen-related/aidbox-zen-lang-project/)
 * Added Client.audience regex support in SMART on FHIR App launch
 * Added an option to [filter Aidbox stdout logs](../modules/observability/logs/) by severity. By default Aidbox sends only `error` severity level logs to stdout.
-* Added response headers to [Aidbox REST Console](aidbox-ui/rest-console.md) and Aidbox Notebooks.
+* Added response headers to [Aidbox REST Console](aidbox-ui/README.md) and Aidbox Notebooks.
 * Enhanced the Aidbox configuration process with [Aidbox configuration projects](../deprecated/deprecated/zen-related/aidbox-zen-lang-project/)
 * Supported [`/health` endpoint](../api/rest-api/other/health-check.md) for Multibox
 * Updated documentation on how to configure Aidbox with [Aidbox configuration project](../deprecated/deprecated/zen-related/aidbox-zen-lang-project/)
@@ -1223,14 +1223,14 @@ Starting from January 2022 we're switching to a new release cycle. We added`:lat
 
 * Added FHIR R4 search parameters to [zen FHIR packages](../deprecated/deprecated/zen-related/profiling-with-zen-lang/) (alpha) as a part of our roadmap to run Aidbox on managed PostgreSQL databases.
 * Released [load-from-bucket](../api/bulk-api/bulk-import-from-an-s3-bucket.md) import operation for huge imports that allows loading terabytes of data from an AWS bucket directly to the Aidbox database with maximum performance.
-* Added Aidbox UI new tools: [DB Tables](aidbox-ui/db-tables.md) and [DB Queries](aidbox-ui/db-queries.md) to improve database administration and introspection.
+* Added Aidbox UI new tools: [DB Tables](aidbox-ui/README.md) and [DB Queries](aidbox-ui/README.md) to improve database administration and introspection.
 * Added new env `box_compatibility_validation_json__schema_regex="#{:fhir-datetime}` to enable strict date time validation in JSON schema validation engine per [FHIR spec](https://www.hl7.org/fhir/datatypes.html#dateTime).
 * Improved [`$export`](../api/bulk-api/export.md) error statuses.
 * Added Search resource `reference` [support](../api/rest-api/aidbox-search.md#search-resource).
 * Improved [Search parameter](../api/rest-api/fhir-search/searchparameter.md) expression error reporting.
 * Improved [zen profiles](../deprecated/deprecated/zen-related/profiling-with-zen-lang/) support in [GraphQL API](../api/graphql-api.md).
 * Released Multibox box manager API.
-* Added Aidbox UI [Analyze Attributes](aidbox-ui/attrs-stats.md) tab description.
+* Added Aidbox UI [Analyze Attributes](aidbox-ui/README.md) tab description.
 
 ## December 2021 - v:2112
 

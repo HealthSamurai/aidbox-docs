@@ -115,7 +115,7 @@ When `ftr.pull.enable` is set to `true`, Aidbox loads concepts asynchronously by
 
 ### How can you determine if the concepts are still loading or have already loaded? (Usable for `async` pulls)
 
-Access the Aidbox UI and navigate to `Database` > [`Running Queries`](../../../../overview/aidbox-ui/db-queries.md). Look for a query that includes `"_import"`; this query is responsible for loading concepts into your database. Once this query disappears from the list, you can check the concepts in the database. Proceed to `Database` > `DB Console` and enter the following query:
+Access the Aidbox UI and navigate to `Database` > [`Running Queries`](../../../../overview/aidbox-ui/README.md). Look for a query that includes `"_import"`; this query is responsible for loading concepts into your database. Once this query disappears from the list, you can check the concepts in the database. Proceed to `Database` > `DB Console` and enter the following query:
 
 ```sql
 SELECT count(*) from concept where resource->>'system' = 'http://snomed.info/sct'

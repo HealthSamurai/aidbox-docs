@@ -56,7 +56,7 @@ As we mentioned earlier, FHIR ResearchStudy doesn't have references to collabora
 
 There are many ways you can customize your data model with Aidbox. We will do this by creating [an Attribute resource](../../deprecated/deprecated/entity-attribute/entities-and-attributes.md).
 
-There is an HTTP request below for creating `Attribute/ResearchStudy.collaborator`. You can perform this request in [Aidbox REST Console](../../overview/aidbox-ui/rest-console.md).
+There is an HTTP request below for creating `Attribute/ResearchStudy.collaborator`. You can perform this request in [Aidbox REST Console](../../overview/aidbox-ui/README.md).
 
 ```yaml
 PUT /Attribute/ResearchStudy.collaborator

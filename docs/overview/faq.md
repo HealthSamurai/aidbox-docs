@@ -1057,8 +1057,8 @@ Multiple options for API testing:
 - **HTTP files** — IDE-based testing (VS Code REST Client, IntelliJ)
 
 Learn more:
-- [REST Console](../overview/aidbox-ui/rest-console.md)
-- [Aidbox Notebooks](../overview/aidbox-ui/aidbox-notebooks.md)
+- [REST Console](../overview/aidbox-ui/README.md)
+- [Aidbox Notebooks](../overview/aidbox-ui/README.md)
 
 ### How do I debug Access Policies?
 

@@ -486,8 +486,8 @@ redirects:
   modules/topic-based-subscriptions/subscriptions-1: modules/topic-based-subscriptions/README.md
   modules/topic-based-subscriptions/wip-dynamic-subscriptiontopic-with-destinations/tutorial-produce-questionnaireresponse-to-kafka-topic: tutorials/subscriptions-tutorials/tutorial-produce-questionnaireresponse-to-kafka-topic.md
   modules/topic-based-subscriptions/wip-dynamic-subscriptiontopic-with-destinations: modules/topic-based-subscriptions/aidbox-topic-based-subscriptions.md
-  overview/aidbox-ui/notebooks: overview/aidbox-ui/aidbox-notebooks.md
-  overview/aidbox-ui/rest-console-1: overview/aidbox-ui/rest-console.md
+  overview/aidbox-ui/notebooks: overview/aidbox-ui/README.md
+  overview/aidbox-ui/rest-console-1: overview/aidbox-ui/README.md
   plan-api/patient-access-api: access-control/authorization/scoped-api/patient-data-access-api.md
   plan-api/plan-api-overview: api/other/plan-api/README.md
   plan-api: api/other/plan-api/README.md
@@ -921,3 +921,11 @@ redirects:
 
   # modules-1/security-and-access-control/how-to-guides/* (no clear match)
   modules-1/security-and-access-control/how-to-guides/research-possible-security-issues: access-control/access-control.md
+
+  # overview/aidbox-ui subpages merged into single page
+  overview/aidbox-ui/aidbox-notebooks: overview/aidbox-ui/README.md
+  overview/aidbox-ui/rest-console: overview/aidbox-ui/README.md
+  overview/aidbox-ui/database-console: overview/aidbox-ui/README.md
+  overview/aidbox-ui/attrs-stats: overview/aidbox-ui/README.md
+  overview/aidbox-ui/db-tables: overview/aidbox-ui/README.md
+  overview/aidbox-ui/db-queries: overview/aidbox-ui/README.md

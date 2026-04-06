@@ -82,7 +82,7 @@ user:
 
 ### Create TokenIntrospector
 
-To make Aidbox trust `JWT` issued by external server token introspection is used, run the following request in the [REST Console](../../overview/aidbox-ui/rest-console.md).
+To make Aidbox trust `JWT` issued by external server token introspection is used, run the following request in the [REST Console](../../overview/aidbox-ui/README.md).
 
 ```yaml
 PUT /TokenIntrospector/security-labels-demo-client

@@ -15,7 +15,7 @@ Aidbox Forms module supports FHIR SDC operations:
 * [$extract](fhir-sdc-api.md#questionnaire-response-extract-to-resources-extract) - extract data from QuestionnaireResponse to other FHIR resources ([FHIR](https://hl7.org/fhir/uv/sdc/OperationDefinition-QuestionnaireResponse-extract.html))
 * [$expand](fhir-sdc-api.md#valueset-expansion-expand) - create a simple collection of codes suitable for use for data entry or validation. ([FHIR](https://www.hl7.org/fhir/valueset-operation-expand.html))
 
-> We have created an [Aidbox notebook](../../overview/aidbox-ui/aidbox-notebooks.md) demonstrating different population and extraction methods:
+> We have created an [Aidbox notebook](../../overview/aidbox-ui/README.md) demonstrating different population and extraction methods:
 >
 > [**Aidbox forms: populate & extract**](https://aidbox.app/ExportedNotebook/10b1ea71-8e25-4f5e-aaff-e64ae50a27d5)
 
