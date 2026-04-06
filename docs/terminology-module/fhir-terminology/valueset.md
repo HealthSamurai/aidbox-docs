@@ -266,9 +266,26 @@ GET /fhir/ValueSet/$expand?url=http://hl7.org/fhir/ValueSet/administrative-gende
 {% endtab %}
 {% endtabs %}
 
-The `$expand` operation also supports filtering parameters for dynamic search functionality:
-- `filter`: Text to match against code or display values
-- `count`: Maximum number of codes to return
-- `offset`: Number of codes to skip (for paging)
+The `$expand` operation supports the following GET query parameters:
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `filter` | string | Text to match against code or display values |
+| `count` | integer | Maximum number of codes to return |
+| `offset` | integer | Number of codes to skip (for paging) |
+| `activeOnly` | boolean | When `true`, excludes inactive concepts from the expansion |
+| `excludeNested` | boolean | When `true`, returns a flat list instead of a nested hierarchy |
+| `includeDesignations` | boolean | When `true`, includes concept designations (alternate display names) in the expansion |
+| `includeDefinition` | boolean | When `true`, includes the ValueSet definition in the expansion result |
+| `displayLanguage` | code | Specifies the language for display values (e.g. `en`, `de`) |
+| `property` | code | Specifies which concept properties to include in the expansion |
+
+### Parameter validation
+
+Terminology operations (`$expand`, `$validate-code`, `$lookup`) validate input parameters against the operation definition:
+
+- **Unknown parameter** — a parameter not defined in the OperationDefinition returns `400` with `code: "structure"` and a message `"Unknown parameter 'X'"`.
+- **Known but unsupported parameter** — a parameter defined in the OperationDefinition but not yet implemented returns `400` with `code: "not-supported"` and a message `"Parameter 'X' is not supported"`.
+- **Empty POST body** — a POST request with no parameters returns `400` with `"No parameters provided"`.
 
 > **Note:** ValueSets provide the flexibility to define code collections that evolve with your needs. Extensional definitions offer precision, while intensional definitions provide automatic updates. The choice depends on your requirements for control versus maintenance overhead.
