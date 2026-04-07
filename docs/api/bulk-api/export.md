@@ -220,20 +220,69 @@ See also:
 
 ## Parameters
 
-The `$export` operation accepts several query parameters to customize the export:
+The `$export` operation accepts several parameters to customize the export: **query parameters on GET**, or the same parameters inside a **FHIR Parameters resource** when you use **POST** on patient- and group-level exports (see [POST with a Parameters body](#post-with-a-parameters-body-patient-and-group)). Supported parameter names are `_outputFormat`, `_since`, `_until`, `_type`, `_typeFilter`, and `patient`.
 
-| Parameter       | Description                                                                                                                                                                                                                                                                                               |
-| --------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `_outputFormat` | Specifies the format in which the server generates files. Supported formats: `application/fhir+ndjson` (generates `.ndjson` files) and `application/fhir+ndjson+gzip` (generates compressed `.ndjson.gz` files). |
-| `_type`         | Comma-separated list of resource types to include in the export. Only the specified types will be exported.                                                                                                                                                                                                                                          |
-| `_since`        | Includes only resources that changed after the specified datetime. Uses ISO 8601 format.                                                                                                                                                                                                                                                 |
-| `patient`       | Comma-separated list of patient IDs. Exports data only for the listed patients. Available only for patient-level export.                                                                                    |
+| Parameter       | Description |
+| --------------- | ----------- |
+| `_outputFormat` | Specifies the format in which the server generates files. Default: `application/fhir+ndjson`. Canonical values are `application/fhir+ndjson` (generates `.ndjson` files) and `application/fhir+ndjson+gzip` (generates compressed `.ndjson.gz` files). |
+| `_type`         | Comma-separated list of resource types to include in the export. Only the specified types will be exported. |
+| `_since`        | Includes only resources whose **last modification time** is **after** the given instant (`ts > _since`). ISO 8601 format. |
+| `_until`        | Includes only resources whose **last modification time** is **before** the given instant (`ts < _until`). ISO 8601 format. Together with `_since`, this defines an open window on the modification timestamp. |
+| `_typeFilter`   | Restricts exported rows using FHIR search criteria **per resource type**, in the form `ResourceType?searchParams` (same idea as the [FHIR Bulk Data `_typeFilter`](https://hl7.org/fhir/uv/bulkdata/export.html) parameter). You may repeat `_typeFilter` multiple times. Multiple filters for the **same** resource type are combined with **OR**. If `_type` is present, every type used in `_typeFilter` must also appear in `_type`; types listed in `_type` but without a filter are exported in full. Standard FHIR search parameters such as `_id` are allowed. Not allowed inside the search part: `_sort`, `_count`, `_page`, `_total`, `_summary`, `_elements`, `_include`, `_revinclude`, `_has`, `_assoc`, `_with`. |
+| `patient`       | Restricts the export to specific patients. **GET:** comma-separated patient **ids** (not full references), e.g. `patient=pt-1,pt-2`. Supported only on **patient-level** GET. **POST:** repeat a `parameter` named `patient`, each with `valueReference.reference` set to `Patient/{id}`. Supported on **patient-level** and **group-level** POST; for group export, every listed patient must exist and be a **member** of that group. |
+
+### POST with a Parameters body (patient and group)
+
+For **patient-level** and **group-level** exports you can use **POST** with a JSON body of `resourceType: Parameters` instead of query string parameters. System-level export (`GET /fhir/$export`) does not support POST with a Parameters body in this implementation.
+
+Use the same async headers as for GET and include a body content type:
+
+- `Accept: application/fhir+json`
+- `Content-Type: application/fhir+json`
+- `Prefer: respond-async`
+
+Each parameter uses the same name as its query-string counterpart. The value type for each:
+
+| Parameter       | Type             |
+| --------------- | ---------------- |
+| `_outputFormat` | `valueString`    |
+| `_since`        | `valueInstant`   |
+| `_until`        | `valueInstant`   |
+| `_type`         | `valueString`    |
+| `_typeFilter`   | `valueString`    |
+| `patient`       | `valueReference` |
+
+For `patient`, set `valueReference.reference` to `Patient/{id}`. For `_type`, use one part with comma-separated resource types or repeat `_type` several times; Aidbox joins all `_type` values into one comma-separated list. Repeat `_typeFilter` or `patient` parts when you need multiple values.
+
+Any other parameter name in the body returns **400** with an operation outcome. Unknown or invalid `_typeFilter` syntax, search errors, or patient ids that do not exist (or are not in the group, for group export) also return **400**.
+
+**Example:** POST `/fhir/Patient/$export`
+
+```http
+POST /fhir/Patient/$export
+Accept: application/fhir+json
+Content-Type: application/fhir+json
+Prefer: respond-async
+```
+
+```json
+{
+  "resourceType": "Parameters",
+  "parameter": [
+    { "name": "_type", "valueString": "Patient,Observation" },
+    { "name": "_since", "valueInstant": "2024-01-01T00:00:00Z" },
+    { "name": "_until", "valueInstant": "2025-01-01T00:00:00Z" },
+    { "name": "_typeFilter", "valueString": "Observation?status=final" },
+    { "name": "patient", "valueReference": { "reference": "Patient/pt-1" } }
+  ]
+}
+```
 
 ## Patient-level export
 
 Patient-level export extracts all Patient resources and resources associated with them. The association is defined by [FHIR Patient Compartment](http://hl7.org/fhir/r4/compartmentdefinition-patient.html), which specifies which resource types reference patients and through which fields.
 
-To start a patient-level export, send a GET request to `/fhir/Patient/$export`:
+To start a patient-level export, send **GET** to `/fhir/Patient/$export` with optional query parameters, or **POST** to the same URL with a [Parameters JSON body](#post-with-a-parameters-body-patient-and-group) (for example when using `_typeFilter` or repeated `patient` references).
 
 {% tabs %}
 {% tab title="Request" %}
@@ -321,7 +370,7 @@ DELETE /fhir/$export-status/<id>
 
 Group-level export extracts all Patient resources that belong to a specified Group resource, plus all resources associated with those patients. The group characteristics themselves are not exported. Association is defined by the [FHIR Patient Compartment](http://hl7.org/fhir/r4/compartmentdefinition-patient.html).
 
-To start a group-level export, send a GET request to `/fhir/Group/<group-id>/$export`:
+To start a group-level export, send **GET** to `/fhir/Group/<group-id>/$export` with optional query parameters, or **POST** to the same path with a [Parameters body](#post-with-a-parameters-body-patient-and-group) to pass `patient` restrictions or long `_typeFilter` values.
 
 {% tabs %}
 {% tab title="Request" %}
