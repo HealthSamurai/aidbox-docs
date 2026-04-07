@@ -166,7 +166,7 @@ Allowed values are:
 
 * `serializable`
 * `repeatable-read`
-* `read-commited`
+* `read-committed`
 
 Example:
 
