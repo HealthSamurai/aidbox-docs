@@ -89,7 +89,7 @@ description: >-
 * Minor updates
   * Fixed critical vulnerability CVE-2025-15467 in libcrypto3, libssl3, openssl for versions: 2601.1, 2512.3, 2511.4, 2510.4, 2509.4, 2508.4, 2507.5, 2506.3, 2505.5, 2504.4, 2503.7.
 * Formbox (formerly Aidbox Forms)
-  * Implemented an additional delivery option for [Formbox as a standalone product](../modules/aidbox-forms/#id-1.-formbox-as-a-standalone-product).
+  * Implemented an additional delivery option for [Formbox as a standalone product](https://www.health-samurai.io/docs/formbox).
   * Supported exclusive option behavior for checkbox lists.
   * Added [integration with the Twilio email provider](../reference/aidbox-forms-reference/aidbox-sdc-api.md#notify-a-patient-usdnotify-patient).​
   * Added [an example of using the Form Renderer web component with offline support via request interception.](https://github.com/Aidbox/examples/tree/main/aidbox-forms/aidbox-forms-renderer-offline-mode)
@@ -121,11 +121,11 @@ description: >-
   * Published **official Aidbox grafana dashboard** [Dashboard](https://grafana.com/grafana/dashboards/24752-aidbox/)
   * Deprecated the `smartbox` image, migration to [Aidbox + FHIR App Portal](../solutions/aidbox-+-fhir-app-portal/getting-started/smartbox-to-aidbox-migration-guide.md) is required.
 * Aidbox Forms
-  * Added [direct attachment links](../modules/aidbox-forms/aidbox-ui-builder-alpha/store-attachments-in-s3-like-storages.md#absolute-url-in-attachments) from QuestionnaireResponse to an S3 bucket.
-  * Supported the [SMART Web Messaging protocol for embedding custom renderers](../modules/aidbox-forms/aidbox-ui-builder-alpha/external-form-renderer.md).
+  * Added [direct attachment links](https://www.health-samurai.io/docs/formbox) from QuestionnaireResponse to an S3 bucket.
+  * Supported the [SMART Web Messaging protocol for embedding custom renderers](https://www.health-samurai.io/docs/formbox).
   * Updated the [open-source Formbox renderer](https://github.com/HealthSamurai/aidbox-forms-renderer/tree/master) with support for all itemControl types and advanced rendering aligned with the FHIR SDC specification.
-  * Added the ability to use `valueCodeableConcept` for [custom extensions](../modules/aidbox-forms/aidbox-ui-builder-alpha/form-creation/widgets.md#extensions) in the Form Builder.
-  * Provided a Smart App sample for the [DTR flow](../modules/aidbox-forms/davinci.md) (available upon request).
+  * Added the ability to use `valueCodeableConcept` for [custom extensions](https://www.health-samurai.io/docs/formbox) in the Form Builder.
+  * Provided a Smart App sample for the [DTR flow](https://www.health-samurai.io/docs/formbox) (available upon request).
 * Minor updates
   * `2512.1` - Optimize memory usage and improve performance.
   * `2512.2` - Fix FHIR validation issues.
@@ -139,13 +139,13 @@ description: >-
   * Multiple bug fixes in the validator.
   * Security-related bug fixes.
 * Aidbox Forms
-  * Supported the ability to create dynamic [parameterized valueSets](../modules/aidbox-forms/aidbox-ui-builder-alpha/parameterised-valueset.md) that filter answer options based on other form fields using FHIRPath expressions.
+  * Supported the ability to create dynamic [parameterized valueSets](https://www.health-samurai.io/docs/formbox) that filter answer options based on other form fields using FHIRPath expressions.
   * Created an [open-source React renderer](https://github.com/HealthSamurai/aidbox-forms-renderer/tree/master) for custom form rendering, now available in alpha stage.
-  * Supported [`$questionnaire-package`](../modules/aidbox-forms/davinci.md) operation for the Da Vinci DTR flow.
-  * Implemented the [`tab-container`](../modules/aidbox-forms/aidbox-ui-builder-alpha/form-creation/widgets.md) widget to display groups as form tabs.
+  * Supported [`$questionnaire-package`](https://www.health-samurai.io/docs/formbox) operation for the Da Vinci DTR flow.
+  * Implemented the [`tab-container`](https://www.health-samurai.io/docs/formbox) widget to display groups as form tabs.
   * Redesigned the form outline with item search support.
-  * Implemented all widgets for [`entryMode`](../modules/aidbox-forms/aidbox-ui-builder-alpha/form-creation/entry-mode.md).
-  * Supported theme usage for [`entryMode`](../modules/aidbox-forms/aidbox-ui-builder-alpha/form-creation/entry-mode.md).
+  * Implemented all widgets for [`entryMode`](https://www.health-samurai.io/docs/formbox).
+  * Supported theme usage for [`entryMode`](https://www.health-samurai.io/docs/formbox).
 * Minor updates
   * `2507.4` - Fixed vulnerabilities
 
@@ -167,9 +167,9 @@ description: >-
   * Contained resources are now supported in [GraphQL API](../api/graphql-api.md).
   * Improved error handling on Bundle validation and processing.
 * Aidbox Forms
-  * Added the ability to set up an [autosave interval](../modules/aidbox-forms/aidbox-ui-builder-alpha/configuration.md) in SDCConfig.
-  * Supported [multitenancy in Form UI](../modules/aidbox-forms/aidbox-ui-builder-alpha/forms-multitenancy.md) for creating and sharing forms between organizations.
-  * Added support for the [NHS design system](../modules/aidbox-forms/aidbox-ui-builder-alpha/form-creation/nhs-look-and-feel.md) to create forms according to the NHS style guide and embed them into the NHS app.
+  * Added the ability to set up an [autosave interval](https://www.health-samurai.io/docs/formbox) in SDCConfig.
+  * Supported [multitenancy in Form UI](https://www.health-samurai.io/docs/formbox) for creating and sharing forms between organizations.
+  * Added support for the [NHS design system](https://www.health-samurai.io/docs/formbox) to create forms according to the NHS style guide and embed them into the NHS app.
   * Improved PDF/Questionnaire import with clearer error display and easy navigation between errors.
 * Minor updates
   * `2510.1` - Fix redirects after registration email confirmation
@@ -193,10 +193,10 @@ description: >-
   * Improved **GraphQL API performance**
   * **Deprecated AidboxDB**: switched completely to the **official PostgreSQL distribution**.
 * Aidbox Forms
-  * Supported [Adaptive forms](../modules/aidbox-forms/adaptive-forms.md) in both the Builder and the Renderer.
-  * Implemented the [`$next-question`](../modules/aidbox-forms/adaptive-forms.md) operation for Adaptive forms.
+  * Supported [Adaptive forms](https://www.health-samurai.io/docs/formbox) in both the Builder and the Renderer.
+  * Implemented the [`$next-question`](https://www.health-samurai.io/docs/formbox) operation for Adaptive forms.
   * Provided a [sample project](https://github.com/Aidbox/examples/tree/main/aidbox-forms/aidbox-adaptive-forms) demonstrating how to implement an external assessment center for Adaptive forms.
-  * Supported the [`optionPrefix`](../modules/aidbox-forms/aidbox-ui-builder-alpha/form-creation/widgets.md#choice) extension to display a prefix in front of a code when presenting a list of possible values in a questionnaire.
+  * Supported the [`optionPrefix`](https://www.health-samurai.io/docs/formbox) extension to display a prefix in front of a code when presenting a list of possible values in a questionnaire.
 * Minor updates
   * `2509.3` - Fixed vulnerabilities and issues with concurrent startup of multiple instances
   * `2508.3` - Fixed vulnerabilities and issues with concurrent startup of multiple instances
@@ -219,10 +219,10 @@ description: >-
   * Audit events generated by Aidbox are now [Organization-based hierarchical access control](../access-control/authorization/scoped-api/organization-based-hierarchical-access-control.md) aware.
   * Bug fixes in the Resource Browser in Aidbox UI.
 * Aidbox Forms
-  * Implemented [OpenEHR Templates to FHIR Questionnaire and QuestionnaireResponse to OpenEHR Composition conversion](../modules/aidbox-forms/aidbox-ui-builder-alpha/import-questionnaire.md#id-3.-selecting-an-openehr-template-file).
-  * Enriched the [Aidbox Form Gallery](../modules/aidbox-forms/aidbox-form-gallery.md#id-3.-searching-and-importing-a-form-from-the-aidbox-form-gallery-inside-the-aidbox-instance) with OpenEHR-converted templates.
-  * Added config and theme parameters to the [`$print` operation](../modules/aidbox-forms/aidbox-ui-builder-alpha/printing-forms/native-look-form-printing.md) for granular configuration.
-  * Added the [`allow-repopulate` flag](../modules/aidbox-forms/aidbox-ui-builder-alpha/configuration.md#configuration-resource-structure) to the SDCConfig resource to enable form repopulation.
+  * Implemented [OpenEHR Templates to FHIR Questionnaire and QuestionnaireResponse to OpenEHR Composition conversion](https://www.health-samurai.io/docs/formbox).
+  * Enriched the [Aidbox Form Gallery](https://www.health-samurai.io/docs/formbox) with OpenEHR-converted templates.
+  * Added config and theme parameters to the [`$print` operation](https://www.health-samurai.io/docs/formbox) for granular configuration.
+  * Added the [`allow-repopulate` flag](https://www.health-samurai.io/docs/formbox) to the SDCConfig resource to enable form repopulation.
   * Implemented pagination for the Form Templates grid.
 
 ## August 2025 _`2508`_
@@ -238,12 +238,12 @@ description: >-
   * Improved reliability in Aidbox App creation and IG loading via the [init bundle](../configuration/init-bundle.md).
   * Multiple improvements in [Audit Logging](../access-control/audit-and-logging.md).
 * Aidbox Forms
-  * Added the ability [to embed an external form renderer](../modules/aidbox-forms/aidbox-ui-builder-alpha/external-form-renderer.md) in the Aidbox Form Builder, with an [example project](https://github.com/Aidbox/examples/tree/main/aidbox-forms/aidbox-forms-builder-custom-renderer) demonstrating setup.
-  * Supported the [`entryMode` extension](../modules/aidbox-forms/aidbox-ui-builder-alpha/form-creation/entry-mode.md) to define how questions are presented and navigated in the form.
-  * Added [AI assistance for generating ViewDefinition](../modules/aidbox-forms/aidbox-ui-builder-alpha/ai-assistant.md) and visualizing output in the Aidbox Form Builder.
-  * Extended the [EnableWhen constructor](../modules/aidbox-forms/aidbox-ui-builder-alpha/form-creation/widgets.md#enablewhen-rule) to cover group conditions.
+  * Added the ability [to embed an external form renderer](https://www.health-samurai.io/docs/formbox) in the Aidbox Form Builder, with an [example project](https://github.com/Aidbox/examples/tree/main/aidbox-forms/aidbox-forms-builder-custom-renderer) demonstrating setup.
+  * Supported the [`entryMode` extension](https://www.health-samurai.io/docs/formbox) to define how questions are presented and navigated in the form.
+  * Added [AI assistance for generating ViewDefinition](https://www.health-samurai.io/docs/formbox) and visualizing output in the Aidbox Form Builder.
+  * Extended the [EnableWhen constructor](https://www.health-samurai.io/docs/formbox) to cover group conditions.
   * Implemented deletion of forms and components with validation in the Template Grid.
-  * Added the ability to [display the hierarchy of nested items](../modules/aidbox-forms/aidbox-ui-builder-alpha/configuration.md#theme).
+  * Added the ability to [display the hierarchy of nested items](https://www.health-samurai.io/docs/formbox).
 * Minor updates
   * `2507.1` - fix vulnerabilities and critical issues
   * `2410.9` - fix vulnerabilities
@@ -263,11 +263,11 @@ description: >-
     * When editing a resource, users can now view its full structure.
     * Added the ability to reload the FHIR package
 * Aidbox Forms
-  * Implemented [AI assistance](../modules/aidbox-forms/aidbox-ui-builder-alpha/ai-assistant.md) in the Form Builder for creating and editing forms from text descriptions, with support for EnableWhen, calculation, and population logics.
-  * Supported [item answer media](../modules/aidbox-forms/aidbox-ui-builder-alpha/form-creation/widgets.md#radio-button) for media accompaniments for specific answer options (used in radio button and checkbox list).
-  * Supported [strict access control mode](../modules/aidbox-forms/access-control-in-forms.md#strict-access-control) to enforce explicit authorization for all backend resource accesses initiated by SDC proxy operations.
+  * Implemented [AI assistance](https://www.health-samurai.io/docs/formbox) in the Form Builder for creating and editing forms from text descriptions, with support for EnableWhen, calculation, and population logics.
+  * Supported [item answer media](https://www.health-samurai.io/docs/formbox) for media accompaniments for specific answer options (used in radio button and checkbox list).
+  * Supported [strict access control mode](https://www.health-samurai.io/docs/formbox) to enforce explicit authorization for all backend resource accesses initiated by SDC proxy operations.
   * Embedded LHC and Smart form renderers in the [Aidbox public form builder](https://form-builder.aidbox.app/) to test how forms behave in different SDC renderers.
-  * Added the ability to [hide the download button](../modules/aidbox-forms/aidbox-ui-builder-alpha/configuration.md) using the SDCConfig resource.
+  * Added the ability to [hide the download button](https://www.health-samurai.io/docs/formbox) using the SDCConfig resource.
   * Supported quote, text indents in label's markdown
 * Minor updates
   * `2506.1` - Fixed vulnerabilities
@@ -292,13 +292,13 @@ description: >-
   * Added the ability to update or delete a custom StructureDefinition.
   * Improvements in license management functionality.
 * Aidbox Forms
-  * Supported the FHIRPath Factory API for populating a choice item with answerValueSet and other use cases. See the [How-to guide](../modules/aidbox-forms/aidbox-ui-builder-alpha/form-creation/how-to-guides/how-to-populate-forms-with-data.md#how-to-populate-items-with-factory-api) for more details.
-  * Supported the [`answerExpression` feature ](../modules/aidbox-forms/aidbox-ui-builder-alpha/form-creation/widgets.md#choice)to dynamically fetch answerOptions via FHIRQuery or filter answerOptions using FHIRPath. See the [How-to guide](../modules/aidbox-forms/aidbox-ui-builder-alpha/form-creation/how-to-guides/how-to-use-answer-expression-into-forms.md) for more details.
-  * Implemented the ability to add and edit [custom extensions](../modules/aidbox-forms/aidbox-ui-builder-alpha/form-creation/widgets.md#extensions) in the Form Builder.
-  * Added the ability to[ download file attachments](../modules/aidbox-forms/aidbox-ui-builder-alpha/form-creation/widgets.md#attachment).
-  * Added the ability to[ embed external services](../modules/aidbox-forms/aidbox-ui-builder-alpha/embedding.md#onpreviewattachment-show-attachments-with-external-editor) in the file preview.
-  * Added the ability to [set the height of the web component](../modules/aidbox-forms/aidbox-ui-builder-alpha/embedding.md) dynamically.
-  * Created the [How-to guide](../modules/aidbox-forms/aidbox-ui-builder-alpha/form-creation/how-to-guides/how-to-extract-data-from-forms.md#template-based-extraction) for template-based extraction.
+  * Supported the FHIRPath Factory API for populating a choice item with answerValueSet and other use cases. See the [How-to guide](https://www.health-samurai.io/docs/formbox) for more details.
+  * Supported the [`answerExpression` feature ](https://www.health-samurai.io/docs/formbox)to dynamically fetch answerOptions via FHIRQuery or filter answerOptions using FHIRPath. See the [How-to guide](https://www.health-samurai.io/docs/formbox) for more details.
+  * Implemented the ability to add and edit [custom extensions](https://www.health-samurai.io/docs/formbox) in the Form Builder.
+  * Added the ability to[ download file attachments](https://www.health-samurai.io/docs/formbox).
+  * Added the ability to[ embed external services](https://www.health-samurai.io/docs/formbox) in the file preview.
+  * Added the ability to [set the height of the web component](https://www.health-samurai.io/docs/formbox) dynamically.
+  * Created the [How-to guide](https://www.health-samurai.io/docs/formbox) for template-based extraction.
 * Minor updates
   * `2505.2` - Fixed vulnerabilities
   * `2505.1` - Minor UI improvements
@@ -330,8 +330,8 @@ description: >-
   * Enhanced Aidbox grant screen to show the list of scopes that are the intersection of the scopes requested by the SMART app and the scopes allowed to the Client.
   * Fixed bugs on Aidbox UI, resource validation, and incorrect handling of PUT operation in bundles.
 * Aidbox Forms
-  * Supported full functionality of [template-based extraction](../modules/aidbox-forms/aidbox-ui-builder-alpha/form-creation/form-settings.md#template-based-extraction) to extract QuestionnaireResponse into FHIR resources using predefined templates, with dynamic referencing between extracted resources and the template bundle extracted as a single resource.
-  * Improved the [FHIRPath expression editor](../modules/aidbox-forms/aidbox-ui-builder-alpha/form-creation/fhirpath-editor.md) for calculation, enable-when, and population expressions: including basic patient demographic pre-filling (e.g., name, gender, DOB).
+  * Supported full functionality of [template-based extraction](https://www.health-samurai.io/docs/formbox) to extract QuestionnaireResponse into FHIR resources using predefined templates, with dynamic referencing between extracted resources and the template bundle extracted as a single resource.
+  * Improved the [FHIRPath expression editor](https://www.health-samurai.io/docs/formbox) for calculation, enable-when, and population expressions: including basic patient demographic pre-filling (e.g., name, gender, DOB).
   * Added the ability to hide the form title when embedding as a web component.
   * Improved the Form Navigation Bar to display top-level groups when using a form with pages.
 * **Minor updates**
@@ -352,8 +352,8 @@ description: >-
   * Removed DB Parameters from SQL Logs.
   * Added multiple UI fixes to FHIR packages and Resource browser sections in Aidbox UI
 * Aidbox Forms
-  * Supported [template-based extraction](../modules/aidbox-forms/aidbox-ui-builder-alpha/form-creation/form-settings.md#template-based-extraction) for transforming QuestionnaireResponses into FHIR resources using predefined templates (currently in preview)
-  * Implemented [the FHIRPath expression editor](../modules/aidbox-forms/aidbox-ui-builder-alpha/form-creation/fhirpath-editor.md) for calculation, enable-when, and population expressions (currently in preview).
+  * Supported [template-based extraction](https://www.health-samurai.io/docs/formbox) for transforming QuestionnaireResponses into FHIR resources using predefined templates (currently in preview)
+  * Implemented [the FHIRPath expression editor](https://www.health-samurai.io/docs/formbox) for calculation, enable-when, and population expressions (currently in preview).
   * Supported FHIR 6.0.0
 * Minor updates
   * `2503.3` - Fixed vulnerabilities and minor Forms issues
@@ -395,12 +395,12 @@ description: >-
   * Introduced [Settings](../configuration/settings.md)
   * Published [settings reference documentation](../reference/all-settings.md)
 * Aidbox Forms
-  * PDF-Form conversion (enhancement): [Re-generation from PDF ](../modules/aidbox-forms/aidbox-ui-builder-alpha/import-questionnaire.md#common-functionality-across-all-scenarios)and insertion of a part of the form into an existing form
-  * Added enabling of Print, Amend, and Save buttons in [SDCConfig](../modules/aidbox-forms/aidbox-ui-builder-alpha/configuration.md)
+  * PDF-Form conversion (enhancement): [Re-generation from PDF ](https://www.health-samurai.io/docs/formbox)and insertion of a part of the form into an existing form
+  * Added enabling of Print, Amend, and Save buttons in [SDCConfig](https://www.health-samurai.io/docs/formbox)
   * Added an [endpoint for generating a form from PDF](../reference/aidbox-forms-reference/generating-questionnaire-from-pdf-api.md)
   * Added support for systemversion in valuesets
-  * Added an ability to [intercept requests](../modules/aidbox-forms/aidbox-ui-builder-alpha/embedding.md#step-4-optional-configure-requests-interception) made to the Aidbox server endpoints from Form Builder and Renderer when embedding as web-component
-  * Supported [max decimal places](../modules/aidbox-forms/aidbox-ui-builder-alpha/form-creation/widgets.md#decimal)
+  * Added an ability to [intercept requests](https://www.health-samurai.io/docs/formbox) made to the Aidbox server endpoints from Form Builder and Renderer when embedding as web-component
+  * Supported [max decimal places](https://www.health-samurai.io/docs/formbox)
 
 Minor updates:
 
@@ -426,10 +426,10 @@ Aidbox is transitioning to the FHIR Schema engine. Existing zen and Entity/Attri
   * Changed default [stdout log level](../reference/all-settings.md#observability.stdout.log-level) and [stdout Google log level](../reference/all-settings.md#observability.stdout.google-log-level) to `warn`
 * Aidbox Forms
   * Improved performance for handling large forms.
-  * Added the ability to [set colors for tooltips and hover effects](../modules/aidbox-forms/aidbox-ui-builder-alpha/form-creation/form-customisation-in-theme-editor.md#how-to-create-a-new-theme) using the primary color in the Theme.
-  * Enabled [linking a Questionnaire profile](../modules/aidbox-forms/aidbox-ui-builder-alpha/form-creation/form-settings.md#profiles) directly in the UI Builder.
+  * Added the ability to [set colors for tooltips and hover effects](https://www.health-samurai.io/docs/formbox) using the primary color in the Theme.
+  * Enabled [linking a Questionnaire profile](https://www.health-samurai.io/docs/formbox) directly in the UI Builder.
   * Updated the [Aidbox Forms Smart Launch project](https://github.com/Aidbox/examples/tree/main/aidbox-forms/aidbox-forms-smart-launch-2) with enhancements and fixes.
-  * Added [video support to the media section](../modules/aidbox-forms/aidbox-ui-builder-alpha/form-creation/widgets.md#media-section) of the item settings .
+  * Added [video support to the media section](https://www.health-samurai.io/docs/formbox) of the item settings .
   * Supported [profiles and slices in definition-based extraction](https://build.fhir.org/ig/HL7/sdc/extraction.html#definition-based-extraction).
 
 Minor updates:
@@ -488,7 +488,7 @@ Minor updates:
   * Added configurable CORS settings, allowing users to [enable CORS](../reference/all-settings.md#security.cors.enabled) and [specify allowed origins](../reference/all-settings.md#security.cors.origins).
   * Fixed critical vulnerabilities and bugs
 * Aidbox Forms
-  * [Added an ability to connect Aidbox Forms with external FHIR servers for data management](../modules/aidbox-forms/aidbox-ui-builder-alpha/external-fhir-servers-as-a-data-backend.md)
+  * [Added an ability to connect Aidbox Forms with external FHIR servers for data management](https://www.health-samurai.io/docs/formbox)
   * Introduced an [Aidbox Forms SMART app sample project with React.js](https://github.com/Aidbox/examples/tree/main/aidbox-forms/aidbox-forms-smart-launch-2)
   * Verified compliance with accessibility standards
   * Added an ability to re-populate a form with the latest available data
@@ -514,11 +514,11 @@ Minor updates:
   * Implemented “service base URLs” in compliance with (g)(10)
 * Aidbox Forms
   * Implemented basic conversion of paper and fillable PDF forms to digital forms
-  * [Added print & close button customization](../modules/aidbox-forms/aidbox-ui-builder-alpha/form-creation/form-customisation-in-theme-editor.md)
+  * [Added print & close button customization](https://www.health-samurai.io/docs/formbox)
   * Added QuestionnareResponce and extraction outcomes validation in the UI Builder console
-  * [Added form width settings](../modules/aidbox-forms/aidbox-ui-builder-alpha/form-creation/form-settings.md#appearance-settings)
+  * [Added form width settings](https://www.health-samurai.io/docs/formbox)
   * Supported default value population in the UI Builder
-  * [Multilingual form improvements: added support for languages with country codes, added ability for print & amend button translations](../modules/aidbox-forms/aidbox-ui-builder-alpha/form-creation/multilingual-forms.md)
+  * [Multilingual form improvements: added support for languages with country codes, added ability for print & amend button translations](https://www.health-samurai.io/docs/formbox)
   * Optimized performance for handling large forms
 * Minor updates
   * [2408.1 ](https://hub.docker.com/layers/healthsamurai/aidboxone/2408.1/images/sha256-972680359848f744afd06417b3c7085b69f4c7ec4a852251fd2f1015c0635745?context=explore)— Fixed critical vulnerabilities and security issues
@@ -532,18 +532,18 @@ Minor updates:
   * Added an option to connect a self-hosted Aidbox instance to the [ViewDefinition builder](https://sqlonfhir.aidbox.app/?utm_source=aidbox-docs\&utm_medium=release-notes)
   * Enhanced [SQL on FHIR spec coverage](https://fhir.github.io/sql-on-fhir-v2)
   * Supported [Audit logging](../access-control/audit-and-logging.md) using external identity providers
-* [Aidbox Forms](../modules/aidbox-forms/)
+* [Aidbox Forms](https://www.health-samurai.io/docs/formbox)
   * UI builder updates (FHIR Questionnaire-based):
-    * [Supported Multilingual Forms](../modules/aidbox-forms/aidbox-ui-builder-alpha/form-creation/multilingual-forms.md)
-    * [Implemented Multilingual Builder Interface](../modules/aidbox-forms/aidbox-ui-builder-alpha/form-creation/multilingual-forms.md)
+    * [Supported Multilingual Forms](https://www.health-samurai.io/docs/formbox)
+    * [Implemented Multilingual Builder Interface](https://www.health-samurai.io/docs/formbox)
     * Provided delete, copy form on the Form template grid
-    * [Implemented reusing forms as component](../modules/aidbox-forms/aidbox-ui-builder-alpha/form-creation/components.md)
-    * [Added the SDC config resource for general settings](../modules/aidbox-forms/aidbox-ui-builder-alpha/configuration.md)
-    * [Provided the ability to restrict the type of attached file](../modules/aidbox-forms/aidbox-ui-builder-alpha/form-creation/widgets.md#attachment)
+    * [Implemented reusing forms as component](https://www.health-samurai.io/docs/formbox)
+    * [Added the SDC config resource for general settings](https://www.health-samurai.io/docs/formbox)
+    * [Provided the ability to restrict the type of attached file](https://www.health-samurai.io/docs/formbox)
     * Supported cqf-expression to provide prefilling the value in the display field
-    * [Integrated the Termbox server with Aidbox Forms for using external terminologies](../modules/aidbox-forms/aidbox-ui-builder-alpha/integration-with-external-terminology-servers.md)
-    * [Added an ability to embed forms as web-component](../modules/aidbox-forms/aidbox-ui-builder-alpha/embedding.md)
-    * [Provided the ability to display an attached image on the form](../modules/aidbox-forms/aidbox-ui-builder-alpha/form-creation/widgets.md#attachment)
+    * [Integrated the Termbox server with Aidbox Forms for using external terminologies](https://www.health-samurai.io/docs/formbox)
+    * [Added an ability to embed forms as web-component](https://www.health-samurai.io/docs/formbox)
+    * [Provided the ability to display an attached image on the form](https://www.health-samurai.io/docs/formbox)
   * [C-CDA / FHIR converter](../modules/integration-toolkit/ccda-converter/)
     * Add support for [user-defined codemaps](../modules/integration-toolkit/ccda-converter/how-to-customize-conversion-rules.md)
 
@@ -553,19 +553,19 @@ Minor updates:
   * Introduced support for [custom resources using FHIR StructureDefinitions](../tutorials/artifact-registry-tutorials/custom-resources/custom-resources-using-structuredefinition.md) and [custom resources using FHIR schemas](../tutorials/artifact-registry-tutorials/custom-resources/custom-resources-using-fhir-schema.md)
   * Published [JavaScript app example](https://github.com/Aidbox/examples/tree/main/aidbox-features/aidbox-notify-via-custom-resources) demonstrating custom resources with a typical notification flow: requesting a notification, locking it for sending, and sending it (placeholder)
   * Supported [enabling Audit Log using an environment variable](../reference/all-settings.md)
-* [Aidbox Forms](../modules/aidbox-forms/)
+* [Aidbox Forms](https://www.health-samurai.io/docs/formbox)
   * UI builder updates (FHIR Questionnaire-based):
-    * [Implemented Offline mode for forms](../modules/aidbox-forms/aidbox-ui-builder-alpha/offline-forms.md)
-    * [Supported definition-based extraction](../modules/aidbox-forms/aidbox-ui-builder-alpha/form-creation/how-to-guides/how-to-extract-data-from-forms.md#definition-based-extraction)
-    * [Ability to search and use templates from Aidbox Form Gallery on UI](../modules/aidbox-forms/aidbox-form-gallery.md)
-    * [Ability to embed Aidbox UI Builder as a web-component](../modules/aidbox-forms/aidbox-ui-builder-alpha/embedding.md)
+    * [Implemented Offline mode for forms](https://www.health-samurai.io/docs/formbox)
+    * [Supported definition-based extraction](https://www.health-samurai.io/docs/formbox)
+    * [Ability to search and use templates from Aidbox Form Gallery on UI](https://www.health-samurai.io/docs/formbox)
+    * [Ability to embed Aidbox UI Builder as a web-component](https://www.health-samurai.io/docs/formbox)
     * [Implemented Template-based PDF Generation](../reference/aidbox-forms-reference/generating-questionnaire-from-pdf-api.md)
-    * [Added a Speech to text widget](../modules/aidbox-forms/aidbox-ui-builder-alpha/form-creation/widgets.md#speech-to-text)
-    * [Added an Annotation Pad widget](../modules/aidbox-forms/aidbox-ui-builder-alpha/form-creation/widgets.md#annotation-pad)
+    * [Added a Speech to text widget](https://www.health-samurai.io/docs/formbox)
+    * [Added an Annotation Pad widget](https://www.health-samurai.io/docs/formbox)
     * Performance optimization for large forms
-    * [Added support for meta and tag additions in the Questionnaire](../modules/aidbox-forms/aidbox-ui-builder-alpha/form-creation/form-settings.md#tags)
-    * [Supported multi-selection](../modules/aidbox-forms/aidbox-ui-builder-alpha/form-creation/widgets.md#common-widgets-settings)
-    * [Supported initial value population](../modules/aidbox-forms/aidbox-ui-builder-alpha/form-creation/widgets.md#common-widgets-settings)
+    * [Added support for meta and tag additions in the Questionnaire](https://www.health-samurai.io/docs/formbox)
+    * [Supported multi-selection](https://www.health-samurai.io/docs/formbox)
+    * [Supported initial value population](https://www.health-samurai.io/docs/formbox)
     * Implemented Audit logging
 * [C-CDA / FHIR converter](../modules/integration-toolkit/ccda-converter/)
   * Introduced the ability to override existing conversion rules using the DSL
@@ -594,13 +594,13 @@ Minor updates:
   * Settings (read-only)
 * **DevOps:**
   * Published [Helm charts](https://github.com/Aidbox/helm-charts?tab=readme-ov-file) to simplify the process of deploying and managing Aidbox in K8s
-* [Aidbox Forms](../modules/aidbox-forms/)
+* [Aidbox Forms](https://www.health-samurai.io/docs/formbox)
   * UI builder updates (FHIR Questionnaire-based):
     * Ability to create custom components and reuse them in other forms
-    * [Supported different versions depending on FHIR server version](../modules/aidbox-forms/aidbox-ui-builder-alpha/form-creation/form-settings.md#version)
+    * [Supported different versions depending on FHIR server version](https://www.health-samurai.io/docs/formbox)
     * Added open choice widget
     * Published guides on how to populate form with patient demographic data; how to populate form with patient weight, height; how to populate form with patient allergies; how to populate form with data from another form during the visit
-    * [Implemented printing form or basic PDF generation](../modules/aidbox-forms/aidbox-ui-builder-alpha/printing-forms/)
+    * [Implemented printing form or basic PDF generation](https://www.health-samurai.io/docs/formbox)
     * Improved UI Builder user experience via preview form button, quick search for a field on the form or in the outline, etc
     * Ability to enable the outline in form preview for form navigation
     * Ability to show or hide option's scores on the form
@@ -614,7 +614,7 @@ Minor updates:
 * Validation
   * Released [FHIR schema validation engine](../modules/profiling-and-validation/fhir-schema-validator/) (alpha). This validation engine is set to replace the existing [Zen Schema](../deprecated/deprecated/zen-related/profiling-with-zen-lang/) and JSON Schema validation engines.
   * Launched FHIR IGs Repository (alpha). Aidbox now lets you introspect and load FHIR IGs directly from a mirrored version of **packages2.fhir.org** into your Aidbox instance, either through the UI or configuration files
-* [Aidbox Forms](../modules/aidbox-forms/)
+* [Aidbox Forms](https://www.health-samurai.io/docs/formbox)
   * UI builder updates (FHIR Questionnaire-based):
     * [Added several table widgets: htable, vtable, gtable, grid](https://hl7.org/fhir/extensions/ValueSet-questionnaire-item-control.html)
     * Ability to change the widget type
@@ -640,7 +640,7 @@ Minor updates:
 * Data API
   * Supported FHIR-conformant [`_include` and `_revinclude` parameters](../reference/all-settings.md)
   * Added parameter to set the maximum number of import retries for [/v2/$import](../api/bulk-api/import-and-fhir-import.md#v2-import-on-top-of-the-workflow-engine)
-* [Aidbox Forms](../modules/aidbox-forms/)
+* [Aidbox Forms](https://www.health-samurai.io/docs/formbox)
   * Questionnaire-based forms updates:
     * Ability to add help text
     * Ability to add image for a question
@@ -650,7 +650,7 @@ Minor updates:
     * Ability to amend form using a shared link
     * Supported attachment item
     * Ability to add regex validation
-    * [Supported form versioning](../modules/aidbox-forms/aidbox-ui-builder-alpha/form-creation/form-settings.md)
+    * [Supported form versioning](https://www.health-samurai.io/docs/formbox)
 * [C-CDA / FHIR converter](../modules/integration-toolkit/ccda-converter/)
   * Support built-in rule based deduplication
   * Mapping fixes, bug fixes
@@ -677,7 +677,7 @@ Minor updates:
   * Documented 'How to make Aidbox Docker image work with [self-signed SSL certificates](../deployment-and-maintenance/deploy-aidbox/run-aidbox-in-kubernetes/self-signed-ssl-certificates.md)'
   * Released AidboxDB 16.1. Updated [the list of the extensions](../deprecated/deprecated/aidboxdb/) for Postgres. Documented the migration steps from the previous PG versions
   * Removed apk-tools from our Docker images
-* [Aidbox Forms](../modules/aidbox-forms/)
+* [Aidbox Forms](https://www.health-samurai.io/docs/formbox)
   * Questionnaire-based forms updates:
     * Form Builder
       * Added required constraints
@@ -707,7 +707,7 @@ Minor updates:
   * Added narrative generation for several sections (see all sections [here](../modules/integration-toolkit/ccda-converter/sections/))
 * Security and access control
   * Supported [SMART App Launch (v1, v2) for Patient Access API](../deprecated/deprecated/other/how-to-guides/smart-on-fhir/smart-on-fhir.md)
-* [Aidbox Forms](../modules/aidbox-forms/)
+* [Aidbox Forms](https://www.health-samurai.io/docs/formbox)
   * Added group widget in the UI Builder
   * Added calculate expressions with FHIRPath/AidboxLisp
   * Added FHIRPath support for enable-when expressions
@@ -738,7 +738,7 @@ Minor updates:
 * DevOps
   * Supported sending traces via OpenTelemetry
   * Supported Azure Block in [`$export` operation](../api/bulk-api/export.md#azure)
-* [Aidbox Forms](../modules/aidbox-forms/)
+* [Aidbox Forms](https://www.health-samurai.io/docs/formbox)
   * Improved UI-builder:
     * Supported enableWhen expressions (exclusive for Aidbox lisp)
     * Added constraints and validation for datetime, date, time, number fields
@@ -769,7 +769,7 @@ Minor updates:
 * Security and access control
   * Supported [Bundle batch operation in Multitenant API](../access-control/authorization/scoped-api/organization-based-hierarchical-access-control.md#bundle)
   * Added Audit Log UI on Aidbox Console
-* [Aidbox Forms](../modules/aidbox-forms/)
+* [Aidbox Forms](https://www.health-samurai.io/docs/formbox)
   * Added autocomplete for literals and keywords
   * Configured Questionnaire converter to accept FHIR Bundle
   * Added new form template SDOH PRAPARE to Form Library
@@ -799,7 +799,7 @@ Minor updates:
 * DevOps
   * Add metrics for Aidbox logs. Count of logs per log level
   * Implemented PG database backup verification tool, improved Grafana dashboards to show backup verification statuses
-* [Aidbox Forms](../modules/aidbox-forms/)
+* [Aidbox Forms](https://www.health-samurai.io/docs/formbox)
   * Added basic Forms Accessibility (Screen Readers, Keyboard Navigation)
   * Improved mobile devices adaptation (form takes all visual space, buttons aligned in specific positions)
   * Improved UX of developer tools (inline errors, autocomplete, code folding, bracket matching)
@@ -848,7 +848,7 @@ Minor updates:
   * Enabled the [/health](../api/rest-api/other/health-check.md) endpoint metrics and logs by default
   * Added [How to disable logging](../api/rest-api/other/health-check.md#logging-health-endpoint-request) tutorial
 * Aidbox Forms
-  * Optimized [Forms](../modules/aidbox-forms/) for mobile devices
+  * Optimized [Forms](https://www.health-samurai.io/docs/formbox) for mobile devices
 * SDK
   * Released [TypeScript SDK module](https://github.com/Aidbox/aidbox-sdk-js/tree/main#workflow-definition) for [Workflow Engine](../deprecated/deprecated/zen-related/workflow-engine/workflow/)
   * Added [a sample project](https://github.com/Aidbox/aidbox-sdk-js/tree/main/examples/apps/workflow) that demonstrates the following flow: remind a patient about upcoming appointment on a specific date, collect information about the patient’s condition with Aidbox Form and store information as FHIR data
@@ -869,7 +869,7 @@ Minor updates:
     * Functional Status, Health Concerns, Mental Status, Plan of Treatment, Payers, Family History, Nutrition, and Medical Equipment
 * Security and access control
   * Introduced [AuditEvent viewer](../access-control/audit-and-logging.md)
-* [Aidbox Forms](../modules/aidbox-forms/)
+* [Aidbox Forms](https://www.health-samurai.io/docs/formbox)
   * Added integration with Aidbox [Workflow Engine](../deprecated/deprecated/zen-related/workflow-engine/): add task to launch form
   * Added minor features:
     * support for lisp templates in finalize patch section
@@ -1057,7 +1057,7 @@ Minor updates:
 * Aidbox Forms
   * Added forms as a configuration project to the [Aidbox User Portal](aidbox-user-portal/)
   * Introduced the [form repository](https://github.com/Aidbox/sdc-forms-library) with the commonly used templates, such as PHQ-9, vital signs and GAD-7
-  * Published tutorials on how to create and manage forms in [Aidbox Forms](../modules/aidbox-forms/)
+  * Published tutorials on how to create and manage forms in [Aidbox Forms](https://www.health-samurai.io/docs/formbox)
 * Supported tls for [SMTP provider](../modules/integration-toolkit/email-providers/setup-smtp-provider.md)
 
 ## October 2022 _`2210`_
@@ -1121,7 +1121,7 @@ Minor updates:
 * Aidbox FHIR API module (SMARTbox) is officially certified by ICSA Labs to comply with the [ONC’s 2015 Edition Cures Update](https://www.healthit.gov/topic/certification-ehrs/2015-edition-cures-update-test-method) requirements / 170.315(g)(10).
 * Added Aidbox FHIR API module (SMARTbox) set up guide.
 * Added an option to [get Aidbox hosted on AWS](../getting-started/run-aidbox-on-aws.md) directly from the Aidbox user portal. [Aidbox FHIR platform](https://aws.amazon.com/marketplace/pp/prodview-l5djlpvsd6o5g) is available on AWS marketplace.
-* Released [Aidbox forms](../modules/aidbox-forms/) alpha version.
+* Released [Aidbox forms](https://www.health-samurai.io/docs/formbox) alpha version.
 * Added RPC method to track Aidbox project terminology bundles async load status.
 * Added env to automatically create a User resource on auth via TokenIntrospector. This allows to use both TokenIntrospector and IdentityProvider auth for the same User in Aidbox.
 * Added log event :op/timeout for logging custom operations timeout

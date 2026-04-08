@@ -13,7 +13,7 @@ This example showcases [Aidbox SubscriptionTopic](./) producing data to Kafka.
 Objectives:
 
 1. Set up Aidbox and Kafka locally using Docker Compose.
-2. Get **FHIR QuestionnaireResponse** via [Aidbox Forms](../../modules/aidbox-forms).
+2. Get **FHIR QuestionnaireResponse** via [Formbox](https://www.health-samurai.io/docs/formbox).
 3. Learn how [AidboxSubscriptionTopic and AidboxTopicDestination](kafka-aidboxtopicdestination.md) work with Kafka to handle the collected data.
 
 **Table of Contents**

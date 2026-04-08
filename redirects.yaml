@@ -248,7 +248,6 @@ redirects:
   modules-1/access-control/authorization/smart-on-fhir/smart-scopes-for-limiting-access: access-control/authorization/smart-on-fhir/smart-scopes-for-limiting-access.md
   modules-1/access-control/identity-management/application-client-management: access-control/identity-management/application-client-management.md
   modules-1/access-control/identity-management/user-management: access-control/identity-management/user-management.md
-  modules-1/aidbox-forms/access-control-in-forms: modules/aidbox-forms/access-control-in-forms.md
   modules-1/aidbox-forms/aidbox-code-editor/aidbox-form-workflow: deprecated/deprecated/forms/aidbox-code-editor/aidbox-form-workflow.md
   modules-1/aidbox-forms/aidbox-code-editor/changing-data-after-form-signing: deprecated/deprecated/forms/aidbox-code-editor/changing-data-after-form-signing.md
   modules-1/aidbox-forms/aidbox-code-editor/dynamic-form-creation: deprecated/deprecated/forms/aidbox-code-editor/dynamic-form-creation.md
@@ -258,38 +257,7 @@ redirects:
   modules-1/aidbox-forms/aidbox-code-editor/form-sharing: deprecated/deprecated/forms/aidbox-code-editor/form-sharing.md
   modules-1/aidbox-forms/aidbox-code-editor/form-with-calculated-fields-creation: deprecated/deprecated/forms/aidbox-code-editor/form-with-calculated-fields-creation.md
   modules-1/aidbox-forms/aidbox-code-editor/versioning: deprecated/deprecated/forms/aidbox-code-editor/versioning.md
-  modules-1/aidbox-forms/aidbox-form-gallery: modules/aidbox-forms/aidbox-form-gallery.md
-  modules-1/aidbox-forms/aidbox-forms-interface: modules/aidbox-forms/aidbox-forms-interface.md
-  modules-1/aidbox-forms/aidbox-ui-builder-alpha/building-reports-using-sql-on-fhir: modules/aidbox-forms/aidbox-ui-builder-alpha/building-reports-using-sql-on-fhir.md
-  modules-1/aidbox-forms/aidbox-ui-builder-alpha/configuration: modules/aidbox-forms/aidbox-ui-builder-alpha/configuration.md
-  modules-1/aidbox-forms/aidbox-ui-builder-alpha/embedding-renderer: modules/aidbox-forms/aidbox-ui-builder-alpha/embedding.md
-  modules-1/aidbox-forms/aidbox-ui-builder-alpha/embedding: modules/aidbox-forms/aidbox-ui-builder-alpha/embedding.md
-  modules-1/aidbox-forms/aidbox-ui-builder-alpha/external-fhir-servers-as-a-data-backend: modules/aidbox-forms/aidbox-ui-builder-alpha/external-fhir-servers-as-a-data-backend.md
-  modules-1/aidbox-forms/aidbox-ui-builder-alpha/fhir-versions: modules/aidbox-forms/aidbox-ui-builder-alpha/fhir-versions.md
-  modules-1/aidbox-forms/aidbox-ui-builder-alpha/form-creation/components: modules/aidbox-forms/aidbox-ui-builder-alpha/form-creation/components.md
-  modules-1/aidbox-forms/aidbox-ui-builder-alpha/form-creation/fhirpath-editor: modules/aidbox-forms/aidbox-ui-builder-alpha/form-creation/fhirpath-editor.md
-  modules-1/aidbox-forms/aidbox-ui-builder-alpha/form-creation/form-customisation-in-theme-editor: modules/aidbox-forms/aidbox-ui-builder-alpha/form-creation/form-customisation-in-theme-editor.md
-  modules-1/aidbox-forms/aidbox-ui-builder-alpha/form-creation/form-settings: modules/aidbox-forms/aidbox-ui-builder-alpha/form-creation/form-settings.md
-  modules-1/aidbox-forms/aidbox-ui-builder-alpha/form-creation/form-signature: modules/aidbox-forms/aidbox-ui-builder-alpha/form-creation/form-signature.md
-  modules-1/aidbox-forms/aidbox-ui-builder-alpha/form-creation/how-to-guides/how-to-calculate-form-filling-percentage: modules/aidbox-forms/aidbox-ui-builder-alpha/form-creation/how-to-guides/how-to-calculate-form-filling-percentage.md
-  modules-1/aidbox-forms/aidbox-ui-builder-alpha/form-creation/how-to-guides/how-to-extract-data-from-forms: modules/aidbox-forms/aidbox-ui-builder-alpha/form-creation/how-to-guides/how-to-extract-data-from-forms.md
-  modules-1/aidbox-forms/aidbox-ui-builder-alpha/form-creation/how-to-guides/how-to-populate-forms-with-data: modules/aidbox-forms/aidbox-ui-builder-alpha/form-creation/how-to-guides/how-to-populate-forms-with-data.md
-  modules-1/aidbox-forms/aidbox-ui-builder-alpha/form-creation/multilingual-forms: modules/aidbox-forms/aidbox-ui-builder-alpha/form-creation/multilingual-forms.md
-  modules-1/aidbox-forms/aidbox-ui-builder-alpha/form-creation/versioning: modules/aidbox-forms/aidbox-ui-builder-alpha/form-creation/versioning.md
-  modules-1/aidbox-forms/aidbox-ui-builder-alpha/form-creation/widgets: modules/aidbox-forms/aidbox-ui-builder-alpha/form-creation/widgets.md
-  modules-1/aidbox-forms/aidbox-ui-builder-alpha/form-sharing: modules/aidbox-forms/aidbox-ui-builder-alpha/form-sharing.md
-  modules-1/aidbox-forms/aidbox-ui-builder-alpha/forms-multitenancy: modules/aidbox-forms/aidbox-ui-builder-alpha/forms-multitenancy.md
-  modules-1/aidbox-forms/aidbox-ui-builder-alpha/import-questionnaire: modules/aidbox-forms/aidbox-ui-builder-alpha/import-questionnaire.md
-  modules-1/aidbox-forms/aidbox-ui-builder-alpha/integration-with-external-terminology-servers: modules/aidbox-forms/aidbox-ui-builder-alpha/integration-with-external-terminology-servers.md
-  modules-1/aidbox-forms/aidbox-ui-builder-alpha/offline-forms: modules/aidbox-forms/aidbox-ui-builder-alpha/offline-forms.md
-  modules-1/aidbox-forms/aidbox-ui-builder-alpha/printing-forms/template-based-pdf-generation: modules/aidbox-forms/aidbox-ui-builder-alpha/printing-forms/template-based-pdf-generation.md
-  modules-1/aidbox-forms/aidbox-ui-builder-alpha/request-interception: modules/aidbox-forms/aidbox-ui-builder-alpha/request-interception.md
-  modules-1/aidbox-forms/aidbox-ui-builder-alpha/store-attachments-in-s3-like-storages: modules/aidbox-forms/aidbox-ui-builder-alpha/store-attachments-in-s3-like-storages.md
-  modules-1/aidbox-forms/aidbox-ui-builder-alpha/ui-builder-interface: modules/aidbox-forms/aidbox-ui-builder-alpha/ui-builder-interface.md
   modules-1/aidbox-forms/any-familiar-form-editor-docs-deprecated: deprecated/deprecated/forms/any-familiar-form-editor-docs-deprecated.md
-  modules-1/aidbox-forms/audit-logging-in-forms: modules/aidbox-forms/audit-logging-in-forms.md
-  modules-1/aidbox-forms/getting-started: modules/aidbox-forms/getting-started.md
-  modules-1/aidbox-forms: modules/aidbox-forms/README.md
   modules-1/custom-resources/custom-resources-using-structuredefinition: tutorials/artifact-registry-tutorials/custom-resources/custom-resources-using-structuredefinition.md
   modules-1/custom-resources/migrate-to-fhirschema/migrate-custom-resources-defined-with-entity-and-attributes-to-fhir-schema: tutorials/artifact-registry-tutorials/custom-resources/migrate-to-fhirschema/migrate-custom-resources-defined-with-entity-and-attributes-to-fhir-schema.md
   modules-1/custom-resources/migrate-to-fhirschema/migrate-custom-resources-defined-with-zen-to-fhir-schema: tutorials/artifact-registry-tutorials/custom-resources/migrate-to-fhirschema/migrate-custom-resources-defined-with-zen-to-fhir-schema.md
@@ -450,11 +418,6 @@ redirects:
   modules-1/topic-based-subscriptions/wip-dynamic-subscriptiontopic-with-destinations/tutorial-produce-questionnaireresponse-to-kafka-topic: tutorials/subscriptions-tutorials/tutorial-produce-questionnaireresponse-to-kafka-topic.md
   modules-1/topic-based-subscriptions/wip-dynamic-subscriptiontopic-with-destinations/webhook-aidboxtopicdestination: tutorials/subscriptions-tutorials/webhook-aidboxtopicdestination.md
   modules/access-control: access-control/access-control.md
-  modules/aidbox-forms/aidbox-ui-builder-alpha/embedding-builder: modules/aidbox-forms/aidbox-ui-builder-alpha/embedding.md
-  modules/aidbox-forms/aidbox-ui-builder-alpha/embedding-renderer: modules/aidbox-forms/aidbox-ui-builder-alpha/embedding.md
-  modules/aidbox-forms/aidbox-ui-builder-alpha/embedding/request-interception: modules/aidbox-forms/aidbox-ui-builder-alpha/request-interception.md
-  modules/aidbox-forms/aidbox-ui-builder-alpha/endpoints: modules/aidbox-forms/aidbox-ui-builder-alpha/request-interception.md
-  modules/aidbox-forms/aidbox-ui-builder-alpha/form-creation/how-to-guides/how-to: modules/aidbox-forms/aidbox-ui-builder-alpha/form-creation/how-to-guides/README.md
   modules/aidbox-topic-based-subscriptions: modules/topic-based-subscriptions/aidbox-topic-based-subscriptions.md
   modules/custom-resources/custom-resources-using-structuredefinition: tutorials/artifact-registry-tutorials/custom-resources/custom-resources-using-structuredefinition.md
   modules/custom-resources/migrate-to-fhirschema: tutorials/artifact-registry-tutorials/custom-resources/migrate-to-fhirschema/README.md
@@ -590,7 +553,6 @@ redirects:
   deprecated/deprecated/zen-related/aidbox-zen-lang-project/setting-up-a-configuration-project: deprecated/deprecated/zen-related/aidbox-zen-lang-project/set-up-and-use-configuration-projects.md
   getting-started/run-aidbox-in-kubernetes/deploy-aidbox-with-helm-charts: deployment-and-maintenance/deploy-aidbox/run-aidbox-in-kubernetes/deploy-aidbox-with-helm-charts.md
   getting-started/run-aidbox-locally-with-docker/run-aidbox-locally: getting-started/run-aidbox-locally.md
-  modules-1/aidbox-forms/aidbox-ui-builder-alpha/form-creation/form-customisation: modules/aidbox-forms/aidbox-ui-builder-alpha/form-creation/form-customisation-in-theme-editor.md
   modules-1/custom-resources/custom-resources-using-aidbox-project: deprecated/deprecated/zen-related/aidbox-zen-lang-project/custom-resources-using-aidbox-project.md
   modules-1/integration-toolkit/ccda-converter/sections/medicalequipmentsectionv2: modules/integration-toolkit/ccda-converter/sections/medical-equipment-section-docs-v2.md
   modules-1/observability/metrics/how-to-export-metrics-to-the-otel-collector: modules/observability/metrics/monitoring/how-to-export-metrics-to-the-otel-collector.md
@@ -603,7 +565,6 @@ redirects:
   modules-1/topic-based-subscriptions/setup-subscriptiontopic: deprecated/deprecated/zen-related/topic-based-subscriptions/set-up-subscriptiontopic.md
   modules-1/workflow-engine/services: deprecated/deprecated/zen-related/workflow-engine/README.md
   modules/aidbox-forms/aidbox-code-editor/how-to-create-a-dynamic-form: deprecated/deprecated/forms/aidbox-code-editor/dynamic-form-creation.md
-  modules/aidbox-forms/aidbox-ui-builder-alpha/form-creation/how-to-guides/how-to-populate-form: modules/aidbox-forms/aidbox-ui-builder-alpha/form-creation/how-to-guides/how-to-populate-forms-with-data.md
   modules/custom-resources/custom-resources-using-fhir-schema: tutorials/artifact-registry-tutorials/custom-resources/custom-resources-using-fhir-schema.md
   modules/eprescription/tutorials/list-of-metrics: modules/eprescription/reference/list-of-metrics.md
   modules/integration-toolkit/ccda-converter/sections/admissiondiagnosissectionv3: modules/integration-toolkit/ccda-converter/sections/admission-diagnosis-section-docs-v3.md
@@ -753,7 +714,6 @@ redirects:
   modules-1/observability/traces: modules/observability/traces/README.md
 
   # modules-1/aidbox-forms
-  modules-1/aidbox-forms/aidbox-ui-builder-alpha/form-creation: modules/aidbox-forms/aidbox-ui-builder-alpha/form-creation/README.md
 
   # tutorials/* redirects (two-factor-authentication and local-terminlogy already exist above)
 
@@ -802,11 +762,6 @@ redirects:
   mdm/mdm-module: modules/mdm/README.md
 
   # modules-1/aidbox-forms/*
-  modules-1/aidbox-forms/aidbox-ui-builder-alpha: modules/aidbox-forms/aidbox-ui-builder-alpha/README.md
-  modules-1/aidbox-forms/aidbox-ui-builder-alpha/import-fhir-questionnaire: modules/aidbox-forms/aidbox-ui-builder-alpha/import-questionnaire.md
-  modules-1/aidbox-forms/aidbox-ui-builder-alpha/multilingual-ui-builder: modules/aidbox-forms/aidbox-ui-builder-alpha/form-creation/multilingual-forms.md
-  modules-1/aidbox-forms/converter: modules/aidbox-forms/aidbox-ui-builder-alpha/import-questionnaire.md
-  modules-1/aidbox-forms/how-to-customize-form-appearance: modules/aidbox-forms/aidbox-ui-builder-alpha/form-creation/form-customisation-in-theme-editor.md
 
   # modules-1/ccda-converter/*
   modules-1/ccda-converter: modules/integration-toolkit/ccda-converter/README.md
@@ -860,8 +815,6 @@ redirects:
   modules-1/workflow-engine/workflow/task-user-api: deprecated/deprecated/zen-related/workflow-engine/task/task-user-api.md
 
   # modules/aidbox-forms/*
-  modules/aidbox-forms/ui-form-builder/form-creation/form-customisation: modules/aidbox-forms/aidbox-ui-builder-alpha/form-creation/form-customisation-in-theme-editor.md
-  modules/aidbox-forms/ui-form-builder/form-creation/form-settings: modules/aidbox-forms/aidbox-ui-builder-alpha/form-creation/form-settings.md
 
   # modules/profiling-and-validation/*
   modules/profiling-and-validation/fhir-schema-validator/supported-implementation-guides: modules/profiling-and-validation/fhir-schema-validator/README.md

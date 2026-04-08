@@ -53,7 +53,7 @@ description: >-
 * [SQL-on-FHIR](modules/sql-on-fhir/) for analytics and reporting
   * [$run operation](modules/sql-on-fhir/operation-run.md) for direct querying through ViewDefinition
   * [$materialize operation](modules/sql-on-fhir/operation-materialize.md) for creating database tables/views
-  * [AI-assisted ViewDefinition generation](modules/aidbox-forms/aidbox-ui-builder-alpha/ai-assistant.md)
+  * [AI-assisted ViewDefinition generation](https://www.health-samurai.io/docs/formbox)
 * [GraphQL API](api/graphql-api.md) for nested and filtered access (including contained resources)
 * REST-exposed [SQL endpoints](api/rest-api/other/sql-endpoints.md)
 
@@ -150,20 +150,7 @@ Load performance testing results [here](https://www.health-samurai.io/downloads/
 
 ### Modules
 
-* [Aidbox Forms](modules/aidbox-forms/):
-  * Ready-made medical form repository ([Aidbox Form Gallery](modules/aidbox-forms/aidbox-form-gallery.md))
-  * [UI Builder](modules/aidbox-forms/aidbox-ui-builder-alpha/) for creating forms without code (based on [FHIR SDC Implementation Guide](https://build.fhir.org/ig/HL7/sdc/index.html))
-  * [AI assistance](modules/aidbox-forms/aidbox-ui-builder-alpha/ai-assistant.md) for creating and editing forms from text descriptions
-  * [Adaptive forms](modules/aidbox-forms/adaptive-forms.md) with $next-question operation
-  * [Template-based extraction](modules/aidbox-forms/aidbox-ui-builder-alpha/form-creation/form-settings.md#template-based-extraction)
-  * [FHIRPath expression editor](modules/aidbox-forms/aidbox-ui-builder-alpha/form-creation/fhirpath-editor.md)
-  * [Offline forms](modules/aidbox-forms/aidbox-ui-builder-alpha/offline-forms.md)
-  * [Multilingual forms](modules/aidbox-forms/aidbox-ui-builder-alpha/form-creation/multilingual-forms.md)
-  * [OpenEHR Templates conversion](modules/aidbox-forms/aidbox-ui-builder-alpha/import-questionnaire.md#id-3.-selecting-an-openehr-template-file)
-  * [NHS design system](modules/aidbox-forms/aidbox-ui-builder-alpha/form-creation/nhs-look-and-feel.md) support
-  * [External FHIR servers](modules/aidbox-forms/aidbox-ui-builder-alpha/external-fhir-servers-as-a-data-backend.md) as data backend
-  * [Multitenancy](modules/aidbox-forms/aidbox-ui-builder-alpha/forms-multitenancy.md) support
-  * [Web component embedding](modules/aidbox-forms/aidbox-ui-builder-alpha/embedding.md)
+* [Formbox](https://www.health-samurai.io/docs/formbox)
 * [ePrescriptions](modules/eprescription/)
 * [MDM](modules/mdm/) (Master Data Management)
 * SMART on FHIR API for health plans and EHRs

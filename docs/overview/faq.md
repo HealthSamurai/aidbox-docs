@@ -933,7 +933,7 @@ Aidbox Forms is a module for building digital medical forms and capturing data i
 - **Pre-fill** — populate forms with existing patient data
 
 Learn more:
-- [Aidbox Forms](../modules/aidbox-forms/README.md)
+- [Formbox](https://www.health-samurai.io/docs/formbox)
 - [Why Building Healthcare Forms is Challenging (blog)](https://www.health-samurai.io/articles/why-building-healthcare-forms-is-so-challenging--and-how-to-fix-it)
 - [AI Assistant in Aidbox Forms (blog)](https://www.health-samurai.io/articles/closing-the-loop-from-forms-to-insights-introducing-the-ai-assistant-in-aidbox-forms)
 - [Top 10 Medical Forms (blog)](https://www.health-samurai.io/articles/top-10-medical-forms)
