@@ -167,7 +167,7 @@ Or via the FHIR Search Bundle endpoint, using `_query` to reference the query na
 GET /fhir/Encounter?_query=daily-report&date=2013-06-08
 ```
 
-When called via `/fhir/<ResourceType>`, the `{{resourceType}}` variable is available in the query context and resolves to the resource type from the URL.
+When called via `/fhir/<ResourceType>`, the `{{resourceType}}` variable is available in the query context and resolves to the resource type from the URL. It is **not** available when calling the query via `/$query/<query-name>`.
 
 If query parameters are too long to fit in the URL (e.g. a large list of comma-separated IDs), use `POST` and pass parameters in the request body instead:
 
@@ -179,6 +179,36 @@ Content-Type: application/json
 ```
 
 Body parameters are merged with URL query parameters. URL parameters take precedence if the same key appears in both.
+
+### Response format
+
+The `$query` response always contains:
+
+- `data`: array of query results. An empty array (`[]`) means the query ran successfully but returned no matches.
+- `query`: array containing the SQL string and parameter values (useful for debugging).
+
+To hide the `query` key from the response, set `omit-sql: true` in the AidboxQuery resource.
+
+### Dynamic table and column names
+
+AidboxQuery supports two parameter substitution modes:
+
+- `{{params.X}}` — **value substitution**. The value is passed as a `?` placeholder (parameterized query). Use this for WHERE clause values.
+- `{{!params.X}}` — **identifier substitution**. The value is quoted as a PostgreSQL identifier (e.g. `"patient_history"`). Use this for table or column names, which cannot be passed as `?` placeholders.
+
+Example:
+
+```yaml
+PUT /AidboxQuery/history-query
+query: 'SELECT txid FROM {{!params.tableName}} WHERE id = {{params.resourceId}}'
+params:
+  tableName: {type: string, isRequired: true}
+  resourceId: {type: string, isRequired: true}
+```
+
+{% hint style="warning" %}
+Identifier parameters are quoted and escaped (double quotes are doubled), which prevents SQL injection. However, unlike regular value parameters, they are interpolated directly into the SQL string as quoted identifiers — validate or restrict allowed values where possible.
+{% endhint %}
 
 ### Query types <a href="#query-types" id="query-types"></a>
 
