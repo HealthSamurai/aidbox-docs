@@ -1,5 +1,6 @@
 ---
 description: Implement multi-tenancy with hierarchical organization-based access control to isolate FHIR data per tenant.
+keywords: [orgbac, OBAC, multi-tenant, tenant isolation, org-level access, data partitioning]
 ---
 
 # Organization-based hierarchical access control
