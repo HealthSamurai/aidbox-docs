@@ -44,6 +44,14 @@ accept: application/json
 }
 ```
 
+### Events and subscriptions
+
+A PATCH request that changes a resource triggers the same resource lifecycle events as a `PUT`. Any subscriptions or topic-based notification channels listening for resource updates will receive notifications as expected.
+
+If the patch produces no actual change to the resource, Aidbox returns `200 OK` but does not fire any event — subscribers will not be notified.
+
+The audit log records PATCH operations under the `fhir/patch` event type, distinct from `fhir/update`, so patch-originated changes can be identified separately in audit history.
+
 ## Examples
 
 Let's suppose we've created a Patient resource with the id `pt-1`
