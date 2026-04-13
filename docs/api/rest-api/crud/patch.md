@@ -98,6 +98,23 @@ birthDate: '1979-01-01'
 
 With JSON patch, we can do more sophisticated transformations — change the first `given` name, delete the second `name`, and change the `active` attribute value to `true`:
 
+{% hint style="warning" %}
+The JSON Patch body **must** be a JSON array of operation objects per [RFC 6902](https://tools.ietf.org/html/rfc6902). Sending a single object instead of an array will result in an error.
+
+{% tabs %}
+{% tab title="Correct" %}
+```json
+[{"op": "add", "path": "/birthDate", "value": "1990-01-01"}]
+```
+{% endtab %}
+{% tab title="Incorrect" %}
+```json
+{"op": "add", "path": "/birthDate", "value": "1990-01-01"}
+```
+{% endtab %}
+{% endtabs %}
+{% endhint %}
+
 ```yaml
 PATCH /Patient/pt-1
 
@@ -125,6 +142,22 @@ name:
 active: true
 birthDate: '1979-01-01'
 ```
+
+#### Array append with `/-`
+
+In JSON Pointer paths, `/-` refers to the end of an array and can be used with the `add` operation to append a new element:
+
+```yaml
+PATCH /Patient/pt-1
+
+- op: add
+  path: '/name/-'
+  value:
+    given: ['Jane']
+    family: Doe
+```
+
+This appends a new name entry to the `name` array instead of replacing an element at a specific index.
 
 ### FHIRPath Patch
 
