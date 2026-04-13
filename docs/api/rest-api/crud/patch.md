@@ -48,50 +48,71 @@ accept: application/json
 
 Let's suppose we've created a Patient resource with the id `pt-1`
 
-```yaml
+```json
 POST /Patient
 
-resourceType: Patient
-id: pt-1
-active: true
-name:
-  - given: ['John']
-    family: Doe
-    use: official
-  - given: ['Johny']
-    family: Doe
-telecom:
-  -  system: phone
-     value: '(03) 5555 6473'
-     use: work
-     rank: 1
-birthDate: '1979-01-01'
+{
+  "resourceType": "Patient",
+  "id": "pt-1",
+  "active": true,
+  "name": [
+    {
+      "given": ["John"],
+      "family": "Doe",
+      "use": "official"
+    },
+    {
+      "given": ["Johny"],
+      "family": "Doe"
+    }
+  ],
+  "telecom": [
+    {
+      "system": "phone",
+      "value": "(03) 5555 6473",
+      "use": "work",
+      "rank": 1
+    }
+  ],
+  "birthDate": "1979-01-01"
+}
 ```
 
 ### Merge Patch
 
 Let's say we want to switch to an `active` flag to false and remove `telecom`:
 
-```yaml
+```json
 PATCH /Patient/pt-1
 
-active: false
-telecom: null
+{
+  "active": false,
+  "telecom": null
+}
+```
 
-# 200
+Response:
 
-id: pt-1
-resourceType: Patient
-name:
-- use: official
-  given:
-  - John
-  family: Doe
-- given:
-  - Johny
-  family: Doe
-active: false
-birthDate: '1979-01-01'
+```json
+// 200
+
+{
+  "id": "pt-1",
+  "resourceType": "Patient",
+  "name": [
+    {
+      "use": "official",
+      "given": ["John"],
+      "family": "Doe"
+    },
+    {
+      "given": ["Johny"],
+      "family": "Doe"
+    }
+  ],
+  "active": false,
+  "birthDate": "1979-01-01"
+}
 ```
 
 ### JSON Patch
@@ -115,46 +136,52 @@ The JSON Patch body **must** be a JSON array of operation objects per [RFC 6902]
 {% endtabs %}
 {% endhint %}
 
-```yaml
+```json
 PATCH /Patient/pt-1
 
-- op: replace
-  path: '/name/0/given/0'
-  value: Nikolai
-- op: remove
-  path: '/name/1'
-- op: replace
-  path: '/active'
-  value: true
+[
+  {"op": "replace", "path": "/name/0/given/0", "value": "Nikolai"},
+  {"op": "remove", "path": "/name/1"},
+  {"op": "replace", "path": "/active", "value": true}
+]
 ```
 
 Response:
 
-```
-# 200 OK
-id: pt-1
-resourceType: Patient
-name:
-- use: official
-  given:
-  - Nikolai
-  family: Doe
-active: true
-birthDate: '1979-01-01'
+```json
+// 200 OK
+{
+  "id": "pt-1",
+  "resourceType": "Patient",
+  "name": [
+    {
+      "use": "official",
+      "given": ["Nikolai"],
+      "family": "Doe"
+    }
+  ],
+  "active": true,
+  "birthDate": "1979-01-01"
+}
 ```
 
 #### Array append with `/-`
 
 In JSON Pointer paths, `/-` refers to the end of an array and can be used with the `add` operation to append a new element:
 
-```yaml
+```json
 PATCH /Patient/pt-1
 
-- op: add
-  path: '/name/-'
-  value:
-    given: ['Jane']
-    family: Doe
+[
+  {
+    "op": "add",
+    "path": "/name/-",
+    "value": {
+      "given": ["Jane"],
+      "family": "Doe"
+    }
+  }
+]
 ```
 
 This appends a new name entry to the `name` array instead of replacing an element at a specific index.
@@ -176,43 +203,52 @@ The **add** operation appends a new value to a specified element within a FHIR r
 * The **value** provides the data that will be added
 
 {% code title="Add primitive example" %}
-```yaml
+```json
 PATCH /fhir/Patient/pt-1
 
-resourceType: Parameters
-parameter:
-  - name: operation
-    part:
-      - name: type
-        valueCode: add
-      - name: path
-        valueString: Patient
-      - name: name
-        valueString: birthDate
-      - name: value
-        valueDate: "1931-01-01"
+{
+  "resourceType": "Parameters",
+  "parameter": [
+    {
+      "name": "operation",
+      "part": [
+        {"name": "type", "valueCode": "add"},
+        {"name": "path", "valueString": "Patient"},
+        {"name": "name", "valueString": "birthDate"},
+        {"name": "value", "valueDate": "1931-01-01"}
+      ]
+    }
+  ]
+}
 ```
 {% endcode %}
 
-{% code title="Add BackboneElment example" %}
-```yaml
+{% code title="Add BackboneElement example" %}
+```json
 PATCH /fhir/Patient/pt-1
 
-resourceType: Parameters
-parameter:
-  - name: operation
-    part:
-      - name: type
-        valueCode: add
-      - name: path
-        valueString: Patient
-      - name: name
-        valueString: contact
-      - name: value
-        part:
-          - name: name
-            valueHumanName:
-              text: "a name"
+{
+  "resourceType": "Parameters",
+  "parameter": [
+    {
+      "name": "operation",
+      "part": [
+        {"name": "type", "valueCode": "add"},
+        {"name": "path", "valueString": "Patient"},
+        {"name": "name", "valueString": "contact"},
+        {
+          "name": "value",
+          "part": [
+            {
+              "name": "name",
+              "valueHumanName": {"text": "a name"}
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
 ```
 {% endcode %}
 
@@ -225,59 +261,70 @@ The **insert** operation allows you to insert a new element into an existing lis
 * The **index** defines the position (0-based) at which to insert the element. The index is mandatory and must be equal to or less than the number of elements already in the list
 
 {% code title="Insert example" %}
-```yaml
+```json
 PATCH /fhir/Patient/pt-1
 
-resourceType: Parameters
-parameter:
-  - name: operation
-    part:
-      - name: type
-        valueCode: insert
-      - name: path
-        valueString: Patient.name
-      - name: index
-        valueInteger: 0
-      - name: value
-        valueHumanName:
-          given:
-            - "John" 
+{
+  "resourceType": "Parameters",
+  "parameter": [
+    {
+      "name": "operation",
+      "part": [
+        {"name": "type", "valueCode": "insert"},
+        {"name": "path", "valueString": "Patient.name"},
+        {"name": "index", "valueInteger": 0},
+        {
+          "name": "value",
+          "valueHumanName": {"given": ["John"]}
+        }
+      ]
+    }
+  ]
+}
 ```
 {% endcode %}
 
 #### Delete
 
-The **delete** operation removes an element from a resource.. Only one element can be deleted at a time.
+The **delete** operation removes an element from a resource. Only one element can be deleted at a time.
 
 * The **path** specifies the element to be deleted
 
 {% code title="Delete primitive example" %}
-```yaml
+```json
 PATCH /fhir/Patient/pt-1
 
-resourceType: Parameters
-parameter:
-  - name: operation
-    part:
-      - name: type
-        valueCode: delete
-      - name: path
-        valueString: Patient.gender
+{
+  "resourceType": "Parameters",
+  "parameter": [
+    {
+      "name": "operation",
+      "part": [
+        {"name": "type", "valueCode": "delete"},
+        {"name": "path", "valueString": "Patient.gender"}
+      ]
+    }
+  ]
+}
 ```
 {% endcode %}
 
 {% code title="Delete specific array element" %}
-```yaml
+```json
 PATCH /fhir/Patient/pt-1
 
-resourceType: Parameters
-parameter:
-  - name: operation
-    part:
-      - name: type
-        valueCode: delete
-      - name: path
-        valueString: Patient.identifier.where(system = 'foo')
+{
+  "resourceType": "Parameters",
+  "parameter": [
+    {
+      "name": "operation",
+      "part": [
+        {"name": "type", "valueCode": "delete"},
+        {"name": "path", "valueString": "Patient.identifier.where(system = 'foo')"}
+      ]
+    }
+  ]
+}
 ```
 {% endcode %}
 
@@ -290,37 +337,43 @@ The **replace** operation updates the value of an existing element within a FHIR
 * The operation will fail if the specified element does not exist
 
 {% code title="Replace primitive example" %}
-```yaml
+```json
 PATCH /fhir/Patient/pt-1
 
-resourceType: Parameters
-parameter:
-  - name: operation
-    part:
-      - name: type
-        valueCode: replace
-      - name: path
-        valueString: Patient.gender
-      - name: value
-        valueCode: female
+{
+  "resourceType": "Parameters",
+  "parameter": [
+    {
+      "name": "operation",
+      "part": [
+        {"name": "type", "valueCode": "replace"},
+        {"name": "path", "valueString": "Patient.gender"},
+        {"name": "value", "valueCode": "female"}
+      ]
+    }
+  ]
+}
 ```
 {% endcode %}
 
 Replace extension by id example:
 
-```
+```json
 PATCH /fhir/Patient/pt1
 
-resourceType: Parameters
-parameter:
-  - name: operation
-    part:
-      - name: type
-        valueCode: replace
-      - name: path
-        valueString: Patient.extension('http://example.org/my-extension').value  
-      - name: value
-        valueString: 'new-value'
+{
+  "resourceType": "Parameters",
+  "parameter": [
+    {
+      "name": "operation",
+      "part": [
+        {"name": "type", "valueCode": "replace"},
+        {"name": "path", "valueString": "Patient.extension('http://example.org/my-extension').value"},
+        {"name": "value", "valueString": "new-value"}
+      ]
+    }
+  ]
+}
 ```
 
 #### Move
@@ -331,18 +384,21 @@ The **move** operation allows you to relocate an element within a collection fro
 * The **from** index indicates the current position of the element to be moved (0-based index)
 * The **to** index indicates the new position where the element should be moved
 
-<pre class="language-yaml"><code class="lang-yaml">PATCH /fhir/Patient/pt-1
-<strong>
-</strong><strong>resourceType: Parameters
-</strong>parameter:
-  - name: operation
-    part:
-      - name: type
-        valueCode: move
-      - name: path
-        valueString: Patient.identifier
-      - name: source
-        valueInteger: 1
-      - name: destination
-        valueInteger: 0
-</code></pre>
+```json
+PATCH /fhir/Patient/pt-1
+
+{
+  "resourceType": "Parameters",
+  "parameter": [
+    {
+      "name": "operation",
+      "part": [
+        {"name": "type", "valueCode": "move"},
+        {"name": "path", "valueString": "Patient.identifier"},
+        {"name": "source", "valueInteger": 1},
+        {"name": "destination", "valueInteger": 0}
+      ]
+    }
+  ]
+}
+```
