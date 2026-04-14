@@ -960,7 +960,7 @@ Master Data Management (MDM) ensures accurate entity identification by detecting
 - Audit trail for all operations
 
 Learn more:
-- [MDM — Master Data Management](../modules/mdm/README.md)
+- [MDMbox](https://www.health-samurai.io/docs/mdmbox)
 - [Master Patient Index and Record Linkage (blog)](https://www.health-samurai.io/articles/master-patient-index-and-record-linkage)
 
 ### Does Aidbox support file storage with signed URLs?

@@ -349,7 +349,7 @@ redirects:
   modules-1/integration-toolkit/hl7-v2-integration/mappings-with-lisp-mapping: modules/integration-toolkit/hl7-v2-integration/mappings-with-lisp-mapping.md
   modules-1/integration-toolkit/mappings: modules/integration-toolkit/mappings.md
   modules-1/integration-toolkit/x12-message-converter: modules/integration-toolkit/x12-message-converter.md
-  modules-1/mdm: modules/mdm/README.md
+  modules-1/mdm: deprecated/deprecated/mdm/README.md
   modules-1/observability/getting-started/how-to-export-telemetry-to-the-otel-collector: modules/observability/getting-started/how-to-export-telemetry-to-the-otel-collector.md
   modules-1/observability/getting-started/run-aidbox-with-opentelemetry-locally: modules/observability/getting-started/run-aidbox-with-opentelemetry-locally.md
   modules-1/observability/logs/extending-aidbox-logs: modules/observability/logs/extending-aidbox-logs.md
@@ -373,9 +373,9 @@ redirects:
   modules-1/observability/traces/how-to-use-tracing: modules/observability/traces/how-to-use-tracing.md
   modules-1/observability/traces/otel-traces-exporter-parameters: modules/observability/traces/otel-traces-exporter-parameters.md
   modules-1/other-modules/mcp: modules/other-modules/mcp.md
-  modules-1/other-modules/mdm/configure-mdm-module: modules/mdm/configure-mdm-module.md
-  modules-1/other-modules/mdm/find-duplicates-usdmatch: modules/mdm/find-duplicates-match.md
-  modules-1/other-modules/mdm/mathematical-details: modules/mdm/mathematical-details.md
+  modules-1/other-modules/mdm/configure-mdm-module: deprecated/deprecated/mdm/configure-mdm-module.md
+  modules-1/other-modules/mdm/find-duplicates-usdmatch: deprecated/deprecated/mdm/find-duplicates-match.md
+  modules-1/other-modules/mdm/mathematical-details: deprecated/deprecated/mdm/mathematical-details.md
   modules-1/profiling-and-validation/asynchronous-resource-validation: modules/profiling-and-validation/asynchronous-resource-validation.md
   modules-1/profiling-and-validation/fhir-schema-validator/setup-aidbox-with-fhir-schema-validation-engine: modules/profiling-and-validation/fhir-schema-validator/setup-aidbox-with-fhir-schema-validation-engine.md
   modules-1/profiling-and-validation/fhir-schema-validator/tutorials/how-to-create-fhir-npm-package: tutorials/artifact-registry-tutorials/how-to-create-fhir-npm-package.md
@@ -428,15 +428,15 @@ redirects:
   modules/observability/logging-and-audit/readme-1/how-to-explore-and-visualize-aidbox-logs-with-kibana-and-grafana: modules/observability/logs/tutorials/log-analysis-and-visualization-tutorial.md
   modules/observability/logging-and-audit/technical-reference: modules/observability/logs/technical-reference/README.md
   modules/observability/logging-and-audit: access-control/audit-and-logging.md
-  modules/other-modules/mdm/find-duplicates-usdmatch.md: modules/mdm/find-duplicates-match.md
-  modules/other-modules/mdm: modules/mdm/README.md
-  modules/other-modules/mpi/find-duplicates-match: modules/mdm/find-duplicates-match.md
-  modules/other-modules/mpi/get-started/configure-mpi-module: modules/mdm/configure-mdm-module.md
-  modules/other-modules/mpi/get-started: modules/mdm/README.md
-  modules/other-modules/mpi/matching-model-explanation: modules/mdm/matching-model-explanation.md
-  modules/other-modules/mpi/mathematical-details: modules/mdm/mathematical-details.md
-  modules/other-modules/mpi/merging-and-unmerging-records-usdmerge-and-usdunmerge: modules/mdm/merging-and-unmerging-records-usdmerge-and-usdunmerge.md
-  modules/other-modules/mpi: modules/mdm/README.md
+  modules/other-modules/mdm/find-duplicates-usdmatch.md: deprecated/deprecated/mdm/find-duplicates-match.md
+  modules/other-modules/mdm: deprecated/deprecated/mdm/README.md
+  modules/other-modules/mpi/find-duplicates-match: deprecated/deprecated/mdm/find-duplicates-match.md
+  modules/other-modules/mpi/get-started/configure-mpi-module: deprecated/deprecated/mdm/configure-mdm-module.md
+  modules/other-modules/mpi/get-started: deprecated/deprecated/mdm/README.md
+  modules/other-modules/mpi/matching-model-explanation: deprecated/deprecated/mdm/matching-model-explanation.md
+  modules/other-modules/mpi/mathematical-details: deprecated/deprecated/mdm/mathematical-details.md
+  modules/other-modules/mpi/merging-and-unmerging-records-usdmerge-and-usdunmerge: deprecated/deprecated/mdm/merging-and-unmerging-records-usdmerge-and-usdunmerge.md
+  modules/other-modules/mpi: deprecated/deprecated/mdm/README.md
   modules/profiling-and-validation/fhir-schema-validator/upload-fhir-implementation-guide/environment-variable: tutorials/artifact-registry-tutorials/upload-fhir-implementation-guide/environment-variable.md
   modules/security-and-access-control/overview: access-control/access-control.md
   modules/security-and-access-control/patient-data-access-api/how-to-enable-patient-data-access-api: tutorials/security-access-control-tutorials/how-to-enable-patient-data-access-api.md
@@ -503,7 +503,7 @@ redirects:
   aidbox-configuration/aidbox-zen-lang-project: deprecated/deprecated/zen-related/aidbox-zen-lang-project/README.md
   modules-1/custom-resources/getting-started-with-custom-resources: tutorials/artifact-registry-tutorials/custom-resources/README.md
   modules-1/topic-based-subscriptions/topic-based-subscriptions: modules/topic-based-subscriptions/README.md
-  modules/other-modules/mdm/find-duplicates-match: modules/mdm/find-duplicates-match.md
+  modules/other-modules/mdm/find-duplicates-match: deprecated/deprecated/mdm/find-duplicates-match.md
   modules/profiling-and-validation/fhir-schema-validator/upload-fhir-implementation-guide: tutorials/artifact-registry-tutorials/upload-fhir-implementation-guide/README.md
   modules/security-and-access-control/set-up-external-identity-provider: access-control/authentication/sso-with-external-identity-provider.md
   api: api/api-overview.md
@@ -514,7 +514,15 @@ redirects:
   modules-1/security-and-access-control/how-to-guides/token-introspection: tutorials/security-access-control-tutorials/set-up-token-introspection.md
   modules/compliance/aidbox-+-fhir-app-portal/getting-started/run-aidbox-+-fhir-portal-locally: solutions/aidbox-+-fhir-app-portal/getting-started/run-aidbox-+-fhir-portal-locally.md
   modules/integration-toolkit/ccda-converter/sections/planoftreatmentsectionv2: modules/integration-toolkit/ccda-converter/sections/plan-of-treatment-section-docs-v2.md
-  modules/mdm: modules/mdm/README.md
+  modules/mdm: deprecated/deprecated/mdm/README.md
+  modules/mdm/run-mdm-locally: deprecated/deprecated/mdm/run-mdm-locally.md
+  modules/mdm/configure-mdm-module: deprecated/deprecated/mdm/configure-mdm-module.md
+  modules/mdm/find-duplicates-match: deprecated/deprecated/mdm/find-duplicates-match.md
+  modules/mdm/merging-and-unmerging-records-usdmerge-and-usdunmerge: deprecated/deprecated/mdm/merging-and-unmerging-records-usdmerge-and-usdunmerge.md
+  modules/mdm/rbac: deprecated/deprecated/mdm/rbac.md
+  modules/mdm/matching-model-explanation: deprecated/deprecated/mdm/matching-model-explanation.md
+  modules/mdm/mathematical-details: deprecated/deprecated/mdm/mathematical-details.md
+  reference/system-resources-reference/mdm-module-resources: deprecated/deprecated/mdm/mdm-module-resources.md
   modules/profiling-and-validation/fhir-schema-validator/tutorials: tutorials/artifact-registry-tutorials/how-to-create-fhir-npm-package.md
   modules/security-and-access-control/multitenancy/organization-based-hierarchical-access-control: access-control/authorization/scoped-api/organization-based-hierarchical-access-control.md
   modules/security-and-access-control/security: access-control/authorization/access-policies.md
@@ -589,7 +597,7 @@ redirects:
   readme-1/readme-1-1/sample-patient-can-see-its-own-data: tutorials/security-access-control-tutorials/accesspolicy-examples.md
   readme-1/validation-tutorials/davinci-pdex: tutorials/validation-tutorials/davinci-pdex.md
   reference/aidbox-forms/aidbox-sdc-api: reference/aidbox-forms-reference/aidbox-sdc-api.md
-  reference/zen-schema-reference/aidbox/mdm/model: modules/mdm/README.md
+  reference/zen-schema-reference/aidbox/mdm/model: deprecated/deprecated/mdm/README.md
   storage-1/aidboxdb-image: deprecated/deprecated/aidboxdb/README.md
   storage-1/aidboxdb-image/migration-to-aidboxdb-16.1-handling-the-removal-of-jsonknife-extension: deprecated/deprecated/aidboxdb/migrate-to-aidboxdb-16.md
   storage-1/custom-resources/migrate-to-fhirschema/migrate-custom-resources-defined-with-zen-to-fhir-schema: tutorials/artifact-registry-tutorials/custom-resources/migrate-to-fhirschema/migrate-custom-resources-defined-with-zen-to-fhir-schema.md
@@ -663,15 +671,15 @@ redirects:
   modules-1/smartbox/the-b11-decision-support-interventions/source-attributes: deprecated/deprecated/smartbox/the-b11-decision-support-interventions/source-attributes.md
 
   # modules/mpi/* → modules/mdm/*
-  modules/mpi: modules/mdm/README.md
-  modules/mpi/find-duplicates-match: modules/mdm/find-duplicates-match.md
-  modules/mpi/get-started: modules/mdm/README.md
-  modules/mpi/get-started/configure-mpi-module: modules/mdm/configure-mdm-module.md
-  modules/mpi/get-started/deploy-mpi-with-kubernetes: modules/mdm/README.md
-  modules/mpi/get-started/run-mdm-locally: modules/mdm/run-mdm-locally.md
-  modules/mpi/matching-model-explanation: modules/mdm/matching-model-explanation.md
-  modules/mpi/mathematical-details: modules/mdm/mathematical-details.md
-  modules/mpi/merging-and-unmerging-records-usdmerge-and-usdunmerge: modules/mdm/merging-and-unmerging-records-usdmerge-and-usdunmerge.md
+  modules/mpi: deprecated/deprecated/mdm/README.md
+  modules/mpi/find-duplicates-match: deprecated/deprecated/mdm/find-duplicates-match.md
+  modules/mpi/get-started: deprecated/deprecated/mdm/README.md
+  modules/mpi/get-started/configure-mpi-module: deprecated/deprecated/mdm/configure-mdm-module.md
+  modules/mpi/get-started/deploy-mpi-with-kubernetes: deprecated/deprecated/mdm/README.md
+  modules/mpi/get-started/run-mdm-locally: deprecated/deprecated/mdm/run-mdm-locally.md
+  modules/mpi/matching-model-explanation: deprecated/deprecated/mdm/matching-model-explanation.md
+  modules/mpi/mathematical-details: deprecated/deprecated/mdm/mathematical-details.md
+  modules/mpi/merging-and-unmerging-records-usdmerge-and-usdunmerge: deprecated/deprecated/mdm/merging-and-unmerging-records-usdmerge-and-usdunmerge.md
 
   # modules/aidbox-forms/aidbox-code-editor/* → deprecated/deprecated/forms/aidbox-code-editor/*
   modules/aidbox-forms/aidbox-code-editor: deprecated/deprecated/forms/aidbox-code-editor/README.md
@@ -759,7 +767,7 @@ redirects:
   getting-started/use-aidbox-with-react: developer-experience/use-aidbox-with-react.md
 
   # mdm/*
-  mdm/mdm-module: modules/mdm/README.md
+  mdm/mdm-module: deprecated/deprecated/mdm/README.md
 
   # modules-1/aidbox-forms/*
 
