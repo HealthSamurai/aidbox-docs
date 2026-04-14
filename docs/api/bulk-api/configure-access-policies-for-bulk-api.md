@@ -6,6 +6,10 @@ description: Create access policies to restrict client permissions to bulk API o
 
 Let's create a new client and an access policy that allows the client to use only bulk API
 
+{% hint style="info" %}
+The `$dump`, `$dump-csv`, and `$dump-sql` operations are available only on **Aidbox endpoints** (without the `/fhir/` prefix). Unlike `$import` and `$load`, there are no `/fhir/`-prefixed variants for these operations. The access policy patterns below reflect this.
+{% endhint %}
+
 ```yaml
 PUT /
 

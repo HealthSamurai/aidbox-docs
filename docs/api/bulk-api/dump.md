@@ -8,6 +8,10 @@ You can dump all resources of a specified type. Aidbox will respond with [Chunke
 
 This is a memory-efficient operation. Aidbox just streams the database cursor to a socket. If your HTTP Client supports processing of Chunked Encoding, you can process resources in stream one by one without waiting for the end of the response.
 
+{% hint style="warning" %}
+`$dump` is an **Aidbox-only endpoint**. It is available at `/<ResourceType>/$dump` and is **not** available at `/fhir/<ResourceType>/$dump`. Requests to the `/fhir/` prefixed path will return a `404` error.
+{% endhint %}
+
 {% tabs %}
 {% tab title="Request format" %}
 ```

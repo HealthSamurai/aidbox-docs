@@ -10,6 +10,10 @@ Dump resource in CSV format
 
 Neither the specific order of columns nor the order of rows is guaranteed.
 
+{% hint style="warning" %}
+`$dump-csv` is an **Aidbox-only endpoint**. It is available at `/<ResourceType>/$dump-csv` and is **not** available at `/fhir/<ResourceType>/$dump-csv`. Requests to the `/fhir/` prefixed path will return a `404` error.
+{% endhint %}
+
 {% tabs %}
 {% tab title="Request format" %}
 ```yaml

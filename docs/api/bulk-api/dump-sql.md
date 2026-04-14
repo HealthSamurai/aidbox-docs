@@ -9,6 +9,10 @@ description: Export SQL query results as CSV or ndjson stream using $dump-sql op
 `$dump-sql` operation takes the sql query and responds with the Chunked Encoded stream in TSV format (default) or in JSON/NDJSON format. Useful to export data for analytics.
 
 {% hint style="warning" %}
+`$dump-sql` is an **Aidbox-only endpoint**. It is available at `/$dump-sql` and is **not** available at `/fhir/$dump-sql`. Requests to the `/fhir/` prefixed path will return a `404` error.
+{% endhint %}
+
+{% hint style="warning" %}
 **Streaming and errors**: The response is streamed. If the SQL is invalid or the request body is missing or malformed, the server may still return **HTTP 200** and write error text into the response body instead of returning 4xx with an OperationOutcome. Check the response body for error messages when the output is unexpected.
 {% endhint %}
 
