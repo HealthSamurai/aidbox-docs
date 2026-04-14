@@ -137,6 +137,16 @@ Ensure that the resource metadata contains the kind-specific `AidboxTopicDestina
       <td>boolean</td>
       <td>When <code>true</code>, each <code>Bundle.entry</code> includes the <code>bundle-entryVersionId</code> extension containing the resource's <code>meta.versionId</code> at the time of the notification. Default: <code>false</code>.</td>
     </tr>
+    <tr>
+      <td><code>includeVersionIdInFocusReference</code></td>
+      <td>boolean</td>
+      <td>When <code>true</code>, the <code>focus.reference</code> in each <code>notificationEvent</code> of the <code>AidboxSubscriptionStatus</code> includes the version history path (e.g. <code>Patient/123/_history/5</code> instead of <code>Patient/123</code>). Default: <code>false</code>.</td>
+    </tr>
+    <tr>
+      <td><code>enableLogging</code></td>
+      <td>boolean</td>
+      <td>When <code>true</code>, Aidbox logs the <code>AidboxSubscriptionStatus</code> resource via klog after each delivery attempt. On failure, the logged status includes an <code>error</code> array with the error message. Useful for debugging and monitoring destination delivery. Default: <code>false</code>.</td>
+    </tr>
   </tbody>
 </table>
 
@@ -504,3 +514,42 @@ When `includeEntryAction` or `includeVersionId` is enabled on the `AidboxTopicDe
 ```
 
 Only the extensions corresponding to the enabled flags are included. The extensions appear on entries for both `full-resource` and `id-only` content modes. In `empty` mode there are no resource entries, so extensions are not included.
+
+### Focus reference with version id
+
+When `includeVersionIdInFocusReference` is enabled, the `focus.reference` in each `notificationEvent` includes the version history path:
+
+```json
+{
+  "notificationEvent": [
+    {
+      "eventNumber": 1,
+      "focus": {
+        "reference": "Patient/123/_history/5"
+      }
+    }
+  ]
+}
+```
+
+Without this flag, the reference would be `Patient/123`.
+
+### Delivery logging
+
+When `enableLogging` is set to `true` on an `AidboxTopicDestination`, Aidbox logs the `AidboxSubscriptionStatus` resource after each delivery attempt. On successful delivery, the status is logged as-is. On failure, the status includes an `error` array:
+
+```json
+{
+  "resourceType": "AidboxSubscriptionStatus",
+  "id": "auto-generated-uuid",
+  "status": "active",
+  "type": "event-notification",
+  "topic": "http://example.org/FHIR/R5/SubscriptionTopic/patient-topic",
+  "topic-destination": {
+    "reference": "AidboxTopicDestination/my-destination"
+  },
+  "error": ["Connection refused: localhost:1"]
+}
+```
+
+The logs are emitted via klog with the event key `:topic-destination/status`.
