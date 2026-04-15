@@ -616,6 +616,46 @@ Learn more:
 - [Upload FHIR Implementation Guide](../tutorials/artifact-registry-tutorials/upload-fhir-implementation-guide/README.md)
 - [4 Ways to Upload IGs to Aidbox (blog)](https://www.health-samurai.io/articles/4-ways-to-upload-igs-to-aidbox-pros-and-cons)
 
+### Can I load multiple versions of the same FHIR package and validate against a specific one?
+
+Yes. Aidbox supports loading multiple versions of the same Implementation Guide simultaneously, and you can target a specific version during validation using FHIR's `|version` canonical URL syntax.
+
+**Loading multiple versions**
+
+The `BOX_BOOTSTRAP_FHIR_PACKAGES` environment variable is not the right tool for this — if you list the same package twice with different versions, only one will be used. Instead, install each version explicitly using the `$fhir-package-install` operation:
+
+```http
+POST /fhir/$fhir-package-install
+Content-Type: application/json
+
+{"name": "hl7.fhir.us.core", "version": "5.0.1"}
+```
+
+Repeat for each version you need. For a more robust setup — one that runs automatically on every startup — use an [Init Bundle](../configuration/init-bundle.md) with an `AidboxMigration` resource. This guarantees packages are installed exactly once, before the server begins serving requests.
+
+Learn more: [How to Load a FHIR IG with Init Bundle](../tutorials/artifact-registry-tutorials/upload-fhir-implementation-guide/how-to-load-fhir-ig-with-init-bundle.md)
+
+**Validating against a specific version**
+
+Once multiple versions are loaded, pin validation to a specific one by appending `|<version>` to the canonical URL in `meta.profile`:
+
+```json
+{
+  "resourceType": "Patient",
+  "meta": {
+    "profile": [
+      "http://hl7.org/fhir/us/core/StructureDefinition/us-core-patient|5.0.1"
+    ]
+  }
+}
+```
+
+Aidbox will validate this resource against US Core 5.0.1 specifically. If you omit the version suffix, Aidbox resolves to the latest loaded version of that profile.
+
+Learn more:
+- [$fhir-package-install Operation](../reference/package-registry-api.md)
+- [Artifact Registry Overview](../artifact-registry/artifact-registry-overview.md)
+
 ### How do I enable asynchronous validation?
 
 For large datasets, enable async validation to process resources in the background without blocking API responses.
