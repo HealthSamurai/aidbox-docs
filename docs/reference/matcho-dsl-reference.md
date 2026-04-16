@@ -1,4 +1,11 @@
+---
+description: Matcho is a pattern-matching DSL used primarily in AccessPolicy resources for access control in Aidbox. This reference covers all Matcho operators and syntax.
+keywords: [matcho, access policy, AccessPolicy, pattern matching, access control, matcho engine]
+---
+
 # Matcho DSL Reference
+
+Matcho is the primary pattern-matching engine used in [AccessPolicy](../access-control/authorization/access-policies.md) resources. It allows you to define access control rules by matching request properties against patterns.
 
 * Strings, numbers, and booleans are compared by value.
 * If the pattern is a dictionary, search for its inclusion into a test subject. This check is nested and recursive.
