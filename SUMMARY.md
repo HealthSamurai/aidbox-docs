@@ -57,7 +57,6 @@
     * [Debug Access Control](tutorials/security-access-control-tutorials/debug-access-control.md)
     * [AccessPolicy best practices](tutorials/security-access-control-tutorials/accesspolicy-best-practices.md)
     * [How to configure Basic Auth flow](tutorials/security-access-control-tutorials/basic-auth.md)
-    * [Deprecated Access policy dev tool](tutorials/security-access-control-tutorials/access-policy-dev-tool.md)
     * [How to configure Authorization Code Grant](tutorials/security-access-control-tutorials/authorization-code-grant.md)
     * [How to configure Client Credentials Grant](tutorials/security-access-control-tutorials/client-credentials-grant.md)
     * [How to configure Implicit Grant](tutorials/security-access-control-tutorials/implicit-grant.md)
@@ -526,6 +525,7 @@
 ## Deprecated
 
 * [Deprecated](deprecated/deprecated/README.md)
+  * [Deprecated Access policy dev tool](deprecated/deprecated/other/access-policy-dev-tool.md)
   * [Zen-related](deprecated/deprecated/zen-related/README.md)
     * [RPC Reference](deprecated/deprecated/zen-related/rpc-reference/README.md)
       * [Aidbox](deprecated/deprecated/zen-related/rpc-reference/aidbox/README.md)

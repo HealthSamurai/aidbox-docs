@@ -15,7 +15,7 @@ This guide provides examples of access policies for different use cases. Each ex
 See also:
 
 * [Access Policies](../../access-control/authorization/access-policies.md)
-* [Access Policy Dev Tool](access-policy-dev-tool.md)
+* [Access Policy Dev Tool](../../deprecated/deprecated/other/access-policy-dev-tool.md)
 * [Access Policies Best Practices](accesspolicy-best-practices.md)
 * [Matcho DSL Reference](../../reference/matcho-dsl-reference.md)
 

@@ -1,4 +1,5 @@
 redirects:
+  tutorials/security-access-control-tutorials/access-policy-dev-tool: deprecated/deprecated/other/access-policy-dev-tool.md
   contact-us: overview/contact-us.md
   access-control/authentication/access-to-aidboxui: access-control/authentication/README.md
   api/other/plan-api/plan-api-overview: api/other/plan-api/README.md
@@ -390,7 +391,7 @@ redirects:
   modules-1/security-and-access-control/auth/token-exchange: tutorials/security-access-control-tutorials/token-exchange.md
   modules-1/security-and-access-control/auth/two-factor-authentication: access-control/authentication/two-factor-authentication.md
   modules-1/security-and-access-control/security/access-control-lists-docs-acl: deprecated/deprecated/zen-related/access-control-lists-docs-acl.md
-  modules-1/security-and-access-control/security/access-policy-dev-tool: tutorials/security-access-control-tutorials/access-policy-dev-tool.md
+  modules-1/security-and-access-control/security/access-policy-dev-tool: deprecated/deprecated/other/access-policy-dev-tool.md
   modules-1/security-and-access-control/security/accesspolicy-best-practices: tutorials/security-access-control-tutorials/accesspolicy-best-practices.md
   modules-1/security-and-access-control/security/accesspolicy: access-control/authorization/access-policies.md
   modules-1/security-and-access-control/security/evaluation-engines: access-control/authorization/access-policies.md
@@ -484,7 +485,7 @@ redirects:
   security-and-access-control-1/auth/two-factor-authentication: access-control/authentication/two-factor-authentication.md
   security-and-access-control-1/overview: access-control/access-control.md
   security-and-access-control-1/security/access-control: access-control/authorization/access-policies.md
-  security-and-access-control-1/security/access-policy-dev-tool: tutorials/security-access-control-tutorials/access-policy-dev-tool.md
+  security-and-access-control-1/security/access-policy-dev-tool: deprecated/deprecated/other/access-policy-dev-tool.md
   security-and-access-control-1/security/accesspolicy-best-practices: tutorials/security-access-control-tutorials/accesspolicy-best-practices.md
   storage-1/custom-resources/custom-resources-on-fhir-logical-model: tutorials/artifact-registry-tutorials/custom-resources/README.md
   storage-1/database: database/overview.md
