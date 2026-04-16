@@ -1,6 +1,6 @@
 ---
 description: Define fine-grained access control with AccessPolicy using Allow, Matcho, SQL, JSON Schema, or Complex engines.
-keywords: [AccessPolicy, authorization, ABAC, permission, security rules, access control]
+keywords: [access policy, AccessPolicy, access policies, authorization, ABAC, permission, security rules, access control]
 ---
 
 # Access Policies
