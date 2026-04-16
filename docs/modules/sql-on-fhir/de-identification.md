@@ -1,8 +1,12 @@
 # De-identification
 
-Aidbox supports per-column de-identification in ViewDefinitions via a FHIR extension. When a column has a de-identification extension, the SQL compiler wraps the column expression with a PostgreSQL function that transforms the value before it reaches the output.
+Starting from version **2604**, Aidbox supports per-column de-identification in ViewDefinitions via a FHIR extension. When a column has a de-identification extension, the SQL compiler wraps the column expression with a PostgreSQL function that transforms the value before it reaches the output.
 
 This works with all ViewDefinition operations: `$run`, `$sql`, and `$materialize`.
+
+{% hint style="info" %}
+Requires **fhir-schema mode**. See [SQL on FHIR prerequisites](./README.md).
+{% endhint %}
 
 ## Extension format
 
@@ -70,11 +74,11 @@ Year-only values (`"2000"`) and year-month values (`"2000-06"`) cannot be shifte
 
 ### birthDateSafeHarbor
 
-Intended **only for `Patient.birthDate`**. Behaves like `dateshift` but returns NULL when the birth date implies the patient is over 89 years old, per HIPAA Safe Harbor rule 45 CFR 164.514(b)(2)(i)(C).
+Intended **only for `Patient.birthDate`**. Behaves like `dateshift` but returns NULL when the birth date implies the patient is over 89 years old, per HIPAA Safe Harbor rule [45 CFR 164.514(b)(2)(i)(C)](https://www.ecfr.gov/current/title-45/subtitle-A/subchapter-C/part-164/subpart-E/section-164.514).
 
 Applying this method to any other date column is semantically incorrect — the function computes `age(current_date, input)` and treats the input as a birth date. Use plain `dateshift` for non-birth-date fields.
 
-Because the function depends on `current_date`, it is marked `STABLE` rather than `IMMUTABLE`. The age cutoff re-evaluates on every query.
+Because the function depends on `current_date`, it is marked [`STABLE`](https://www.postgresql.org/docs/current/xfunc-volatility.html) rather than `IMMUTABLE` — PostgreSQL guarantees it returns the same result within a single transaction, but the result may differ between transactions as the current date changes. This means the age cutoff re-evaluates on every query.
 
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
@@ -127,7 +131,7 @@ Adds random noise to numeric values. The result is non-deterministic — each qu
 | rangeType | code | no | `fixed` (absolute noise) or `proportional` (relative to value). Default: `fixed` |
 | roundTo | integer | no | Decimal places to round to. 0 means integer. Default: 0 |
 
-With `fixed` range type, noise is in the range ±span/2. With `proportional`, noise is ±(span × value)/2. Any other `rangeType` value raises a SQL error.
+With `fixed` range type, noise is in the range `±span/2`. With `proportional`, noise is `±(span × value)/2`. Any other `rangeType` value raises a SQL error.
 
 ```json
 [
@@ -145,7 +149,7 @@ Applies a user-provided PostgreSQL function. The function must already exist in 
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
 | custom_function | string | yes | PostgreSQL function name. Must match `^[a-zA-Z][a-zA-Z0-9_.]*$` |
-| custom_arg | string, integer, decimal, boolean, or code | no | Optional second argument |
+| custom_arg | any primitive | no | Optional second argument, passed as a FHIR sub-extension using the appropriate `value[x]` type: `valueString`, `valueInteger`, `valueDecimal`, `valueBoolean`, or `valueCode` |
 
 ```json
 [
@@ -264,7 +268,7 @@ This restriction exists because PostgreSQL stores the full view definition (incl
 
 ## Pre-built ViewDefinitions
 
-Aidbox ships an IG package `io.health-samurai.de-identification.r4` with ready-made Safe Harbor ViewDefinitions for common FHIR R4 resource types:
+The IG package `io.health-samurai.de-identification.r4` provides ready-made Safe Harbor ViewDefinitions for common FHIR R4 resource types. Install it via FAR (Aidbox's artifact registry):
 
 | Resource | Use |
 |----------|-----|

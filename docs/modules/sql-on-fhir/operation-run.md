@@ -4,7 +4,7 @@ description: Using the $run operation to execute SQL-on-FHIR ViewDefinitions
 # $run operation
 
 {% hint style="warning" %}
-When running Aidbox not in FHIRSchema mode, please be aware that input parameters for the `$run` operation are not validated against FHIR specifications.
+Requires **fhir-schema mode**. See [SQL on FHIR prerequisites](./README.md).
 {% endhint %}
 
 {% hint style="info" %}

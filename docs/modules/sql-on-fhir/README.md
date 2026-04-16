@@ -4,8 +4,8 @@ description: Create flat SQL views from FHIR resources using ViewDefinitions for
 
 # SQL on FHIR
 
-{% hint style="info" %}
-**SQL on FHIR** engine is currently in **preview**
+{% hint style="warning" %}
+Starting from version **2604**, SQL on FHIR requires **fhir-schema mode** (`fhir.validation.fhir-schema-validation=true`). ViewDefinitions are stored in the FHIR Artifact Registry (FAR), which is only available in fhir-schema mode. Without it, ViewDefinition CRUD, `$run`, `$sql`, and `$materialize` operations will not work.
 {% endhint %}
 
 Performing analysis on FHIR data requires extracting data from deeply nested structures of resources, which may be cumbersome in some cases. To address this problem, Aidbox implements [SQL on FHIR](https://build.fhir.org/ig/FHIR/sql-on-fhir-v2/index.html) specification allowing users to create flat views of their resources in a simple, straightforward way
@@ -24,7 +24,7 @@ See [Query data from flat views](./query-data-from-flat-views.md).
 
 ## De-identification
 
-ViewDefinition columns can be annotated with de-identification methods to transform sensitive data during SQL generation. Supported methods include redact, cryptoHash, dateshift, encrypt, substitute, perturb, and custom PostgreSQL functions.
+Starting from version **2604**, ViewDefinition columns can be annotated with de-identification methods to transform sensitive data during SQL generation. Supported methods include redact, cryptoHash, dateshift, encrypt, substitute, perturb, and custom PostgreSQL functions.
 
 See [De-identification](./de-identification.md).
 

@@ -8,7 +8,7 @@ description: Materializing SQL-on-FHIR ViewDefinitions as database tables, views
 {% endhint %}
 
 {% hint style="warning" %}
-When running Aidbox not in FHIRSchema mode, please be aware that input parameters for the `$materialize` operation are not validated against FHIR specifications.
+Requires **fhir-schema mode**. See [SQL on FHIR prerequisites](./README.md).
 {% endhint %}
 
 {% hint style="info" %}
