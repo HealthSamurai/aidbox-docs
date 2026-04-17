@@ -204,12 +204,9 @@ A complete ViewDefinition that de-identifies Patient data:
       }]
     }]
   }, {
-    "forEach": "name",
+    "forEachOrNull": "name",
     "select": [{
       "column": [{
-        "name": "use",
-        "path": "use"
-      }, {
         "name": "family",
         "path": "family",
         "extension": [{
@@ -222,12 +219,9 @@ A complete ViewDefinition that de-identifies Patient data:
       }]
     }]
   }, {
-    "forEach": "address",
+    "forEachOrNull": "address",
     "select": [{
       "column": [{
-        "name": "state",
-        "path": "state"
-      }, {
         "name": "postal_code",
         "path": "postalCode",
         "extension": [{
@@ -252,9 +246,15 @@ In this example:
 - `gender` passes through unchanged (no extension)
 - `birthDate` is shifted by a deterministic offset per patient
 - `name.family` is redacted (NULL)
-- `name.use` passes through (code values are not PHI)
-- `address.state` passes through (safe at state level)
 - `address.postalCode` is replaced with "000"
+
+The result from the `$run` operation would look like this:
+
+| `id`                                                             | `gender` | `birth_date` | `family` | `postal_code` |
+|------------------------------------------------------------------|----------|--------------|----------|---------------|
+| a9c063ce560ab35c2156d4bf153457d8c7b0ad6325c1c4112b34eb7147aaa8f9 | female   | 1985-03-02   | null     | 000           |
+| 6e7dfba4a51c359ead0afd9e3ff542c9417505957bf374e510eb37ec020fbc12 | male     | 1952-11-12   | null     | 000           |
+| 27fb6fd29c5657c1a122aa1ae28cdfc5e10b202c6dc7d498cec72609b3a1b447 | female   | 1930-05-08   | null     | 000           |
 
 ## Materialization restriction
 
