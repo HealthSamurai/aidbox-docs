@@ -5,7 +5,7 @@ Starting from version **2604**, Aidbox supports per-column de-identification in 
 This works with all ViewDefinition operations: `$run`, `$sql`, and `$materialize`.
 
 {% hint style="info" %}
-Requires **fhir-schema mode**. See [SQL on FHIR prerequisites](./README.md).
+Requires **fhir-schema mode**.
 {% endhint %}
 
 ## Extension format

@@ -8,7 +8,7 @@ description: Materializing SQL-on-FHIR ViewDefinitions as database tables, views
 {% endhint %}
 
 {% hint style="warning" %}
-Requires **fhir-schema mode**. See [SQL on FHIR prerequisites](./README.md).
+Requires **fhir-schema mode**.
 {% endhint %}
 
 {% hint style="info" %}

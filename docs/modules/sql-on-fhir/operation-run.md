@@ -4,7 +4,7 @@ description: Using the $run operation to execute SQL-on-FHIR ViewDefinitions
 # $run operation
 
 {% hint style="warning" %}
-Requires **fhir-schema mode**. See [SQL on FHIR prerequisites](./README.md).
+Requires **fhir-schema mode**.
 {% endhint %}
 
 {% hint style="info" %}
