@@ -152,7 +152,7 @@ Archive configuration resource for Aidbox data archival.
   "lvl" : 0,
   "min" : 0,
   "max" : 1,
-  "type" : "number",
+  "type" : "unsignedInt",
   "desc" : "Count of resources that have been archived."
 }, {
   "path" : "bucket",
@@ -1512,6 +1512,14 @@ Configures where and how notifications triggered by a subscription topic should 
   "type" : "string",
   "desc" : "empty | id-only | full-resource. \n\n**Allowed values**: `empty` | `id-only` | `full-resource`"
 }, {
+  "path" : "enableLogging",
+  "name" : "enableLogging",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "boolean",
+  "desc" : "Enable logging of delivery status."
+}, {
   "path" : "includeEntryAction",
   "name" : "includeEntryAction",
   "lvl" : 0,
@@ -1528,6 +1536,14 @@ Configures where and how notifications triggered by a subscription topic should 
   "type" : "boolean",
   "desc" : "Include resource versionId in notification bundle entries."
 }, {
+  "path" : "includeVersionIdInFocusReference",
+  "name" : "includeVersionIdInFocusReference",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "boolean",
+  "desc" : "Include versionId in focus reference."
+}, {
   "path" : "kind",
   "name" : "kind",
   "lvl" : 0,
@@ -1535,6 +1551,14 @@ Configures where and how notifications triggered by a subscription topic should 
   "max" : 1,
   "type" : "string",
   "desc" : "Channel type for notifications."
+}, {
+  "path" : "logLevel",
+  "name" : "logLevel",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "code",
+  "desc" : "Log level for delivery logging."
 }, {
   "path" : "status",
   "name" : "status",
@@ -7684,6 +7708,14 @@ Terminology bundle file tracking resource.
   "max" : "*",
   "type" : "UsageContext",
   "desc" : "The context that the content is intended to support"
+}, {
+  "path" : "version",
+  "name" : "version",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "string",
+  "desc" : "Business version of the ViewDefinition"
 }, {
   "path" : "where",
   "name" : "where",
