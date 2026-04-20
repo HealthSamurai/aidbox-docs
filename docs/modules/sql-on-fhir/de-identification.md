@@ -106,6 +106,14 @@ AES-128-CBC encrypts the value and returns a base64-encoded string. Reversible w
 ]
 ```
 
+{% hint style="warning" %}
+**Key management.** Cryptographic keys (`cryptoHashKey`, `dateShiftKey`, `encryptKey`) are stored as plaintext strings inside the ViewDefinition resource. Anyone with read access to the ViewDefinition can see the keys. Restrict access using [AccessPolicy](../../access-control/authorization/README.md).
+{% endhint %}
+
+{% hint style="warning" %}
+**Encryption limitations.** `encrypt` uses AES-128-CBC with a zero initialization vector. Encryption is deterministic — same plaintext always produces same ciphertext, which is useful for consistent de-identification but leaks frequency information. Not suitable for general-purpose encryption.
+{% endhint %}
+
 ### substitute
 
 Replaces the value with a fixed string.
@@ -160,6 +168,7 @@ Applies a user-provided PostgreSQL function. The function must already exist in 
 ```
 
 This example uses the built-in PostgreSQL `left` function to keep only the first 4 characters (e.g. extracting just the year from a date string).
+See also: [Writing custom PostgreSQL functions](#writing-custom-postgresql-functions)
 
 ## Example ViewDefinition
 
@@ -260,15 +269,13 @@ The result from the `$run` operation would look like this:
 
 A ViewDefinition that contains any de-identification extension can only be materialized as a `table`. Attempting to materialize as `view` or `materialized-view` returns HTTP 422 with an OperationOutcome:
 
-> ViewDefinitions with de-identification extensions can only be materialized as 'table'. Views and materialized views expose cryptographic keys in PostgreSQL system catalogs.
-
 This restriction exists because PostgreSQL stores the full view definition (including the compiled SQL with embedded keys) in `pg_views.definition` and `pg_matviews.definition`. Any user with `SELECT` on those catalogs would see the `cryptoHashKey`, `dateShiftKey`, or `encryptKey` values in plaintext. Tables materialize the transformed data only, leaving the keys inside the ViewDefinition resource itself (which is access-controlled).
 
 `$run` and `$sql` are unaffected — they return data or SQL strings directly without storing anything in system catalogs.
 
 ## Pre-built ViewDefinitions
 
-The IG package `io.health-samurai.de-identification.r4` provides ready-made Safe Harbor ViewDefinitions for common FHIR R4 resource types. Install it via FAR (Aidbox's artifact registry):
+The IG package [`io.health-samurai.de-identification.r4`](https://get-ig.org/io.health-samurai.de-identification.r4) provides ready-made Safe Harbor ViewDefinitions for common FHIR R4 resource types. Install it via [Artefact Registry](../../artifact-registry/artifact-registry-overview.md) ("FHIR packages" in Aidbox UI):
 
 | Resource | Use |
 |----------|-----|
@@ -319,22 +326,6 @@ Then reference it in a column:
   ]
 }
 ```
-
-## Security considerations
-
-### Key management
-
-Cryptographic keys (`cryptoHashKey`, `dateShiftKey`, `encryptKey`) are stored as plaintext strings inside the ViewDefinition resource. Anyone with read access to the ViewDefinition can see the keys.
-
-Restrict access to ViewDefinition resources using [AccessPolicy](../../access-control/authorization/README.md) to ensure only authorized users can view or modify de-identification configurations.
-
-### SQL injection prevention
-
-The `custom_function` parameter is validated against `^[a-zA-Z][a-zA-Z0-9_.]*$` — only letters, digits, underscores, and dots are allowed. This validation happens both in the Aidbox UI and in the SQL compiler. String arguments passed via `custom_arg` are safely escaped by the SQL generator.
-
-### Encryption limitations
-
-The `encrypt` method uses AES-128-CBC with a zero initialization vector. This makes encryption deterministic — the same plaintext always produces the same ciphertext, which is useful for consistent de-identification but leaks frequency information. This is not suitable for general-purpose encryption.
 
 See also:
 
