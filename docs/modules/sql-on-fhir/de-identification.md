@@ -291,7 +291,7 @@ Install the package via FHIR package management and use these ViewDefinitions di
 
 The ViewDefinition builder in Aidbox UI includes a de-identification picker on each column. Click the shield icon next to a column's path to open the configuration popover.
 
-![De-identification picker in the ViewDefinition Builder](../../../assets/deident-viewdefinition-builder.png)
+![De-identification picker in the ViewDefinition Builder](../../../assets/deident-viewdefinition-builder.avif)
 
 When a de-identification method is configured, the shield icon turns blue. Hovering shows the current method name.
 
