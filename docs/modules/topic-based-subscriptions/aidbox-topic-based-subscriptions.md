@@ -11,14 +11,33 @@ This functionality is available in Aidbox versions 2409 and later and requires [
 {% hint style="warning" %}
 **Connector compatibility (Aidbox 2604+)**
 
-Starting from Aidbox **2604**, AidboxTopicDestination profile URLs were renamed and connector JAR versions must match the Aidbox minor version.
+Starting from Aidbox **2604**, AidboxTopicDestination profile URLs were renamed — both the host (`aidbox.app` → `health-samurai.io/fhir/core`) and the kind segment (kebab-case → camelCase with a `Profile` suffix). The two forms are not a direct substitution; use the mapping below.
 
-| Aidbox version | Profile URL form | Connector JAR |
+Tutorials on this site use the new (≥ 2604) URL form. If you run Aidbox **< 2604**, swap in the legacy URL from the table.
+
+Additionally, if you upgrade Aidbox across the 2604 boundary, rebuild or redeploy the connector JAR against an Aidbox 2604+ release — older connector JARs register profiles through a legacy path the new validator no longer honors.
+
+| Connector kind | Aidbox ≥ 2604 URL | Aidbox < 2604 URL (legacy) |
 | --- | --- | --- |
-| ≥ 2604 | `http://health-samurai.io/fhir/core/StructureDefinition/aidboxtopicdestination-<kind>Profile` | `topic-destination-<name>-<aidbox-version>.jar` matching your Aidbox release |
-| < 2604 | `http://aidbox.app/StructureDefinition/aidboxtopicdestination-<kind>` (legacy) | connector JAR from the same Aidbox era |
-
-Connector tutorials use the new URL form. If you run Aidbox **< 2604**, substitute the legacy `aidbox.app` URL shown in the table above.
+| `clickhouse` | `http://health-samurai.io/fhir/core/StructureDefinition/aidboxtopicdestination-clickHouseProfile` | `http://aidbox.app/StructureDefinition/aidboxtopicdestination-clickhouse` |
+| `clickhouse-at-least-once` | `http://health-samurai.io/fhir/core/StructureDefinition/aidboxtopicdestination-clickHouseAtLeastOnceProfile` | `http://aidbox.app/StructureDefinition/aidboxtopicdestination-clickhouse-at-least-once` |
+| `bigquery-at-least-once` | `http://health-samurai.io/fhir/core/StructureDefinition/aidboxtopicdestination-bigQueryAtLeastOnceProfile` | `http://aidbox.app/StructureDefinition/aidboxtopicdestination-bigquery-at-least-once` |
+| `kafka-best-effort` | `http://health-samurai.io/fhir/core/StructureDefinition/aidboxtopicdestination-kafkaBestEffortProfile` | `http://aidbox.app/StructureDefinition/aidboxtopicdestination-kafka-best-effort` |
+| `kafka-at-least-once` | `http://health-samurai.io/fhir/core/StructureDefinition/aidboxtopicdestination-kafkaAtLeastOnceProfile` | `http://aidbox.app/StructureDefinition/aidboxtopicdestination-kafka-at-least-once` |
+| `kafka-best-effort-mock` | `http://health-samurai.io/fhir/core/StructureDefinition/aidboxtopicdestination-kafkaBestEffortMockProfile` | `http://aidbox.app/StructureDefinition/aidboxtopicdestination-kafka-best-effort-mock` |
+| `kafka-at-least-once-mock` | `http://health-samurai.io/fhir/core/StructureDefinition/aidboxtopicdestination-kafkaAtLeastOnceMockProfile` | `http://aidbox.app/StructureDefinition/aidboxtopicdestination-kafka-at-least-once-mock` |
+| `webhook-at-least-once` | `http://health-samurai.io/fhir/core/StructureDefinition/aidboxtopicdestination-webhookAtLeastOnceProfile` | `http://aidbox.app/StructureDefinition/aidboxtopicdestination-webhook-at-least-once` |
+| `gcp-pubsub-at-least-once` | `http://health-samurai.io/fhir/core/StructureDefinition/aidboxtopicdestination-gcpPubSubAtLeastOnceProfile` | `http://aidbox.app/StructureDefinition/aidboxtopicdestination-gcp-pubsub-at-least-once` |
+| `aws-eventbridge-best-effort` | `http://health-samurai.io/fhir/core/StructureDefinition/aidboxtopicdestination-awsEventBridgeBestEffortProfile` | `http://aidbox.app/StructureDefinition/aidboxtopicdestination-aws-eventbridge-best-effort` |
+| `aws-eventbridge-at-least-once` | `http://health-samurai.io/fhir/core/StructureDefinition/aidboxtopicdestination-awsEventBridgeAtLeastOnceProfile` | `http://aidbox.app/StructureDefinition/aidboxtopicdestination-aws-eventbridge-at-least-once` |
+| `aws-sns-best-effort` | `http://health-samurai.io/fhir/core/StructureDefinition/aidboxtopicdestination-awssnsBestEffortProfile` | `http://aidbox.app/StructureDefinition/aidboxtopicdestination-aws-sns-best-effort` |
+| `aws-sns-at-least-once` | `http://health-samurai.io/fhir/core/StructureDefinition/aidboxtopicdestination-awssnsAtLeastOnceProfile` | `http://aidbox.app/StructureDefinition/aidboxtopicdestination-aws-sns-at-least-once` |
+| `nats-core-best-effort` | `http://health-samurai.io/fhir/core/StructureDefinition/aidboxtopicdestination-natsCoreBestEffortProfile` | `http://aidbox.app/StructureDefinition/aidboxtopicdestination-nats-core-best-effort` |
+| `nats-jetstream-at-least-once` | `http://health-samurai.io/fhir/core/StructureDefinition/aidboxtopicdestination-natsJetStreamAtLeastOnceProfile` | `http://aidbox.app/StructureDefinition/aidboxtopicdestination-nats-jetstream-at-least-once` |
+| `amqp-rabbitmq-0-9-1` | `http://health-samurai.io/fhir/core/StructureDefinition/aidboxtopicdestination-amqpRabbitMQ091Profile` | `http://aidbox.app/StructureDefinition/aidboxtopicdestination-amqp-rabbitmq-0-9-1` |
+| `amqp-rabbitmq-0-9-1-at-least-once` | `http://health-samurai.io/fhir/core/StructureDefinition/aidboxtopicdestination-amqpRabbitMQ091AtLeastOnceProfile` | `http://aidbox.app/StructureDefinition/aidboxtopicdestination-amqp-rabbitmq-0-9-1-at-least-once` |
+| `amqp-1-0-at-least-once` | `http://health-samurai.io/fhir/core/StructureDefinition/aidboxtopicdestination-amqp10AtLeastOnceProfile` | `http://aidbox.app/StructureDefinition/aidboxtopicdestination-amqp-1-0-at-least-once` |
+| `fhir-native-topic-based-subscription` | `http://health-samurai.io/fhir/core/StructureDefinition/aidboxtopicdestination-fhirNativeTopicBasedSubscriptionProfile` | `http://aidbox.app/StructureDefinition/aidboxtopicdestination-fhir-native-topic-based-subscription` |
 {% endhint %}
 
 ### Overview
