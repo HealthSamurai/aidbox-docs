@@ -10,6 +10,10 @@ description: >-
 This functionality is available starting from Aidbox version **2601**.
 {% endhint %}
 
+{% hint style="warning" %}
+**Aidbox 2604+ compatibility:** connector JAR versions must match the Aidbox minor version, and AidboxTopicDestination profile URLs were renamed from `http://aidbox.app/StructureDefinition/aidboxtopicdestination-<kind>` to `http://health-samurai.io/fhir/core/StructureDefinition/aidboxtopicdestination-<kind>Profile`. Examples below use the new URL; for Aidbox **< 2604**, substitute the legacy `aidbox.app` URL. See [Aidbox Topic-Based Subscriptions](../../modules/topic-based-subscriptions/aidbox-topic-based-subscriptions.md) for details.
+{% endhint %}
+
 ## Objectives
 
 * Learn how to integrate [AidboxTopicSubscriptions](../../modules/topic-based-subscriptions/aidbox-topic-based-subscriptions.md) with AWS EventBridge
@@ -43,8 +47,8 @@ For detailed information, see the [official EventBridge documentation](https://d
 
 In Aidbox, two [AidboxTopicDestination](../../modules/topic-based-subscriptions/aidbox-topic-based-subscriptions.md#aidboxtopicdestination) profiles are supported:
 
-* `http://aidbox.app/StructureDefinition/aidboxtopicdestination-aws-eventbridge-best-effort` — Events are sent immediately. If EventBridge returns an error, the event is lost. Low latency, suitable for non-critical notifications.
-* `http://aidbox.app/StructureDefinition/aidboxtopicdestination-aws-eventbridge-at-least-once` — Events are persisted to database before sending. If EventBridge is unavailable, events remain in queue and are retried automatically. Supports batching up to 10 events. Guaranteed delivery for critical integrations.
+* `http://health-samurai.io/fhir/core/StructureDefinition/aidboxtopicdestination-awsEventBridgeBestEffortProfile` — Events are sent immediately. If EventBridge returns an error, the event is lost. Low latency, suitable for non-critical notifications.
+* `http://health-samurai.io/fhir/core/StructureDefinition/aidboxtopicdestination-awsEventBridgeAtLeastOnceProfile` — Events are persisted to database before sending. If EventBridge is unavailable, events remain in queue and are retried automatically. Supports batching up to 10 events. Guaranteed delivery for critical integrations.
 
 ## Setting up locally
 
@@ -151,7 +155,7 @@ accept: application/json
   "resourceType": "AidboxTopicDestination",
   "meta": {
     "profile": [
-      "http://aidbox.app/StructureDefinition/aidboxtopicdestination-aws-eventbridge-best-effort"
+      "http://health-samurai.io/fhir/core/StructureDefinition/aidboxtopicdestination-awsEventBridgeBestEffortProfile"
     ]
   },
   "kind": "aws-eventbridge-best-effort",
@@ -265,7 +269,7 @@ accept: application/json
   "resourceType": "AidboxTopicDestination",
   "meta": {
     "profile": [
-      "http://aidbox.app/StructureDefinition/aidboxtopicdestination-aws-eventbridge-at-least-once"
+      "http://health-samurai.io/fhir/core/StructureDefinition/aidboxtopicdestination-awsEventBridgeAtLeastOnceProfile"
     ]
   },
   "kind": "aws-eventbridge-at-least-once",
@@ -531,7 +535,7 @@ content-type: application/json
   "resourceType": "AidboxTopicDestination",
   "meta": {
     "profile": [
-      "http://aidbox.app/StructureDefinition/aidboxtopicdestination-aws-eventbridge-at-least-once"
+      "http://health-samurai.io/fhir/core/StructureDefinition/aidboxtopicdestination-awsEventBridgeAtLeastOnceProfile"
     ]
   },
   "kind": "aws-eventbridge-at-least-once",

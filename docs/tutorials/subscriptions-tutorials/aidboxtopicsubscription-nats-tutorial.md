@@ -4,6 +4,10 @@ description: Integrate Aidbox topic-based subscriptions with NATS and NATS JetSt
 
 # AidboxTopicSubscription NATS tutorial
 
+{% hint style="warning" %}
+**Aidbox 2604+ compatibility:** connector JAR versions must match the Aidbox minor version, and AidboxTopicDestination profile URLs were renamed from `http://aidbox.app/StructureDefinition/aidboxtopicdestination-<kind>` to `http://health-samurai.io/fhir/core/StructureDefinition/aidboxtopicdestination-<kind>Profile`. Examples below use the new URL; for Aidbox **< 2604**, substitute the legacy `aidbox.app` URL. See [Aidbox Topic-Based Subscriptions](../../modules/topic-based-subscriptions/aidbox-topic-based-subscriptions.md) for details.
+{% endhint %}
+
 ## Objectives
 
 * Learn how to integrate [AidboxTopicSubscriptions](../../modules/topic-based-subscriptions/aidbox-topic-based-subscriptions.md) with core NATS / NATS JetStream
@@ -24,7 +28,7 @@ Core NATS is a lightweight pub/sub system where messages are delivered to subscr
 
 JetStream is an extension of NATS that provides message persistence, replay, and acknowledgment (at least once delivery). It allows you to create streams, store messages, manage consumers, and ensure that important events are not lost even in the case of failure.
 
-In Aidbox, create [AidboxTopicDestination](../../modules/topic-based-subscriptions/aidbox-topic-based-subscriptions.md#aidboxtopicdestination) with `http://aidbox.app/StructureDefinition/aidboxtopicdestination-nats-core-best-effort` profile to integrate with Core NATS and `http://aidbox.app/StructureDefinition/aidboxtopicdestination-nats-jetstream-at-least-once` to integrate with NATS JetStream.
+In Aidbox, create [AidboxTopicDestination](../../modules/topic-based-subscriptions/aidbox-topic-based-subscriptions.md#aidboxtopicdestination) with `http://health-samurai.io/fhir/core/StructureDefinition/aidboxtopicdestination-natsCoreBestEffortProfile` profile to integrate with Core NATS and `http://health-samurai.io/fhir/core/StructureDefinition/aidboxtopicdestination-natsJetStreamAtLeastOnceProfile` to integrate with NATS JetStream.
 
 ## Setting up
 
@@ -120,7 +124,7 @@ In Aidbox, create [AidboxTopicDestination](../../modules/topic-based-subscriptio
       ]
     }
     ```
-5.  Create **AidboxTopicDestination** with `http://aidbox.app/StructureDefinition/aidboxtopicdestination-nats-core-best-effort` profile.
+5.  Create **AidboxTopicDestination** with `http://health-samurai.io/fhir/core/StructureDefinition/aidboxtopicdestination-natsCoreBestEffortProfile` profile.
 
     ```
     POST /fhir/AidboxTopicDestination
@@ -132,7 +136,7 @@ In Aidbox, create [AidboxTopicDestination](../../modules/topic-based-subscriptio
       "resourceType": "AidboxTopicDestination",
       "meta": {
         "profile": [
-          "http://aidbox.app/StructureDefinition/aidboxtopicdestination-nats-core-best-effort"
+          "http://health-samurai.io/fhir/core/StructureDefinition/aidboxtopicdestination-natsCoreBestEffortProfile"
         ]
       },
       "kind": "nats-core-best-effort",
@@ -207,7 +211,7 @@ In Aidbox, create [AidboxTopicDestination](../../modules/topic-based-subscriptio
     │ EVENTS │             │ 2025-05-05 13:49:16 │ 1        │ 58 B │ 2.14s        │
     ╰────────┴─────────────┴─────────────────────┴──────────┴──────┴──────────────╯
     ```
-5.  Create **AidboxTopicDestination** with `http://aidbox.app/StructureDefinition/aidboxtopicdestination-nats-jetstream-at-least-once` profile.
+5.  Create **AidboxTopicDestination** with `http://health-samurai.io/fhir/core/StructureDefinition/aidboxtopicdestination-natsJetStreamAtLeastOnceProfile` profile.
 
     ```
     POST /fhir/AidboxTopicDestination
@@ -218,7 +222,7 @@ In Aidbox, create [AidboxTopicDestination](../../modules/topic-based-subscriptio
       "resourceType": "AidboxTopicDestination",
       "meta": {
         "profile": [
-          "http://aidbox.app/StructureDefinition/aidboxtopicdestination-nats-jetstream-at-least-once"
+          "http://health-samurai.io/fhir/core/StructureDefinition/aidboxtopicdestination-natsJetStreamAtLeastOnceProfile"
         ]
       },
       "kind": "nats-jetstream-at-least-once",
@@ -351,7 +355,7 @@ In Aidbox, create [AidboxTopicDestination](../../modules/topic-based-subscriptio
       "resourceType": "AidboxTopicDestination",
       "meta": {
         "profile": [
-          "http://aidbox.app/StructureDefinition/aidboxtopicdestination-nats-core-best-effort"
+          "http://health-samurai.io/fhir/core/StructureDefinition/aidboxtopicdestination-natsCoreBestEffortProfile"
         ]
       },
       "kind": "nats-core-best-effort",
@@ -499,7 +503,7 @@ Now the server config includes your operator, accounts, and JWT resolver setting
       "resourceType": "AidboxTopicDestination",
       "meta": {
         "profile": [
-          "http://aidbox.app/StructureDefinition/aidboxtopicdestination-nats-core-best-effort"
+          "http://health-samurai.io/fhir/core/StructureDefinition/aidboxtopicdestination-natsCoreBestEffortProfile"
         ]
       },
       "kind": "nats-core-best-effort",
@@ -540,7 +544,7 @@ Now the server config includes your operator, accounts, and JWT resolver setting
       "resourceType": "AidboxTopicDestination",
       "meta": {
         "profile": [
-          "http://aidbox.app/StructureDefinition/aidboxtopicdestination-nats-core-best-effort"
+          "http://health-samurai.io/fhir/core/StructureDefinition/aidboxtopicdestination-natsCoreBestEffortProfile"
         ]
       },
       "kind": "nats-core-best-effort",

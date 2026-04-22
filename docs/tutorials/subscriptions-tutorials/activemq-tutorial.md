@@ -4,6 +4,10 @@ description: Integrate Aidbox Topic-Based Subscriptions with ActiveMQ using AMQP
 
 # AidboxTopicSubscription ActiveMQ tutorial
 
+{% hint style="warning" %}
+**Aidbox 2604+ compatibility:** connector JAR versions must match the Aidbox minor version, and AidboxTopicDestination profile URLs were renamed from `http://aidbox.app/StructureDefinition/aidboxtopicdestination-<kind>` to `http://health-samurai.io/fhir/core/StructureDefinition/aidboxtopicdestination-<kind>Profile`. Examples below use the new URL; for Aidbox **< 2604**, substitute the legacy `aidbox.app` URL. See [Aidbox Topic-Based Subscriptions](../../modules/topic-based-subscriptions/aidbox-topic-based-subscriptions.md) for details.
+{% endhint %}
+
 ## Objectives
 
 * Learn how to integrate [AidboxTopicSubscriptions](../../modules/topic-based-subscriptions/aidbox-topic-based-subscriptions.md) with ActiveMQ using AMQP 1.0 protocol
@@ -126,7 +130,7 @@ Both versions support AMQP 1.0 protocol, making them compatible with Aidbox's `a
       "resourceType": "AidboxTopicDestination",
       "meta": {
         "profile": [
-          "http://aidbox.app/StructureDefinition/aidboxtopicdestination-amqp-1-0-at-least-once"
+          "http://health-samurai.io/fhir/core/StructureDefinition/aidboxtopicdestination-amqp10AtLeastOnceProfile"
         ]
       },
       "kind": "amqp-1-0-at-least-once",

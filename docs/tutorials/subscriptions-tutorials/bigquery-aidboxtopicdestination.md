@@ -8,6 +8,10 @@ description: Export FHIR resources to Google BigQuery for real-time analytics us
 This functionality is available starting from version 2603.
 {% endhint %}
 
+{% hint style="warning" %}
+**Aidbox 2604+ compatibility:** connector JAR versions must match the Aidbox minor version, and AidboxTopicDestination profile URLs were renamed from `http://aidbox.app/StructureDefinition/aidboxtopicdestination-<kind>` to `http://health-samurai.io/fhir/core/StructureDefinition/aidboxtopicdestination-<kind>Profile`. Examples below use the new URL; for Aidbox **< 2604**, substitute the legacy `aidbox.app` URL. See [Aidbox Topic-Based Subscriptions](../../modules/topic-based-subscriptions/aidbox-topic-based-subscriptions.md) for details.
+{% endhint %}
+
 ## Overview
 
 The BigQuery Topic Destination module exports FHIR resources from Aidbox to Google BigQuery in a flattened format using [ViewDefinitions](../../modules/sql-on-fhir/defining-flat-views-with-view-definitions.md) and SQL-on-FHIR technology. Data is written using the [Storage Write API](https://cloud.google.com/bigquery/docs/write-api) (gRPC) for high throughput.
@@ -58,7 +62,7 @@ The BigQuery Topic Destination module exports FHIR resources from Aidbox to Goog
    ```
 
 4. Verify the module is loaded. In Aidbox UI, go to **FHIR Packages** and check that the BigQuery profile is present:
-   `http://aidbox.app/StructureDefinition/aidboxtopicdestination-bigquery-at-least-once`
+   `http://health-samurai.io/fhir/core/StructureDefinition/aidboxtopicdestination-bigQueryAtLeastOnceProfile`
 
 {% hint style="info" %}
 The profile URL above is a FHIR canonical identifier, not an HTTP endpoint. You can find it in the Aidbox UI under FHIR Packages.
@@ -330,7 +334,7 @@ POST /fhir/AidboxTopicDestination
   "kind": "bigquery-at-least-once",
   "meta": {
     "profile": [
-      "http://aidbox.app/StructureDefinition/aidboxtopicdestination-bigquery-at-least-once"
+      "http://health-samurai.io/fhir/core/StructureDefinition/aidboxtopicdestination-bigQueryAtLeastOnceProfile"
     ]
   },
   "parameter": [
@@ -357,7 +361,7 @@ POST /fhir/AidboxTopicDestination
   "kind": "bigquery-at-least-once",
   "meta": {
     "profile": [
-      "http://aidbox.app/StructureDefinition/aidboxtopicdestination-bigquery-at-least-once"
+      "http://health-samurai.io/fhir/core/StructureDefinition/aidboxtopicdestination-bigQueryAtLeastOnceProfile"
     ]
   },
   "parameter": [
@@ -592,7 +596,7 @@ POST /fhir/AidboxTopicDestination
   "kind": "bigquery-at-least-once",
   "meta": {
     "profile": [
-      "http://aidbox.app/StructureDefinition/aidboxtopicdestination-bigquery-at-least-once"
+      "http://health-samurai.io/fhir/core/StructureDefinition/aidboxtopicdestination-bigQueryAtLeastOnceProfile"
     ]
   },
   "parameter": [

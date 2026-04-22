@@ -8,6 +8,19 @@ description: FHIR Subscriptions Aidbox Topic-Based Subscriptions for real-time n
 This functionality is available in Aidbox versions 2409 and later and requires [FHIR Schema](../profiling-and-validation/fhir-schema-validator/) validation engine to be [enabled](../profiling-and-validation/fhir-schema-validator/).
 {% endhint %}
 
+{% hint style="warning" %}
+**Connector compatibility (Aidbox 2604+)**
+
+Starting from Aidbox **2604**, AidboxTopicDestination profile URLs were renamed and connector JAR versions must match the Aidbox minor version.
+
+| Aidbox version | Profile URL form | Connector JAR |
+| --- | --- | --- |
+| ≥ 2604 | `http://health-samurai.io/fhir/core/StructureDefinition/aidboxtopicdestination-<kind>Profile` | `topic-destination-<name>-<aidbox-version>.jar` matching your Aidbox release |
+| < 2604 | `http://aidbox.app/StructureDefinition/aidboxtopicdestination-<kind>` (legacy) | connector JAR from the same Aidbox era |
+
+Connector tutorials use the new URL form. If you run Aidbox **< 2604**, substitute the legacy `aidbox.app` URL shown in the table above.
+{% endhint %}
+
 ### Overview
 
 This feature enables dynamic subscriptions to changes in FHIR resources, allowing users/systems to receive notifications through [multiple channels](#currently-supported-channels).
