@@ -204,6 +204,7 @@
       * [PractitionerRole](api/other/plan-api/provider-directory-api/practitionerrole.md)
       * [Organization](api/other/plan-api/provider-directory-api/organization.md)
       * [OrganizationAffiliation](api/other/plan-api/provider-directory-api/organizationaffiliation.md)
+    * [$provider-member-match](api/other/plan-api/provider-member-match/README.md)
   * [Archive/Restore API](api/other/archive-restore-api/README.md)
     * [Create-archive](api/other/archive-restore-api/create-archive.md)
     * [Restore-archive](api/other/archive-restore-api/restore-archive.md)
