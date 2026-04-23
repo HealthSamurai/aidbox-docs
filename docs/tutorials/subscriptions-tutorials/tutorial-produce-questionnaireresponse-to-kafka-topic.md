@@ -4,6 +4,10 @@ description: Stream FHIR QuestionnaireResponse data to Apache Kafka using Aidbox
 
 # Tutorial: Produce QuestionnaireResponse to Kafka topic
 
+{% hint style="warning" %}
+**Aidbox 2604+ compatibility:** AidboxTopicDestination profile URLs were renamed — both the host (`aidbox.app` → `health-samurai.io/fhir/core`) and the kind segment (kebab-case → camelCase with a `Profile` suffix). Examples below use the new URL. For Aidbox **< 2604**, look up the legacy URL in the [connector compatibility table](../../modules/topic-based-subscriptions/aidbox-topic-based-subscriptions.md). When upgrading Aidbox across the 2604 boundary, redeploy the connector JAR against an Aidbox 2604+ release — older connector JARs register profiles through a legacy path the new validator no longer honors.
+{% endhint %}
+
 ## Topic-based Subscriptions to Kafka
 
 [DEMO](https://github.com/Aidbox/examples/tree/main/aidbox-features/aidbox-subscriptions-to-kafka/README.md#demo) | [Documentation](./)
@@ -133,7 +137,7 @@ accept: application/json
 {
   "meta": {
     "profile": [
-      "http://aidbox.app/StructureDefinition/aidboxtopicdestination-kafka-at-least-once"
+      "http://health-samurai.io/fhir/core/StructureDefinition/aidboxtopicdestination-kafkaAtLeastOnceProfile"
     ]
   },
   "kind": "kafka-at-least-once",

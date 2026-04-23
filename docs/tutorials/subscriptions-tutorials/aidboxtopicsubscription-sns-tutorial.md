@@ -10,6 +10,10 @@ description: >-
 This functionality is available starting from Aidbox version **2602**.
 {% endhint %}
 
+{% hint style="warning" %}
+**Aidbox 2604+ compatibility:** AidboxTopicDestination profile URLs were renamed — both the host (`aidbox.app` → `health-samurai.io/fhir/core`) and the kind segment (kebab-case → camelCase with a `Profile` suffix). Examples below use the new URL. For Aidbox **< 2604**, look up the legacy URL in the [connector compatibility table](../../modules/topic-based-subscriptions/aidbox-topic-based-subscriptions.md). When upgrading Aidbox across the 2604 boundary, redeploy the connector JAR against an Aidbox 2604+ release — older connector JARs register profiles through a legacy path the new validator no longer honors.
+{% endhint %}
+
 ## Objectives
 
 * Learn how to integrate [AidboxTopicSubscriptions](../../modules/topic-based-subscriptions/aidbox-topic-based-subscriptions.md) with AWS SNS
@@ -37,8 +41,8 @@ For detailed information, see the [official SNS documentation](https://docs.aws.
 
 In Aidbox, two [AidboxTopicDestination](../../modules/topic-based-subscriptions/aidbox-topic-based-subscriptions.md#aidboxtopicdestination) profiles are supported:
 
-* `http://aidbox.app/StructureDefinition/aidboxtopicdestination-aws-sns-best-effort` — Events are sent immediately. If SNS returns an error, the event is lost. Low latency, suitable for non-critical notifications.
-* `http://aidbox.app/StructureDefinition/aidboxtopicdestination-aws-sns-at-least-once` — Events are persisted to database before sending. If SNS is unavailable, events remain in queue and are retried automatically. Supports batching up to 10 events. Guaranteed delivery for critical integrations.
+* `http://health-samurai.io/fhir/core/StructureDefinition/aidboxtopicdestination-awssnsBestEffortProfile` — Events are sent immediately. If SNS returns an error, the event is lost. Low latency, suitable for non-critical notifications.
+* `http://health-samurai.io/fhir/core/StructureDefinition/aidboxtopicdestination-awssnsAtLeastOnceProfile` — Events are persisted to database before sending. If SNS is unavailable, events remain in queue and are retried automatically. Supports batching up to 10 events. Guaranteed delivery for critical integrations.
 
 ## Setting up locally
 
@@ -153,7 +157,7 @@ accept: application/json
   "resourceType": "AidboxTopicDestination",
   "meta": {
     "profile": [
-      "http://aidbox.app/StructureDefinition/aidboxtopicdestination-aws-sns-best-effort"
+      "http://health-samurai.io/fhir/core/StructureDefinition/aidboxtopicdestination-awssnsBestEffortProfile"
     ]
   },
   "kind": "aws-sns-best-effort",
@@ -250,7 +254,7 @@ accept: application/json
   "resourceType": "AidboxTopicDestination",
   "meta": {
     "profile": [
-      "http://aidbox.app/StructureDefinition/aidboxtopicdestination-aws-sns-at-least-once"
+      "http://health-samurai.io/fhir/core/StructureDefinition/aidboxtopicdestination-awssnsAtLeastOnceProfile"
     ]
   },
   "kind": "aws-sns-at-least-once",
@@ -473,7 +477,7 @@ content-type: application/json
   "resourceType": "AidboxTopicDestination",
   "meta": {
     "profile": [
-      "http://aidbox.app/StructureDefinition/aidboxtopicdestination-aws-sns-at-least-once"
+      "http://health-samurai.io/fhir/core/StructureDefinition/aidboxtopicdestination-awssnsAtLeastOnceProfile"
     ]
   },
   "kind": "aws-sns-at-least-once",

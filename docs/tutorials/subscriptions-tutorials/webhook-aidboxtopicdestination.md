@@ -8,6 +8,10 @@ description: Send FHIR resource events to HTTP webhooks using AidboxTopicDestina
 This functionality is available starting from version 2410 and requires [FHIR Schema](../../modules/profiling-and-validation/fhir-schema-validator/) validation engine to be [enabled](../../modules/profiling-and-validation/fhir-schema-validator/).
 {% endhint %}
 
+{% hint style="warning" %}
+**Aidbox 2604+ compatibility:** AidboxTopicDestination profile URLs were renamed — both the host (`aidbox.app` → `health-samurai.io/fhir/core`) and the kind segment (kebab-case → camelCase with a `Profile` suffix). Examples below use the new URL. For Aidbox **< 2604**, look up the legacy URL in the [connector compatibility table](../../modules/topic-based-subscriptions/aidbox-topic-based-subscriptions.md). When upgrading Aidbox across the 2604 boundary, redeploy the connector JAR against an Aidbox 2604+ release — older connector JARs register profiles through a legacy path the new validator no longer honors.
+{% endhint %}
+
 This page describes an AidboxTopicDestination, which allows sending events described by an AidboxSubscriptionTopic to a specific HTTP endpoint.
 
 The webhook AidboxTopicDestination works in the following way:
@@ -27,7 +31,7 @@ To use Webhook with [#aidboxsubscriptiontopic](webhook-aidboxtopicdestination.md
 You need to specify the following profile:
 
 ```
-http://aidbox.app/StructureDefinition/aidboxtopicdestination-webhook-at-least-once
+http://health-samurai.io/fhir/core/StructureDefinition/aidboxtopicdestination-webhookAtLeastOnceProfile
 ```
 
 ### Available Parameters
@@ -46,7 +50,7 @@ accept: application/json
   "resourceType": "AidboxTopicDestination",
   "meta": {
     "profile": [
-      "http://aidbox.app/StructureDefinition/aidboxtopicdestination-webhook-at-least-once"
+      "http://health-samurai.io/fhir/core/StructureDefinition/aidboxtopicdestination-webhookAtLeastOnceProfile"
     ]
   },
   "kind": "webhook-at-least-once",

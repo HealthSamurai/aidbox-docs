@@ -8,6 +8,10 @@ description: Export FHIR resources to ClickHouse analytics database using SQL-on
 This functionality is available starting from version 2507 and requires [FHIR Schema](../../modules/profiling-and-validation/fhir-schema-validator/) validation engine to be [enabled](../../modules/profiling-and-validation/fhir-schema-validator/).
 {% endhint %}
 
+{% hint style="warning" %}
+**Aidbox 2604+ compatibility:** AidboxTopicDestination profile URLs were renamed — both the host (`aidbox.app` → `health-samurai.io/fhir/core`) and the kind segment (kebab-case → camelCase with a `Profile` suffix). Examples below use the new URL. For Aidbox **< 2604**, look up the legacy URL in the [connector compatibility table](../../modules/topic-based-subscriptions/aidbox-topic-based-subscriptions.md). When upgrading Aidbox across the 2604 boundary, redeploy the connector JAR against an Aidbox 2604+ release — older connector JARs register profiles through a legacy path the new validator no longer honors.
+{% endhint %}
+
 ## Overview
 
 The ClickHouse Topic Destination module provides integration between Aidbox's topic-based subscriptions and ClickHouse analytical database. It enables real-time export of FHIR resources from Aidbox to ClickHouse in a flattened format using [ViewDefinitions](../../modules/sql-on-fhir/defining-flat-views-with-view-definitions.md) and SQL-on-FHIR technology.
@@ -100,8 +104,8 @@ spec:
 
 In AidboxUI, go to **FHIR Packages -> io.healthsamurai.topic** and verify that ClickHouse profiles are present:
 
-- `http://aidbox.app/StructureDefinition/aidboxtopicdestination-clickhouse`
-- `http://aidbox.app/StructureDefinition/aidboxtopicdestination-clickhouse-at-least-once`
+- `http://health-samurai.io/fhir/core/StructureDefinition/aidboxtopicdestination-clickHouseProfile`
+- `http://health-samurai.io/fhir/core/StructureDefinition/aidboxtopicdestination-clickHouseAtLeastOnceProfile`
 
 ## Key Features
 
@@ -270,7 +274,7 @@ parameter:
     valueString: "patients"
 meta:
   profile: 
-    - "http://aidbox.app/StructureDefinition/aidboxtopicdestination-clickhouse"
+    - "http://health-samurai.io/fhir/core/StructureDefinition/aidboxtopicdestination-clickHouseProfile"
 ```
 
 ### Alternative: At-Least-Once Configuration
@@ -301,7 +305,7 @@ parameter:
     valueUnsignedInt: 5000
 meta:
   profile:
-    - "http://aidbox.app/StructureDefinition/aidboxtopicdestination-clickhouse-at-least-once"
+    - "http://health-samurai.io/fhir/core/StructureDefinition/aidboxtopicdestination-clickHouseAtLeastOnceProfile"
 ```
 
 ### Advanced Topic Filtering

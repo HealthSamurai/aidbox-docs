@@ -8,6 +8,10 @@ description: Step-by-step guide to setting up FHIR R5 Topic-Based Subscriptions 
 This functionality is available in Aidbox versions 2601 and later and requires [FHIR Schema](../../modules/profiling-and-validation/fhir-schema-validator/) validation engine to be enabled and FHIR R5 core package (`hl7.fhir.r5.core#5.0.0`) to be installed.
 {% endhint %}
 
+{% hint style="warning" %}
+**Aidbox 2604+ compatibility:** AidboxTopicDestination profile URLs were renamed — both the host (`aidbox.app` → `health-samurai.io/fhir/core`) and the kind segment (kebab-case → camelCase with a `Profile` suffix). Examples below use the new URL. For Aidbox **< 2604**, look up the legacy URL in the [connector compatibility table](../../modules/topic-based-subscriptions/aidbox-topic-based-subscriptions.md). When upgrading Aidbox across the 2604 boundary, redeploy the connector JAR against an Aidbox 2604+ release — older connector JARs register profiles through a legacy path the new validator no longer honors.
+{% endhint %}
+
 For concepts, supported fields, and configuration details, see [FHIR Topic-Based Subscriptions](../../modules/topic-based-subscriptions/fhir-topic-based-subscriptions.md).
 
 In this tutorial, we will set up Aidbox to implement the [DaVinci PAS SubscriptionTopic](https://build.fhir.org/ig/HL7/davinci-pas/SubscriptionTopic-PASSubscriptionTopic.json.html) (`http://hl7.org/fhir/us/davinci-pas/SubscriptionTopic/PASSubscriptionTopic`). This topic notifies subscribers when a Prior Authorization response (ClaimResponse) becomes available.
@@ -105,7 +109,7 @@ Content-Type: application/json
   "resourceType": "AidboxTopicDestination",
   "meta": {
     "profile": [
-      "http://aidbox.app/StructureDefinition/aidboxtopicdestination-fhir-native-topic-based-subscription"
+      "http://health-samurai.io/fhir/core/StructureDefinition/aidboxtopicdestination-fhirNativeTopicBasedSubscriptionProfile"
     ]
   },
   "kind": "fhir-native-topic-based-subscription",
@@ -139,7 +143,7 @@ Response:
 {
   "meta": {
     "profile": [
-      "http://aidbox.app/StructureDefinition/aidboxtopicdestination-fhir-native-topic-based-subscription"
+      "http://health-samurai.io/fhir/core/StructureDefinition/aidboxtopicdestination-fhirNativeTopicBasedSubscriptionProfile"
     ],
     "lastUpdated": "2026-01-09T12:48:13.899936Z",
     "versionId": "8"

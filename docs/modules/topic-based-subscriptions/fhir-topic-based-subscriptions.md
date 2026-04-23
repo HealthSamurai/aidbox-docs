@@ -11,6 +11,10 @@ This functionality requires [FHIR Schema](../profiling-and-validation/fhir-schem
 [R5](https://hl7.org/fhir/uv/subscriptions-backport/STU1.1/#topic-based-subscriptions---fhir-r5-and-later) and [R4B-backported](https://hl7.org/fhir/uv/subscriptions-backport/STU1.1/#topic-based-subscriptions---fhir-r4b-and-later) subscriptions require Aidbox version 2601 or later.
 {% endhint %}
 
+{% hint style="warning" %}
+**Aidbox 2604+ compatibility:** AidboxTopicDestination profile URLs were renamed — both the host (`aidbox.app` → `health-samurai.io/fhir/core`) and the kind segment (kebab-case → camelCase with a `Profile` suffix). Examples below use the new URL. For Aidbox **< 2604**, look up the legacy URL in the [connector compatibility table](aidbox-topic-based-subscriptions.md). When upgrading Aidbox across the 2604 boundary, redeploy the connector JAR against an Aidbox 2604+ release — older connector JARs register profiles through a legacy path the new validator no longer honors.
+{% endhint %}
+
 ## Overview
 
 Aidbox provides full support for the [FHIR Topic-Based Subscriptions Framework](https://build.fhir.org/subscriptions.html) according to the specification. This allows external systems to create and manage FHIR `Subscription` resources to receive notifications about data changes.
@@ -128,7 +132,7 @@ For FHIR Subscriptions, use the `fhir-native-topic-based-subscription` kind with
 {
   "resourceType": "AidboxTopicDestination",
   "meta": {
-    "profile": ["http://aidbox.app/StructureDefinition/aidboxtopicdestination-fhir-native-topic-based-subscription"]
+    "profile": ["http://health-samurai.io/fhir/core/StructureDefinition/aidboxtopicdestination-fhirNativeTopicBasedSubscriptionProfile"]
   },
   "kind": "fhir-native-topic-based-subscription",
   "topic": "http://example.org/SubscriptionTopic/claim-response-topic",

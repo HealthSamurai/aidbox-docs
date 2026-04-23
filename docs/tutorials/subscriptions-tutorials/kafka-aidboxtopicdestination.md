@@ -8,6 +8,10 @@ description: Stream FHIR resource events to Apache Kafka using AidboxTopicDestin
 This functionality is available in Aidbox versions 2409 and later and requires [FHIR Schema](../../modules/profiling-and-validation/fhir-schema-validator/) validation engine to be [enabled](../../modules/profiling-and-validation/fhir-schema-validator/setup-aidbox-with-fhir-schema-validation-engine.md).
 {% endhint %}
 
+{% hint style="warning" %}
+**Aidbox 2604+ compatibility:** AidboxTopicDestination profile URLs were renamed — both the host (`aidbox.app` → `health-samurai.io/fhir/core`) and the kind segment (kebab-case → camelCase with a `Profile` suffix). Examples below use the new URL. For Aidbox **< 2604**, look up the legacy URL in the [connector compatibility table](../../modules/topic-based-subscriptions/aidbox-topic-based-subscriptions.md). When upgrading Aidbox across the 2604 boundary, redeploy the connector JAR against an Aidbox 2604+ release — older connector JARs register profiles through a legacy path the new validator no longer honors.
+{% endhint %}
+
 This page describes an AidboxTopicDestination which allows to store events described by an AidboxSubscriptionTopic in Kafka.
 
 Aidbox provides two kinds of Kafka integrations:
@@ -38,13 +42,13 @@ There are two FHIR profiles available to use with Kafka:
 for best effort:
 
 ```
-http://aidbox.app/StructureDefinition/aidboxtopicdestination-kafka-best-effort
+http://health-samurai.io/fhir/core/StructureDefinition/aidboxtopicdestination-kafkaBestEffortProfile
 ```
 
 for _at least once_:
 
 ```
-http://aidbox.app/StructureDefinition/aidboxtopicdestination-kafka-at-least-once
+http://health-samurai.io/fhir/core/StructureDefinition/aidboxtopicdestination-kafkaAtLeastOnceProfile
 ```
 
 ### Available Parameters
@@ -71,7 +75,7 @@ accept: application/json
   "resourceType": "AidboxTopicDestination",
   "meta": {
     "profile": [
-      "http://aidbox.app/StructureDefinition/aidboxtopicdestination-kafka-at-least-once"
+      "http://health-samurai.io/fhir/core/StructureDefinition/aidboxtopicdestination-kafkaAtLeastOnceProfile"
     ]
   },
   "kind": "kafka-at-least-once",
@@ -101,7 +105,7 @@ accept: application/json
   "resourceType": "AidboxTopicDestination",
   "meta": {
     "profile": [
-      "http://aidbox.app/StructureDefinition/aidboxtopicdestination-kafka-best-effort"
+      "http://health-samurai.io/fhir/core/StructureDefinition/aidboxtopicdestination-kafkaBestEffortProfile"
     ]
   },
   "kind": "kafka-best-effort",
