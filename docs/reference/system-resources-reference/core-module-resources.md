@@ -6,7 +6,2422 @@ description: Aidbox core system resources.
 
 Core system resources.
 
- ## AccessPolicy
+ ## AMQP10AtLeastOnceProfile
+
+AMQP 1.0 at-least-once delivery profile for AidboxTopicDestination.
+
+```fhir-structure
+[ {
+  "path" : "kind",
+  "name" : "kind",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter:address",
+  "lvl" : 0,
+  "min" : 1,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.name",
+  "name" : "name",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 1,
+  "max" : 1,
+  "type" : "string",
+  "desc" : ""
+}, {
+  "path" : "parameter.resource",
+  "name" : "resource",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part",
+  "name" : "part",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter:containerName",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.name",
+  "name" : "name",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 1,
+  "max" : 1,
+  "type" : "string",
+  "desc" : ""
+}, {
+  "path" : "parameter.resource",
+  "name" : "resource",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part",
+  "name" : "part",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter:host",
+  "lvl" : 0,
+  "min" : 1,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.name",
+  "name" : "name",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 1,
+  "max" : 1,
+  "type" : "string",
+  "desc" : ""
+}, {
+  "path" : "parameter.resource",
+  "name" : "resource",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part",
+  "name" : "part",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter:idleTimeout",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.name",
+  "name" : "name",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 1,
+  "max" : 1,
+  "type" : "integer",
+  "desc" : ""
+}, {
+  "path" : "parameter.resource",
+  "name" : "resource",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part",
+  "name" : "part",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter:password",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.name",
+  "name" : "name",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 1,
+  "max" : 1,
+  "type" : "string",
+  "desc" : ""
+}, {
+  "path" : "parameter.resource",
+  "name" : "resource",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part",
+  "name" : "part",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter:port",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.name",
+  "name" : "name",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 1,
+  "max" : 1,
+  "type" : "integer",
+  "desc" : ""
+}, {
+  "path" : "parameter.resource",
+  "name" : "resource",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part",
+  "name" : "part",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter:ssl",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.name",
+  "name" : "name",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 1,
+  "max" : 1,
+  "type" : "boolean",
+  "desc" : ""
+}, {
+  "path" : "parameter.resource",
+  "name" : "resource",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part",
+  "name" : "part",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter:username",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.name",
+  "name" : "name",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 1,
+  "max" : 1,
+  "type" : "string",
+  "desc" : ""
+}, {
+  "path" : "parameter.resource",
+  "name" : "resource",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part",
+  "name" : "part",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+} ]
+```
+
+
+## AMQPRabbitMQ091AtLeastOnceProfile
+
+RabbitMQ AMQP 0-9-1 at-least-once delivery profile for AidboxTopicDestination.
+
+```fhir-structure
+[ {
+  "path" : "kind",
+  "name" : "kind",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter:connectionTimeout",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.name",
+  "name" : "name",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 1,
+  "max" : 1,
+  "type" : "integer",
+  "desc" : ""
+}, {
+  "path" : "parameter.resource",
+  "name" : "resource",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part",
+  "name" : "part",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter:exchange",
+  "lvl" : 0,
+  "min" : 1,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.name",
+  "name" : "name",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 1,
+  "max" : 1,
+  "type" : "string",
+  "desc" : ""
+}, {
+  "path" : "parameter.resource",
+  "name" : "resource",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part",
+  "name" : "part",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter:exchangeType",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.name",
+  "name" : "name",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 1,
+  "max" : 1,
+  "type" : "string",
+  "desc" : ""
+}, {
+  "path" : "parameter.resource",
+  "name" : "resource",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part",
+  "name" : "part",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter:host",
+  "lvl" : 0,
+  "min" : 1,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.name",
+  "name" : "name",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 1,
+  "max" : 1,
+  "type" : "string",
+  "desc" : ""
+}, {
+  "path" : "parameter.resource",
+  "name" : "resource",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part",
+  "name" : "part",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter:password",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.name",
+  "name" : "name",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 1,
+  "max" : 1,
+  "type" : "string",
+  "desc" : ""
+}, {
+  "path" : "parameter.resource",
+  "name" : "resource",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part",
+  "name" : "part",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter:port",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.name",
+  "name" : "name",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 1,
+  "max" : 1,
+  "type" : "integer",
+  "desc" : ""
+}, {
+  "path" : "parameter.resource",
+  "name" : "resource",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part",
+  "name" : "part",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter:routingKey",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.name",
+  "name" : "name",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 1,
+  "max" : 1,
+  "type" : "string",
+  "desc" : ""
+}, {
+  "path" : "parameter.resource",
+  "name" : "resource",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part",
+  "name" : "part",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter:ssl",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.name",
+  "name" : "name",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 1,
+  "max" : 1,
+  "type" : "boolean",
+  "desc" : ""
+}, {
+  "path" : "parameter.resource",
+  "name" : "resource",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part",
+  "name" : "part",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter:username",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.name",
+  "name" : "name",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 1,
+  "max" : 1,
+  "type" : "string",
+  "desc" : ""
+}, {
+  "path" : "parameter.resource",
+  "name" : "resource",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part",
+  "name" : "part",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter:vhost",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.name",
+  "name" : "name",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 1,
+  "max" : 1,
+  "type" : "string",
+  "desc" : ""
+}, {
+  "path" : "parameter.resource",
+  "name" : "resource",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part",
+  "name" : "part",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+} ]
+```
+
+
+## AMQPRabbitMQ091Profile
+
+RabbitMQ AMQP 0-9-1 best-effort delivery profile for AidboxTopicDestination.
+
+```fhir-structure
+[ {
+  "path" : "kind",
+  "name" : "kind",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter:automaticallyRecover",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.name",
+  "name" : "name",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 1,
+  "max" : 1,
+  "type" : "boolean",
+  "desc" : ""
+}, {
+  "path" : "parameter.resource",
+  "name" : "resource",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part",
+  "name" : "part",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter:connectionName",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.name",
+  "name" : "name",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 1,
+  "max" : 1,
+  "type" : "string",
+  "desc" : ""
+}, {
+  "path" : "parameter.resource",
+  "name" : "resource",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part",
+  "name" : "part",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter:exchange",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.name",
+  "name" : "name",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 1,
+  "max" : 1,
+  "type" : "string",
+  "desc" : ""
+}, {
+  "path" : "parameter.resource",
+  "name" : "resource",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part",
+  "name" : "part",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter:host",
+  "lvl" : 0,
+  "min" : 1,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.name",
+  "name" : "name",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 1,
+  "max" : 1,
+  "type" : "string",
+  "desc" : ""
+}, {
+  "path" : "parameter.resource",
+  "name" : "resource",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part",
+  "name" : "part",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter:password",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.name",
+  "name" : "name",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 1,
+  "max" : 1,
+  "type" : "string",
+  "desc" : ""
+}, {
+  "path" : "parameter.resource",
+  "name" : "resource",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part",
+  "name" : "part",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter:port",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.name",
+  "name" : "name",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 1,
+  "max" : 1,
+  "type" : "integer",
+  "desc" : ""
+}, {
+  "path" : "parameter.resource",
+  "name" : "resource",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part",
+  "name" : "part",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter:routingKey",
+  "lvl" : 0,
+  "min" : 1,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.name",
+  "name" : "name",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 1,
+  "max" : 1,
+  "type" : "string",
+  "desc" : ""
+}, {
+  "path" : "parameter.resource",
+  "name" : "resource",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part",
+  "name" : "part",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter:ssl",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.name",
+  "name" : "name",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 1,
+  "max" : 1,
+  "type" : "boolean",
+  "desc" : ""
+}, {
+  "path" : "parameter.resource",
+  "name" : "resource",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part",
+  "name" : "part",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter:username",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.name",
+  "name" : "name",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 1,
+  "max" : 1,
+  "type" : "string",
+  "desc" : ""
+}, {
+  "path" : "parameter.resource",
+  "name" : "resource",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part",
+  "name" : "part",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter:vhost",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.name",
+  "name" : "name",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 1,
+  "max" : 1,
+  "type" : "string",
+  "desc" : ""
+}, {
+  "path" : "parameter.resource",
+  "name" : "resource",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part",
+  "name" : "part",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+} ]
+```
+
+
+## AWSEventBridgeAtLeastOnceProfile
+
+AWS EventBridge at-least-once delivery profile for AidboxTopicDestination.
+
+```fhir-structure
+[ {
+  "path" : "kind",
+  "name" : "kind",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter:accessKeyId",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.name",
+  "name" : "name",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 1,
+  "max" : 1,
+  "type" : "string",
+  "desc" : ""
+}, {
+  "path" : "parameter.resource",
+  "name" : "resource",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part",
+  "name" : "part",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter:batchSize",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.name",
+  "name" : "name",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 1,
+  "max" : 1,
+  "type" : "integer",
+  "desc" : ""
+}, {
+  "path" : "parameter.resource",
+  "name" : "resource",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part",
+  "name" : "part",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter:detailType",
+  "lvl" : 0,
+  "min" : 1,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.name",
+  "name" : "name",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 1,
+  "max" : 1,
+  "type" : "string",
+  "desc" : ""
+}, {
+  "path" : "parameter.resource",
+  "name" : "resource",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part",
+  "name" : "part",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter:endpointOverride",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.name",
+  "name" : "name",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 1,
+  "max" : 1,
+  "type" : "string",
+  "desc" : ""
+}, {
+  "path" : "parameter.resource",
+  "name" : "resource",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part",
+  "name" : "part",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter:eventBusName",
+  "lvl" : 0,
+  "min" : 1,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.name",
+  "name" : "name",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 1,
+  "max" : 1,
+  "type" : "string",
+  "desc" : ""
+}, {
+  "path" : "parameter.resource",
+  "name" : "resource",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part",
+  "name" : "part",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter:region",
+  "lvl" : 0,
+  "min" : 1,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.name",
+  "name" : "name",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 1,
+  "max" : 1,
+  "type" : "string",
+  "desc" : ""
+}, {
+  "path" : "parameter.resource",
+  "name" : "resource",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part",
+  "name" : "part",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter:secretAccessKey",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.name",
+  "name" : "name",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 1,
+  "max" : 1,
+  "type" : "string",
+  "desc" : ""
+}, {
+  "path" : "parameter.resource",
+  "name" : "resource",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part",
+  "name" : "part",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter:source",
+  "lvl" : 0,
+  "min" : 1,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.name",
+  "name" : "name",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 1,
+  "max" : 1,
+  "type" : "string",
+  "desc" : ""
+}, {
+  "path" : "parameter.resource",
+  "name" : "resource",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part",
+  "name" : "part",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+} ]
+```
+
+
+## AWSEventBridgeBestEffortProfile
+
+AWS EventBridge best-effort delivery profile for AidboxTopicDestination.
+
+```fhir-structure
+[ {
+  "path" : "kind",
+  "name" : "kind",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter:accessKeyId",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.name",
+  "name" : "name",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 1,
+  "max" : 1,
+  "type" : "string",
+  "desc" : ""
+}, {
+  "path" : "parameter.resource",
+  "name" : "resource",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part",
+  "name" : "part",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter:detailType",
+  "lvl" : 0,
+  "min" : 1,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.name",
+  "name" : "name",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 1,
+  "max" : 1,
+  "type" : "string",
+  "desc" : ""
+}, {
+  "path" : "parameter.resource",
+  "name" : "resource",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part",
+  "name" : "part",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter:endpointOverride",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.name",
+  "name" : "name",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 1,
+  "max" : 1,
+  "type" : "string",
+  "desc" : ""
+}, {
+  "path" : "parameter.resource",
+  "name" : "resource",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part",
+  "name" : "part",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter:eventBusName",
+  "lvl" : 0,
+  "min" : 1,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.name",
+  "name" : "name",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 1,
+  "max" : 1,
+  "type" : "string",
+  "desc" : ""
+}, {
+  "path" : "parameter.resource",
+  "name" : "resource",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part",
+  "name" : "part",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter:region",
+  "lvl" : 0,
+  "min" : 1,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.name",
+  "name" : "name",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 1,
+  "max" : 1,
+  "type" : "string",
+  "desc" : ""
+}, {
+  "path" : "parameter.resource",
+  "name" : "resource",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part",
+  "name" : "part",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter:secretAccessKey",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.name",
+  "name" : "name",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 1,
+  "max" : 1,
+  "type" : "string",
+  "desc" : ""
+}, {
+  "path" : "parameter.resource",
+  "name" : "resource",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part",
+  "name" : "part",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter:source",
+  "lvl" : 0,
+  "min" : 1,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.name",
+  "name" : "name",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 1,
+  "max" : 1,
+  "type" : "string",
+  "desc" : ""
+}, {
+  "path" : "parameter.resource",
+  "name" : "resource",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part",
+  "name" : "part",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+} ]
+```
+
+
+## AWSSNSAtLeastOnceProfile
+
+AWS SNS at-least-once delivery profile for AidboxTopicDestination.
+
+```fhir-structure
+[ {
+  "path" : "kind",
+  "name" : "kind",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter:accessKeyId",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.name",
+  "name" : "name",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 1,
+  "max" : 1,
+  "type" : "string",
+  "desc" : ""
+}, {
+  "path" : "parameter.resource",
+  "name" : "resource",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part",
+  "name" : "part",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter:batchSize",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.name",
+  "name" : "name",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 1,
+  "max" : 1,
+  "type" : "integer",
+  "desc" : ""
+}, {
+  "path" : "parameter.resource",
+  "name" : "resource",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part",
+  "name" : "part",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter:endpointOverride",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.name",
+  "name" : "name",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 1,
+  "max" : 1,
+  "type" : "string",
+  "desc" : ""
+}, {
+  "path" : "parameter.resource",
+  "name" : "resource",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part",
+  "name" : "part",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter:messageGroupId",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.name",
+  "name" : "name",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 1,
+  "max" : 1,
+  "type" : "string",
+  "desc" : ""
+}, {
+  "path" : "parameter.resource",
+  "name" : "resource",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part",
+  "name" : "part",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter:region",
+  "lvl" : 0,
+  "min" : 1,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.name",
+  "name" : "name",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 1,
+  "max" : 1,
+  "type" : "string",
+  "desc" : ""
+}, {
+  "path" : "parameter.resource",
+  "name" : "resource",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part",
+  "name" : "part",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter:secretAccessKey",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.name",
+  "name" : "name",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 1,
+  "max" : 1,
+  "type" : "string",
+  "desc" : ""
+}, {
+  "path" : "parameter.resource",
+  "name" : "resource",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part",
+  "name" : "part",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter:topicArn",
+  "lvl" : 0,
+  "min" : 1,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.name",
+  "name" : "name",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 1,
+  "max" : 1,
+  "type" : "string",
+  "desc" : ""
+}, {
+  "path" : "parameter.resource",
+  "name" : "resource",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part",
+  "name" : "part",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+} ]
+```
+
+
+## AWSSNSBestEffortProfile
+
+AWS SNS best-effort delivery profile for AidboxTopicDestination.
+
+```fhir-structure
+[ {
+  "path" : "kind",
+  "name" : "kind",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter:accessKeyId",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.name",
+  "name" : "name",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 1,
+  "max" : 1,
+  "type" : "string",
+  "desc" : ""
+}, {
+  "path" : "parameter.resource",
+  "name" : "resource",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part",
+  "name" : "part",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter:endpointOverride",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.name",
+  "name" : "name",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 1,
+  "max" : 1,
+  "type" : "string",
+  "desc" : ""
+}, {
+  "path" : "parameter.resource",
+  "name" : "resource",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part",
+  "name" : "part",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter:messageGroupId",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.name",
+  "name" : "name",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 1,
+  "max" : 1,
+  "type" : "string",
+  "desc" : ""
+}, {
+  "path" : "parameter.resource",
+  "name" : "resource",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part",
+  "name" : "part",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter:region",
+  "lvl" : 0,
+  "min" : 1,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.name",
+  "name" : "name",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 1,
+  "max" : 1,
+  "type" : "string",
+  "desc" : ""
+}, {
+  "path" : "parameter.resource",
+  "name" : "resource",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part",
+  "name" : "part",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter:secretAccessKey",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.name",
+  "name" : "name",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 1,
+  "max" : 1,
+  "type" : "string",
+  "desc" : ""
+}, {
+  "path" : "parameter.resource",
+  "name" : "resource",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part",
+  "name" : "part",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter:topicArn",
+  "lvl" : 0,
+  "min" : 1,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.name",
+  "name" : "name",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 1,
+  "max" : 1,
+  "type" : "string",
+  "desc" : ""
+}, {
+  "path" : "parameter.resource",
+  "name" : "resource",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part",
+  "name" : "part",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+} ]
+```
+
+
+## AccessPolicy
 
 ```fhir-structure
 [ {
@@ -2571,6 +4986,431 @@ Batch validation run resource for tracking validation processes.
 ```
 
 
+## BigQueryAtLeastOnceProfile
+
+BigQuery at-least-once delivery profile for AidboxTopicDestination.
+
+```fhir-structure
+[ {
+  "path" : "kind",
+  "name" : "kind",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter:batchSize",
+  "lvl" : 0,
+  "min" : 1,
+  "max" : 1,
+  "type" : "",
+  "desc" : "Number of messages per batch"
+}, {
+  "path" : "parameter.name",
+  "name" : "name",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 1,
+  "max" : 1,
+  "type" : "unsignedInt",
+  "desc" : ""
+}, {
+  "path" : "parameter.resource",
+  "name" : "resource",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part",
+  "name" : "part",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter:dataset",
+  "lvl" : 0,
+  "min" : 1,
+  "max" : 1,
+  "type" : "",
+  "desc" : "BigQuery dataset name"
+}, {
+  "path" : "parameter.name",
+  "name" : "name",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 1,
+  "max" : 1,
+  "type" : "string",
+  "desc" : ""
+}, {
+  "path" : "parameter.resource",
+  "name" : "resource",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part",
+  "name" : "part",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter:destinationTable",
+  "lvl" : 0,
+  "min" : 1,
+  "max" : 1,
+  "type" : "",
+  "desc" : "Target table name in BigQuery"
+}, {
+  "path" : "parameter.name",
+  "name" : "name",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 1,
+  "max" : 1,
+  "type" : "string",
+  "desc" : ""
+}, {
+  "path" : "parameter.resource",
+  "name" : "resource",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part",
+  "name" : "part",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter:emulatorGrpcHost",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : "BigQuery emulator gRPC host:port (e.g. bigquery:9060). Uses plaintext gRPC."
+}, {
+  "path" : "parameter.name",
+  "name" : "name",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 1,
+  "max" : 1,
+  "type" : "string",
+  "desc" : ""
+}, {
+  "path" : "parameter.resource",
+  "name" : "resource",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part",
+  "name" : "part",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter:emulatorUrl",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : "BigQuery emulator REST URL (e.g. http://bigquery:9050). Skips authentication."
+}, {
+  "path" : "parameter.name",
+  "name" : "name",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 1,
+  "max" : 1,
+  "type" : "string",
+  "desc" : ""
+}, {
+  "path" : "parameter.resource",
+  "name" : "resource",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part",
+  "name" : "part",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter:projectId",
+  "lvl" : 0,
+  "min" : 1,
+  "max" : 1,
+  "type" : "",
+  "desc" : "Google Cloud project ID"
+}, {
+  "path" : "parameter.name",
+  "name" : "name",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 1,
+  "max" : 1,
+  "type" : "string",
+  "desc" : ""
+}, {
+  "path" : "parameter.resource",
+  "name" : "resource",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part",
+  "name" : "part",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter:sendIntervalMs",
+  "lvl" : 0,
+  "min" : 1,
+  "max" : 1,
+  "type" : "",
+  "desc" : "Maximum time between sends in milliseconds"
+}, {
+  "path" : "parameter.name",
+  "name" : "name",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 1,
+  "max" : 1,
+  "type" : "unsignedInt",
+  "desc" : ""
+}, {
+  "path" : "parameter.resource",
+  "name" : "resource",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part",
+  "name" : "part",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter:serviceAccountKey",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : "Google Service Account JSON key (optional, omit for ADC/Workload Identity)"
+}, {
+  "path" : "parameter.name",
+  "name" : "name",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "string",
+  "desc" : ""
+}, {
+  "path" : "parameter.resource",
+  "name" : "resource",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part",
+  "name" : "part",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter:skipInitialExport",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : "Skip initial export of existing data (default: false)"
+}, {
+  "path" : "parameter.name",
+  "name" : "name",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 1,
+  "max" : 1,
+  "type" : "boolean",
+  "desc" : ""
+}, {
+  "path" : "parameter.resource",
+  "name" : "resource",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part",
+  "name" : "part",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter:viewDefinition",
+  "lvl" : 0,
+  "min" : 1,
+  "max" : 1,
+  "type" : "",
+  "desc" : "Name of the ViewDefinition resource for data transformation"
+}, {
+  "path" : "parameter.name",
+  "name" : "name",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 1,
+  "max" : 1,
+  "type" : "string",
+  "desc" : ""
+}, {
+  "path" : "parameter.resource",
+  "name" : "resource",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part",
+  "name" : "part",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+} ]
+```
+
+
 ## BulkExportStatus
 
 ```fhir-structure
@@ -3013,6 +5853,616 @@ Batch validation run resource for tracking validation processes.
   "max" : 1,
   "type" : "boolean",
   "desc" : "Whether to update existing resources during import."
+} ]
+```
+
+
+## ClickHouseAtLeastOnceProfile
+
+ClickHouse at-least-once delivery profile for AidboxTopicDestination.
+
+```fhir-structure
+[ {
+  "path" : "kind",
+  "name" : "kind",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter:batchSize",
+  "lvl" : 0,
+  "min" : 1,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.name",
+  "name" : "name",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 1,
+  "max" : 1,
+  "type" : "unsignedInt",
+  "desc" : ""
+}, {
+  "path" : "parameter.resource",
+  "name" : "resource",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part",
+  "name" : "part",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter:database",
+  "lvl" : 0,
+  "min" : 1,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.name",
+  "name" : "name",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 1,
+  "max" : 1,
+  "type" : "string",
+  "desc" : ""
+}, {
+  "path" : "parameter.resource",
+  "name" : "resource",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part",
+  "name" : "part",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter:destinationTable",
+  "lvl" : 0,
+  "min" : 1,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.name",
+  "name" : "name",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 1,
+  "max" : 1,
+  "type" : "string",
+  "desc" : ""
+}, {
+  "path" : "parameter.resource",
+  "name" : "resource",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part",
+  "name" : "part",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter:password",
+  "lvl" : 0,
+  "min" : 1,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.name",
+  "name" : "name",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 1,
+  "max" : 1,
+  "type" : "string",
+  "desc" : ""
+}, {
+  "path" : "parameter.resource",
+  "name" : "resource",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part",
+  "name" : "part",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter:sendIntervalMs",
+  "lvl" : 0,
+  "min" : 1,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.name",
+  "name" : "name",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 1,
+  "max" : 1,
+  "type" : "unsignedInt",
+  "desc" : ""
+}, {
+  "path" : "parameter.resource",
+  "name" : "resource",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part",
+  "name" : "part",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter:url",
+  "lvl" : 0,
+  "min" : 1,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.name",
+  "name" : "name",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 1,
+  "max" : 1,
+  "type" : "string",
+  "desc" : ""
+}, {
+  "path" : "parameter.resource",
+  "name" : "resource",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part",
+  "name" : "part",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter:user",
+  "lvl" : 0,
+  "min" : 1,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.name",
+  "name" : "name",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 1,
+  "max" : 1,
+  "type" : "string",
+  "desc" : ""
+}, {
+  "path" : "parameter.resource",
+  "name" : "resource",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part",
+  "name" : "part",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter:viewDefinition",
+  "lvl" : 0,
+  "min" : 1,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.name",
+  "name" : "name",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 1,
+  "max" : 1,
+  "type" : "string",
+  "desc" : ""
+}, {
+  "path" : "parameter.resource",
+  "name" : "resource",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part",
+  "name" : "part",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+} ]
+```
+
+
+## ClickHouseProfile
+
+ClickHouse best-effort delivery profile for AidboxTopicDestination.
+
+```fhir-structure
+[ {
+  "path" : "kind",
+  "name" : "kind",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter:database",
+  "lvl" : 0,
+  "min" : 1,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.name",
+  "name" : "name",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 1,
+  "max" : 1,
+  "type" : "string",
+  "desc" : ""
+}, {
+  "path" : "parameter.resource",
+  "name" : "resource",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part",
+  "name" : "part",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter:destinationTable",
+  "lvl" : 0,
+  "min" : 1,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.name",
+  "name" : "name",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 1,
+  "max" : 1,
+  "type" : "string",
+  "desc" : ""
+}, {
+  "path" : "parameter.resource",
+  "name" : "resource",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part",
+  "name" : "part",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter:password",
+  "lvl" : 0,
+  "min" : 1,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.name",
+  "name" : "name",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 1,
+  "max" : 1,
+  "type" : "string",
+  "desc" : ""
+}, {
+  "path" : "parameter.resource",
+  "name" : "resource",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part",
+  "name" : "part",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter:url",
+  "lvl" : 0,
+  "min" : 1,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.name",
+  "name" : "name",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 1,
+  "max" : 1,
+  "type" : "string",
+  "desc" : ""
+}, {
+  "path" : "parameter.resource",
+  "name" : "resource",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part",
+  "name" : "part",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter:user",
+  "lvl" : 0,
+  "min" : 1,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.name",
+  "name" : "name",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 1,
+  "max" : 1,
+  "type" : "string",
+  "desc" : ""
+}, {
+  "path" : "parameter.resource",
+  "name" : "resource",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part",
+  "name" : "part",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter:viewDefinition",
+  "lvl" : 0,
+  "min" : 1,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.name",
+  "name" : "name",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 1,
+  "max" : 1,
+  "type" : "string",
+  "desc" : ""
+}, {
+  "path" : "parameter.resource",
+  "name" : "resource",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part",
+  "name" : "part",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
 } ]
 ```
 
@@ -4039,6 +7489,337 @@ Entity definition resource for custom Aidbox resource types.
 ```
 
 
+## FHIRNativeTopicBasedSubscriptionProfile
+
+FHIR native topic-based subscription profile for AidboxTopicDestination.
+
+```fhir-structure
+[ {
+  "path" : "kind",
+  "name" : "kind",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter",
+  "lvl" : 0,
+  "min" : 1,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter:fhir-topic",
+  "lvl" : 0,
+  "min" : 1,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.name",
+  "name" : "name",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 1,
+  "max" : 1,
+  "type" : "canonical",
+  "desc" : ""
+}, {
+  "path" : "parameter.resource",
+  "name" : "resource",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part",
+  "name" : "part",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter:keep-events-for-period",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : "Time in seconds for which to store events. During this period, events will be available with the $events operation. If not specified, events will be stored indefinitely."
+}, {
+  "path" : "parameter.name",
+  "name" : "name",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 1,
+  "max" : 1,
+  "type" : "unsignedInt",
+  "desc" : ""
+}, {
+  "path" : "parameter.resource",
+  "name" : "resource",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part",
+  "name" : "part",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter:number-of-deliverer",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : "Number of parallel senders which will handle subscriptions for the topic. Default is 4."
+}, {
+  "path" : "parameter.name",
+  "name" : "name",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 1,
+  "max" : 1,
+  "type" : "unsignedInt",
+  "desc" : ""
+}, {
+  "path" : "parameter.resource",
+  "name" : "resource",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part",
+  "name" : "part",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter:subscription-specification-version",
+  "lvl" : 0,
+  "min" : 1,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.name",
+  "name" : "name",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 1,
+  "max" : 1,
+  "type" : "string",
+  "desc" : "\n\n**Allowed values**: `R4-backported` | `R5` | `R4B-backported`"
+}, {
+  "path" : "parameter.resource",
+  "name" : "resource",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part",
+  "name" : "part",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+} ]
+```
+
+
+## FHIRPackageInstallProfile
+
+Profile for FHIR package installation parameters.
+
+```fhir-structure
+[ {
+  "path" : "parameter",
+  "name" : "parameter",
+  "lvl" : 0,
+  "min" : 1,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter:override",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : "*",
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.name",
+  "name" : "name",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part",
+  "name" : "part",
+  "lvl" : 1,
+  "min" : 2,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part",
+  "name" : "part:from",
+  "lvl" : 1,
+  "min" : 1,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part.name",
+  "name" : "name",
+  "lvl" : 2,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part",
+  "name" : "part:to",
+  "lvl" : 1,
+  "min" : 1,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part.name",
+  "name" : "name",
+  "lvl" : 2,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part.value[x]",
+  "name" : "value[x]",
+  "lvl" : 2,
+  "min" : 0,
+  "max" : 1,
+  "type" : "string",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter:package",
+  "lvl" : 0,
+  "min" : 1,
+  "max" : "*",
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.name",
+  "name" : "name",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter:registry",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.name",
+  "name" : "name",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+} ]
+```
+
+
+## FHIRPackageUninstallProfile
+
+Profile for FHIR package uninstallation parameters.
+
+```fhir-structure
+[ {
+  "path" : "parameter",
+  "name" : "parameter",
+  "lvl" : 0,
+  "min" : 1,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter:package",
+  "lvl" : 0,
+  "min" : 1,
+  "max" : "*",
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.name",
+  "name" : "name",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+} ]
+```
+
+
 ## FlatImportStatus
 
 Status tracking resource for flat file imports.
@@ -4141,6 +7922,231 @@ FHIR Terminology Repository configuration resource.
   "max" : 1,
   "type" : "",
   "desc" : "Index of tags and their associations."
+} ]
+```
+
+
+## GCPPubSubAtLeastOnceProfile
+
+GCP Pub/Sub at-least-once delivery profile for AidboxTopicDestination.
+
+```fhir-structure
+[ {
+  "path" : "kind",
+  "name" : "kind",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter:bytesThreshold",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.name",
+  "name" : "name",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 1,
+  "max" : 1,
+  "type" : "unsignedInt",
+  "desc" : ""
+}, {
+  "path" : "parameter.resource",
+  "name" : "resource",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part",
+  "name" : "part",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter:maxCount",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.name",
+  "name" : "name",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 1,
+  "max" : 1,
+  "type" : "unsignedInt",
+  "desc" : ""
+}, {
+  "path" : "parameter.resource",
+  "name" : "resource",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part",
+  "name" : "part",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter:projectId",
+  "lvl" : 0,
+  "min" : 1,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.name",
+  "name" : "name",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 1,
+  "max" : 1,
+  "type" : "string",
+  "desc" : ""
+}, {
+  "path" : "parameter.resource",
+  "name" : "resource",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part",
+  "name" : "part",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter:timeout",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.name",
+  "name" : "name",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 1,
+  "max" : 1,
+  "type" : "unsignedInt",
+  "desc" : ""
+}, {
+  "path" : "parameter.resource",
+  "name" : "resource",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part",
+  "name" : "part",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter:topicId",
+  "lvl" : 0,
+  "min" : 1,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.name",
+  "name" : "name",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 1,
+  "max" : 1,
+  "type" : "string",
+  "desc" : ""
+}, {
+  "path" : "parameter.resource",
+  "name" : "resource",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part",
+  "name" : "part",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
 } ]
 ```
 
@@ -4789,6 +8795,2346 @@ Database index creation job tracking resource.
 ```
 
 
+## KafkaAtLeastOnceMockProfile
+
+Kafka at-least-once mock delivery profile for AidboxTopicDestination.
+
+```fhir-structure
+[ {
+  "path" : "kind",
+  "name" : "kind",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter:autocomplete",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.name",
+  "name" : "name",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 1,
+  "max" : 1,
+  "type" : "boolean",
+  "desc" : ""
+}, {
+  "path" : "parameter.resource",
+  "name" : "resource",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part",
+  "name" : "part",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter:batchSize",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.name",
+  "name" : "name",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 1,
+  "max" : 1,
+  "type" : "unsignedInt",
+  "desc" : ""
+}, {
+  "path" : "parameter.resource",
+  "name" : "resource",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part",
+  "name" : "part",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter:bootstrapServers",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.name",
+  "name" : "name",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 1,
+  "max" : 1,
+  "type" : "string",
+  "desc" : ""
+}, {
+  "path" : "parameter.resource",
+  "name" : "resource",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part",
+  "name" : "part",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter:compressionType",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.name",
+  "name" : "name",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 1,
+  "max" : 1,
+  "type" : "string",
+  "desc" : ""
+}, {
+  "path" : "parameter.resource",
+  "name" : "resource",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part",
+  "name" : "part",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter:deliveryTimeoutMs",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.name",
+  "name" : "name",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 1,
+  "max" : 1,
+  "type" : "unsignedInt",
+  "desc" : ""
+}, {
+  "path" : "parameter.resource",
+  "name" : "resource",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part",
+  "name" : "part",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter:fail-on-creation-of-producer",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.name",
+  "name" : "name",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 1,
+  "max" : 1,
+  "type" : "boolean",
+  "desc" : ""
+}, {
+  "path" : "parameter.resource",
+  "name" : "resource",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part",
+  "name" : "part",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter:kafkaTopic",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.name",
+  "name" : "name",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 1,
+  "max" : 1,
+  "type" : "string",
+  "desc" : ""
+}, {
+  "path" : "parameter.resource",
+  "name" : "resource",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part",
+  "name" : "part",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter:maxBlockMs",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.name",
+  "name" : "name",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 1,
+  "max" : 1,
+  "type" : "unsignedInt",
+  "desc" : ""
+}, {
+  "path" : "parameter.resource",
+  "name" : "resource",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part",
+  "name" : "part",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter:maxRequestSize",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.name",
+  "name" : "name",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 1,
+  "max" : 1,
+  "type" : "unsignedInt",
+  "desc" : ""
+}, {
+  "path" : "parameter.resource",
+  "name" : "resource",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part",
+  "name" : "part",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter:requestTimeoutMs",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.name",
+  "name" : "name",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 1,
+  "max" : 1,
+  "type" : "unsignedInt",
+  "desc" : ""
+}, {
+  "path" : "parameter.resource",
+  "name" : "resource",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part",
+  "name" : "part",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter:saslClientCallbackHandlerClass",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.name",
+  "name" : "name",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 1,
+  "max" : 1,
+  "type" : "string",
+  "desc" : ""
+}, {
+  "path" : "parameter.resource",
+  "name" : "resource",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part",
+  "name" : "part",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter:saslJaasConfig",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.name",
+  "name" : "name",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 1,
+  "max" : 1,
+  "type" : "string",
+  "desc" : ""
+}, {
+  "path" : "parameter.resource",
+  "name" : "resource",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part",
+  "name" : "part",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter:saslMechanism",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.name",
+  "name" : "name",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 1,
+  "max" : 1,
+  "type" : "string",
+  "desc" : ""
+}, {
+  "path" : "parameter.resource",
+  "name" : "resource",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part",
+  "name" : "part",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter:securityProtocol",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.name",
+  "name" : "name",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 1,
+  "max" : 1,
+  "type" : "string",
+  "desc" : ""
+}, {
+  "path" : "parameter.resource",
+  "name" : "resource",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part",
+  "name" : "part",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter:sslKeystoreKey",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.name",
+  "name" : "name",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 1,
+  "max" : 1,
+  "type" : "string",
+  "desc" : ""
+}, {
+  "path" : "parameter.resource",
+  "name" : "resource",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part",
+  "name" : "part",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+} ]
+```
+
+
+## KafkaAtLeastOnceProfile
+
+Kafka at-least-once delivery profile for AidboxTopicDestination.
+
+```fhir-structure
+[ {
+  "path" : "kind",
+  "name" : "kind",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter:batchSize",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.name",
+  "name" : "name",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 1,
+  "max" : 1,
+  "type" : "unsignedInt",
+  "desc" : ""
+}, {
+  "path" : "parameter.resource",
+  "name" : "resource",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part",
+  "name" : "part",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter:bootstrapServers",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.name",
+  "name" : "name",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 1,
+  "max" : 1,
+  "type" : "string",
+  "desc" : ""
+}, {
+  "path" : "parameter.resource",
+  "name" : "resource",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part",
+  "name" : "part",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter:compressionType",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.name",
+  "name" : "name",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 1,
+  "max" : 1,
+  "type" : "string",
+  "desc" : ""
+}, {
+  "path" : "parameter.resource",
+  "name" : "resource",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part",
+  "name" : "part",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter:deliveryTimeoutMs",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.name",
+  "name" : "name",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 1,
+  "max" : 1,
+  "type" : "unsignedInt",
+  "desc" : ""
+}, {
+  "path" : "parameter.resource",
+  "name" : "resource",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part",
+  "name" : "part",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter:kafkaTopic",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.name",
+  "name" : "name",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 1,
+  "max" : 1,
+  "type" : "string",
+  "desc" : ""
+}, {
+  "path" : "parameter.resource",
+  "name" : "resource",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part",
+  "name" : "part",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter:maxBlockMs",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.name",
+  "name" : "name",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 1,
+  "max" : 1,
+  "type" : "unsignedInt",
+  "desc" : ""
+}, {
+  "path" : "parameter.resource",
+  "name" : "resource",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part",
+  "name" : "part",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter:maxRequestSize",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.name",
+  "name" : "name",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 1,
+  "max" : 1,
+  "type" : "unsignedInt",
+  "desc" : ""
+}, {
+  "path" : "parameter.resource",
+  "name" : "resource",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part",
+  "name" : "part",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter:requestTimeoutMs",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.name",
+  "name" : "name",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 1,
+  "max" : 1,
+  "type" : "unsignedInt",
+  "desc" : ""
+}, {
+  "path" : "parameter.resource",
+  "name" : "resource",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part",
+  "name" : "part",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter:saslClientCallbackHandlerClass",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.name",
+  "name" : "name",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 1,
+  "max" : 1,
+  "type" : "string",
+  "desc" : ""
+}, {
+  "path" : "parameter.resource",
+  "name" : "resource",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part",
+  "name" : "part",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter:saslJaasConfig",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.name",
+  "name" : "name",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 1,
+  "max" : 1,
+  "type" : "string",
+  "desc" : ""
+}, {
+  "path" : "parameter.resource",
+  "name" : "resource",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part",
+  "name" : "part",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter:saslMechanism",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.name",
+  "name" : "name",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 1,
+  "max" : 1,
+  "type" : "string",
+  "desc" : ""
+}, {
+  "path" : "parameter.resource",
+  "name" : "resource",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part",
+  "name" : "part",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter:securityProtocol",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.name",
+  "name" : "name",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 1,
+  "max" : 1,
+  "type" : "string",
+  "desc" : ""
+}, {
+  "path" : "parameter.resource",
+  "name" : "resource",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part",
+  "name" : "part",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter:sslKeystoreKey",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.name",
+  "name" : "name",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 1,
+  "max" : 1,
+  "type" : "string",
+  "desc" : ""
+}, {
+  "path" : "parameter.resource",
+  "name" : "resource",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part",
+  "name" : "part",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+} ]
+```
+
+
+## KafkaBestEffortMockProfile
+
+Kafka best-effort mock delivery profile for AidboxTopicDestination.
+
+```fhir-structure
+[ {
+  "path" : "kind",
+  "name" : "kind",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter:autocomplete",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.name",
+  "name" : "name",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 1,
+  "max" : 1,
+  "type" : "boolean",
+  "desc" : ""
+}, {
+  "path" : "parameter.resource",
+  "name" : "resource",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part",
+  "name" : "part",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter:batchSize",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.name",
+  "name" : "name",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 1,
+  "max" : 1,
+  "type" : "unsignedInt",
+  "desc" : ""
+}, {
+  "path" : "parameter.resource",
+  "name" : "resource",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part",
+  "name" : "part",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter:bootstrapServers",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.name",
+  "name" : "name",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 1,
+  "max" : 1,
+  "type" : "string",
+  "desc" : ""
+}, {
+  "path" : "parameter.resource",
+  "name" : "resource",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part",
+  "name" : "part",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter:compressionType",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.name",
+  "name" : "name",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 1,
+  "max" : 1,
+  "type" : "string",
+  "desc" : ""
+}, {
+  "path" : "parameter.resource",
+  "name" : "resource",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part",
+  "name" : "part",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter:deliveryTimeoutMs",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.name",
+  "name" : "name",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 1,
+  "max" : 1,
+  "type" : "unsignedInt",
+  "desc" : ""
+}, {
+  "path" : "parameter.resource",
+  "name" : "resource",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part",
+  "name" : "part",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter:fail-on-creation-of-producer",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.name",
+  "name" : "name",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 1,
+  "max" : 1,
+  "type" : "boolean",
+  "desc" : ""
+}, {
+  "path" : "parameter.resource",
+  "name" : "resource",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part",
+  "name" : "part",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter:kafkaTopic",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.name",
+  "name" : "name",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 1,
+  "max" : 1,
+  "type" : "string",
+  "desc" : ""
+}, {
+  "path" : "parameter.resource",
+  "name" : "resource",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part",
+  "name" : "part",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter:maxBlockMs",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.name",
+  "name" : "name",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 1,
+  "max" : 1,
+  "type" : "unsignedInt",
+  "desc" : ""
+}, {
+  "path" : "parameter.resource",
+  "name" : "resource",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part",
+  "name" : "part",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter:maxRequestSize",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.name",
+  "name" : "name",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 1,
+  "max" : 1,
+  "type" : "unsignedInt",
+  "desc" : ""
+}, {
+  "path" : "parameter.resource",
+  "name" : "resource",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part",
+  "name" : "part",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter:requestTimeoutMs",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.name",
+  "name" : "name",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 1,
+  "max" : 1,
+  "type" : "unsignedInt",
+  "desc" : ""
+}, {
+  "path" : "parameter.resource",
+  "name" : "resource",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part",
+  "name" : "part",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter:saslClientCallbackHandlerClass",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.name",
+  "name" : "name",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 1,
+  "max" : 1,
+  "type" : "string",
+  "desc" : ""
+}, {
+  "path" : "parameter.resource",
+  "name" : "resource",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part",
+  "name" : "part",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter:saslJaasConfig",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.name",
+  "name" : "name",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 1,
+  "max" : 1,
+  "type" : "string",
+  "desc" : ""
+}, {
+  "path" : "parameter.resource",
+  "name" : "resource",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part",
+  "name" : "part",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter:saslMechanism",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.name",
+  "name" : "name",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 1,
+  "max" : 1,
+  "type" : "string",
+  "desc" : ""
+}, {
+  "path" : "parameter.resource",
+  "name" : "resource",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part",
+  "name" : "part",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter:securityProtocol",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.name",
+  "name" : "name",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 1,
+  "max" : 1,
+  "type" : "string",
+  "desc" : ""
+}, {
+  "path" : "parameter.resource",
+  "name" : "resource",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part",
+  "name" : "part",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter:sslKeystoreKey",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.name",
+  "name" : "name",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 1,
+  "max" : 1,
+  "type" : "string",
+  "desc" : ""
+}, {
+  "path" : "parameter.resource",
+  "name" : "resource",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part",
+  "name" : "part",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+} ]
+```
+
+
+## KafkaBestEffortProfile
+
+Kafka best-effort delivery profile for AidboxTopicDestination.
+
+```fhir-structure
+[ {
+  "path" : "kind",
+  "name" : "kind",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter:batchSize",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.name",
+  "name" : "name",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 1,
+  "max" : 1,
+  "type" : "unsignedInt",
+  "desc" : ""
+}, {
+  "path" : "parameter.resource",
+  "name" : "resource",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part",
+  "name" : "part",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter:bootstrapServers",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.name",
+  "name" : "name",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 1,
+  "max" : 1,
+  "type" : "string",
+  "desc" : ""
+}, {
+  "path" : "parameter.resource",
+  "name" : "resource",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part",
+  "name" : "part",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter:compressionType",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.name",
+  "name" : "name",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 1,
+  "max" : 1,
+  "type" : "string",
+  "desc" : ""
+}, {
+  "path" : "parameter.resource",
+  "name" : "resource",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part",
+  "name" : "part",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter:deliveryTimeoutMs",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.name",
+  "name" : "name",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 1,
+  "max" : 1,
+  "type" : "unsignedInt",
+  "desc" : ""
+}, {
+  "path" : "parameter.resource",
+  "name" : "resource",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part",
+  "name" : "part",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter:kafkaTopic",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.name",
+  "name" : "name",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 1,
+  "max" : 1,
+  "type" : "string",
+  "desc" : ""
+}, {
+  "path" : "parameter.resource",
+  "name" : "resource",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part",
+  "name" : "part",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter:maxBlockMs",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.name",
+  "name" : "name",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 1,
+  "max" : 1,
+  "type" : "unsignedInt",
+  "desc" : ""
+}, {
+  "path" : "parameter.resource",
+  "name" : "resource",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part",
+  "name" : "part",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter:maxRequestSize",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.name",
+  "name" : "name",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 1,
+  "max" : 1,
+  "type" : "unsignedInt",
+  "desc" : ""
+}, {
+  "path" : "parameter.resource",
+  "name" : "resource",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part",
+  "name" : "part",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter:requestTimeoutMs",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.name",
+  "name" : "name",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 1,
+  "max" : 1,
+  "type" : "unsignedInt",
+  "desc" : ""
+}, {
+  "path" : "parameter.resource",
+  "name" : "resource",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part",
+  "name" : "part",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter:saslClientCallbackHandlerClass",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.name",
+  "name" : "name",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 1,
+  "max" : 1,
+  "type" : "string",
+  "desc" : ""
+}, {
+  "path" : "parameter.resource",
+  "name" : "resource",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part",
+  "name" : "part",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter:saslJaasConfig",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.name",
+  "name" : "name",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 1,
+  "max" : 1,
+  "type" : "string",
+  "desc" : ""
+}, {
+  "path" : "parameter.resource",
+  "name" : "resource",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part",
+  "name" : "part",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter:saslMechanism",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.name",
+  "name" : "name",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 1,
+  "max" : 1,
+  "type" : "string",
+  "desc" : ""
+}, {
+  "path" : "parameter.resource",
+  "name" : "resource",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part",
+  "name" : "part",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter:securityProtocol",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.name",
+  "name" : "name",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 1,
+  "max" : 1,
+  "type" : "string",
+  "desc" : ""
+}, {
+  "path" : "parameter.resource",
+  "name" : "resource",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part",
+  "name" : "part",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter:sslKeystoreKey",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.name",
+  "name" : "name",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 1,
+  "max" : 1,
+  "type" : "string",
+  "desc" : ""
+}, {
+  "path" : "parameter.resource",
+  "name" : "resource",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part",
+  "name" : "part",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+} ]
+```
+
+
 ## Lambda
 
 Lambda function resource for hook-based code execution.
@@ -5075,6 +11421,616 @@ Module definition resource for Aidbox.
   "max" : 1,
   "type" : "integer",
   "desc" : "Version number of the module."
+} ]
+```
+
+
+## NATSCoreBestEffortProfile
+
+NATS Core best-effort delivery profile for AidboxTopicDestination.
+
+```fhir-structure
+[ {
+  "path" : "kind",
+  "name" : "kind",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter:connectionName",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.name",
+  "name" : "name",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 1,
+  "max" : 1,
+  "type" : "string",
+  "desc" : ""
+}, {
+  "path" : "parameter.resource",
+  "name" : "resource",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part",
+  "name" : "part",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter:credentialsFilePath",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.name",
+  "name" : "name",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 1,
+  "max" : 1,
+  "type" : "string",
+  "desc" : ""
+}, {
+  "path" : "parameter.resource",
+  "name" : "resource",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part",
+  "name" : "part",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter:password",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.name",
+  "name" : "name",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 1,
+  "max" : 1,
+  "type" : "string",
+  "desc" : ""
+}, {
+  "path" : "parameter.resource",
+  "name" : "resource",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part",
+  "name" : "part",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter:sslContext",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.name",
+  "name" : "name",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 1,
+  "max" : 1,
+  "type" : "string",
+  "desc" : ""
+}, {
+  "path" : "parameter.resource",
+  "name" : "resource",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part",
+  "name" : "part",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter:subject",
+  "lvl" : 0,
+  "min" : 1,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.name",
+  "name" : "name",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 1,
+  "max" : 1,
+  "type" : "string",
+  "desc" : ""
+}, {
+  "path" : "parameter.resource",
+  "name" : "resource",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part",
+  "name" : "part",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter:url",
+  "lvl" : 0,
+  "min" : 1,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.name",
+  "name" : "name",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 1,
+  "max" : 1,
+  "type" : "string",
+  "desc" : ""
+}, {
+  "path" : "parameter.resource",
+  "name" : "resource",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part",
+  "name" : "part",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter:username",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.name",
+  "name" : "name",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 1,
+  "max" : 1,
+  "type" : "string",
+  "desc" : ""
+}, {
+  "path" : "parameter.resource",
+  "name" : "resource",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part",
+  "name" : "part",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+} ]
+```
+
+
+## NATSJetStreamAtLeastOnceProfile
+
+NATS JetStream at-least-once delivery profile for AidboxTopicDestination.
+
+```fhir-structure
+[ {
+  "path" : "kind",
+  "name" : "kind",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter:connectionName",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.name",
+  "name" : "name",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 1,
+  "max" : 1,
+  "type" : "string",
+  "desc" : ""
+}, {
+  "path" : "parameter.resource",
+  "name" : "resource",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part",
+  "name" : "part",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter:credentialsFilePath",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.name",
+  "name" : "name",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 1,
+  "max" : 1,
+  "type" : "string",
+  "desc" : ""
+}, {
+  "path" : "parameter.resource",
+  "name" : "resource",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part",
+  "name" : "part",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter:password",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.name",
+  "name" : "name",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 1,
+  "max" : 1,
+  "type" : "string",
+  "desc" : ""
+}, {
+  "path" : "parameter.resource",
+  "name" : "resource",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part",
+  "name" : "part",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter:sslContext",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.name",
+  "name" : "name",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 1,
+  "max" : 1,
+  "type" : "string",
+  "desc" : ""
+}, {
+  "path" : "parameter.resource",
+  "name" : "resource",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part",
+  "name" : "part",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter:subject",
+  "lvl" : 0,
+  "min" : 1,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.name",
+  "name" : "name",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 1,
+  "max" : 1,
+  "type" : "string",
+  "desc" : ""
+}, {
+  "path" : "parameter.resource",
+  "name" : "resource",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part",
+  "name" : "part",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter:url",
+  "lvl" : 0,
+  "min" : 1,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.name",
+  "name" : "name",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 1,
+  "max" : 1,
+  "type" : "string",
+  "desc" : ""
+}, {
+  "path" : "parameter.resource",
+  "name" : "resource",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part",
+  "name" : "part",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter:username",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.name",
+  "name" : "name",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 1,
+  "max" : 1,
+  "type" : "string",
+  "desc" : ""
+}, {
+  "path" : "parameter.resource",
+  "name" : "resource",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part",
+  "name" : "part",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
 } ]
 ```
 
@@ -7831,6817 +14787,7 @@ Terminology bundle file tracking resource.
 ```
 
 
-## aidboxtopicdestination-amqp-1-0-at-least-once
-
-AMQP 1.0 at-least-once delivery profile for AidboxTopicDestination.
-
-```fhir-structure
-[ {
-  "path" : "kind",
-  "name" : "kind",
-  "lvl" : 0,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter",
-  "name" : "parameter",
-  "lvl" : 0,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter",
-  "name" : "parameter:address",
-  "lvl" : 0,
-  "min" : 1,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.name",
-  "name" : "name",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.value[x]",
-  "name" : "value[x]",
-  "lvl" : 1,
-  "min" : 1,
-  "max" : 1,
-  "type" : "string",
-  "desc" : ""
-}, {
-  "path" : "parameter.resource",
-  "name" : "resource",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.part",
-  "name" : "part",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter",
-  "name" : "parameter:containerName",
-  "lvl" : 0,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.name",
-  "name" : "name",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.value[x]",
-  "name" : "value[x]",
-  "lvl" : 1,
-  "min" : 1,
-  "max" : 1,
-  "type" : "string",
-  "desc" : ""
-}, {
-  "path" : "parameter.resource",
-  "name" : "resource",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.part",
-  "name" : "part",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter",
-  "name" : "parameter:host",
-  "lvl" : 0,
-  "min" : 1,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.name",
-  "name" : "name",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.value[x]",
-  "name" : "value[x]",
-  "lvl" : 1,
-  "min" : 1,
-  "max" : 1,
-  "type" : "string",
-  "desc" : ""
-}, {
-  "path" : "parameter.resource",
-  "name" : "resource",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.part",
-  "name" : "part",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter",
-  "name" : "parameter:idleTimeout",
-  "lvl" : 0,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.name",
-  "name" : "name",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.value[x]",
-  "name" : "value[x]",
-  "lvl" : 1,
-  "min" : 1,
-  "max" : 1,
-  "type" : "integer",
-  "desc" : ""
-}, {
-  "path" : "parameter.resource",
-  "name" : "resource",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.part",
-  "name" : "part",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter",
-  "name" : "parameter:password",
-  "lvl" : 0,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.name",
-  "name" : "name",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.value[x]",
-  "name" : "value[x]",
-  "lvl" : 1,
-  "min" : 1,
-  "max" : 1,
-  "type" : "string",
-  "desc" : ""
-}, {
-  "path" : "parameter.resource",
-  "name" : "resource",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.part",
-  "name" : "part",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter",
-  "name" : "parameter:port",
-  "lvl" : 0,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.name",
-  "name" : "name",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.value[x]",
-  "name" : "value[x]",
-  "lvl" : 1,
-  "min" : 1,
-  "max" : 1,
-  "type" : "integer",
-  "desc" : ""
-}, {
-  "path" : "parameter.resource",
-  "name" : "resource",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.part",
-  "name" : "part",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter",
-  "name" : "parameter:ssl",
-  "lvl" : 0,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.name",
-  "name" : "name",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.value[x]",
-  "name" : "value[x]",
-  "lvl" : 1,
-  "min" : 1,
-  "max" : 1,
-  "type" : "boolean",
-  "desc" : ""
-}, {
-  "path" : "parameter.resource",
-  "name" : "resource",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.part",
-  "name" : "part",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter",
-  "name" : "parameter:username",
-  "lvl" : 0,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.name",
-  "name" : "name",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.value[x]",
-  "name" : "value[x]",
-  "lvl" : 1,
-  "min" : 1,
-  "max" : 1,
-  "type" : "string",
-  "desc" : ""
-}, {
-  "path" : "parameter.resource",
-  "name" : "resource",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.part",
-  "name" : "part",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-} ]
-```
-
-
-## aidboxtopicdestination-amqp-rabbitmq-0-9-1
-
-RabbitMQ AMQP 0-9-1 best-effort delivery profile for AidboxTopicDestination.
-
-```fhir-structure
-[ {
-  "path" : "kind",
-  "name" : "kind",
-  "lvl" : 0,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter",
-  "name" : "parameter",
-  "lvl" : 0,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter",
-  "name" : "parameter:automaticallyRecover",
-  "lvl" : 0,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.name",
-  "name" : "name",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.value[x]",
-  "name" : "value[x]",
-  "lvl" : 1,
-  "min" : 1,
-  "max" : 1,
-  "type" : "boolean",
-  "desc" : ""
-}, {
-  "path" : "parameter.resource",
-  "name" : "resource",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.part",
-  "name" : "part",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter",
-  "name" : "parameter:connectionName",
-  "lvl" : 0,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.name",
-  "name" : "name",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.value[x]",
-  "name" : "value[x]",
-  "lvl" : 1,
-  "min" : 1,
-  "max" : 1,
-  "type" : "string",
-  "desc" : ""
-}, {
-  "path" : "parameter.resource",
-  "name" : "resource",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.part",
-  "name" : "part",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter",
-  "name" : "parameter:exchange",
-  "lvl" : 0,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.name",
-  "name" : "name",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.value[x]",
-  "name" : "value[x]",
-  "lvl" : 1,
-  "min" : 1,
-  "max" : 1,
-  "type" : "string",
-  "desc" : ""
-}, {
-  "path" : "parameter.resource",
-  "name" : "resource",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.part",
-  "name" : "part",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter",
-  "name" : "parameter:host",
-  "lvl" : 0,
-  "min" : 1,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.name",
-  "name" : "name",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.value[x]",
-  "name" : "value[x]",
-  "lvl" : 1,
-  "min" : 1,
-  "max" : 1,
-  "type" : "string",
-  "desc" : ""
-}, {
-  "path" : "parameter.resource",
-  "name" : "resource",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.part",
-  "name" : "part",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter",
-  "name" : "parameter:password",
-  "lvl" : 0,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.name",
-  "name" : "name",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.value[x]",
-  "name" : "value[x]",
-  "lvl" : 1,
-  "min" : 1,
-  "max" : 1,
-  "type" : "string",
-  "desc" : ""
-}, {
-  "path" : "parameter.resource",
-  "name" : "resource",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.part",
-  "name" : "part",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter",
-  "name" : "parameter:port",
-  "lvl" : 0,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.name",
-  "name" : "name",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.value[x]",
-  "name" : "value[x]",
-  "lvl" : 1,
-  "min" : 1,
-  "max" : 1,
-  "type" : "integer",
-  "desc" : ""
-}, {
-  "path" : "parameter.resource",
-  "name" : "resource",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.part",
-  "name" : "part",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter",
-  "name" : "parameter:routingKey",
-  "lvl" : 0,
-  "min" : 1,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.name",
-  "name" : "name",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.value[x]",
-  "name" : "value[x]",
-  "lvl" : 1,
-  "min" : 1,
-  "max" : 1,
-  "type" : "string",
-  "desc" : ""
-}, {
-  "path" : "parameter.resource",
-  "name" : "resource",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.part",
-  "name" : "part",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter",
-  "name" : "parameter:ssl",
-  "lvl" : 0,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.name",
-  "name" : "name",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.value[x]",
-  "name" : "value[x]",
-  "lvl" : 1,
-  "min" : 1,
-  "max" : 1,
-  "type" : "boolean",
-  "desc" : ""
-}, {
-  "path" : "parameter.resource",
-  "name" : "resource",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.part",
-  "name" : "part",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter",
-  "name" : "parameter:username",
-  "lvl" : 0,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.name",
-  "name" : "name",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.value[x]",
-  "name" : "value[x]",
-  "lvl" : 1,
-  "min" : 1,
-  "max" : 1,
-  "type" : "string",
-  "desc" : ""
-}, {
-  "path" : "parameter.resource",
-  "name" : "resource",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.part",
-  "name" : "part",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter",
-  "name" : "parameter:vhost",
-  "lvl" : 0,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.name",
-  "name" : "name",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.value[x]",
-  "name" : "value[x]",
-  "lvl" : 1,
-  "min" : 1,
-  "max" : 1,
-  "type" : "string",
-  "desc" : ""
-}, {
-  "path" : "parameter.resource",
-  "name" : "resource",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.part",
-  "name" : "part",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-} ]
-```
-
-
-## aidboxtopicdestination-amqp-rabbitmq-0-9-1-at-least-once
-
-RabbitMQ AMQP 0-9-1 at-least-once delivery profile for AidboxTopicDestination.
-
-```fhir-structure
-[ {
-  "path" : "kind",
-  "name" : "kind",
-  "lvl" : 0,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter",
-  "name" : "parameter",
-  "lvl" : 0,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter",
-  "name" : "parameter:connectionTimeout",
-  "lvl" : 0,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.name",
-  "name" : "name",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.value[x]",
-  "name" : "value[x]",
-  "lvl" : 1,
-  "min" : 1,
-  "max" : 1,
-  "type" : "integer",
-  "desc" : ""
-}, {
-  "path" : "parameter.resource",
-  "name" : "resource",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.part",
-  "name" : "part",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter",
-  "name" : "parameter:exchange",
-  "lvl" : 0,
-  "min" : 1,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.name",
-  "name" : "name",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.value[x]",
-  "name" : "value[x]",
-  "lvl" : 1,
-  "min" : 1,
-  "max" : 1,
-  "type" : "string",
-  "desc" : ""
-}, {
-  "path" : "parameter.resource",
-  "name" : "resource",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.part",
-  "name" : "part",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter",
-  "name" : "parameter:exchangeType",
-  "lvl" : 0,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.name",
-  "name" : "name",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.value[x]",
-  "name" : "value[x]",
-  "lvl" : 1,
-  "min" : 1,
-  "max" : 1,
-  "type" : "string",
-  "desc" : ""
-}, {
-  "path" : "parameter.resource",
-  "name" : "resource",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.part",
-  "name" : "part",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter",
-  "name" : "parameter:host",
-  "lvl" : 0,
-  "min" : 1,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.name",
-  "name" : "name",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.value[x]",
-  "name" : "value[x]",
-  "lvl" : 1,
-  "min" : 1,
-  "max" : 1,
-  "type" : "string",
-  "desc" : ""
-}, {
-  "path" : "parameter.resource",
-  "name" : "resource",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.part",
-  "name" : "part",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter",
-  "name" : "parameter:password",
-  "lvl" : 0,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.name",
-  "name" : "name",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.value[x]",
-  "name" : "value[x]",
-  "lvl" : 1,
-  "min" : 1,
-  "max" : 1,
-  "type" : "string",
-  "desc" : ""
-}, {
-  "path" : "parameter.resource",
-  "name" : "resource",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.part",
-  "name" : "part",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter",
-  "name" : "parameter:port",
-  "lvl" : 0,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.name",
-  "name" : "name",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.value[x]",
-  "name" : "value[x]",
-  "lvl" : 1,
-  "min" : 1,
-  "max" : 1,
-  "type" : "integer",
-  "desc" : ""
-}, {
-  "path" : "parameter.resource",
-  "name" : "resource",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.part",
-  "name" : "part",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter",
-  "name" : "parameter:routingKey",
-  "lvl" : 0,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.name",
-  "name" : "name",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.value[x]",
-  "name" : "value[x]",
-  "lvl" : 1,
-  "min" : 1,
-  "max" : 1,
-  "type" : "string",
-  "desc" : ""
-}, {
-  "path" : "parameter.resource",
-  "name" : "resource",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.part",
-  "name" : "part",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter",
-  "name" : "parameter:ssl",
-  "lvl" : 0,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.name",
-  "name" : "name",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.value[x]",
-  "name" : "value[x]",
-  "lvl" : 1,
-  "min" : 1,
-  "max" : 1,
-  "type" : "boolean",
-  "desc" : ""
-}, {
-  "path" : "parameter.resource",
-  "name" : "resource",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.part",
-  "name" : "part",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter",
-  "name" : "parameter:username",
-  "lvl" : 0,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.name",
-  "name" : "name",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.value[x]",
-  "name" : "value[x]",
-  "lvl" : 1,
-  "min" : 1,
-  "max" : 1,
-  "type" : "string",
-  "desc" : ""
-}, {
-  "path" : "parameter.resource",
-  "name" : "resource",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.part",
-  "name" : "part",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter",
-  "name" : "parameter:vhost",
-  "lvl" : 0,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.name",
-  "name" : "name",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.value[x]",
-  "name" : "value[x]",
-  "lvl" : 1,
-  "min" : 1,
-  "max" : 1,
-  "type" : "string",
-  "desc" : ""
-}, {
-  "path" : "parameter.resource",
-  "name" : "resource",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.part",
-  "name" : "part",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-} ]
-```
-
-
-## aidboxtopicdestination-aws-eventbridge-at-least-once
-
-AWS EventBridge at-least-once delivery profile for AidboxTopicDestination.
-
-```fhir-structure
-[ {
-  "path" : "kind",
-  "name" : "kind",
-  "lvl" : 0,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter",
-  "name" : "parameter",
-  "lvl" : 0,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter",
-  "name" : "parameter:accessKeyId",
-  "lvl" : 0,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.name",
-  "name" : "name",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.value[x]",
-  "name" : "value[x]",
-  "lvl" : 1,
-  "min" : 1,
-  "max" : 1,
-  "type" : "string",
-  "desc" : ""
-}, {
-  "path" : "parameter.resource",
-  "name" : "resource",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.part",
-  "name" : "part",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter",
-  "name" : "parameter:batchSize",
-  "lvl" : 0,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.name",
-  "name" : "name",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.value[x]",
-  "name" : "value[x]",
-  "lvl" : 1,
-  "min" : 1,
-  "max" : 1,
-  "type" : "integer",
-  "desc" : ""
-}, {
-  "path" : "parameter.resource",
-  "name" : "resource",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.part",
-  "name" : "part",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter",
-  "name" : "parameter:detailType",
-  "lvl" : 0,
-  "min" : 1,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.name",
-  "name" : "name",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.value[x]",
-  "name" : "value[x]",
-  "lvl" : 1,
-  "min" : 1,
-  "max" : 1,
-  "type" : "string",
-  "desc" : ""
-}, {
-  "path" : "parameter.resource",
-  "name" : "resource",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.part",
-  "name" : "part",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter",
-  "name" : "parameter:endpointOverride",
-  "lvl" : 0,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.name",
-  "name" : "name",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.value[x]",
-  "name" : "value[x]",
-  "lvl" : 1,
-  "min" : 1,
-  "max" : 1,
-  "type" : "string",
-  "desc" : ""
-}, {
-  "path" : "parameter.resource",
-  "name" : "resource",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.part",
-  "name" : "part",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter",
-  "name" : "parameter:eventBusName",
-  "lvl" : 0,
-  "min" : 1,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.name",
-  "name" : "name",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.value[x]",
-  "name" : "value[x]",
-  "lvl" : 1,
-  "min" : 1,
-  "max" : 1,
-  "type" : "string",
-  "desc" : ""
-}, {
-  "path" : "parameter.resource",
-  "name" : "resource",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.part",
-  "name" : "part",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter",
-  "name" : "parameter:region",
-  "lvl" : 0,
-  "min" : 1,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.name",
-  "name" : "name",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.value[x]",
-  "name" : "value[x]",
-  "lvl" : 1,
-  "min" : 1,
-  "max" : 1,
-  "type" : "string",
-  "desc" : ""
-}, {
-  "path" : "parameter.resource",
-  "name" : "resource",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.part",
-  "name" : "part",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter",
-  "name" : "parameter:secretAccessKey",
-  "lvl" : 0,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.name",
-  "name" : "name",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.value[x]",
-  "name" : "value[x]",
-  "lvl" : 1,
-  "min" : 1,
-  "max" : 1,
-  "type" : "string",
-  "desc" : ""
-}, {
-  "path" : "parameter.resource",
-  "name" : "resource",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.part",
-  "name" : "part",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter",
-  "name" : "parameter:source",
-  "lvl" : 0,
-  "min" : 1,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.name",
-  "name" : "name",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.value[x]",
-  "name" : "value[x]",
-  "lvl" : 1,
-  "min" : 1,
-  "max" : 1,
-  "type" : "string",
-  "desc" : ""
-}, {
-  "path" : "parameter.resource",
-  "name" : "resource",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.part",
-  "name" : "part",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-} ]
-```
-
-
-## aidboxtopicdestination-aws-eventbridge-best-effort
-
-AWS EventBridge best-effort delivery profile for AidboxTopicDestination.
-
-```fhir-structure
-[ {
-  "path" : "kind",
-  "name" : "kind",
-  "lvl" : 0,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter",
-  "name" : "parameter",
-  "lvl" : 0,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter",
-  "name" : "parameter:accessKeyId",
-  "lvl" : 0,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.name",
-  "name" : "name",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.value[x]",
-  "name" : "value[x]",
-  "lvl" : 1,
-  "min" : 1,
-  "max" : 1,
-  "type" : "string",
-  "desc" : ""
-}, {
-  "path" : "parameter.resource",
-  "name" : "resource",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.part",
-  "name" : "part",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter",
-  "name" : "parameter:detailType",
-  "lvl" : 0,
-  "min" : 1,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.name",
-  "name" : "name",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.value[x]",
-  "name" : "value[x]",
-  "lvl" : 1,
-  "min" : 1,
-  "max" : 1,
-  "type" : "string",
-  "desc" : ""
-}, {
-  "path" : "parameter.resource",
-  "name" : "resource",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.part",
-  "name" : "part",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter",
-  "name" : "parameter:endpointOverride",
-  "lvl" : 0,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.name",
-  "name" : "name",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.value[x]",
-  "name" : "value[x]",
-  "lvl" : 1,
-  "min" : 1,
-  "max" : 1,
-  "type" : "string",
-  "desc" : ""
-}, {
-  "path" : "parameter.resource",
-  "name" : "resource",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.part",
-  "name" : "part",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter",
-  "name" : "parameter:eventBusName",
-  "lvl" : 0,
-  "min" : 1,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.name",
-  "name" : "name",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.value[x]",
-  "name" : "value[x]",
-  "lvl" : 1,
-  "min" : 1,
-  "max" : 1,
-  "type" : "string",
-  "desc" : ""
-}, {
-  "path" : "parameter.resource",
-  "name" : "resource",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.part",
-  "name" : "part",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter",
-  "name" : "parameter:region",
-  "lvl" : 0,
-  "min" : 1,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.name",
-  "name" : "name",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.value[x]",
-  "name" : "value[x]",
-  "lvl" : 1,
-  "min" : 1,
-  "max" : 1,
-  "type" : "string",
-  "desc" : ""
-}, {
-  "path" : "parameter.resource",
-  "name" : "resource",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.part",
-  "name" : "part",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter",
-  "name" : "parameter:secretAccessKey",
-  "lvl" : 0,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.name",
-  "name" : "name",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.value[x]",
-  "name" : "value[x]",
-  "lvl" : 1,
-  "min" : 1,
-  "max" : 1,
-  "type" : "string",
-  "desc" : ""
-}, {
-  "path" : "parameter.resource",
-  "name" : "resource",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.part",
-  "name" : "part",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter",
-  "name" : "parameter:source",
-  "lvl" : 0,
-  "min" : 1,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.name",
-  "name" : "name",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.value[x]",
-  "name" : "value[x]",
-  "lvl" : 1,
-  "min" : 1,
-  "max" : 1,
-  "type" : "string",
-  "desc" : ""
-}, {
-  "path" : "parameter.resource",
-  "name" : "resource",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.part",
-  "name" : "part",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-} ]
-```
-
-
-## aidboxtopicdestination-aws-sns-at-least-once
-
-AWS SNS at-least-once delivery profile for AidboxTopicDestination.
-
-```fhir-structure
-[ {
-  "path" : "kind",
-  "name" : "kind",
-  "lvl" : 0,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter",
-  "name" : "parameter",
-  "lvl" : 0,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter",
-  "name" : "parameter:accessKeyId",
-  "lvl" : 0,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.name",
-  "name" : "name",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.value[x]",
-  "name" : "value[x]",
-  "lvl" : 1,
-  "min" : 1,
-  "max" : 1,
-  "type" : "string",
-  "desc" : ""
-}, {
-  "path" : "parameter.resource",
-  "name" : "resource",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.part",
-  "name" : "part",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter",
-  "name" : "parameter:batchSize",
-  "lvl" : 0,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.name",
-  "name" : "name",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.value[x]",
-  "name" : "value[x]",
-  "lvl" : 1,
-  "min" : 1,
-  "max" : 1,
-  "type" : "integer",
-  "desc" : ""
-}, {
-  "path" : "parameter.resource",
-  "name" : "resource",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.part",
-  "name" : "part",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter",
-  "name" : "parameter:endpointOverride",
-  "lvl" : 0,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.name",
-  "name" : "name",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.value[x]",
-  "name" : "value[x]",
-  "lvl" : 1,
-  "min" : 1,
-  "max" : 1,
-  "type" : "string",
-  "desc" : ""
-}, {
-  "path" : "parameter.resource",
-  "name" : "resource",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.part",
-  "name" : "part",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter",
-  "name" : "parameter:messageGroupId",
-  "lvl" : 0,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.name",
-  "name" : "name",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.value[x]",
-  "name" : "value[x]",
-  "lvl" : 1,
-  "min" : 1,
-  "max" : 1,
-  "type" : "string",
-  "desc" : ""
-}, {
-  "path" : "parameter.resource",
-  "name" : "resource",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.part",
-  "name" : "part",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter",
-  "name" : "parameter:region",
-  "lvl" : 0,
-  "min" : 1,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.name",
-  "name" : "name",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.value[x]",
-  "name" : "value[x]",
-  "lvl" : 1,
-  "min" : 1,
-  "max" : 1,
-  "type" : "string",
-  "desc" : ""
-}, {
-  "path" : "parameter.resource",
-  "name" : "resource",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.part",
-  "name" : "part",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter",
-  "name" : "parameter:secretAccessKey",
-  "lvl" : 0,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.name",
-  "name" : "name",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.value[x]",
-  "name" : "value[x]",
-  "lvl" : 1,
-  "min" : 1,
-  "max" : 1,
-  "type" : "string",
-  "desc" : ""
-}, {
-  "path" : "parameter.resource",
-  "name" : "resource",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.part",
-  "name" : "part",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter",
-  "name" : "parameter:topicArn",
-  "lvl" : 0,
-  "min" : 1,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.name",
-  "name" : "name",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.value[x]",
-  "name" : "value[x]",
-  "lvl" : 1,
-  "min" : 1,
-  "max" : 1,
-  "type" : "string",
-  "desc" : ""
-}, {
-  "path" : "parameter.resource",
-  "name" : "resource",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.part",
-  "name" : "part",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-} ]
-```
-
-
-## aidboxtopicdestination-aws-sns-best-effort
-
-AWS SNS best-effort delivery profile for AidboxTopicDestination.
-
-```fhir-structure
-[ {
-  "path" : "kind",
-  "name" : "kind",
-  "lvl" : 0,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter",
-  "name" : "parameter",
-  "lvl" : 0,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter",
-  "name" : "parameter:accessKeyId",
-  "lvl" : 0,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.name",
-  "name" : "name",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.value[x]",
-  "name" : "value[x]",
-  "lvl" : 1,
-  "min" : 1,
-  "max" : 1,
-  "type" : "string",
-  "desc" : ""
-}, {
-  "path" : "parameter.resource",
-  "name" : "resource",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.part",
-  "name" : "part",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter",
-  "name" : "parameter:endpointOverride",
-  "lvl" : 0,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.name",
-  "name" : "name",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.value[x]",
-  "name" : "value[x]",
-  "lvl" : 1,
-  "min" : 1,
-  "max" : 1,
-  "type" : "string",
-  "desc" : ""
-}, {
-  "path" : "parameter.resource",
-  "name" : "resource",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.part",
-  "name" : "part",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter",
-  "name" : "parameter:messageGroupId",
-  "lvl" : 0,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.name",
-  "name" : "name",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.value[x]",
-  "name" : "value[x]",
-  "lvl" : 1,
-  "min" : 1,
-  "max" : 1,
-  "type" : "string",
-  "desc" : ""
-}, {
-  "path" : "parameter.resource",
-  "name" : "resource",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.part",
-  "name" : "part",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter",
-  "name" : "parameter:region",
-  "lvl" : 0,
-  "min" : 1,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.name",
-  "name" : "name",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.value[x]",
-  "name" : "value[x]",
-  "lvl" : 1,
-  "min" : 1,
-  "max" : 1,
-  "type" : "string",
-  "desc" : ""
-}, {
-  "path" : "parameter.resource",
-  "name" : "resource",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.part",
-  "name" : "part",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter",
-  "name" : "parameter:secretAccessKey",
-  "lvl" : 0,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.name",
-  "name" : "name",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.value[x]",
-  "name" : "value[x]",
-  "lvl" : 1,
-  "min" : 1,
-  "max" : 1,
-  "type" : "string",
-  "desc" : ""
-}, {
-  "path" : "parameter.resource",
-  "name" : "resource",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.part",
-  "name" : "part",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter",
-  "name" : "parameter:topicArn",
-  "lvl" : 0,
-  "min" : 1,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.name",
-  "name" : "name",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.value[x]",
-  "name" : "value[x]",
-  "lvl" : 1,
-  "min" : 1,
-  "max" : 1,
-  "type" : "string",
-  "desc" : ""
-}, {
-  "path" : "parameter.resource",
-  "name" : "resource",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.part",
-  "name" : "part",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-} ]
-```
-
-
-## aidboxtopicdestination-bigquery-at-least-once
-
-BigQuery at-least-once delivery profile for AidboxTopicDestination.
-
-```fhir-structure
-[ {
-  "path" : "kind",
-  "name" : "kind",
-  "lvl" : 0,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter",
-  "name" : "parameter",
-  "lvl" : 0,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter",
-  "name" : "parameter:batchSize",
-  "lvl" : 0,
-  "min" : 1,
-  "max" : 1,
-  "type" : "",
-  "desc" : "Number of messages per batch"
-}, {
-  "path" : "parameter.name",
-  "name" : "name",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.value[x]",
-  "name" : "value[x]",
-  "lvl" : 1,
-  "min" : 1,
-  "max" : 1,
-  "type" : "unsignedInt",
-  "desc" : ""
-}, {
-  "path" : "parameter.resource",
-  "name" : "resource",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.part",
-  "name" : "part",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter",
-  "name" : "parameter:dataset",
-  "lvl" : 0,
-  "min" : 1,
-  "max" : 1,
-  "type" : "",
-  "desc" : "BigQuery dataset name"
-}, {
-  "path" : "parameter.name",
-  "name" : "name",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.value[x]",
-  "name" : "value[x]",
-  "lvl" : 1,
-  "min" : 1,
-  "max" : 1,
-  "type" : "string",
-  "desc" : ""
-}, {
-  "path" : "parameter.resource",
-  "name" : "resource",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.part",
-  "name" : "part",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter",
-  "name" : "parameter:destinationTable",
-  "lvl" : 0,
-  "min" : 1,
-  "max" : 1,
-  "type" : "",
-  "desc" : "Target table name in BigQuery"
-}, {
-  "path" : "parameter.name",
-  "name" : "name",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.value[x]",
-  "name" : "value[x]",
-  "lvl" : 1,
-  "min" : 1,
-  "max" : 1,
-  "type" : "string",
-  "desc" : ""
-}, {
-  "path" : "parameter.resource",
-  "name" : "resource",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.part",
-  "name" : "part",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter",
-  "name" : "parameter:emulatorGrpcHost",
-  "lvl" : 0,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : "BigQuery emulator gRPC host:port (e.g. bigquery:9060). Uses plaintext gRPC."
-}, {
-  "path" : "parameter.name",
-  "name" : "name",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.value[x]",
-  "name" : "value[x]",
-  "lvl" : 1,
-  "min" : 1,
-  "max" : 1,
-  "type" : "string",
-  "desc" : ""
-}, {
-  "path" : "parameter.resource",
-  "name" : "resource",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.part",
-  "name" : "part",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter",
-  "name" : "parameter:emulatorUrl",
-  "lvl" : 0,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : "BigQuery emulator REST URL (e.g. http://bigquery:9050). Skips authentication."
-}, {
-  "path" : "parameter.name",
-  "name" : "name",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.value[x]",
-  "name" : "value[x]",
-  "lvl" : 1,
-  "min" : 1,
-  "max" : 1,
-  "type" : "string",
-  "desc" : ""
-}, {
-  "path" : "parameter.resource",
-  "name" : "resource",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.part",
-  "name" : "part",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter",
-  "name" : "parameter:projectId",
-  "lvl" : 0,
-  "min" : 1,
-  "max" : 1,
-  "type" : "",
-  "desc" : "Google Cloud project ID"
-}, {
-  "path" : "parameter.name",
-  "name" : "name",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.value[x]",
-  "name" : "value[x]",
-  "lvl" : 1,
-  "min" : 1,
-  "max" : 1,
-  "type" : "string",
-  "desc" : ""
-}, {
-  "path" : "parameter.resource",
-  "name" : "resource",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.part",
-  "name" : "part",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter",
-  "name" : "parameter:sendIntervalMs",
-  "lvl" : 0,
-  "min" : 1,
-  "max" : 1,
-  "type" : "",
-  "desc" : "Maximum time between sends in milliseconds"
-}, {
-  "path" : "parameter.name",
-  "name" : "name",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.value[x]",
-  "name" : "value[x]",
-  "lvl" : 1,
-  "min" : 1,
-  "max" : 1,
-  "type" : "unsignedInt",
-  "desc" : ""
-}, {
-  "path" : "parameter.resource",
-  "name" : "resource",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.part",
-  "name" : "part",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter",
-  "name" : "parameter:serviceAccountKey",
-  "lvl" : 0,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : "Google Service Account JSON key (optional, omit for ADC/Workload Identity)"
-}, {
-  "path" : "parameter.name",
-  "name" : "name",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.value[x]",
-  "name" : "value[x]",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "string",
-  "desc" : ""
-}, {
-  "path" : "parameter.resource",
-  "name" : "resource",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.part",
-  "name" : "part",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter",
-  "name" : "parameter:skipInitialExport",
-  "lvl" : 0,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : "Skip initial export of existing data (default: false)"
-}, {
-  "path" : "parameter.name",
-  "name" : "name",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.value[x]",
-  "name" : "value[x]",
-  "lvl" : 1,
-  "min" : 1,
-  "max" : 1,
-  "type" : "boolean",
-  "desc" : ""
-}, {
-  "path" : "parameter.resource",
-  "name" : "resource",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.part",
-  "name" : "part",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter",
-  "name" : "parameter:viewDefinition",
-  "lvl" : 0,
-  "min" : 1,
-  "max" : 1,
-  "type" : "",
-  "desc" : "Name of the ViewDefinition resource for data transformation"
-}, {
-  "path" : "parameter.name",
-  "name" : "name",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.value[x]",
-  "name" : "value[x]",
-  "lvl" : 1,
-  "min" : 1,
-  "max" : 1,
-  "type" : "string",
-  "desc" : ""
-}, {
-  "path" : "parameter.resource",
-  "name" : "resource",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.part",
-  "name" : "part",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-} ]
-```
-
-
-## aidboxtopicdestination-clickhouse
-
-ClickHouse best-effort delivery profile for AidboxTopicDestination.
-
-```fhir-structure
-[ {
-  "path" : "kind",
-  "name" : "kind",
-  "lvl" : 0,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter",
-  "name" : "parameter",
-  "lvl" : 0,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter",
-  "name" : "parameter:database",
-  "lvl" : 0,
-  "min" : 1,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.name",
-  "name" : "name",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.value[x]",
-  "name" : "value[x]",
-  "lvl" : 1,
-  "min" : 1,
-  "max" : 1,
-  "type" : "string",
-  "desc" : ""
-}, {
-  "path" : "parameter.resource",
-  "name" : "resource",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.part",
-  "name" : "part",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter",
-  "name" : "parameter:destinationTable",
-  "lvl" : 0,
-  "min" : 1,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.name",
-  "name" : "name",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.value[x]",
-  "name" : "value[x]",
-  "lvl" : 1,
-  "min" : 1,
-  "max" : 1,
-  "type" : "string",
-  "desc" : ""
-}, {
-  "path" : "parameter.resource",
-  "name" : "resource",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.part",
-  "name" : "part",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter",
-  "name" : "parameter:password",
-  "lvl" : 0,
-  "min" : 1,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.name",
-  "name" : "name",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.value[x]",
-  "name" : "value[x]",
-  "lvl" : 1,
-  "min" : 1,
-  "max" : 1,
-  "type" : "string",
-  "desc" : ""
-}, {
-  "path" : "parameter.resource",
-  "name" : "resource",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.part",
-  "name" : "part",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter",
-  "name" : "parameter:url",
-  "lvl" : 0,
-  "min" : 1,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.name",
-  "name" : "name",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.value[x]",
-  "name" : "value[x]",
-  "lvl" : 1,
-  "min" : 1,
-  "max" : 1,
-  "type" : "string",
-  "desc" : ""
-}, {
-  "path" : "parameter.resource",
-  "name" : "resource",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.part",
-  "name" : "part",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter",
-  "name" : "parameter:user",
-  "lvl" : 0,
-  "min" : 1,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.name",
-  "name" : "name",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.value[x]",
-  "name" : "value[x]",
-  "lvl" : 1,
-  "min" : 1,
-  "max" : 1,
-  "type" : "string",
-  "desc" : ""
-}, {
-  "path" : "parameter.resource",
-  "name" : "resource",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.part",
-  "name" : "part",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter",
-  "name" : "parameter:viewDefinition",
-  "lvl" : 0,
-  "min" : 1,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.name",
-  "name" : "name",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.value[x]",
-  "name" : "value[x]",
-  "lvl" : 1,
-  "min" : 1,
-  "max" : 1,
-  "type" : "string",
-  "desc" : ""
-}, {
-  "path" : "parameter.resource",
-  "name" : "resource",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.part",
-  "name" : "part",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-} ]
-```
-
-
-## aidboxtopicdestination-clickhouse-at-least-once
-
-ClickHouse at-least-once delivery profile for AidboxTopicDestination.
-
-```fhir-structure
-[ {
-  "path" : "kind",
-  "name" : "kind",
-  "lvl" : 0,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter",
-  "name" : "parameter",
-  "lvl" : 0,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter",
-  "name" : "parameter:batchSize",
-  "lvl" : 0,
-  "min" : 1,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.name",
-  "name" : "name",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.value[x]",
-  "name" : "value[x]",
-  "lvl" : 1,
-  "min" : 1,
-  "max" : 1,
-  "type" : "unsignedInt",
-  "desc" : ""
-}, {
-  "path" : "parameter.resource",
-  "name" : "resource",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.part",
-  "name" : "part",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter",
-  "name" : "parameter:database",
-  "lvl" : 0,
-  "min" : 1,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.name",
-  "name" : "name",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.value[x]",
-  "name" : "value[x]",
-  "lvl" : 1,
-  "min" : 1,
-  "max" : 1,
-  "type" : "string",
-  "desc" : ""
-}, {
-  "path" : "parameter.resource",
-  "name" : "resource",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.part",
-  "name" : "part",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter",
-  "name" : "parameter:destinationTable",
-  "lvl" : 0,
-  "min" : 1,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.name",
-  "name" : "name",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.value[x]",
-  "name" : "value[x]",
-  "lvl" : 1,
-  "min" : 1,
-  "max" : 1,
-  "type" : "string",
-  "desc" : ""
-}, {
-  "path" : "parameter.resource",
-  "name" : "resource",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.part",
-  "name" : "part",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter",
-  "name" : "parameter:password",
-  "lvl" : 0,
-  "min" : 1,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.name",
-  "name" : "name",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.value[x]",
-  "name" : "value[x]",
-  "lvl" : 1,
-  "min" : 1,
-  "max" : 1,
-  "type" : "string",
-  "desc" : ""
-}, {
-  "path" : "parameter.resource",
-  "name" : "resource",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.part",
-  "name" : "part",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter",
-  "name" : "parameter:sendIntervalMs",
-  "lvl" : 0,
-  "min" : 1,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.name",
-  "name" : "name",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.value[x]",
-  "name" : "value[x]",
-  "lvl" : 1,
-  "min" : 1,
-  "max" : 1,
-  "type" : "unsignedInt",
-  "desc" : ""
-}, {
-  "path" : "parameter.resource",
-  "name" : "resource",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.part",
-  "name" : "part",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter",
-  "name" : "parameter:url",
-  "lvl" : 0,
-  "min" : 1,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.name",
-  "name" : "name",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.value[x]",
-  "name" : "value[x]",
-  "lvl" : 1,
-  "min" : 1,
-  "max" : 1,
-  "type" : "string",
-  "desc" : ""
-}, {
-  "path" : "parameter.resource",
-  "name" : "resource",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.part",
-  "name" : "part",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter",
-  "name" : "parameter:user",
-  "lvl" : 0,
-  "min" : 1,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.name",
-  "name" : "name",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.value[x]",
-  "name" : "value[x]",
-  "lvl" : 1,
-  "min" : 1,
-  "max" : 1,
-  "type" : "string",
-  "desc" : ""
-}, {
-  "path" : "parameter.resource",
-  "name" : "resource",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.part",
-  "name" : "part",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter",
-  "name" : "parameter:viewDefinition",
-  "lvl" : 0,
-  "min" : 1,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.name",
-  "name" : "name",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.value[x]",
-  "name" : "value[x]",
-  "lvl" : 1,
-  "min" : 1,
-  "max" : 1,
-  "type" : "string",
-  "desc" : ""
-}, {
-  "path" : "parameter.resource",
-  "name" : "resource",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.part",
-  "name" : "part",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-} ]
-```
-
-
-## aidboxtopicdestination-fhir-native-topic-based-subscription
-
-FHIR native topic-based subscription profile for AidboxTopicDestination.
-
-```fhir-structure
-[ {
-  "path" : "kind",
-  "name" : "kind",
-  "lvl" : 0,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter",
-  "name" : "parameter",
-  "lvl" : 0,
-  "min" : 1,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter",
-  "name" : "parameter:fhir-topic",
-  "lvl" : 0,
-  "min" : 1,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.name",
-  "name" : "name",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.value[x]",
-  "name" : "value[x]",
-  "lvl" : 1,
-  "min" : 1,
-  "max" : 1,
-  "type" : "canonical",
-  "desc" : ""
-}, {
-  "path" : "parameter.resource",
-  "name" : "resource",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.part",
-  "name" : "part",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter",
-  "name" : "parameter:keep-events-for-period",
-  "lvl" : 0,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : "Time in seconds for which to store events. During this period, events will be available with the $events operation. If not specified, events will be stored indefinitely."
-}, {
-  "path" : "parameter.name",
-  "name" : "name",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.value[x]",
-  "name" : "value[x]",
-  "lvl" : 1,
-  "min" : 1,
-  "max" : 1,
-  "type" : "unsignedInt",
-  "desc" : ""
-}, {
-  "path" : "parameter.resource",
-  "name" : "resource",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.part",
-  "name" : "part",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter",
-  "name" : "parameter:number-of-deliverer",
-  "lvl" : 0,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : "Number of parallel senders which will handle subscriptions for the topic. Default is 4."
-}, {
-  "path" : "parameter.name",
-  "name" : "name",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.value[x]",
-  "name" : "value[x]",
-  "lvl" : 1,
-  "min" : 1,
-  "max" : 1,
-  "type" : "unsignedInt",
-  "desc" : ""
-}, {
-  "path" : "parameter.resource",
-  "name" : "resource",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.part",
-  "name" : "part",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter",
-  "name" : "parameter:subscription-specification-version",
-  "lvl" : 0,
-  "min" : 1,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.name",
-  "name" : "name",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.value[x]",
-  "name" : "value[x]",
-  "lvl" : 1,
-  "min" : 1,
-  "max" : 1,
-  "type" : "string",
-  "desc" : "\n\n**Allowed values**: `R4-backported` | `R5` | `R4B-backported`"
-}, {
-  "path" : "parameter.resource",
-  "name" : "resource",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.part",
-  "name" : "part",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-} ]
-```
-
-
-## aidboxtopicdestination-gcp-pubsub-at-least-once
-
-GCP Pub/Sub at-least-once delivery profile for AidboxTopicDestination.
-
-```fhir-structure
-[ {
-  "path" : "kind",
-  "name" : "kind",
-  "lvl" : 0,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter",
-  "name" : "parameter",
-  "lvl" : 0,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter",
-  "name" : "parameter:bytesThreshold",
-  "lvl" : 0,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.name",
-  "name" : "name",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.value[x]",
-  "name" : "value[x]",
-  "lvl" : 1,
-  "min" : 1,
-  "max" : 1,
-  "type" : "unsignedInt",
-  "desc" : ""
-}, {
-  "path" : "parameter.resource",
-  "name" : "resource",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.part",
-  "name" : "part",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter",
-  "name" : "parameter:maxCount",
-  "lvl" : 0,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.name",
-  "name" : "name",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.value[x]",
-  "name" : "value[x]",
-  "lvl" : 1,
-  "min" : 1,
-  "max" : 1,
-  "type" : "unsignedInt",
-  "desc" : ""
-}, {
-  "path" : "parameter.resource",
-  "name" : "resource",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.part",
-  "name" : "part",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter",
-  "name" : "parameter:projectId",
-  "lvl" : 0,
-  "min" : 1,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.name",
-  "name" : "name",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.value[x]",
-  "name" : "value[x]",
-  "lvl" : 1,
-  "min" : 1,
-  "max" : 1,
-  "type" : "string",
-  "desc" : ""
-}, {
-  "path" : "parameter.resource",
-  "name" : "resource",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.part",
-  "name" : "part",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter",
-  "name" : "parameter:timeout",
-  "lvl" : 0,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.name",
-  "name" : "name",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.value[x]",
-  "name" : "value[x]",
-  "lvl" : 1,
-  "min" : 1,
-  "max" : 1,
-  "type" : "unsignedInt",
-  "desc" : ""
-}, {
-  "path" : "parameter.resource",
-  "name" : "resource",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.part",
-  "name" : "part",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter",
-  "name" : "parameter:topicId",
-  "lvl" : 0,
-  "min" : 1,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.name",
-  "name" : "name",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.value[x]",
-  "name" : "value[x]",
-  "lvl" : 1,
-  "min" : 1,
-  "max" : 1,
-  "type" : "string",
-  "desc" : ""
-}, {
-  "path" : "parameter.resource",
-  "name" : "resource",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.part",
-  "name" : "part",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-} ]
-```
-
-
-## aidboxtopicdestination-kafka-at-least-once
-
-Kafka at-least-once delivery profile for AidboxTopicDestination.
-
-```fhir-structure
-[ {
-  "path" : "kind",
-  "name" : "kind",
-  "lvl" : 0,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter",
-  "name" : "parameter",
-  "lvl" : 0,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter",
-  "name" : "parameter:batchSize",
-  "lvl" : 0,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.name",
-  "name" : "name",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.value[x]",
-  "name" : "value[x]",
-  "lvl" : 1,
-  "min" : 1,
-  "max" : 1,
-  "type" : "unsignedInt",
-  "desc" : ""
-}, {
-  "path" : "parameter.resource",
-  "name" : "resource",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.part",
-  "name" : "part",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter",
-  "name" : "parameter:bootstrapServers",
-  "lvl" : 0,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.name",
-  "name" : "name",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.value[x]",
-  "name" : "value[x]",
-  "lvl" : 1,
-  "min" : 1,
-  "max" : 1,
-  "type" : "string",
-  "desc" : ""
-}, {
-  "path" : "parameter.resource",
-  "name" : "resource",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.part",
-  "name" : "part",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter",
-  "name" : "parameter:compressionType",
-  "lvl" : 0,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.name",
-  "name" : "name",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.value[x]",
-  "name" : "value[x]",
-  "lvl" : 1,
-  "min" : 1,
-  "max" : 1,
-  "type" : "string",
-  "desc" : ""
-}, {
-  "path" : "parameter.resource",
-  "name" : "resource",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.part",
-  "name" : "part",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter",
-  "name" : "parameter:deliveryTimeoutMs",
-  "lvl" : 0,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.name",
-  "name" : "name",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.value[x]",
-  "name" : "value[x]",
-  "lvl" : 1,
-  "min" : 1,
-  "max" : 1,
-  "type" : "unsignedInt",
-  "desc" : ""
-}, {
-  "path" : "parameter.resource",
-  "name" : "resource",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.part",
-  "name" : "part",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter",
-  "name" : "parameter:kafkaTopic",
-  "lvl" : 0,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.name",
-  "name" : "name",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.value[x]",
-  "name" : "value[x]",
-  "lvl" : 1,
-  "min" : 1,
-  "max" : 1,
-  "type" : "string",
-  "desc" : ""
-}, {
-  "path" : "parameter.resource",
-  "name" : "resource",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.part",
-  "name" : "part",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter",
-  "name" : "parameter:maxBlockMs",
-  "lvl" : 0,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.name",
-  "name" : "name",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.value[x]",
-  "name" : "value[x]",
-  "lvl" : 1,
-  "min" : 1,
-  "max" : 1,
-  "type" : "unsignedInt",
-  "desc" : ""
-}, {
-  "path" : "parameter.resource",
-  "name" : "resource",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.part",
-  "name" : "part",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter",
-  "name" : "parameter:maxRequestSize",
-  "lvl" : 0,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.name",
-  "name" : "name",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.value[x]",
-  "name" : "value[x]",
-  "lvl" : 1,
-  "min" : 1,
-  "max" : 1,
-  "type" : "unsignedInt",
-  "desc" : ""
-}, {
-  "path" : "parameter.resource",
-  "name" : "resource",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.part",
-  "name" : "part",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter",
-  "name" : "parameter:requestTimeoutMs",
-  "lvl" : 0,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.name",
-  "name" : "name",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.value[x]",
-  "name" : "value[x]",
-  "lvl" : 1,
-  "min" : 1,
-  "max" : 1,
-  "type" : "unsignedInt",
-  "desc" : ""
-}, {
-  "path" : "parameter.resource",
-  "name" : "resource",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.part",
-  "name" : "part",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter",
-  "name" : "parameter:saslClientCallbackHandlerClass",
-  "lvl" : 0,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.name",
-  "name" : "name",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.value[x]",
-  "name" : "value[x]",
-  "lvl" : 1,
-  "min" : 1,
-  "max" : 1,
-  "type" : "string",
-  "desc" : ""
-}, {
-  "path" : "parameter.resource",
-  "name" : "resource",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.part",
-  "name" : "part",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter",
-  "name" : "parameter:saslJaasConfig",
-  "lvl" : 0,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.name",
-  "name" : "name",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.value[x]",
-  "name" : "value[x]",
-  "lvl" : 1,
-  "min" : 1,
-  "max" : 1,
-  "type" : "string",
-  "desc" : ""
-}, {
-  "path" : "parameter.resource",
-  "name" : "resource",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.part",
-  "name" : "part",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter",
-  "name" : "parameter:saslMechanism",
-  "lvl" : 0,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.name",
-  "name" : "name",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.value[x]",
-  "name" : "value[x]",
-  "lvl" : 1,
-  "min" : 1,
-  "max" : 1,
-  "type" : "string",
-  "desc" : ""
-}, {
-  "path" : "parameter.resource",
-  "name" : "resource",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.part",
-  "name" : "part",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter",
-  "name" : "parameter:securityProtocol",
-  "lvl" : 0,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.name",
-  "name" : "name",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.value[x]",
-  "name" : "value[x]",
-  "lvl" : 1,
-  "min" : 1,
-  "max" : 1,
-  "type" : "string",
-  "desc" : ""
-}, {
-  "path" : "parameter.resource",
-  "name" : "resource",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.part",
-  "name" : "part",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter",
-  "name" : "parameter:sslKeystoreKey",
-  "lvl" : 0,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.name",
-  "name" : "name",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.value[x]",
-  "name" : "value[x]",
-  "lvl" : 1,
-  "min" : 1,
-  "max" : 1,
-  "type" : "string",
-  "desc" : ""
-}, {
-  "path" : "parameter.resource",
-  "name" : "resource",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.part",
-  "name" : "part",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-} ]
-```
-
-
-## aidboxtopicdestination-kafka-at-least-once-mock
-
-Kafka at-least-once mock delivery profile for AidboxTopicDestination.
-
-```fhir-structure
-[ {
-  "path" : "kind",
-  "name" : "kind",
-  "lvl" : 0,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter",
-  "name" : "parameter",
-  "lvl" : 0,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter",
-  "name" : "parameter:autocomplete",
-  "lvl" : 0,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.name",
-  "name" : "name",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.value[x]",
-  "name" : "value[x]",
-  "lvl" : 1,
-  "min" : 1,
-  "max" : 1,
-  "type" : "boolean",
-  "desc" : ""
-}, {
-  "path" : "parameter.resource",
-  "name" : "resource",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.part",
-  "name" : "part",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter",
-  "name" : "parameter:batchSize",
-  "lvl" : 0,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.name",
-  "name" : "name",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.value[x]",
-  "name" : "value[x]",
-  "lvl" : 1,
-  "min" : 1,
-  "max" : 1,
-  "type" : "unsignedInt",
-  "desc" : ""
-}, {
-  "path" : "parameter.resource",
-  "name" : "resource",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.part",
-  "name" : "part",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter",
-  "name" : "parameter:bootstrapServers",
-  "lvl" : 0,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.name",
-  "name" : "name",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.value[x]",
-  "name" : "value[x]",
-  "lvl" : 1,
-  "min" : 1,
-  "max" : 1,
-  "type" : "string",
-  "desc" : ""
-}, {
-  "path" : "parameter.resource",
-  "name" : "resource",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.part",
-  "name" : "part",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter",
-  "name" : "parameter:compressionType",
-  "lvl" : 0,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.name",
-  "name" : "name",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.value[x]",
-  "name" : "value[x]",
-  "lvl" : 1,
-  "min" : 1,
-  "max" : 1,
-  "type" : "string",
-  "desc" : ""
-}, {
-  "path" : "parameter.resource",
-  "name" : "resource",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.part",
-  "name" : "part",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter",
-  "name" : "parameter:deliveryTimeoutMs",
-  "lvl" : 0,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.name",
-  "name" : "name",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.value[x]",
-  "name" : "value[x]",
-  "lvl" : 1,
-  "min" : 1,
-  "max" : 1,
-  "type" : "unsignedInt",
-  "desc" : ""
-}, {
-  "path" : "parameter.resource",
-  "name" : "resource",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.part",
-  "name" : "part",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter",
-  "name" : "parameter:fail-on-creation-of-producer",
-  "lvl" : 0,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.name",
-  "name" : "name",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.value[x]",
-  "name" : "value[x]",
-  "lvl" : 1,
-  "min" : 1,
-  "max" : 1,
-  "type" : "boolean",
-  "desc" : ""
-}, {
-  "path" : "parameter.resource",
-  "name" : "resource",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.part",
-  "name" : "part",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter",
-  "name" : "parameter:kafkaTopic",
-  "lvl" : 0,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.name",
-  "name" : "name",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.value[x]",
-  "name" : "value[x]",
-  "lvl" : 1,
-  "min" : 1,
-  "max" : 1,
-  "type" : "string",
-  "desc" : ""
-}, {
-  "path" : "parameter.resource",
-  "name" : "resource",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.part",
-  "name" : "part",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter",
-  "name" : "parameter:maxBlockMs",
-  "lvl" : 0,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.name",
-  "name" : "name",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.value[x]",
-  "name" : "value[x]",
-  "lvl" : 1,
-  "min" : 1,
-  "max" : 1,
-  "type" : "unsignedInt",
-  "desc" : ""
-}, {
-  "path" : "parameter.resource",
-  "name" : "resource",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.part",
-  "name" : "part",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter",
-  "name" : "parameter:maxRequestSize",
-  "lvl" : 0,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.name",
-  "name" : "name",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.value[x]",
-  "name" : "value[x]",
-  "lvl" : 1,
-  "min" : 1,
-  "max" : 1,
-  "type" : "unsignedInt",
-  "desc" : ""
-}, {
-  "path" : "parameter.resource",
-  "name" : "resource",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.part",
-  "name" : "part",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter",
-  "name" : "parameter:requestTimeoutMs",
-  "lvl" : 0,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.name",
-  "name" : "name",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.value[x]",
-  "name" : "value[x]",
-  "lvl" : 1,
-  "min" : 1,
-  "max" : 1,
-  "type" : "unsignedInt",
-  "desc" : ""
-}, {
-  "path" : "parameter.resource",
-  "name" : "resource",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.part",
-  "name" : "part",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter",
-  "name" : "parameter:saslClientCallbackHandlerClass",
-  "lvl" : 0,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.name",
-  "name" : "name",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.value[x]",
-  "name" : "value[x]",
-  "lvl" : 1,
-  "min" : 1,
-  "max" : 1,
-  "type" : "string",
-  "desc" : ""
-}, {
-  "path" : "parameter.resource",
-  "name" : "resource",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.part",
-  "name" : "part",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter",
-  "name" : "parameter:saslJaasConfig",
-  "lvl" : 0,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.name",
-  "name" : "name",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.value[x]",
-  "name" : "value[x]",
-  "lvl" : 1,
-  "min" : 1,
-  "max" : 1,
-  "type" : "string",
-  "desc" : ""
-}, {
-  "path" : "parameter.resource",
-  "name" : "resource",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.part",
-  "name" : "part",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter",
-  "name" : "parameter:saslMechanism",
-  "lvl" : 0,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.name",
-  "name" : "name",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.value[x]",
-  "name" : "value[x]",
-  "lvl" : 1,
-  "min" : 1,
-  "max" : 1,
-  "type" : "string",
-  "desc" : ""
-}, {
-  "path" : "parameter.resource",
-  "name" : "resource",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.part",
-  "name" : "part",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter",
-  "name" : "parameter:securityProtocol",
-  "lvl" : 0,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.name",
-  "name" : "name",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.value[x]",
-  "name" : "value[x]",
-  "lvl" : 1,
-  "min" : 1,
-  "max" : 1,
-  "type" : "string",
-  "desc" : ""
-}, {
-  "path" : "parameter.resource",
-  "name" : "resource",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.part",
-  "name" : "part",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter",
-  "name" : "parameter:sslKeystoreKey",
-  "lvl" : 0,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.name",
-  "name" : "name",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.value[x]",
-  "name" : "value[x]",
-  "lvl" : 1,
-  "min" : 1,
-  "max" : 1,
-  "type" : "string",
-  "desc" : ""
-}, {
-  "path" : "parameter.resource",
-  "name" : "resource",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.part",
-  "name" : "part",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-} ]
-```
-
-
-## aidboxtopicdestination-kafka-best-effort
-
-Kafka best-effort delivery profile for AidboxTopicDestination.
-
-```fhir-structure
-[ {
-  "path" : "kind",
-  "name" : "kind",
-  "lvl" : 0,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter",
-  "name" : "parameter",
-  "lvl" : 0,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter",
-  "name" : "parameter:batchSize",
-  "lvl" : 0,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.name",
-  "name" : "name",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.value[x]",
-  "name" : "value[x]",
-  "lvl" : 1,
-  "min" : 1,
-  "max" : 1,
-  "type" : "unsignedInt",
-  "desc" : ""
-}, {
-  "path" : "parameter.resource",
-  "name" : "resource",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.part",
-  "name" : "part",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter",
-  "name" : "parameter:bootstrapServers",
-  "lvl" : 0,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.name",
-  "name" : "name",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.value[x]",
-  "name" : "value[x]",
-  "lvl" : 1,
-  "min" : 1,
-  "max" : 1,
-  "type" : "string",
-  "desc" : ""
-}, {
-  "path" : "parameter.resource",
-  "name" : "resource",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.part",
-  "name" : "part",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter",
-  "name" : "parameter:compressionType",
-  "lvl" : 0,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.name",
-  "name" : "name",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.value[x]",
-  "name" : "value[x]",
-  "lvl" : 1,
-  "min" : 1,
-  "max" : 1,
-  "type" : "string",
-  "desc" : ""
-}, {
-  "path" : "parameter.resource",
-  "name" : "resource",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.part",
-  "name" : "part",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter",
-  "name" : "parameter:deliveryTimeoutMs",
-  "lvl" : 0,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.name",
-  "name" : "name",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.value[x]",
-  "name" : "value[x]",
-  "lvl" : 1,
-  "min" : 1,
-  "max" : 1,
-  "type" : "unsignedInt",
-  "desc" : ""
-}, {
-  "path" : "parameter.resource",
-  "name" : "resource",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.part",
-  "name" : "part",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter",
-  "name" : "parameter:kafkaTopic",
-  "lvl" : 0,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.name",
-  "name" : "name",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.value[x]",
-  "name" : "value[x]",
-  "lvl" : 1,
-  "min" : 1,
-  "max" : 1,
-  "type" : "string",
-  "desc" : ""
-}, {
-  "path" : "parameter.resource",
-  "name" : "resource",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.part",
-  "name" : "part",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter",
-  "name" : "parameter:maxBlockMs",
-  "lvl" : 0,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.name",
-  "name" : "name",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.value[x]",
-  "name" : "value[x]",
-  "lvl" : 1,
-  "min" : 1,
-  "max" : 1,
-  "type" : "unsignedInt",
-  "desc" : ""
-}, {
-  "path" : "parameter.resource",
-  "name" : "resource",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.part",
-  "name" : "part",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter",
-  "name" : "parameter:maxRequestSize",
-  "lvl" : 0,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.name",
-  "name" : "name",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.value[x]",
-  "name" : "value[x]",
-  "lvl" : 1,
-  "min" : 1,
-  "max" : 1,
-  "type" : "unsignedInt",
-  "desc" : ""
-}, {
-  "path" : "parameter.resource",
-  "name" : "resource",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.part",
-  "name" : "part",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter",
-  "name" : "parameter:requestTimeoutMs",
-  "lvl" : 0,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.name",
-  "name" : "name",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.value[x]",
-  "name" : "value[x]",
-  "lvl" : 1,
-  "min" : 1,
-  "max" : 1,
-  "type" : "unsignedInt",
-  "desc" : ""
-}, {
-  "path" : "parameter.resource",
-  "name" : "resource",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.part",
-  "name" : "part",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter",
-  "name" : "parameter:saslClientCallbackHandlerClass",
-  "lvl" : 0,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.name",
-  "name" : "name",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.value[x]",
-  "name" : "value[x]",
-  "lvl" : 1,
-  "min" : 1,
-  "max" : 1,
-  "type" : "string",
-  "desc" : ""
-}, {
-  "path" : "parameter.resource",
-  "name" : "resource",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.part",
-  "name" : "part",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter",
-  "name" : "parameter:saslJaasConfig",
-  "lvl" : 0,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.name",
-  "name" : "name",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.value[x]",
-  "name" : "value[x]",
-  "lvl" : 1,
-  "min" : 1,
-  "max" : 1,
-  "type" : "string",
-  "desc" : ""
-}, {
-  "path" : "parameter.resource",
-  "name" : "resource",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.part",
-  "name" : "part",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter",
-  "name" : "parameter:saslMechanism",
-  "lvl" : 0,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.name",
-  "name" : "name",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.value[x]",
-  "name" : "value[x]",
-  "lvl" : 1,
-  "min" : 1,
-  "max" : 1,
-  "type" : "string",
-  "desc" : ""
-}, {
-  "path" : "parameter.resource",
-  "name" : "resource",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.part",
-  "name" : "part",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter",
-  "name" : "parameter:securityProtocol",
-  "lvl" : 0,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.name",
-  "name" : "name",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.value[x]",
-  "name" : "value[x]",
-  "lvl" : 1,
-  "min" : 1,
-  "max" : 1,
-  "type" : "string",
-  "desc" : ""
-}, {
-  "path" : "parameter.resource",
-  "name" : "resource",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.part",
-  "name" : "part",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter",
-  "name" : "parameter:sslKeystoreKey",
-  "lvl" : 0,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.name",
-  "name" : "name",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.value[x]",
-  "name" : "value[x]",
-  "lvl" : 1,
-  "min" : 1,
-  "max" : 1,
-  "type" : "string",
-  "desc" : ""
-}, {
-  "path" : "parameter.resource",
-  "name" : "resource",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.part",
-  "name" : "part",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-} ]
-```
-
-
-## aidboxtopicdestination-kafka-best-effort-mock
-
-Kafka best-effort mock delivery profile for AidboxTopicDestination.
-
-```fhir-structure
-[ {
-  "path" : "kind",
-  "name" : "kind",
-  "lvl" : 0,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter",
-  "name" : "parameter",
-  "lvl" : 0,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter",
-  "name" : "parameter:autocomplete",
-  "lvl" : 0,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.name",
-  "name" : "name",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.value[x]",
-  "name" : "value[x]",
-  "lvl" : 1,
-  "min" : 1,
-  "max" : 1,
-  "type" : "boolean",
-  "desc" : ""
-}, {
-  "path" : "parameter.resource",
-  "name" : "resource",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.part",
-  "name" : "part",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter",
-  "name" : "parameter:batchSize",
-  "lvl" : 0,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.name",
-  "name" : "name",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.value[x]",
-  "name" : "value[x]",
-  "lvl" : 1,
-  "min" : 1,
-  "max" : 1,
-  "type" : "unsignedInt",
-  "desc" : ""
-}, {
-  "path" : "parameter.resource",
-  "name" : "resource",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.part",
-  "name" : "part",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter",
-  "name" : "parameter:bootstrapServers",
-  "lvl" : 0,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.name",
-  "name" : "name",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.value[x]",
-  "name" : "value[x]",
-  "lvl" : 1,
-  "min" : 1,
-  "max" : 1,
-  "type" : "string",
-  "desc" : ""
-}, {
-  "path" : "parameter.resource",
-  "name" : "resource",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.part",
-  "name" : "part",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter",
-  "name" : "parameter:compressionType",
-  "lvl" : 0,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.name",
-  "name" : "name",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.value[x]",
-  "name" : "value[x]",
-  "lvl" : 1,
-  "min" : 1,
-  "max" : 1,
-  "type" : "string",
-  "desc" : ""
-}, {
-  "path" : "parameter.resource",
-  "name" : "resource",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.part",
-  "name" : "part",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter",
-  "name" : "parameter:deliveryTimeoutMs",
-  "lvl" : 0,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.name",
-  "name" : "name",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.value[x]",
-  "name" : "value[x]",
-  "lvl" : 1,
-  "min" : 1,
-  "max" : 1,
-  "type" : "unsignedInt",
-  "desc" : ""
-}, {
-  "path" : "parameter.resource",
-  "name" : "resource",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.part",
-  "name" : "part",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter",
-  "name" : "parameter:fail-on-creation-of-producer",
-  "lvl" : 0,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.name",
-  "name" : "name",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.value[x]",
-  "name" : "value[x]",
-  "lvl" : 1,
-  "min" : 1,
-  "max" : 1,
-  "type" : "boolean",
-  "desc" : ""
-}, {
-  "path" : "parameter.resource",
-  "name" : "resource",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.part",
-  "name" : "part",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter",
-  "name" : "parameter:kafkaTopic",
-  "lvl" : 0,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.name",
-  "name" : "name",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.value[x]",
-  "name" : "value[x]",
-  "lvl" : 1,
-  "min" : 1,
-  "max" : 1,
-  "type" : "string",
-  "desc" : ""
-}, {
-  "path" : "parameter.resource",
-  "name" : "resource",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.part",
-  "name" : "part",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter",
-  "name" : "parameter:maxBlockMs",
-  "lvl" : 0,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.name",
-  "name" : "name",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.value[x]",
-  "name" : "value[x]",
-  "lvl" : 1,
-  "min" : 1,
-  "max" : 1,
-  "type" : "unsignedInt",
-  "desc" : ""
-}, {
-  "path" : "parameter.resource",
-  "name" : "resource",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.part",
-  "name" : "part",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter",
-  "name" : "parameter:maxRequestSize",
-  "lvl" : 0,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.name",
-  "name" : "name",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.value[x]",
-  "name" : "value[x]",
-  "lvl" : 1,
-  "min" : 1,
-  "max" : 1,
-  "type" : "unsignedInt",
-  "desc" : ""
-}, {
-  "path" : "parameter.resource",
-  "name" : "resource",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.part",
-  "name" : "part",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter",
-  "name" : "parameter:requestTimeoutMs",
-  "lvl" : 0,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.name",
-  "name" : "name",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.value[x]",
-  "name" : "value[x]",
-  "lvl" : 1,
-  "min" : 1,
-  "max" : 1,
-  "type" : "unsignedInt",
-  "desc" : ""
-}, {
-  "path" : "parameter.resource",
-  "name" : "resource",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.part",
-  "name" : "part",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter",
-  "name" : "parameter:saslClientCallbackHandlerClass",
-  "lvl" : 0,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.name",
-  "name" : "name",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.value[x]",
-  "name" : "value[x]",
-  "lvl" : 1,
-  "min" : 1,
-  "max" : 1,
-  "type" : "string",
-  "desc" : ""
-}, {
-  "path" : "parameter.resource",
-  "name" : "resource",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.part",
-  "name" : "part",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter",
-  "name" : "parameter:saslJaasConfig",
-  "lvl" : 0,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.name",
-  "name" : "name",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.value[x]",
-  "name" : "value[x]",
-  "lvl" : 1,
-  "min" : 1,
-  "max" : 1,
-  "type" : "string",
-  "desc" : ""
-}, {
-  "path" : "parameter.resource",
-  "name" : "resource",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.part",
-  "name" : "part",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter",
-  "name" : "parameter:saslMechanism",
-  "lvl" : 0,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.name",
-  "name" : "name",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.value[x]",
-  "name" : "value[x]",
-  "lvl" : 1,
-  "min" : 1,
-  "max" : 1,
-  "type" : "string",
-  "desc" : ""
-}, {
-  "path" : "parameter.resource",
-  "name" : "resource",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.part",
-  "name" : "part",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter",
-  "name" : "parameter:securityProtocol",
-  "lvl" : 0,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.name",
-  "name" : "name",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.value[x]",
-  "name" : "value[x]",
-  "lvl" : 1,
-  "min" : 1,
-  "max" : 1,
-  "type" : "string",
-  "desc" : ""
-}, {
-  "path" : "parameter.resource",
-  "name" : "resource",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.part",
-  "name" : "part",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter",
-  "name" : "parameter:sslKeystoreKey",
-  "lvl" : 0,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.name",
-  "name" : "name",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.value[x]",
-  "name" : "value[x]",
-  "lvl" : 1,
-  "min" : 1,
-  "max" : 1,
-  "type" : "string",
-  "desc" : ""
-}, {
-  "path" : "parameter.resource",
-  "name" : "resource",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.part",
-  "name" : "part",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-} ]
-```
-
-
-## aidboxtopicdestination-nats-core-best-effort
-
-NATS Core best-effort delivery profile for AidboxTopicDestination.
-
-```fhir-structure
-[ {
-  "path" : "kind",
-  "name" : "kind",
-  "lvl" : 0,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter",
-  "name" : "parameter",
-  "lvl" : 0,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter",
-  "name" : "parameter:connectionName",
-  "lvl" : 0,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.name",
-  "name" : "name",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.value[x]",
-  "name" : "value[x]",
-  "lvl" : 1,
-  "min" : 1,
-  "max" : 1,
-  "type" : "string",
-  "desc" : ""
-}, {
-  "path" : "parameter.resource",
-  "name" : "resource",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.part",
-  "name" : "part",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter",
-  "name" : "parameter:credentialsFilePath",
-  "lvl" : 0,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.name",
-  "name" : "name",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.value[x]",
-  "name" : "value[x]",
-  "lvl" : 1,
-  "min" : 1,
-  "max" : 1,
-  "type" : "string",
-  "desc" : ""
-}, {
-  "path" : "parameter.resource",
-  "name" : "resource",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.part",
-  "name" : "part",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter",
-  "name" : "parameter:password",
-  "lvl" : 0,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.name",
-  "name" : "name",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.value[x]",
-  "name" : "value[x]",
-  "lvl" : 1,
-  "min" : 1,
-  "max" : 1,
-  "type" : "string",
-  "desc" : ""
-}, {
-  "path" : "parameter.resource",
-  "name" : "resource",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.part",
-  "name" : "part",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter",
-  "name" : "parameter:sslContext",
-  "lvl" : 0,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.name",
-  "name" : "name",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.value[x]",
-  "name" : "value[x]",
-  "lvl" : 1,
-  "min" : 1,
-  "max" : 1,
-  "type" : "string",
-  "desc" : ""
-}, {
-  "path" : "parameter.resource",
-  "name" : "resource",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.part",
-  "name" : "part",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter",
-  "name" : "parameter:subject",
-  "lvl" : 0,
-  "min" : 1,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.name",
-  "name" : "name",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.value[x]",
-  "name" : "value[x]",
-  "lvl" : 1,
-  "min" : 1,
-  "max" : 1,
-  "type" : "string",
-  "desc" : ""
-}, {
-  "path" : "parameter.resource",
-  "name" : "resource",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.part",
-  "name" : "part",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter",
-  "name" : "parameter:url",
-  "lvl" : 0,
-  "min" : 1,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.name",
-  "name" : "name",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.value[x]",
-  "name" : "value[x]",
-  "lvl" : 1,
-  "min" : 1,
-  "max" : 1,
-  "type" : "string",
-  "desc" : ""
-}, {
-  "path" : "parameter.resource",
-  "name" : "resource",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.part",
-  "name" : "part",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter",
-  "name" : "parameter:username",
-  "lvl" : 0,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.name",
-  "name" : "name",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.value[x]",
-  "name" : "value[x]",
-  "lvl" : 1,
-  "min" : 1,
-  "max" : 1,
-  "type" : "string",
-  "desc" : ""
-}, {
-  "path" : "parameter.resource",
-  "name" : "resource",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.part",
-  "name" : "part",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-} ]
-```
-
-
-## aidboxtopicdestination-nats-jetstream-at-least-once
-
-NATS JetStream at-least-once delivery profile for AidboxTopicDestination.
-
-```fhir-structure
-[ {
-  "path" : "kind",
-  "name" : "kind",
-  "lvl" : 0,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter",
-  "name" : "parameter",
-  "lvl" : 0,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter",
-  "name" : "parameter:connectionName",
-  "lvl" : 0,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.name",
-  "name" : "name",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.value[x]",
-  "name" : "value[x]",
-  "lvl" : 1,
-  "min" : 1,
-  "max" : 1,
-  "type" : "string",
-  "desc" : ""
-}, {
-  "path" : "parameter.resource",
-  "name" : "resource",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.part",
-  "name" : "part",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter",
-  "name" : "parameter:credentialsFilePath",
-  "lvl" : 0,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.name",
-  "name" : "name",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.value[x]",
-  "name" : "value[x]",
-  "lvl" : 1,
-  "min" : 1,
-  "max" : 1,
-  "type" : "string",
-  "desc" : ""
-}, {
-  "path" : "parameter.resource",
-  "name" : "resource",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.part",
-  "name" : "part",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter",
-  "name" : "parameter:password",
-  "lvl" : 0,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.name",
-  "name" : "name",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.value[x]",
-  "name" : "value[x]",
-  "lvl" : 1,
-  "min" : 1,
-  "max" : 1,
-  "type" : "string",
-  "desc" : ""
-}, {
-  "path" : "parameter.resource",
-  "name" : "resource",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.part",
-  "name" : "part",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter",
-  "name" : "parameter:sslContext",
-  "lvl" : 0,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.name",
-  "name" : "name",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.value[x]",
-  "name" : "value[x]",
-  "lvl" : 1,
-  "min" : 1,
-  "max" : 1,
-  "type" : "string",
-  "desc" : ""
-}, {
-  "path" : "parameter.resource",
-  "name" : "resource",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.part",
-  "name" : "part",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter",
-  "name" : "parameter:subject",
-  "lvl" : 0,
-  "min" : 1,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.name",
-  "name" : "name",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.value[x]",
-  "name" : "value[x]",
-  "lvl" : 1,
-  "min" : 1,
-  "max" : 1,
-  "type" : "string",
-  "desc" : ""
-}, {
-  "path" : "parameter.resource",
-  "name" : "resource",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.part",
-  "name" : "part",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter",
-  "name" : "parameter:url",
-  "lvl" : 0,
-  "min" : 1,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.name",
-  "name" : "name",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.value[x]",
-  "name" : "value[x]",
-  "lvl" : 1,
-  "min" : 1,
-  "max" : 1,
-  "type" : "string",
-  "desc" : ""
-}, {
-  "path" : "parameter.resource",
-  "name" : "resource",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.part",
-  "name" : "part",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter",
-  "name" : "parameter:username",
-  "lvl" : 0,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.name",
-  "name" : "name",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.value[x]",
-  "name" : "value[x]",
-  "lvl" : 1,
-  "min" : 1,
-  "max" : 1,
-  "type" : "string",
-  "desc" : ""
-}, {
-  "path" : "parameter.resource",
-  "name" : "resource",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.part",
-  "name" : "part",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-} ]
-```
-
-
-## aidboxtopicdestination-webhook-at-least-once
+## WebhookAtLeastOnceProfile
 
 Webhook at-least-once delivery profile for AidboxTopicDestination.
 
@@ -15185,152 +15331,6 @@ The versionId of the resource at the time the notification was triggered.
   "max" : 1,
   "type" : "id",
   "desc" : "Resource versionId"
-} ]
-```
-
-
-## fhir-package-install-parameters
-
-Profile for FHIR package installation parameters.
-
-```fhir-structure
-[ {
-  "path" : "parameter",
-  "name" : "parameter",
-  "lvl" : 0,
-  "min" : 1,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter",
-  "name" : "parameter:override",
-  "lvl" : 0,
-  "min" : 0,
-  "max" : "*",
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.name",
-  "name" : "name",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.part",
-  "name" : "part",
-  "lvl" : 1,
-  "min" : 2,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.part",
-  "name" : "part:from",
-  "lvl" : 1,
-  "min" : 1,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.part.name",
-  "name" : "name",
-  "lvl" : 2,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.part",
-  "name" : "part:to",
-  "lvl" : 1,
-  "min" : 1,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.part.name",
-  "name" : "name",
-  "lvl" : 2,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.part.value[x]",
-  "name" : "value[x]",
-  "lvl" : 2,
-  "min" : 0,
-  "max" : 1,
-  "type" : "string",
-  "desc" : ""
-}, {
-  "path" : "parameter",
-  "name" : "parameter:package",
-  "lvl" : 0,
-  "min" : 1,
-  "max" : "*",
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.name",
-  "name" : "name",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter",
-  "name" : "parameter:registry",
-  "lvl" : 0,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.name",
-  "name" : "name",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-} ]
-```
-
-
-## fhir-package-uninstall-parameters
-
-Profile for FHIR package uninstallation parameters.
-
-```fhir-structure
-[ {
-  "path" : "parameter",
-  "name" : "parameter",
-  "lvl" : 0,
-  "min" : 1,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter",
-  "name" : "parameter:package",
-  "lvl" : 0,
-  "min" : 1,
-  "max" : "*",
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.name",
-  "name" : "name",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
 } ]
 ```
 
