@@ -64,20 +64,20 @@ Both versions support AMQP 1.0 protocol, making them compatible with Aidbox's `a
 2.  Download **.jar** AMQP module file from [our bucket](https://storage.googleapis.com/aidbox-modules) and place it next to **docker-compose.yaml**.
 
     ```sh
-    curl -O https://storage.googleapis.com/aidbox-modules/topic-destination-amqp/topic-destination-amqp-2509.4.jar
+    curl -O https://storage.googleapis.com/aidbox-modules/topic-destination-amqp/topic-destination-amqp-2604.0.jar
     ```
 3.  Add jar module file to Aidbox:
 
     ```yaml
         volumes:
         # module jar to turn on AMQP support
-        - ./topic-destination-amqp-2509.4.jar:/topic-destination-amqp-2509.4.jar
+        - ./topic-destination-amqp-2604.0.jar:/topic-destination-amqp-2604.0.jar
     ```
 
     Set envs to import it on start:
 
     ```yaml
-       BOX_MODULE_JAR: "/topic-destination-amqp-2509.4.jar"
+       BOX_MODULE_JAR: "/topic-destination-amqp-2604.0.jar"
        BOX_MODULE_LOAD: io.healthsamurai.topic-destination.amqp.core
     ```
 4.  Start the services.
