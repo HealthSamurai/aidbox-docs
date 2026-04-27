@@ -3,6 +3,8 @@ redirects:
   contact-us: overview/contact-us.md
   access-control/authentication/access-to-aidboxui: access-control/authentication/README.md
   api/other/plan-api/plan-api-overview: api/other/plan-api/README.md
+  api/other/plan-api/provider-member-match: solutions/CMS-0057-F/developer-docs/provider-access-api/provider-member-match.md
+  api/other/plan-api/provider-member-match/README: solutions/CMS-0057-F/developer-docs/provider-access-api/provider-member-match.md
   developer-experience/aidbox-sdk/aidbox-javascript-sdk: deprecated/deprecated/other/aidbox-sdk/aidbox-javascript-sdk.md
   developer-experience/aidbox-sdk/nodejs-sdk: deprecated/deprecated/other/aidbox-sdk/nodejs-sdk.md
   developer-experience/aidbox-sdk/python-sdk: deprecated/deprecated/other/aidbox-sdk/python-sdk.md

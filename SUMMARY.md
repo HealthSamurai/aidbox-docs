@@ -204,7 +204,6 @@
       * [PractitionerRole](api/other/plan-api/provider-directory-api/practitionerrole.md)
       * [Organization](api/other/plan-api/provider-directory-api/organization.md)
       * [OrganizationAffiliation](api/other/plan-api/provider-directory-api/organizationaffiliation.md)
-    * [$provider-member-match](api/other/plan-api/provider-member-match/README.md)
   * [Archive/Restore API](api/other/archive-restore-api/README.md)
     * [Create-archive](api/other/archive-restore-api/create-archive.md)
     * [Restore-archive](api/other/archive-restore-api/restore-archive.md)
@@ -501,6 +500,9 @@
   * [Coverage Requirements Discovery (CRD)](solutions/CMS-0057-F/coverage-requirements-discovery-crd/README.md)
     * [CDS Hooks API](solutions/CMS-0057-F/coverage-requirements-discovery-crd/cds-hooks-api.md)
   * [Prior Authorization Support (PAS) API](solutions/CMS-0057-F/prior-authorization-support-pas-api.md)
+  * [Developer Docs](solutions/CMS-0057-F/developer-docs/README.md)
+    * [Provider Access API](solutions/CMS-0057-F/developer-docs/provider-access-api/README.md)
+      * [$provider-member-match](solutions/CMS-0057-F/developer-docs/provider-access-api/provider-member-match.md)
 
 ## Reference
 
