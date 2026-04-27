@@ -9,7 +9,14 @@ This functionality is available starting from version 2410 and requires [FHIR Sc
 {% endhint %}
 
 {% hint style="warning" %}
-**Aidbox 2604+ compatibility:** AidboxTopicDestination profile URLs were renamed — both the host (`aidbox.app` → `health-samurai.io/fhir/core`) and the kind segment (kebab-case → camelCase with a `Profile` suffix). Examples below use the new URL. For Aidbox **< 2604**, look up the legacy URL in the [connector compatibility table](../../modules/topic-based-subscriptions/aidbox-topic-based-subscriptions.md). When upgrading Aidbox across the 2604 boundary, redeploy the connector JAR against an Aidbox 2604+ release — older connector JARs register profiles through a legacy path the new validator no longer honors.
+**Aidbox version compatibility**
+
+| Aidbox | Profile URL |
+| --- | --- |
+| ≥ 2604 | `http://health-samurai.io/fhir/core/StructureDefinition/aidboxtopicdestination-webhookAtLeastOnceProfile` |
+| < 2604 | `http://aidbox.app/StructureDefinition/aidboxtopicdestination-webhook-at-least-once` |
+
+Examples below use the ≥ 2604 form. On older Aidbox, swap the `meta.profile` URL. The webhook destination ships with Aidbox core — no separate connector JAR.
 {% endhint %}
 
 This page describes an AidboxTopicDestination, which allows sending events described by an AidboxSubscriptionTopic to a specific HTTP endpoint.

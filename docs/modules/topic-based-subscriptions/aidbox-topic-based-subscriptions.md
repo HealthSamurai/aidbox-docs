@@ -8,45 +8,6 @@ description: FHIR Subscriptions Aidbox Topic-Based Subscriptions for real-time n
 This functionality is available in Aidbox versions 2409 and later and requires [FHIR Schema](../profiling-and-validation/fhir-schema-validator/) validation engine to be [enabled](../profiling-and-validation/fhir-schema-validator/).
 {% endhint %}
 
-{% hint style="warning" %}
-**Connector compatibility (Aidbox 2604+)**
-
-Starting from Aidbox **2604**, AidboxTopicDestination profile URLs were renamed and connector JARs must be built against a compatible Aidbox release.
-
-| Aidbox version | Profile URL form | Connector JAR |
-| --- | --- | --- |
-| ≥ 2604 | `http://health-samurai.io/fhir/core/StructureDefinition/aidboxtopicdestination-<nameProfile>` | `topic-destination-<name>` built against Aidbox 2604+ |
-| < 2604 | `http://aidbox.app/StructureDefinition/aidboxtopicdestination-<kind>` (legacy) | connector JAR from the same Aidbox era |
-
-The kind segment differs: new form is camelCase with a `Profile` suffix (e.g. `clickHouseProfile`, `awssnsAtLeastOnceProfile`), legacy form is kebab-case (e.g. `clickhouse`, `aws-sns-at-least-once`). It is not a host-only substitution.
-
-Profile name mapping:
-
-| Kind | `<nameProfile>` (≥ 2604) | `<kind>` (< 2604) |
-| --- | --- | --- |
-| ClickHouse | `clickHouseProfile` | `clickhouse` |
-| ClickHouse at-least-once | `clickHouseAtLeastOnceProfile` | `clickhouse-at-least-once` |
-| BigQuery at-least-once | `bigQueryAtLeastOnceProfile` | `bigquery-at-least-once` |
-| Kafka best-effort | `kafkaBestEffortProfile` | `kafka-best-effort` |
-| Kafka at-least-once | `kafkaAtLeastOnceProfile` | `kafka-at-least-once` |
-| Kafka best-effort (mock) | `kafkaBestEffortMockProfile` | `kafka-best-effort-mock` |
-| Kafka at-least-once (mock) | `kafkaAtLeastOnceMockProfile` | `kafka-at-least-once-mock` |
-| Webhook at-least-once | `webhookAtLeastOnceProfile` | `webhook-at-least-once` |
-| GCP Pub/Sub at-least-once | `gcpPubSubAtLeastOnceProfile` | `gcp-pubsub-at-least-once` |
-| AWS EventBridge best-effort | `awsEventBridgeBestEffortProfile` | `aws-eventbridge-best-effort` |
-| AWS EventBridge at-least-once | `awsEventBridgeAtLeastOnceProfile` | `aws-eventbridge-at-least-once` |
-| AWS SNS best-effort | `awssnsBestEffortProfile` | `aws-sns-best-effort` |
-| AWS SNS at-least-once | `awssnsAtLeastOnceProfile` | `aws-sns-at-least-once` |
-| NATS Core best-effort | `natsCoreBestEffortProfile` | `nats-core-best-effort` |
-| NATS JetStream at-least-once | `natsJetStreamAtLeastOnceProfile` | `nats-jetstream-at-least-once` |
-| AMQP RabbitMQ 0-9-1 | `amqpRabbitMQ091Profile` | `amqp-rabbitmq-0-9-1` |
-| AMQP RabbitMQ 0-9-1 at-least-once | `amqpRabbitMQ091AtLeastOnceProfile` | `amqp-rabbitmq-0-9-1-at-least-once` |
-| AMQP 1-0 at-least-once | `amqp10AtLeastOnceProfile` | `amqp-1-0-at-least-once` |
-| FHIR native topic-based subscription | `fhirNativeTopicBasedSubscriptionProfile` | `fhir-native-topic-based-subscription` |
-
-Tutorials use the new (≥ 2604) URL form. For Aidbox **< 2604**, substitute both host and kind per the table. When upgrading across the 2604 boundary, redeploy the connector JAR — older JARs register profiles via a legacy path the new FAR-backed validator ignores.
-{% endhint %}
-
 ### Overview
 
 This feature enables dynamic subscriptions to changes in FHIR resources, allowing users/systems to receive notifications through [multiple channels](#currently-supported-channels).
