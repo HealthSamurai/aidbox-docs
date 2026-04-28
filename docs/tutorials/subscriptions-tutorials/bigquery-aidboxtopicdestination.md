@@ -9,7 +9,14 @@ This functionality is available starting from version 2603.
 {% endhint %}
 
 {% hint style="warning" %}
-**Aidbox 2604+ compatibility:** AidboxTopicDestination profile URLs were renamed — both the host (`aidbox.app` → `health-samurai.io/fhir/core`) and the kind segment (kebab-case → camelCase with a `Profile` suffix). Examples below use the new URL. For Aidbox **< 2604**, look up the legacy URL in the [connector compatibility table](../../modules/topic-based-subscriptions/aidbox-topic-based-subscriptions.md). When upgrading Aidbox across the 2604 boundary, redeploy the connector JAR against an Aidbox 2604+ release — older connector JARs register profiles through a legacy path the new validator no longer honors.
+**Aidbox version compatibility**
+
+| Aidbox | Connector JAR | Profile URL |
+| --- | --- | --- |
+| ≥ 2604 | `topic-destination-bigquery-2604.0.jar` | `http://health-samurai.io/fhir/core/StructureDefinition/aidboxtopicdestination-bigQueryAtLeastOnceProfile` |
+| < 2604 | `topic-destination-bigquery-2603.1.jar` | `http://aidbox.app/StructureDefinition/aidboxtopicdestination-bigquery-at-least-once` |
+
+Examples below use the ≥ 2604 form. On older Aidbox, swap both the JAR and the `meta.profile` URL. Redeploy the JAR when crossing the 2604 boundary — older JARs register profiles via a legacy path the new validator no longer honors.
 {% endhint %}
 
 ## Overview

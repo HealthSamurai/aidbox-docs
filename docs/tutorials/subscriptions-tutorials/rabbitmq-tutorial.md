@@ -5,7 +5,14 @@ description: Connect Aidbox subscriptions to RabbitMQ message broker using AMQP 
 # AidboxTopicSubscription RabbitMQ tutorial
 
 {% hint style="warning" %}
-**Aidbox 2604+ compatibility:** AidboxTopicDestination profile URLs were renamed — both the host (`aidbox.app` → `health-samurai.io/fhir/core`) and the kind segment (kebab-case → camelCase with a `Profile` suffix). Examples below use the new URL. For Aidbox **< 2604**, look up the legacy URL in the [connector compatibility table](../../modules/topic-based-subscriptions/aidbox-topic-based-subscriptions.md). When upgrading Aidbox across the 2604 boundary, redeploy the connector JAR against an Aidbox 2604+ release — older connector JARs register profiles through a legacy path the new validator no longer honors.
+**Aidbox version compatibility**
+
+| Aidbox | Connector JAR | Profile URL |
+| --- | --- | --- |
+| ≥ 2604 | `topic-destination-amqp-2604.0.jar` | `http://health-samurai.io/fhir/core/StructureDefinition/aidboxtopicdestination-amqp10AtLeastOnceProfile` |
+| < 2604 | `topic-destination-amqp-2509.4.jar` | `http://aidbox.app/StructureDefinition/aidboxtopicdestination-amqp-1-0-at-least-once` |
+
+Examples below use the ≥ 2604 form. On older Aidbox, swap both the JAR and the `meta.profile` URL. Redeploy the JAR when crossing the 2604 boundary — older JARs register profiles via a legacy path the new validator no longer honors.
 {% endhint %}
 
 ## Objectives
@@ -40,20 +47,20 @@ RabbitMQ natively uses AMQP 0-9-1 protocol and also supports AMQP 1.0 (since Rab
 2.  Download **.jar** AMQP module file from [our bucket](https://storage.googleapis.com/aidbox-modules) and place it next to **docker-compose.yaml**.
 
     ```sh
-    curl -O https://storage.googleapis.com/aidbox-modules/topic-destination-amqp/topic-destination-amqp-2509.4.jar
+    curl -O https://storage.googleapis.com/aidbox-modules/topic-destination-amqp/topic-destination-amqp-2604.0.jar
     ```
 3.  Add jar module file to Aidbox:
 
     ```yaml
         volumes:
         # module jar to turn on AMQP support
-        - ./topic-destination-amqp-2509.4.jar:/topic-destination-amqp-2509.4.jar
+        - ./topic-destination-amqp-2604.0.jar:/topic-destination-amqp-2604.0.jar
     ```
 
     Set envs to import it on start:
 
     ```yaml
-       BOX_MODULE_JAR: "/topic-destination-amqp-2509.4.jar"
+       BOX_MODULE_JAR: "/topic-destination-amqp-2604.0.jar"
        BOX_MODULE_LOAD: io.healthsamurai.topic-destination.amqp.core
     ```
 4.  Start the services.
