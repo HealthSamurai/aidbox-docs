@@ -27,6 +27,15 @@ An interactive HTTP client built into Aidbox. Use it to execute REST API request
 
 Run SQL queries directly against the Aidbox database. Useful for debugging, analytics, and working with [SQL on FHIR](../../modules/sql-on-fhir/README.md) ViewDefinitions.
 
+Per-tab settings:
+
+* **Transaction mode** — `Autocommit` (each statement commits immediately; required for `VACUUM`, `CREATE INDEX CONCURRENTLY`) or `Transaction` (whole script wrapped in a single transaction).
+* **Timeout** — per-query `statement_timeout`, default 1 minute.
+* **Limit** — JDBC fetch size cap.
+* **Execution** — `Foreground` (synchronous, results returned to the UI) or `Background` (fire-and-forget; the server runs the query, the UI does not retain results).
+
+Stop button cancels the running query via [`$psql-cancel`](../../api/rest-api/other/sql-endpoints.md#usdpsql-cancel). The `Tab` key indents inside the editor; `EXPLAIN` plans render as a monospace block. Each tab keeps its own settings, query text, and running state. Backed by the [`$psql` endpoint](../../api/rest-api/other/sql-endpoints.md#usdpsql).
+
 ### FHIR Packages
 
 Browse, install, and manage FHIR Implementation Guides and NPM packages loaded into Aidbox via the [FHIR Artifact Registry](../../artifact-registry/artifact-registry-overview.md). Inspect individual resources within each package.

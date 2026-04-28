@@ -7,6 +7,19 @@ description: >-
 # Release Notes
 ## April 2026 _`edge`_
 
+*   Aidbox FHIR server
+
+    **Features**
+
+    * Reworked SQL Console — see the new [`$psql` endpoint](../api/rest-api/other/sql-endpoints.md#usdpsql) for the full backend contract. Configurable per-tab transaction mode (transaction / autocommit), `statement_timeout`, fetch size, foreground / background execution, and `Tab` keybinding to indent. `EXPLAIN` plans render as a monospace block.
+    * Background SQL execution via `X-Aidbox-Sql-Async: true` — the server runs the query without retaining result rows; only metadata (status / duration / query / error) is recorded.
+    * Robust query cancellation via [`$psql-cancel`](../api/rest-api/other/sql-endpoints.md#usdpsql-cancel) — matches by `application_name` set from the new `X-Aidbox-Sql-Query-Id` header instead of a fragile `LIKE '%query%'` scan. Cancels both sync and async runs.
+
+    **Breaking changes**
+
+    * `$psql` response shape changed from `[{:result :duration :status :query}, …]` to `{:status :result [{:type :rset|:count :data …} …] :duration :query}`. The `execute=true` query parameter and the `\n----\n` multi-statement separator are no longer recognised. `$sql` is unchanged. See [SQL endpoints](../api/rest-api/other/sql-endpoints.md#usdpsql).
+    * The legacy DB Console at `/ui/db` now redirects to the new SQL Console at `/u/db-console` and forwards the `?query=` URL parameter.
+
 ## March 2026 _`latest, 2603`_
 
 *   Aidbox FHIR server
