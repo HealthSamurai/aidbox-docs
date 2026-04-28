@@ -61,7 +61,7 @@ returns jsonb[] as $$
                                                    then concat('[', element#>>'{}', ']')
 
                                                    when jsonb_typeof(element) = 'object'
-                                                   then nullif(concat( ' ? ', knife_jsonpath_contains(element::jsonb)), ' ? ()')
+                                                   then nullif(concat( ' ? ', public.knife_jsonpath_contains(element::jsonb)), ' ? ()')
                                                  end,
                                                  ''),
                                      '[*]')::jsonpath
@@ -84,7 +84,7 @@ returns text[] as $$
                                                    then concat('[', element#>>'{}', ']')
 
                                                    when jsonb_typeof(element) = 'object'
-                                                   then nullif(concat( ' ? ', knife_jsonpath_contains(element::jsonb)), ' ? ()')
+                                                   then nullif(concat( ' ? ', public.knife_jsonpath_contains(element::jsonb)), ' ? ()')
                                                  end,
                                                  ''),
                                      '[*]')::jsonpath
@@ -95,7 +95,7 @@ $$ language sql immutable parallel safe strict;
 
 create or replace function knife_extract_max_timestamptz(resource jsonb, paths jsonb)
 returns timestamptz as $$
-   select (select max(knife_date_bound(v#>>'{}', 'max')) from jsonb_array_elements(jsonb_path_query_array(jsonb_agg(result), '$[*][*]')) as r(v))
+   select (select max(public.knife_date_bound(v#>>'{}', 'max')) from jsonb_array_elements(jsonb_path_query_array(jsonb_agg(result), '$[*][*]')) as r(v))
 
    from jsonb_array_elements(paths) as knife_paths(knife_path)
    cross join lateral (select concat('$',
@@ -107,7 +107,7 @@ returns timestamptz as $$
                                                    then concat('[', element#>>'{}', ']')
 
                                                    when jsonb_typeof(element) = 'object'
-                                                   then nullif(concat( ' ? ', knife_jsonpath_contains(element::jsonb)), ' ? ()')
+                                                   then nullif(concat( ' ? ', public.knife_jsonpath_contains(element::jsonb)), ' ? ()')
                                                  end,
                                                  ''),
                                      '[*]')::jsonpath
@@ -118,7 +118,7 @@ $$ language sql immutable parallel safe strict;
 
 create or replace function knife_extract_min_timestamptz(resource jsonb, paths jsonb)
 returns timestamptz as $$
-   select (select min(knife_date_bound(v#>>'{}', 'min')) from jsonb_array_elements(jsonb_path_query_array(jsonb_agg(result), '$[*][*]')) as r(v))
+   select (select min(public.knife_date_bound(v#>>'{}', 'min')) from jsonb_array_elements(jsonb_path_query_array(jsonb_agg(result), '$[*][*]')) as r(v))
 
    from jsonb_array_elements(paths) as knife_paths(knife_path)
    cross join lateral (select concat('$',
@@ -130,7 +130,7 @@ returns timestamptz as $$
                                                    then concat('[', element#>>'{}', ']')
 
                                                    when jsonb_typeof(element) = 'object'
-                                                   then nullif(concat( ' ? ', knife_jsonpath_contains(element::jsonb)), ' ? ()')
+                                                   then nullif(concat( ' ? ', public.knife_jsonpath_contains(element::jsonb)), ' ? ()')
                                                  end,
                                                  ''),
                                      '[*]')::jsonpath
@@ -153,7 +153,7 @@ select (select min((x#>>'{}')::numeric) from jsonb_array_elements(jsonb_path_que
                                                    then concat('[', element#>>'{}', ']')
 
                                                    when jsonb_typeof(element) = 'object'
-                                                   then nullif(concat( ' ? ', knife_jsonpath_contains(element::jsonb)), ' ? ()')
+                                                   then nullif(concat( ' ? ', public.knife_jsonpath_contains(element::jsonb)), ' ? ()')
                                                  end,
                                                  ''),
                                      '[*]')::jsonpath
@@ -176,7 +176,7 @@ select (select max((x#>>'{}')::numeric) from jsonb_array_elements(jsonb_path_que
                                                    then concat('[', element#>>'{}', ']')
 
                                                    when jsonb_typeof(element) = 'object'
-                                                   then nullif(concat( ' ? ', knife_jsonpath_contains(element::jsonb)), ' ? ()')
+                                                   then nullif(concat( ' ? ', public.knife_jsonpath_contains(element::jsonb)), ' ? ()')
                                                  end,
                                                  ''),
                                      '[*]')::jsonpath
