@@ -40,7 +40,7 @@ services:
   postgres:
     image: postgres:18
     volumes:
-      - postgres_data:/var/lib/postgresql/data:delegated
+      - postgres_data:/var/lib/postgresql
     command:
       - postgres
       - -c
@@ -105,10 +105,11 @@ services:
       - 8088:8088
     environment:
       AIDBOX_URL: http://aidbox:8080
-      AIDBOX_CLIENT_ID: cms-app
+      AIDBOX_CLIENT_ID: prior-auth-app
       AIDBOX_CLIENT_SECRET: secret
+      AIDBOX_APP_ID: prior-auth-app
       AIDBOX_APP_PORT: 8088
-      CMS_APP_URL: http://app:8088/
+      PRIOR_AUTH_APP_URL: http://app:8088/
     networks:
       - cms-network
     healthcheck:
@@ -178,11 +179,11 @@ Create a `init-bundle.json` file and paste the following content:
     {
       "request": {
         "method": "PUT",
-        "url": "/Client/cms-app"
+        "url": "/Client/prior-auth-app"
       },
       "resource": {
         "resourceType": "Client",
-        "id": "cms-app",
+        "id": "prior-auth-app",
         "secret": "secret",
         "grant_types": ["basic"]
       }
@@ -190,15 +191,15 @@ Create a `init-bundle.json` file and paste the following content:
     {
       "request": {
         "method": "PUT",
-        "url": "/AccessPolicy/allow-cms-app"
+        "url": "/AccessPolicy/allow-prior-auth-app"
       },
       "resource": {
         "resourceType": "AccessPolicy",
-        "id": "allow-cms-app",
+        "id": "allow-prior-auth-app",
         "engine": "allow",
         "link": [
           {
-            "reference": "Client/cms-app"
+            "reference": "Client/prior-auth-app"
           }
         ]
       }
