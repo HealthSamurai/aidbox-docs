@@ -12,7 +12,7 @@ description: >-
     **Features**
 
     * Reworked SQL Console — per-tab transaction mode (transaction / autocommit), `statement_timeout`, foreground / background execution, and a `Tab` keybinding that indents.
-    * Background SQL execution via `Aidbox-Sql-Async: true`. The server runs the query without retaining result rows.
+    * Background SQL execution via [`Aidbox-Sql-Async: true`](../api/rest-api/other/sql-endpoints.md#usdpsql). The server runs the query without retaining result rows.
     * Query cancellation via [`$psql-cancel`](../api/rest-api/other/sql-endpoints.md#usdpsql-cancel).
 
     **Breaking changes**
