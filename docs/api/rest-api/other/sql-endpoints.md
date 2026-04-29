@@ -90,6 +90,17 @@ Every header below is optional. Defaults match a single-transaction read-write r
 | `Aidbox-Sql-Query-Id` | UUID | Tags the PG session via `application_name = aidbox-psql:<uuid>`. The same UUID is used to cancel via `/$psql-cancel`. |
 | `Aidbox-Sql-Async` | `true` | Fire-and-forget background execution. Returns `202 { "operation-id": "<uuid>" }` immediately. The query runs server-side; result rows are not retained — only `status` / `duration` / `query` / `error` are kept in `db_scheduler.scheduled_tasks_history`. The same handler accepts the operation-id as a `query-id` for cancellation. |
 
+### Access scope
+
+`$psql` is privileged-by-design. The SQL text a caller sends lands in several stores beyond the immediate response:
+
+- `pg_stat_activity` while the query is in flight (visible to anyone with `pg_read_all_stats` or superuser).
+- `klog` `:db/q` events — every successful run is logged, truncated by `proto.klog/sql-max-length` (default 500 chars).
+- `AuditEvent` resources via the standard audit pipeline (base64-encoded SQL text).
+- `db_scheduler.scheduled_tasks_history` rows for `Aidbox-Sql-Async: true` runs (until the row is cleaned up).
+
+Anyone with permission to call `$psql` therefore has effective access to whatever the SQL itself reads, plus a long-lived trail in logs, audit, and scheduler history. Treat the endpoint as superuser-equivalent — do not expose it to non-admin roles via AccessPolicy.
+
 ### Breaking change in 2604
 
 `$psql` only — `$sql` is unaffected.
