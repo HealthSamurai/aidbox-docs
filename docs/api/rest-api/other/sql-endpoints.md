@@ -84,11 +84,11 @@ Every header below is optional. Defaults match a single-transaction read-write r
 
 | Header | Value | Effect |
 |---|---|---|
-| `X-Aidbox-Sql-Autocommit` | `true` | Run outside a transaction. Required for `VACUUM`, `CREATE INDEX CONCURRENTLY`, `REINDEX CONCURRENTLY`. Rejected when [`db.pass-auth-vars`](../../../reference/all-settings.md#db.pass-auth-vars) is on **and** the request carries a resolvable identity — autocommit would drop the SQL identity injection that RLS relies on. |
-| `X-Aidbox-Sql-Timeout` | seconds, 1..86400 | Per-query `statement_timeout`. Empty / non-numeric / negative / out-of-range values are ignored. |
-| `X-Aidbox-Sql-Read-Only` | `true` | Run as read-only. Writes raise `ERROR: cannot execute … in a read-only transaction`. |
-| `X-Aidbox-Sql-Query-Id` | UUID | Tags the PG session via `application_name = aidbox-psql:<uuid>`. The same UUID is used to cancel via `/$psql-cancel`. |
-| `X-Aidbox-Sql-Async` | `true` | Fire-and-forget background execution. Returns `202 { "operation-id": "<uuid>" }` immediately. The query runs server-side; result rows are not retained — only `status` / `duration` / `query` / `error` are kept in `db_scheduler.scheduled_tasks_history`. The same handler accepts the operation-id as a `query-id` for cancellation. |
+| `Aidbox-Sql-Autocommit` | `true` | Run outside a transaction. Required for `VACUUM`, `CREATE INDEX CONCURRENTLY`, `REINDEX CONCURRENTLY`. Rejected when [`db.pass-auth-vars`](../../../reference/all-settings.md#db.pass-auth-vars) is on **and** the request carries a resolvable identity — autocommit would drop the SQL identity injection that RLS relies on. |
+| `Aidbox-Sql-Timeout` | seconds, 1..86400 | Per-query `statement_timeout`. Empty / non-numeric / negative / out-of-range values are ignored. |
+| `Aidbox-Sql-Read-Only` | `true` | Run as read-only. Writes raise `ERROR: cannot execute … in a read-only transaction`. |
+| `Aidbox-Sql-Query-Id` | UUID | Tags the PG session via `application_name = aidbox-psql:<uuid>`. The same UUID is used to cancel via `/$psql-cancel`. |
+| `Aidbox-Sql-Async` | `true` | Fire-and-forget background execution. Returns `202 { "operation-id": "<uuid>" }` immediately. The query runs server-side; result rows are not retained — only `status` / `duration` / `query` / `error` are kept in `db_scheduler.scheduled_tasks_history`. The same handler accepts the operation-id as a `query-id` for cancellation. |
 
 ### Breaking change in 2604
 
@@ -101,7 +101,7 @@ Cancel an in-flight query (sync or async) by its tag UUID.
 ```yaml
 POST /$psql-cancel
 
-{ "query-id": "<uuid sent in X-Aidbox-Sql-Query-Id, or operation-id from async kick-off>" }
+{ "query-id": "<uuid sent in Aidbox-Sql-Query-Id, or operation-id from async kick-off>" }
 ```
 
 The handler runs `pg_cancel_backend(pid)` on rows in `pg_stat_activity` whose `application_name` matches `aidbox-psql:<uuid>` and returns the matched backends:

@@ -12,8 +12,8 @@ description: >-
     **Features**
 
     * Reworked SQL Console — see the new [`$psql` endpoint](../api/rest-api/other/sql-endpoints.md#usdpsql) for the full backend contract. Configurable per-tab transaction mode (transaction / autocommit), `statement_timeout`, fetch size, foreground / background execution, and `Tab` keybinding to indent. `EXPLAIN` plans render as a monospace block.
-    * Background SQL execution via `X-Aidbox-Sql-Async: true` — the server runs the query without retaining result rows; only metadata (status / duration / query / error) is recorded.
-    * Robust query cancellation via [`$psql-cancel`](../api/rest-api/other/sql-endpoints.md#usdpsql-cancel) — matches by `application_name` set from the new `X-Aidbox-Sql-Query-Id` header instead of a fragile `LIKE '%query%'` scan. Cancels both sync and async runs.
+    * Background SQL execution via `Aidbox-Sql-Async: true` — the server runs the query without retaining result rows; only metadata (status / duration / query / error) is recorded.
+    * Robust query cancellation via [`$psql-cancel`](../api/rest-api/other/sql-endpoints.md#usdpsql-cancel) — matches by `application_name` set from the new `Aidbox-Sql-Query-Id` header instead of a fragile `LIKE '%query%'` scan. Cancels both sync and async runs.
 
     **Breaking changes**
 
