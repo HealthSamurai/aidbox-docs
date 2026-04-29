@@ -8,7 +8,7 @@ description: Execute raw SQL queries directly in Aidbox via $sql, $psql, and $ps
 Execute SQL in Aidbox.
 
 Supported params:
-- SQL string 
+- SQL string
 - jdbc friendly array [SQL, param, param]
 
 Example request:
@@ -20,7 +20,7 @@ POST /$sql?_format=yaml
 
 SELECT count(*) FROM patient
 
-# Response 
+# Response
 #
 # - {count: 7}
 ```
@@ -32,7 +32,7 @@ POST /$sql?_format=yaml
 
 ["SELECT count(*) FROM patient where resource->'status' = ?", true]
 
-# Response 
+# Response
 #
 # - {count: 2}
 ```
@@ -103,8 +103,6 @@ Anyone with permission to call `$psql` therefore has effective access to whateve
 
 ### Breaking change in 2604
 
-`$psql` only — `$sql` is unaffected.
-
 Prior versions of `$psql` returned a vector of per-statement debug objects and accepted an `execute=true` query parameter that switched between two execution paths; multi-statement scripts were split on `\n----\n`. Aidbox removed all three behaviours. Old clients that posted to `/$psql` without `execute=true` and parsed `[{:result …}, …]` need to update to the response shape above. The endpoint URL is unchanged.
 
 ## $psql-cancel
@@ -139,7 +137,7 @@ POST /db/migrations
     update patient set resource = resource - 'extension'
 - id: create-policy-helper
   sql: |
-    create function patient_for_user(u jsonb) returns jsonb 
+    create function patient_for_user(u jsonb) returns jsonb
     as $$
         select resource || jsonb_build_object('id', id)
            from patient
@@ -151,7 +149,7 @@ POST /db/migrations
   sql: ...
 - id: create-policy-helper
   sql: ...
-  
+
 -- second run response
 []
 ```
