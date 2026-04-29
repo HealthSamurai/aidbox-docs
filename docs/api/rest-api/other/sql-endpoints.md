@@ -41,7 +41,7 @@ POST /$sql?_format=yaml
 
 ## $psql
 
-Run a raw multi-statement SQL script in a single request. The endpoint is what the Aidbox UI SQL Console uses; `/$notebook-psql` is an alias with identical behavior.
+Run a raw multi-statement SQL script in a single request. The Aidbox UI SQL Console uses this endpoint.
 
 Request body:
 
@@ -51,8 +51,8 @@ POST /$psql
 { "query": "SELECT 1; SELECT 2", "limit": 1000 }
 ```
 
-- `query` — the SQL text. Sent verbatim to PostgreSQL; Aidbox does not split, trim, or rewrite it.
-- `limit` (optional) — applied via JDBC `setMaxRows` to cap each result set.
+- `query` — the SQL text. Aidbox sends the query verbatim, without splitting, trimming, or rewriting it.
+- `limit` (optional) — caps the number of rows returned per statement.
 
 Response (success):
 
@@ -92,7 +92,9 @@ Every header below is optional. Defaults match a single-transaction read-write r
 
 ### Breaking change in 2604
 
-Prior versions returned a vector of per-statement debug objects and accepted an `execute=true` query parameter to switch between two execution paths; multi-statement scripts were split on `\n----\n`. All three behaviours were removed. Old clients that posted to `/$psql` without `execute=true` and parsed `[{:result …}, …]` need to be updated to the shape above. The endpoint URL is unchanged.
+`$psql` only — `$sql` is unaffected.
+
+Prior versions of `$psql` returned a vector of per-statement debug objects and accepted an `execute=true` query parameter that switched between two execution paths; multi-statement scripts were split on `\n----\n`. Aidbox removed all three behaviours. Old clients that posted to `/$psql` without `execute=true` and parsed `[{:result …}, …]` need to update to the response shape above. The endpoint URL is unchanged.
 
 ## $psql-cancel
 
