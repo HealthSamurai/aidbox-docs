@@ -180,6 +180,10 @@ Content-Type: application/json
 
 Body parameters are merged with URL query parameters. URL parameters take precedence if the same key appears in both.
 
+{% hint style="info" %}
+Available since version 2603. 
+{% endhint %}
+
 ### Response format
 
 The `$query` response always contains:
