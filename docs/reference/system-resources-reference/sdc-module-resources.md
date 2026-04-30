@@ -919,6 +919,14 @@ Configuration resource for SDC system settings including language, theme, storag
   "type" : "string",
   "desc" : "Machine readable config name"
 }, {
+  "path" : "smart-connect",
+  "name" : "smart-connect",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "Reference",
+  "desc" : "Smart on FHIR connection to 3rd party server \n\n**Allowed references**: SDCSmartConnect"
+}, {
   "path" : "storage",
   "name" : "storage",
   "lvl" : 0,
@@ -1298,6 +1306,63 @@ Template content for SDC print functionality.
   "max" : 1,
   "type" : "string",
   "desc" : "Template for SDC print"
+} ]
+```
+
+
+## SDCSmartConnect
+
+SMART on FHIR connection settings for external EHR integrations used by SDC.
+
+```fhir-structure
+[ {
+  "path" : "auth",
+  "name" : "auth",
+  "lvl" : 0,
+  "min" : 1,
+  "max" : 1,
+  "type" : "Reference",
+  "desc" : "Reference to TokenIntrospector used for token validation \n\n**Allowed references**: TokenIntrospector"
+}, {
+  "path" : "client-id",
+  "name" : "client-id",
+  "lvl" : 0,
+  "min" : 1,
+  "max" : 1,
+  "type" : "string",
+  "desc" : "SMART client_id"
+}, {
+  "path" : "client-secret",
+  "name" : "client-secret",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "string",
+  "desc" : "SMART client_secret"
+}, {
+  "path" : "fhir-url",
+  "name" : "fhir-url",
+  "lvl" : 0,
+  "min" : 1,
+  "max" : 1,
+  "type" : "url",
+  "desc" : "Base FHIR URL of external EHR"
+}, {
+  "path" : "name",
+  "name" : "name",
+  "lvl" : 0,
+  "min" : 1,
+  "max" : 1,
+  "type" : "string",
+  "desc" : "Connection name (e.g. athena)"
+}, {
+  "path" : "scopes",
+  "name" : "scopes",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : "*",
+  "type" : "string",
+  "desc" : "SMART scopes requested/expected for this connection"
 } ]
 ```
 
