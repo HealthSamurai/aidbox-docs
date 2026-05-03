@@ -13382,6 +13382,395 @@ Role resource for assigning access roles to users.
 ```
 
 
+## SQLQuery
+
+The SQLQuery profile represents a SQL query that runs against ViewDefinition
+tables. It bundles the SQL, dependencies, and parameters for sharing and
+versioning.
+
+```fhir-structure
+[ {
+  "path" : "content",
+  "name" : "content",
+  "lvl" : 0,
+  "min" : 1,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "content.extension",
+  "name" : "extension:sqlText",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "Extension",
+  "desc" : "Plain-text SQL for readability"
+}, {
+  "path" : "content.contentType",
+  "name" : "contentType",
+  "lvl" : 1,
+  "min" : 1,
+  "max" : 1,
+  "type" : "",
+  "desc" : "application/sql or application/sql;dialect=..."
+}, {
+  "path" : "content.data",
+  "name" : "data",
+  "lvl" : 1,
+  "min" : 1,
+  "max" : 1,
+  "type" : "",
+  "desc" : "SQL query (base64-encoded)"
+}, {
+  "path" : "parameter",
+  "name" : "parameter",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.name",
+  "name" : "name",
+  "lvl" : 1,
+  "min" : 1,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.use",
+  "name" : "use",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : "in (query parameters are always input)"
+}, {
+  "path" : "parameter.type",
+  "name" : "type",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "relatedArtifact",
+  "name" : "relatedArtifact",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "relatedArtifact.type",
+  "name" : "type",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : "depends-on for ViewDefinition references"
+}, {
+  "path" : "relatedArtifact.label",
+  "name" : "label",
+  "lvl" : 1,
+  "min" : 1,
+  "max" : 1,
+  "type" : "",
+  "desc" : "Table name used in SQL query"
+}, {
+  "path" : "relatedArtifact.resource",
+  "name" : "resource",
+  "lvl" : 1,
+  "min" : 1,
+  "max" : 1,
+  "type" : "",
+  "desc" : "Canonical URL of ViewDefinition"
+}, {
+  "path" : "type",
+  "name" : "type",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+} ]
+```
+
+
+## SQLQueryRunInstanceParametersProfile
+
+Parameters profile for $sqlquery-run at the instance level. The Library is identified by the URL; 'queryReference' and 'queryResource' are not allowed.
+
+```fhir-structure
+[ {
+  "path" : "parameter",
+  "name" : "parameter",
+  "lvl" : 0,
+  "min" : 1,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter:_format",
+  "lvl" : 0,
+  "min" : 1,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.name",
+  "name" : "name",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 1,
+  "max" : 1,
+  "type" : "code",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter:header",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.name",
+  "name" : "name",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 1,
+  "max" : 1,
+  "type" : "boolean",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter:parameters",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.name",
+  "name" : "name",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.resource",
+  "name" : "resource",
+  "lvl" : 1,
+  "min" : 1,
+  "max" : 1,
+  "type" : "Parameters",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter:source",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.name",
+  "name" : "name",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 1,
+  "max" : 1,
+  "type" : "string",
+  "desc" : ""
+} ]
+```
+
+
+## SQLQueryRunParametersProfile
+
+Parameters profile for $sqlquery-run at the system and type levels. Exactly one of 'queryReference' or 'queryResource' must be provided.
+
+```fhir-structure
+[ {
+  "path" : "parameter",
+  "name" : "parameter",
+  "lvl" : 0,
+  "min" : 1,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter:_format",
+  "lvl" : 0,
+  "min" : 1,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.name",
+  "name" : "name",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 1,
+  "max" : 1,
+  "type" : "code",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter:header",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.name",
+  "name" : "name",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 1,
+  "max" : 1,
+  "type" : "boolean",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter:parameters",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.name",
+  "name" : "name",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.resource",
+  "name" : "resource",
+  "lvl" : 1,
+  "min" : 1,
+  "max" : 1,
+  "type" : "Parameters",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter:queryReference",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.name",
+  "name" : "name",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 1,
+  "max" : 1,
+  "type" : "Reference",
+  "desc" : "\n\n**Allowed references**: Library"
+}, {
+  "path" : "parameter",
+  "name" : "parameter:queryResource",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.name",
+  "name" : "name",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.resource",
+  "name" : "resource",
+  "lvl" : 1,
+  "min" : 1,
+  "max" : 1,
+  "type" : "Library",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter:source",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.name",
+  "name" : "name",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 1,
+  "max" : 1,
+  "type" : "string",
+  "desc" : ""
+} ]
+```
+
+
 ## SchedulerRuleStatus
 
 ```fhir-structure
@@ -14051,6 +14440,39 @@ Seed data import resource for initial data loading.
   "max" : 1,
   "type" : "Reference",
   "desc" : "Reference to the user associated with this session. \n\n**Allowed references**: User"
+} ]
+```
+
+
+## SqlText
+
+Plain-text SQL query for human readability. Supplements the base64-encoded Attachment.data.
+
+```fhir-structure
+[ {
+  "path" : "extension",
+  "name" : "extension",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "url",
+  "name" : "url",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "value[x]",
+  "name" : "value[x]",
+  "lvl" : 0,
+  "min" : 1,
+  "max" : 1,
+  "type" : "string",
+  "desc" : ""
 } ]
 ```
 
