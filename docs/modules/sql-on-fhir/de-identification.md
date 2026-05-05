@@ -5,7 +5,7 @@ Starting from version **2604**, Aidbox supports per-column de-identification in 
 This works with all ViewDefinition operations: `$run`, `$sql`, and `$materialize`.
 
 {% hint style="info" %}
-Requires **fhir-schema mode**.
+Requires **fhir-schema mode**. ViewDefinitions are stored in the [FHIR Artifact Registry](../../artifact-registry/artifact-registry-overview.md) — on upgrade Aidbox migrates existing ViewDefinitions from legacy storage automatically; new and updated ViewDefinitions are read from FAR by `$run`, `$sql`, and `$materialize`.
 {% endhint %}
 
 ## Extension format
@@ -97,7 +97,7 @@ AES-128-CBC encrypts the value and returns a base64-encoded string. Reversible w
 
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
-| encryptKey | string | yes | Hex-encoded AES-128 key (32 hex characters = 16 bytes) |
+| encryptKey | string | yes | Hex-encoded key. Must be 8–32 hex characters of even length (validated by the StructureDefinition at compile time). AES-128 expects 16 bytes / 32 hex characters; shorter keys are accepted but provide weaker security and are not recommended for production data. |
 
 ```json
 [
