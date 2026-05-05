@@ -102,6 +102,15 @@ To change a destination's configuration, `DELETE` the existing resource and `POS
 
 `AidboxSubscriptionTopic` does support `PUT`, so only the destination resource needs the DELETE+POST pattern.
 
+#### Status (`$status`) and HA deployments
+
+Each kind-specific tutorial (e.g. [webhook](../../tutorials/subscriptions-tutorials/webhook-aidboxtopicdestination.md#status-introspection), [Kafka](../../tutorials/subscriptions-tutorials/kafka-aidboxtopicdestination.md)) describes the [`$status`](../../tutorials/subscriptions-tutorials/webhook-aidboxtopicdestination.md#status-introspection) operation. One detail applies to every destination kind:
+
+* **`messagesDelivered`, `messageBatchesDelivered`, `messagesDeliveryAttempts`, `messageBatchesDeliveryAttempts`, `messagesInProcess`, `lastErrorDetail`, and `startTimestamp` are per-replica** and held in memory. They reset on Aidbox restart and are not summed across replicas.
+* **`messagesQueued` is computed from the database** and is consistent across replicas.
+
+In a [highly available](../../deployment-and-maintenance/deploy-aidbox/run-aidbox-in-kubernetes/highly-available-aidbox.md) deployment, calling `$status` through a load balancer returns whichever replica answered. To get cluster-wide totals, query each pod directly and sum the in-memory counters — see [Counter semantics](../../tutorials/subscriptions-tutorials/webhook-aidboxtopicdestination.md#counter-semantics) for the full breakdown.
+
 #### AidboxTopicDestination Profile
 
 Ensure that the resource metadata contains the kind-specific `AidboxTopicDestination` profile.

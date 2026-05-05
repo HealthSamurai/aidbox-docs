@@ -161,13 +161,30 @@ Response format:
 
 ### Counter semantics
 
-`$status` counters and `startTimestamp` live in memory on the Aidbox instance that handled the request — they are **not** persisted to the database.
+Most `$status` fields live in memory on the Aidbox instance that handled the request and are **not** aggregated across replicas. Only `messagesQueued` is read from the database and is therefore consistent across the cluster.
 
-* All counters reset to `0` and `startTimestamp` is updated on Aidbox restart. This is expected, not an error.
-* In a [highly available](../../deployment-and-maintenance/deploy-aidbox/run-aidbox-in-kubernetes/highly-available-aidbox.md) deployment each instance keeps its own counters. `$status` against instance A may show `messagesDelivered=6` while the same call to instance B shows `messagesDelivered=0` — both are correct: each instance reports the deliveries it performed.
-* The `AidboxTopicDestination` resource itself (and the underlying sender lifecycle) is synchronized across instances via PostgreSQL `LISTEN`/`NOTIFY`. Since 2603 the notification is sent on the same transaction as the create / update / delete, so non-creator instances see the new state once the transaction commits.
+| Field | Storage | Cluster-wide? |
+| --- | --- | --- |
+| `messagesDelivered` | In-memory atom on the instance that delivered the message | No |
+| `messageBatchesDelivered` | In-memory atom | No |
+| `messagesDeliveryAttempts` | In-memory atom | No |
+| `messageBatchesDeliveryAttempts` | In-memory atom | No |
+| `messagesInProcess` | In-memory atom | No |
+| `lastErrorDetail` | In-memory ring buffer of the last 5 errors per instance | No |
+| `startTimestamp` | Time the sender initialized on the local instance | No |
+| `status` | Always `active` (constant) | — |
+| `messagesQueued` | Computed from the events table in PostgreSQL | **Yes** |
 
-If you need a global view of delivery activity, scrape `$status` from each instance and aggregate, or rely on the receiver-side metrics.
+Consequences:
+
+* All in-memory counters reset to `0` and `startTimestamp` is updated on Aidbox restart. This is expected, not an error.
+* In a [highly available](../../deployment-and-maintenance/deploy-aidbox/run-aidbox-in-kubernetes/highly-available-aidbox.md) deployment, calling `$status` through a load balancer hits one replica per request — the visible counters change as the load balancer rotates. Two consecutive calls returning `messagesDelivered=6` and `messagesDelivered=0` are both correct: each instance reports the deliveries it performed.
+* The sum of `messagesDelivered` across all instances ≈ total deliveries. Use that as the cluster-wide view.
+* `messagesQueued` is the only field safe to read through the load balancer.
+
+To get a stable per-replica view, query each pod directly (Service ClusterIP, headless DNS, port-forward, etc.) instead of going through the load balancer. The `AidboxTopicDestination` resource itself (and the underlying sender lifecycle) is synchronized across instances via PostgreSQL `LISTEN` / `NOTIFY` — since 2603 the notification is sent on the same transaction as the create / update / delete, so non-creator instances see the new state once the transaction commits.
+
+For long-term delivery metrics prefer the receiver-side view (the system that consumes the webhooks) — it is naturally consistent and not affected by Aidbox restarts.
 
 ## fhirPathCriteria examples
 
