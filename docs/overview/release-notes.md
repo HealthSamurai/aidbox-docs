@@ -5,22 +5,45 @@ description: >-
 ---
 
 # Release Notes
-## April 2026 _`edge`_
+
+## May 2026 _`edge`_
+
+## April 2026 _`latest, 2604`_
 
 *   Aidbox FHIR server
 
     **Features**
 
-    * Reworked SQL Console — per-tab transaction mode (transaction / autocommit), `statement_timeout`, foreground / background execution, and a `Tab` keybinding that indents.
-    * Background SQL execution via [`Aidbox-Sql-Async: true`](../api/rest-api/other/sql-endpoints.md#usdpsql). The server runs the query without retaining result rows.
-    * Query cancellation via [`$psql-cancel`](../api/rest-api/other/sql-endpoints.md#usdpsql-cancel).
+    * **Databricks identity authentication** for [Lakebase connections](../deployment-and-maintenance/deploy-aidbox/run-aidbox-on-managed-postgresql.md#databricks-lakebase) — Databricks OAuth tokens via BYOT (Bring Your Own Token), in addition to PostgreSQL username / password.
+    * [**De-identification in SQL on FHIR ViewDefinition**](../modules/sql-on-fhir/de-identification.md) — HIPAA Safe Harbor compliant de-identification for research, analytics and data sharing scenarios.
+    * **SQL on FHIR compliance** — implemented `%rowIndex` FHIRPath function and brought the [SQL on FHIR](../modules/sql-on-fhir/) test suite back to compliance (FHIR Schema Validation enabled, fixed test resources).
+    * **Reworked SQL Console** — per-tab execution mode, configurable transaction mode, statement timeout, fetch size limiting, foreground / background execution.
+    * **Custom AidboxTopicDestination** code now has access to both the previous and current resource versions, enabling diff-based payloads and custom notification shapes.
+    * [**AidboxTopicDestination logging and status enhancements**](../modules/topic-based-subscriptions/aidbox-topic-based-subscriptions.md):
+      * `enableLogging` flag — log `AidboxSubscriptionStatus` via klog after each delivery attempt (Kafka best-effort, Kafka at-least-once, webhook, GCP Pub/Sub), including the error message on failure.
+      * Unique message ID on each `AidboxSubscriptionStatus` for cross-system tracing.
+      * `includeVersionIdInFocusReference` parameter — focus references include `/_history/<versionId>` so bundles can be reconstructed from logs without persisting them.
+    * **Aidbox IG canonical URLs normalized** — `name`, `title` and `url` follow a consistent style across Aidbox-published [packages](../reference/system-resources-reference/README.md). Legacy URL shapes remain backward-compatible.
+    * **Aidbox RLS** — new `BOX_DB_PASS_AUTH_VARS` setting propagates JWT `sub` and `iss` claims as PostgreSQL session variables (`aidbox.sub`, `aidbox.iss`) for use in PostgreSQL Row-Level Security policies. CRUD, Search and `$sql` requests are wrapped in a transaction so the variables apply per-request.
 
-    **Breaking changes**
+    **Bug fixes and improvements**
 
-    * [`$psql` response shape changed](../api/rest-api/other/sql-endpoints.md#breaking-change-in-2604). The `execute=true` query parameter and the `\n----\n` multi-statement separator are no longer recognised. `$sql` is unchanged.
+    * Fixed `Bundle.link` URLs containing a doubled path prefix when FHIR endpoints are accessed via `BOX_WEB_BASE_URL` with a path component (e.g. `http://host/my/path/fhir/Patient`).
+    * Fixed `_sort` rejection (HTTP 500 "Unsupported search parameter") for FAR-managed canonical resources: `ValueSet`, `CodeSystem`, `ConceptMap`, `StructureDefinition`, `SearchParameter`, `OperationDefinition`, `CompartmentDefinition`.
+    * Fixed local FHIR IG upload via Aidbox UI when other local dependencies are already installed.
+    * Fixed `BOX_SECURITY_AUTH_KEYS_PRIVATE` regression that rejected previously-valid OpenSSH-format keys.
+    * Fixed `InvalidRequestException` when SUSHI / FSH-generated profiles restrict a backbone-element binding (e.g. `Invoice.totalPriceComponent.code` value-set restriction) — FHIRSchema compilation now preserves all snapshot elements.
+    * Fixed AidboxTopicBased webhook destination intermittently failing with `destination has no sender associated with it`.
+    * Fixed Aidbox IG publishing pipeline to preserve full `fhir-feed.xml` history across publications.
+
+    **Changes and deprecations**
+
     * The legacy DB Console at `/ui/db` now redirects to the new SQL Console at `/u/db-console`.
+    * Removed legacy ZEN UI.
+    * Deprecation plan: the next release (2605, LTS) will fully deprecate and remove all legacy MDM implementations from Aidbox — see [MDMbox](https://www.health-samurai.io/mdmbox).
+    * Deprecation plan: the next release (2605, LTS) will be the last release that supports Entity/Attribute and ZEN validation. [FHIR Schema validation](../modules/profiling-and-validation/fhir-schema-validator/README.md) mode will be enabled by default.
 
-## March 2026 _`latest, 2603`_
+## March 2026 _`stable, 2603`_
 
 *   Aidbox FHIR server
 
@@ -60,7 +83,7 @@ description: >-
   * Added the ability to configure a [session timeout parameter](https://www.health-samurai.io/docs/formbox/aidbox-ui-builder-alpha/form-sharing) for automatic logout in forms.
   * Optimized form loading time for the embedded Form Renderer and Form Builder.
 
-## February 2026 _`stable, 2602`_
+## February 2026 _`2602`_
 
 *   Aidbox FHIR server
 
