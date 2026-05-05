@@ -47,6 +47,30 @@ You can get a turn-key production-ready Aidbox as a SaaS to start your developme
 
 For non-profit educational institutions, the Health Samurai provides Aidbox licenses that can be used for instructional and non-commercial academic research. Please [contact us](contact-us.md) for more information.
 
+## License limits
+
+### Instance limit (`max-instances`)
+
+Each Aidbox license carries a `max-instances` parameter — the maximum number of **concurrent** Aidbox runtimes that can use the license. Each running Aidbox process counts as one instance: every replica of a [highly available](../deployment-and-maintenance/deploy-aidbox/run-aidbox-in-kubernetes/highly-available-aidbox.md) deployment, every staging / production environment that shares the same license, and every long-lived local developer runtime. Read-only PostgreSQL replicas do **not** count — only Aidbox application processes that send heartbeats to [aidbox.app](https://aidbox.app).
+
+The instance count is observed by the [Aidbox license portal](aidbox-user-portal/licenses.md), which the running instances ping on a heartbeat (~30 minutes for production licenses). If the active count exceeds `max-instances`, the portal returns a `max-instances` warning on the next heartbeat refresh.
+
+#### Concurrent instances warning
+
+When over the limit, every running instance receives the warning on its next heartbeat (so the warning shows up on **all** instances simultaneously, ~30 minutes after they start):
+
+* In Aidbox logs: `:license.modern/warning {:max-instances {:type "max-instances", :message "Your current number of concurrent running installations is N. Your possible number is M..."}}`
+* On every API response:
+
+  ```http
+  License-Mode: normal
+  License-Mode-Info: {"warning":{"max-instances":{"message":"Your current number of concurrent running installations is N. Your possible number is M. Please contact Health Samurai for further information"}}}
+  ```
+
+The warning is **informational** — `License-Mode` remains `normal` and CRUD, search, and other operations continue working. To clear it, raise `max-instances` on [aidbox.app](https://aidbox.app) to at least the number of replicas you run, or reduce the number of replicas. Read-only DB replicas need no license adjustment because they don't count.
+
+When planning an HA rollout, set `max-instances` **before** scaling up — the warning fires once per heartbeat, so a same-day scale-up is not silently logged as a license breach.
+
 ## Aidbox Support
 
 We know that starting with new technology is a challenge. That's why we are inviting Aidbox users to subscribe to one of Aidbox Support tiers from their first days with Aidbox. It might be the time when you need Aidbox Support the most.

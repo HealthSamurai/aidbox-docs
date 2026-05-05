@@ -48,6 +48,14 @@ description: This article describes how to manage Aidbox licenses
 4. Information about the selected license will appear on the right side of the screen. Click _**Delete this License**_
 5. In the confirmation window, type the license name and click _**Delete this License**_
 
+## License parameters
+
+### `max-instances`
+
+The maximum number of Aidbox runtimes allowed to use the license concurrently. Each replica of a high-availability deployment counts as one instance; PostgreSQL read replicas do not count. Set this value to at least the number of replicas you intend to run. See [Instance limit](../licensing-and-support.md#instance-limit-max-instances) for the warning behavior when the limit is exceeded.
+
+To change `max-instances` on an existing license, edit the license on [aidbox.app](https://aidbox.app) — the change takes effect on the next heartbeat (~30 minutes for production licenses).
+
 ## Manage Aidbox licenses via API
 
 Licences API on Aidbox portal allows you to issue Aidbox licenses on-premise installation (self-hosted) and automate the process of deploying new Aidbox instances locally or in your infrastructure.
