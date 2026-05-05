@@ -70,6 +70,34 @@ To start processing subscription data, create a `AidboxTopicDestination` resourc
 
 To stop processing subscription data, delete the `AidboxTopicDestination` resource.
 
+#### Updating a TopicDestination
+
+{% hint style="warning" %}
+`AidboxTopicDestination` is **immutable** — `PUT` and `PATCH` requests return `405 Method Not Allowed`. The same restriction applies inside transaction and batch bundles, including [init bundles](../../configuration/init-bundle.md).
+
+This is by design: an `AidboxTopicDestination` owns long-lived resources (Kafka producers, webhook clients, GCP Pub/Sub sessions, etc.) that cannot be hot-reloaded.
+{% endhint %}
+
+To change a destination's configuration, `DELETE` the existing resource and `POST` a new one. In an init bundle, use a `batch` bundle so the `DELETE` succeeds when the resource does not yet exist (returns `204`):
+
+```json
+{
+  "resourceType": "Bundle",
+  "type": "batch",
+  "entry": [
+    {
+      "request": { "method": "DELETE", "url": "AidboxTopicDestination/<id>" }
+    },
+    {
+      "resource": { "resourceType": "AidboxTopicDestination", "id": "<id>", "...": "..." },
+      "request": { "method": "POST", "url": "AidboxTopicDestination" }
+    }
+  ]
+}
+```
+
+`AidboxSubscriptionTopic` does support `PUT`, so only the destination resource needs the DELETE+POST pattern.
+
 #### AidboxTopicDestination Profile
 
 Ensure that the resource metadata contains the kind-specific `AidboxTopicDestination` profile.

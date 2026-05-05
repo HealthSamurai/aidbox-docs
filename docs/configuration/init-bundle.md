@@ -71,6 +71,24 @@ BOX_INIT_BUNDLE=file:///tmp/bundle.json
 1. First, check that Aidbox handles the Bundle as it should using `POST /fhir`. Try to post it several times to make sure it is idempotent. Then add it to `BOX_INIT_BUNDLE`.
 2. Note that the [Aidbox format](../api/rest-api/other/aidbox-and-fhir-formats.md) is not supported.
 3. Aidbox handles an `id` in the body of the POST request. That's why posting the resource with an id twice will cause an `duplicate key` error. Use [conditional create](../api/rest-api/crud/create.md) or [update](../api/rest-api/crud/update.md) for that.
+4. Most resources support `PUT` for idempotent updates inside an init bundle. **Exception:** [`AidboxTopicDestination`](../modules/topic-based-subscriptions/aidbox-topic-based-subscriptions.md#updating-a-topicdestination) is immutable and rejects `PUT` / `PATCH` (also inside bundles). Use a [conditional create](../api/rest-api/crud/create.md) — `POST` with `ifNoneExist=_id=<id>` — so the entry is a no-op when the resource already exists and creates it on the first run:
+
+   ```json
+   {
+     "request": {
+       "method": "POST",
+       "url": "AidboxTopicDestination",
+       "ifNoneExist": "_id=<id>"
+     },
+     "resource": {
+       "resourceType": "AidboxTopicDestination",
+       "id": "<id>",
+       "...": "..."
+     }
+   }
+   ```
+
+   To change configuration of an already-created destination, delete it manually and let the next bundle run recreate it — see [Updating a TopicDestination](../modules/topic-based-subscriptions/aidbox-topic-based-subscriptions.md#updating-a-topicdestination).
 
 ## See also
 
