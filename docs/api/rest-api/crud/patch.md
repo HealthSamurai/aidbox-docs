@@ -28,6 +28,18 @@ If the method is not specified, Aidbox will try to guess it by the following alg
 * if the payload is an array, it is `json-patch`&#x20;
 * else `merge-patch`
 
+### Choosing a patch method
+
+All three methods produce equivalent results for simple field updates and trigger the same `update` event. They differ in body shape, expressiveness, and verbosity:
+
+| Method | Body shape | Best for | Notes |
+| --- | --- | --- | --- |
+| **Merge Patch** | JSON object — fields you want to set or null out | Ad-hoc field updates, "set this, clear that" | Simplest. Cannot reorder arrays or target array elements by predicate. |
+| **JSON Patch** | JSON array of operations per [RFC 6902](https://tools.ietf.org/html/rfc6902) | Array operations (`add` with `/-`, `remove`, `replace` at index), compact programmatic patches | Body must be an array — see the warning under [JSON Patch](#json-patch). Targets elements by JSON Pointer position. |
+| **FHIRPath Patch** | `Parameters` resource with one or more `operation` parts | Selecting elements by FHIRPath predicate (`Patient.identifier.where(system='foo')`), extension-by-id replacement, FHIR-spec-aligned tooling | Most verbose — about 3–4× the bytes of an equivalent JSON Patch — but the only method that can target by FHIRPath expression rather than positional index. |
+
+Rule of thumb: reach for **merge-patch** for one-off updates, **JSON Patch** when you need array operations or compact diffs, and **FHIRPath Patch** when you need to select elements by predicate or are integrating with FHIR-spec tooling.
+
 ### Binary JSON-patch
 
 Since version 2503, It is also possible to [encode JSON patches using base64 Binary.data](https://www.hl7.org/fhir/http.html#jsonpatch-transaction):
@@ -46,9 +58,14 @@ accept: application/json
 
 ### Events and subscriptions
 
-A PATCH request that changes a resource triggers the same resource lifecycle events as a `PUT`. Any subscriptions or topic-based notification channels listening for resource updates will receive notifications as expected.
+A PATCH request that changes a resource fires the same `update` lifecycle event as a `PUT`, regardless of which patch method (`merge-patch`, `json-patch`, or `fhirpath-patch`) was used. Consumers that listen for resource updates therefore see PATCH-originated changes:
 
-If the patch produces no actual change to the resource, Aidbox returns `200 OK` but does not fire any event — subscribers will not be notified.
+* [`AidboxSubscriptionTopic`](../../../modules/topic-based-subscriptions/aidbox-topic-based-subscriptions.md) triggers with `supportedInteraction: update`.
+* [`AidboxSubscription`](../../../modules/topic-based-subscriptions/aidbox-subsubscriptions.md) (legacy zen-style subscriptions) listening for updates.
+* [`AidboxTrigger`](../../../modules/other-modules/aidbox-trigger.md) hooks bound to `update`.
+* The [audit log](../../../access-control/audit-and-logging.md) — see below for the distinct event type.
+
+If the patch produces no actual change to the resource (for example, replacing a field with the same value it already has), Aidbox returns `200 OK` but does **not** fire an event — subscribers are not notified.
 
 The audit log records PATCH operations under the `fhir/patch` event type, distinct from `fhir/update`, so patch-originated changes can be identified separately in audit history.
 

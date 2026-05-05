@@ -34,6 +34,10 @@ The `AidboxSubscriptionTopic` resource describes the data sources for subscripti
 
 \* required.
 
+{% hint style="info" %}
+[`PATCH`](../../api/rest-api/crud/patch.md) requests (merge-patch, JSON Patch, and FHIRPath Patch) map to the `update` interaction — a topic with `supportedInteraction: update` fires for PATCH-originated changes too. A no-op patch (one that doesn't change the resource) does not fire the event.
+{% endhint %}
+
 #### Create `AidboxSubscriptionTopic` resource
 
 ```json
