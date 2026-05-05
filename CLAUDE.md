@@ -100,6 +100,7 @@ Class definitions are auto-injected — do not write `classDef` lines manually.
 - All internal links must point to existing files
 - All referenced images must exist in `assets/`
 - Images should have meaningful alt text
+- ALWAYS use proper language in codeblocks.
 
 ### Redirects
 

@@ -59,7 +59,7 @@ SearchParameter type is defined in the `SearchParameter.type` field. It is impor
 
 For example, if the search parameter with code `title` is of type 'token', the search:
 
-```
+```http
 GET /fhir/Patient?title=smith
 ```
 
@@ -268,7 +268,7 @@ component:
 
 If we want the search to match _my-observation_ only if some component has both `code = loinc|12907-2` and `valueQuantity=1`, we must use composite search:
 
-```
+```http
 GET /fhir/Observation?code-value-quantity=loinc|12907-2$1 // found
 GET /fhir/Observation?code-value-quantity=loinc|12907-2$2 // not found
 GET /fhir/Observation?code-value-quantity=loinc|12907-1$1 // not found
@@ -277,7 +277,7 @@ GET /fhir/Observation?code-value-quantity=loinc|12907-1$2 // found
 
 However, if we use simple intersection, _my-observation_ may be found in all cases:
 
-```
+```http
 GET /fhir/Observation?code=loinc|12907-2&value-quantity=1 // found
 GET /fhir/Observation?code=loinc|12907-2&value-quantity=2 // found
 GET /fhir/Observation?code=loinc|12907-1&value-quantity=1 // found
@@ -302,7 +302,7 @@ See also [Aidbox special search parameters](../aidbox-search.md#aidbox-special-s
 
 Search by resource ID:
 
-```
+```http
 GET /fhir/Patient?_id=pt-1
 ```
 
@@ -353,23 +353,23 @@ GET /fhir/Patient?_profile=http://hl7.org/fhir/us/core/StructureDefinition/us-co
 * to search by narrative using \_**text**
 * to search by retaining the resource content using \_**content**
 
-```
+```http
 GET /fhir/Patient?_text=John
 ```
 
-```
+```http
 GET /fhir/Patient?_content=New-York
 ```
 
 Full-text search requests support grouping and logical operations:
 
-```
+```http
 GET /fhir/Patient?_content=(NOT bar OR baz) AND foo
 ```
 
 If you want to search by the phrase, just quote it:
 
-```
+```http
 GET /fhir/Patient?_content="Mad Max"
 ```
 
@@ -377,7 +377,7 @@ GET /fhir/Patient?_content="Mad Max"
 
 With **\_ilike** search parameter, you search for term inclusion as a substring in the text representation of FHIR resource. It can provide quick feedback to the user about matches without forcing to print the whole word (as with full text search). For example `jo` will find Johns and Jolie or `asp` will match Aspirin.
 
-```
+```http
 GET /fhir/Patient?_ilike=joh+smit,jes+park
 ```
 
@@ -503,7 +503,7 @@ See:
 
 Aidbox offers partial support for the [FHIR \_filter API](https://www.hl7.org/fhir/search.html#filter). The most common use case to use `_filter` instead of the usual combination of search parameters is OR logic. In FHIR, it is impossible to use OR logic with 2 different search parameters without `_filter,`:
 
-```
+```http
 GET /fhir/Patient?_filter=name co 'smi' or birthdate gt '1996-06-06'
 ```
 
@@ -539,7 +539,7 @@ Additionally, Aidbox supports:
 
 Examples:
 
-```
+```http
 # returns patient with specific id
 GET /fhir/Patient?_filter=id eq 'pt-2'
 
@@ -581,11 +581,11 @@ See:
 
 Examples:
 
-```
+```http
 GET /fhir/Patient?_source=http://example.com/Organization/123
 ```
 
-```
+```http
 GET /fhir/Patient?_source:below=http://example.com/
 ```
 
@@ -595,7 +595,7 @@ The `_security` search parameter matches resources based on security labels in t
 
 Example:
 
-```
+```http
 GET /fhir/Observation?_security=http://terminology.hl7.org/CodeSystem/v3-Confidentiality|R
 ```
 
@@ -603,19 +603,19 @@ GET /fhir/Observation?_security=http://terminology.hl7.org/CodeSystem/v3-Confide
 
 Supports all search parameter types.
 
-```
+```http
 GET /fhir/Organization?_sort=name
 ```
 
 Aidbox also supports sorting with [dot expressions](../aidbox-search.md#dot-expressions):
 
-```
+```http
 GET /fhir/Patient?_sort=.name.0.family
 ```
 
 You can sort by multiple parameters:
 
-```
+```http
 GET /fhir/Organization?_sort=name,_id
 ```
 
@@ -623,7 +623,7 @@ GET /fhir/Organization?_sort=name,_id
 
 You can change the sorting direction by prefixing the parameter with `-` sign
 
-```
+```http
 GET /fhir/Organization?_sort=-name,-lastUpdated
 ```
 
@@ -687,7 +687,7 @@ The purpose of the summary form is to allow a client **to quickly retrieve a lar
 
 The request:
 
-```
+```http
 GET /fhir/Location?near=<latitude>|<longitude>|[distance]|[units]
 ```
 
@@ -722,13 +722,13 @@ entry:
 
 2. Search in miles:
 
-```
+```http
 GET /fhir/Location?near=-83.674810|42.266500|11.20|[mi_us]
 ```
 
 3. Search without distance and units
 
-```
+```http
 # distance = 3, units = km
 GET /fhir/Location?near=-83.674810|42.266500
 ```
@@ -739,7 +739,7 @@ The `_tag` search parameter allows searching for resources tagged with specific 
 
 Example:
 
-```
+```http
 GET /fhir/Patient?_tag=emergency
 ```
 

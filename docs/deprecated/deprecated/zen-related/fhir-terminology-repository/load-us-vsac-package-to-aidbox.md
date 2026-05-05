@@ -47,7 +47,7 @@ If you already have a configuration project, you can replicate these steps to en
 #### Added US VSAC dependency to configuration project
 
 {% code title="zen-package.edn" %}
-```
+```clojure
 {:deps {us-nlm-vsac "https://github.com/zen-fhir/us-nlm-vsac.git"}}
 ```
 {% endcode %}

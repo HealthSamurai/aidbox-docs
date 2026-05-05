@@ -8,7 +8,7 @@ description: Execute multiple FHIR operations atomically using batch or transact
 
 Transaction interaction allows for several interactions using one HTTP request. There are two types of transaction interaction (type is specified by field `type`): **batch** and **transaction**. The first one executes requests one by one, and the second one does the same but rolls back all changes if any request fails.
 
-```
+```http
 POST /fhir
 ```
 

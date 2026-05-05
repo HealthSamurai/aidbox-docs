@@ -9,7 +9,7 @@ description: Add profile, tag, and security labels to FHIR resource metadata usi
 The `$meta-add` operation adds new `profile`, `tag`, and `security` labels to a resource's metadata.
 See [http://hl7.org/fhir/resource-operation-meta-add.html](http://hl7.org/fhir/resource-operation-meta-add.html) for the official documentation.
 
-```
+```http
 POST /fhir/<resourceType>/<id>/$meta-add
 ```
 

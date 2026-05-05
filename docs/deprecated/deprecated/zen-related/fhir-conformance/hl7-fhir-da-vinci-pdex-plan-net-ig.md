@@ -24,7 +24,7 @@ To get TouchStone compliant Aidbox you can use configuration from [the Aidbox sa
 
 Clone the repository:
 
-```
+```bash
 git clone https://github.com/Aidbox/aidbox-project-samples.git
 ```
 

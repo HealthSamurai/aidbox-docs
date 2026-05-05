@@ -43,7 +43,7 @@ To use the Access policy dev tool, [Aidbox Development mode](../../reference/all
 
 By default, Aidbox sends requests with your current session (your identity and permissions). To authenticate with another session, add an `Authorization` header to the request, e.g.
 
-```
+```http
 GET /fhir/Patient
 Authorization: Bearer eyJ...w5c
 ```

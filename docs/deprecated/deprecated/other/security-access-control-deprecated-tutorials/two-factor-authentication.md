@@ -97,6 +97,6 @@ Next time when the user logs into the system, the TOTP authentication page will 
 
 To disable 2FA for a particular user, redirect the user to the following URL. When the user enters a token, they get redirected to the 2FA settings page. Aidbox sets `User.twoFactor.enabled` to `false`.
 
-```
+```http
 GET /auth/two-factor/disable
 ```

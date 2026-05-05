@@ -450,7 +450,7 @@ In this example, the `organization` property refers to a resource of type `Organ
 
 To express this in FHIRSchema, use the `refers` instruction and specify the "Reference" type. This will be handled as a regular FHIR reference. Additionally, in the `refers` property, you can reference not only resource types but also profiles on some resources.
 
-```
+```json
 {
   "elements": {
     "organization": {
@@ -489,7 +489,7 @@ In this example, the `effective` property can be either `effectiveDateTime` or `
 
 To express this in FHIRSchema, use the `choiceOf` instruction:
 
-```
+```json
 {
   "elements": {
     "effectiveDateTime": {

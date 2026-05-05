@@ -19,7 +19,7 @@ Aidbox Search resource defines a search parameter or overrides the existing one.
 
 ### Example
 
-```
+```http
 PUT /Search/Patient.name
 content-type: text/yaml
 accept: text/yaml
@@ -52,7 +52,7 @@ Allows the use of different reference types in the "where" expression. Reference
 * `{{param.id}}` for resource `id`
 * `{{param.url}}` for resource `url`
 
-```
+```http
 PUT /Search/Patient.generalPractitioner
 content-type: text/yaml
 accept: text/yaml
@@ -69,7 +69,7 @@ resource: {id: Patient, resourceType: Entity}
 
 To refer to the system and code in the SQL query, use `{{param.system}}` and `{{param.code}}` accordingly.&#x20;
 
-```
+```http
 PUT /Search/ServiceRequest.identifier
 content-type: text/yaml
 accept: text/yaml
@@ -157,13 +157,13 @@ query: |
 
 Call it like this (data and query keys):
 
-```
+```http
 GET /$query/daily-report?date=2013-06-08
 ```
 
 Or via the FHIR Search Bundle endpoint, using `_query` to reference the query name:
 
-```
+```http
 GET /fhir/Encounter?_query=daily-report&date=2013-06-08
 ```
 
@@ -218,7 +218,7 @@ Identifier parameters are quoted and escaped (double quotes are doubled), which 
 
 AidboxQuery has `type` field, which can be either `query` or `execute`. Default type is query. This means that _SELECT_ statement in query parameter is expected. If you want to make SQL query with execute statements e.g. _TRUNCATE_, use `execute` type.
 
-```
+```http
 PUT /AidboxQuery/truncate
 
 query: 'TRUNCATE {{resourceType}}; TRUNCATE {{resourceType}}_history'
@@ -229,7 +229,7 @@ type: execute
 
 You can use `enable-links` parameter to include [links](https://www.hl7.org/fhir/http.html#paging) in the response. Here is simple example how to use paging with AidboxQuery and include links.
 
-```
+```http
 PUT /AidboxQuery/q1
 
 query: |
@@ -260,7 +260,7 @@ AidboxQuery expects that parameters `_count` and `_page` (exactly such names) ar
 
 Use like this:&#x20;
 
-```
+```http
 GET /$query/q1?patient=pt1&_count=1&_page=2
 ```
 
@@ -268,7 +268,7 @@ GET /$query/q1?patient=pt1&_count=1&_page=2
 
 To design the aidbox query, you can use `POST /$query/$debug` endpoint without the need to create an AidboxQuery resource:
 
-```
+```http
 POST /$query/$debug
 
 query:
@@ -307,7 +307,7 @@ ctx:
 
 You can debug AidboxQuery with `_explain=plan` parameter:
 
-```
+```http
 GET /$query/daily-report?date=2013-06-08&_explain=plan
 
 plan: |-
@@ -334,7 +334,7 @@ With parameters started with `.`, you can provide the exact path for the element
 
 ### Example
 
-```
+```http
 GET /Patient?.name.0.family=Johnson
 => WHERE resource#>>'{name,0,family}' = 'Jonhnson'
 
@@ -374,7 +374,7 @@ limit 50
 
 If this query returns 50 records, Aidbox will respond with these records.
 
-```
+```http
 GET /Patient/$lookup?\
   by=name.family,name.given,birthDate,identifier.value;address.city,address.line&\
   sort=name.family,name.given&\
@@ -417,7 +417,7 @@ Use `_explain` parameter to inspect the search query execution plan.
 
 Multiple options can be combined with commas:
 
-```
+```http
 GET /fhir/Patient?name=john&_explain=analyze,buffers,no-timing
 ```
 
@@ -429,7 +429,7 @@ GET /fhir/Patient?name=john&_explain=analyze,buffers,no-timing
 Prior to version 2602, any value passed to `_explain` (e.g. `_explain=1`, `_explain=true`, `_explain=0`) was treated as `_explain=analyze`. These values are no longer supported and return HTTP 422. Use `_explain=plan` or `_explain=analyze` explicitly instead.
 {% endhint %}
 
-```
+```http
 GET /fhir/Encounter?subject:Patient._ilike=john&_explain=analyze
 ```
 
@@ -457,7 +457,7 @@ If your query is slow and you see Seq Scans , it's time to build indexes. Do not
 
 This parameter can be used for debugging too. If an SQL error happens, `_explain` will show the original query:
 
-```
+```http
 GET /fhir/Patient?error-demo=1&_explain=plan
 
 exception: |-
@@ -490,7 +490,7 @@ You can use operators `lt,le,gt,ge` like in other date search parameters.
 
 By default, the search result is returned as a FHIR Bundle. You can change this behavior by setting `_result=array` and your search result will be returned as JSON array with resources, without the Bundle envelope:
 
-```
+```http
 GET /fhir/Patient?_result=array
 # 200
 - id: pt1
@@ -509,7 +509,7 @@ GET /fhir/Patient?_result=array
 
 `_search-language` is experimental SearchParameter. It can be used to search for a specified language.
 
-```
+```http
 GET /fhir/<resource>?_search-language=<locale>&<string-param>=<value>
 ```
 

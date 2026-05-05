@@ -150,7 +150,7 @@ This example allows an org-based user (created by `PUT /Organization/<org-id>/fh
 
 {% tabs %}
 {% tab title="Recommended way" %}
-```
+```http
 PUT /AccessPolicy/as-user-allow-org-patients
 
 description: A user should be able to get every patient in their organization.

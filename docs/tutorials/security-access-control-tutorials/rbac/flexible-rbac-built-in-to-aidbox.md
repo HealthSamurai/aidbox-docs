@@ -99,7 +99,7 @@ Aidbox returns you a Practitioner resource.
 
 When you make a query
 
-```
+```http
 GET /fhir/Practitioner/pr-1
 ```
 

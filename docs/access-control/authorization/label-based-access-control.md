@@ -222,7 +222,7 @@ subject:
 {% endtab %}
 
 {% tab title="Request context" %}
-```
+```yaml
 request_method: GET
 uri: /fhir/Encounter/enc-1
 security_labels:
@@ -236,7 +236,7 @@ security_labels:
 {% endtab %}
 
 {% tab title="Outcome " %}
-```
+```yaml
 resourceType: Encounter
 id: enc-1
 status: finished

@@ -121,7 +121,7 @@ _Expects no parameters_
 {% tab title="Result" %}
 Grafana dashboard JSON:
 
-```
+```json
 {
  "uid": "metrics-dev",
  "title": "Aidbox metrics dev",

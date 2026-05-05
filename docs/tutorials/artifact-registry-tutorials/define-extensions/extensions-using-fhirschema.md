@@ -12,7 +12,7 @@ See also [Extensions using StructureDefinition](extensions-using-structuredefini
 
 To create the extension, use `POST /fhir/FHIRSchema` endpoint.
 
-```
+```http
 POST /fhir/FHIRSchema
 
 url: http://my-extension/insurance-plan-reference

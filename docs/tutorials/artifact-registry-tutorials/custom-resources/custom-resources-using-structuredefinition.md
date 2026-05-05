@@ -518,7 +518,7 @@ It allows you to make the following requests:
 
 {% tabs %}
 {% tab title="Request" %}
-```
+```http
 GET /fhir/TutorNotification?subject=Patient/pt-1
 ```
 {% endtab %}

@@ -20,7 +20,7 @@ Unix-like system with `bash`, `tar` and `java` installed
 
 To generate SDK by your `zen-project` config you have to install [zen-cli](https://www.npmjs.com/package/@aidbox/zen-cli). This command will install the latest version of the zen-cli on your system. The -g flag tells npm to install the package globally, making it available to all projects on your system.
 
-```
+```bash
 npm install -g @aidbox/zen-cli
 ```
 
@@ -59,7 +59,7 @@ Then, when you get your SDK move this archive into your project and add SDK as d
 
 Install dependencies
 
-```
+```bash
 npm install
 ```
 

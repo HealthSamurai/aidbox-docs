@@ -29,7 +29,7 @@ Aidbox provides a set of MCP tools to cover FHIR CRUDS operations.
 
 The easiest way to run Aidbox with MCP is use the runme command:
 
-```
+```bash
 curl -JO https://aidbox.app/runme/mcp && docker compose up
 ```
 

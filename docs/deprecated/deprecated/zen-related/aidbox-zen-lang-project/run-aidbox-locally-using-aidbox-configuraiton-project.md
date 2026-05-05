@@ -78,7 +78,7 @@ git clone \
 
 Here is the basic structure of the Aidbox Configuration Project:
 
-```
+```bash
 aidbox-project/
 ├── .env
 ├── docker-compose.yaml

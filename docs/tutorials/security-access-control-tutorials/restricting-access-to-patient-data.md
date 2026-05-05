@@ -6,7 +6,7 @@ description: Restrict access to patient data using FHIR CompartmentDefinition an
 
 Create a CompartmentDefinition instance from a [standard patient CompartmentDefinition](https://www.hl7.org/fhir/compartmentdefinition-patient.json):
 
-```
+```http
 PUT /fhir/CompartmentDefinition/Patient
 Content-Type: application/json
 
@@ -706,7 +706,7 @@ Content-Type: application/json
 
 Create AccessPolicy resource which will allow all GET requests for `/fhir/Patient/*`
 
-```
+```http
 PUT /AccessPolicy/allow-to-get-patient-compartment
 Content-Type: application/json
 

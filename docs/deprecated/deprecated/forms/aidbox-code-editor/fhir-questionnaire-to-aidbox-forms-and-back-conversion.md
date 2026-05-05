@@ -92,7 +92,7 @@ Example:
 
 zen-package.edn
 
-```
+```clojure
 {:deps {zen.fhir "https://github.com/zen-fhir/zen.fhir.git"
         hl7-fhir-r4-core "https://github.com/zen-fhir/hl7-fhir-r4-core.git"}}
 ```
@@ -119,7 +119,7 @@ When feature is enabled you will see additional data in `Questionnaire` and `Que
 
 In `Aidbox` format you will see `rule-description` field.
 
-```
+```http
 GET /Questionnaire/q1
 
 resourceType: Questionnaire
@@ -131,7 +131,7 @@ item:
 
 In `FHIR` format you will see an extension with `valueMarkdown`
 
-```
+```http
 GET /fhir/Questionnaire/q1
 
 resourceType: Questionnaire
@@ -157,7 +157,7 @@ Example:
 
 zen-package.edn
 
-```
+```clojure
 {:deps {zen.fhir "https://github.com/zen-fhir/zen.fhir.git"
         hl7-fhir-r4-core "https://github.com/zen-fhir/hl7-fhir-r4-core.git"}}
 ```
@@ -184,7 +184,7 @@ When feature is enabled you will see additional data in `QuestionnaireResponse` 
 
 In `Aidbox` format you will see `score` field.
 
-```
+```http
 GET /QuestionnaireResponse/q1
 
 resourceType: QuestionnaireResponse
@@ -202,7 +202,7 @@ item:
 
 In `FHIR` format you will see an extension with `valueInteger`
 
-```
+```http
 GET /fhir/Questionnaire/q1
 
 resourceType: Questionnaire

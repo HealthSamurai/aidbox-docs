@@ -322,7 +322,7 @@ GET /Patient/new-patient/Observation
 {% endtab %}
 
 {% tab title="Response" %}
-```
+```json
 {
  "query-time": 7,
  "meta": {

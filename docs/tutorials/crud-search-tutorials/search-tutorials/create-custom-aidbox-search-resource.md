@@ -32,7 +32,7 @@ telecom:
   value: john@dundermifflin.com
 </code></pre>
 
-```
+```http
 PUT /fhir/Patient/pt2
 
 telecom:
@@ -74,7 +74,7 @@ EXISTS (
 
 And create Search resource using `Search.where` expression (note how we use `{{table}}` and `{{param}}` placeholders):
 
-```
+```http
 PUT /Search/Patient.email-domain
 content-type: text/yaml
 accept: text/yaml
@@ -90,17 +90,17 @@ where: EXISTS ( SELECT 1 FROM jsonb_array_elements({{table}}.resource -> 'teleco
 
 Then check search:
 
-```
+```http
 GET /fhir/Patient?email-domain=somecompany.com
 ```
 
 This returned both patients. See the SQL:
 
-```
+```http
 GET /fhir/Patient?email-domain=somecompany.com&_explain=plan
 ```
 
-```
+```sql
 query:
   - >-
     SELECT "patient".* FROM "patient" WHERE (EXISTS ( SELECT 1 FROM
@@ -128,7 +128,7 @@ See more:
 
 ### Encounter.subject performance optimization
 
-```
+```http
 PUT /Search/Encounter.subject
 content-type: text/yaml
 accept: text/yaml
@@ -145,7 +145,7 @@ multi: array
 
 ### Patient.deceased
 
-```
+```http
 PUT /Search/Patient.deceased
 content-type: text/yaml
 accept: text/yaml
@@ -161,7 +161,7 @@ where: "coalesce((resource#>>'{deceased,boolean}')::boolean, resource ?? 'deceas
 
 ### User.identifier
 
-```
+```http
 PUT /Search/User.identifier
 content-type: text/yaml
 accept: text/yaml
@@ -183,7 +183,7 @@ resource: {id: User, resourceType: Entity}
 
 ### ServiceRequest.subject performance optimization
 
-```
+```http
 PUT /Search/ServiceRequest.subject
 content-type: text/yaml
 accept: text/yaml
@@ -197,7 +197,7 @@ param-parser: reference
 
 ### Search and sort by field in the related resource
 
-```
+```http
 PUT /Search/Patient.organization-name
 content-type: text/yaml
 accept: text/yaml

@@ -14,7 +14,7 @@ The `_include` and `_revinclude` search parameters allow a search to return addi
 
 The `_include` parameter returns additional resources that are referenced by the matching resources. For example, when searching for MedicationRequest resources, you can include the referenced Practitioner resources:
 
-```
+```http
 GET /fhir/MedicationRequest?patient=123&_include=MedicationRequest:practitioner
 ```
 
@@ -30,7 +30,7 @@ This query can be interpreted in the following manner. For the `source-type` res
 
 `target-type` is optional for not chained includes and means all referenced resource types:
 
-```
+```http
 GET /fhir/Encounter?_include=Encounter:subject 
 => GET /fhir/Encounter?_include=Encounter:subject:*
 ```
@@ -43,7 +43,7 @@ The `_revinclude` parameter returns additional resources that reference the matc
 
 For example, to find all Provenance resources that reference a specific MedicationRequest:
 
-```
+```http
 GET /fhir/MedicationRequest?_id=123&_revinclude=Provenance:target
 ```
 
@@ -70,7 +70,7 @@ would match any observations with the SNOMED code `3738000` (Viral hepatitis (di
 
 Also, you can use `_include:iterate` to recursively follow references. `Observation.has-member` is a reference to a group of possible observations. Suppose, `org-1` is a part of `org-2`, `org-2` is a part of `org-3`. This request will return `org-1`, `org-2` and `org-3`:
 
-```
+```http
 GET /fhir/Organization?_id=org-1&_revinclude:iterate=Organization:partof
 ```
 
@@ -80,7 +80,7 @@ Aidbox enhances FHIR `_elements` parameter to support fields from included resou
 
 Example:
 
-```
+```http
 GET /Encounter?_include=Encounter:patient&_elements=id,status,Patient.name,Patient.birthDate
 ```
 
@@ -92,7 +92,7 @@ If you provide `:logical` modifier, Aidbox will include logically referenced res
 
 If Encounter references Patient logically using `Reference.identifier` like this:
 
-```
+```http
 PUT /fhir/Encounter
 
 resourceType: Encounter
@@ -108,13 +108,13 @@ status: finished
 
 You can include Patient resources by providing `:logical` modifier:
 
-```
+```http
 GET /fhir/Encounter?_include:logical=Encounter:patient
 ```
 
 Or include Encounter resources to Patient resources by providing `:logical` modifier:
 
-```
+```http
 GET /fhir/Patient?_revinclude:logical=Encounter:patient:Patient
 ```
 
@@ -132,7 +132,7 @@ BOX_FHIR_SEARCH_AUTHORIZE_INLINE_REQUESTS=true
 
 Below are examples of AccessPolicy configurations that allow requests such as:
 
-```
+```http
 GET /fhir/Patient?_include=Patient:organization
 ```
 

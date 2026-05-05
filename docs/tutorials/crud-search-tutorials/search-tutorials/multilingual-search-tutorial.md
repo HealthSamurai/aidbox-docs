@@ -12,7 +12,7 @@ FHIR specifies the [translation extension](http://hl7.org/fhir/StructureDefiniti
 
 First, let's create a resource Location, which has a name in English and French:
 
-```
+```http
 POST /fhir/Location
 
 resourceType: Location
@@ -47,13 +47,13 @@ BOX_FHIR_SEARCH_MULTILINGUAL_ENABLE=true
 
 To search locations by name in French:
 
-```
+```http
 GET /Location?_search-language=fr-CA&name=Clinique
 ```
 
 To search in English:
 
-```
+```http
 GET /Location?_search-language=en-CA&name=Downtown
 ```
 
@@ -67,7 +67,7 @@ BOX_FHIR_SEARCH_MULTILINGUAL_USE_ACCEPT_LANGUAGE_HEADER=true
 
 Now we can use the header instead:
 
-```
+```http
 GET /Location?name=Clinique
 Accept-Language: fr-CA
 ```
@@ -100,20 +100,20 @@ By default PostgreSQL uses system locale to specify sort order. When searching b
 
 Get all locations, those names start with 'Clinique' in French:
 
-```
+```http
 GET /fhir/Location?_search-language=fr-CA&name=Clinique
 ```
 
 Same with `Accept-Language` header:
 
-```
+```http
 GET /fhir/Location?name=Clinique
 Accept-Language: fr-CA
 ```
 
 Get all locations and sort by their names in French, using French locale for sort order (COLLATE):
 
-```
+```http
 GET /fhir/Location?_search-language=fr-CA%_sort=name
 ```
 
@@ -121,7 +121,7 @@ GET /fhir/Location?_search-language=fr-CA%_sort=name
 
 If some resource contains an array of strings, e.g. `Location.alias`, extensions can also be an array.
 
-```
+```http
 PUT /fhir/Location/my-loc
 
 resourceType: Location
@@ -160,7 +160,7 @@ _alias:
 
 `_search-language` can search through arrays (search parameter Location.name searches in `name`, `alias`, `_name` and `_alias`)
 
-```
+```http
 GET /fhir/Location?_search-language=fr-CA&name=a-fr-ca // found my-loc
 GET /fhir/Location?_search-language=fr-CA&name=b-fr-ca // found my-loc
 GET /fhir/Location?_search-language=fr-CA&name=c-fr-ca // not found

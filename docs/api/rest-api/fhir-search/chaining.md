@@ -8,7 +8,7 @@ Chained parameters allow filtering by the parameter of a resource linked via a r
 
 Example:
 
-```
+```http
 GET /fhir/Encounter?subject:Patient.gender=male
 ```
 
@@ -26,7 +26,7 @@ Any chain must finish with a terminal. A terminal is just a search parameter nam
 
 Example:
 
-```
+```http
 GET /fhir/Encounter?subject:Patient.gender=male
 GET /fhir/Encounter?subject:Patient.general-practitioner:Practitioner.family=Smith
 ```
@@ -43,7 +43,7 @@ Any chain must finish with a terminal. A terminal is just a search parameter nam
 
 Example:
 
-```
+```http
 GET /fhir/Observation?_has:Encounter:subject:status=finished
 ```
 
@@ -61,7 +61,7 @@ If the last chain element is a reverse element, then a terminal is joined using 
 
 Examples:
 
-```
+```http
 GET /fhir/Encounter?subject:Patient.name
 
 GET /fhir/Observation?_has:Encounter:subject:code
@@ -81,7 +81,7 @@ You can interpret chain elements as a semijoin. The difference between forward a
 
 Example 1:
 
-```
+```http
 GET /fhir/Organization?_has:Patient:organization:_has:Observation:subject:code=...
 ```
 
@@ -101,7 +101,7 @@ Semantically, this means: find all organizations that have patients who have an 
 
 Example 2:
 
-```
+```http
 GET /fhir/Observation?subject:Patient.organization:Organization.name=...
 ```
 
@@ -121,7 +121,7 @@ This means: find all observations that belong to some patient managed by some or
 
 Example 3:
 
-```
+```http
 GET /fhir/Patient?_has:Encounter:subject.practitioner:Practitioner._id=...
 ```
 

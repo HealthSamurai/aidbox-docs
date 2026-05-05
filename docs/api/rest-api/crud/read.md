@@ -22,13 +22,13 @@ Get an existing patient:
 
 {% tabs %}
 {% tab title="Request (FHIR)" %}
-```
+```http
 GET /fhir/Patient/17b69d79-3d9b-45f8-af79-75f958502763
 ```
 {% endtab %}
 
 {% tab title="Request (Aidbox)" %}
-```
+```http
 GET /Patient/17b69d79-3d9b-45f8-af79-75f958502763
 ```
 {% endtab %}
@@ -74,13 +74,13 @@ Attempt to get a non-existing patient:
 
 {% tabs %}
 {% tab title="Request (FHIR)" %}
-```
+```http
 GET /fhir/Patient/some-not-existing-id
 ```
 {% endtab %}
 
 {% tab title="Request (Aidbox)" %}
-```
+```http
 GET /Patient/some-not-existing-id
 ```
 {% endtab %}
@@ -132,13 +132,13 @@ Version id `13` was extracted from the response of a `create` interaction.
 
 {% tabs %}
 {% tab title="Request (FHIR)" %}
-```
+```http
 GET /fhir/Patient/17b69d79-3d9b-45f8-af79-75f958502763/_history/13
 ```
 {% endtab %}
 
 {% tab title="Request (Aidbox)" %}
-```
+```http
 GET /Patient/17b69d79-3d9b-45f8-af79-75f958502763/_history/13
 ```
 {% endtab %}

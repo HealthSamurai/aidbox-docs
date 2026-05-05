@@ -103,7 +103,7 @@ accept: text/yaml
 gender: unknown
 ```
 
-```
+```http
 GET /fhir/Patient?new-gender=unknown
 ```
 

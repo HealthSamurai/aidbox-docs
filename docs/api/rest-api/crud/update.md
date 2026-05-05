@@ -24,7 +24,7 @@ Aidbox allows omitting `id` in the body. `id` in the body of the resource is ign
 
 ### Update a patient by a given id
 
-```
+```http
 PUT /fhir/Patient/17b69d79-3d9b-45f8-af79-75f958502763
 
 name: [{given: ["Bob"]}]
@@ -32,7 +32,7 @@ name: [{given: ["Bob"]}]
 
 ### Create a patient with a specified id
 
-```
+```http
 PUT /fhir/Patient/tom-id
 
 name: [{given: ["Tom"]}]
@@ -40,7 +40,7 @@ name: [{given: ["Tom"]}]
 
 ### Update patient by name
 
-```
+```http
 PUT /fhir/Patient?name=Tom
 
 name: [{given: ["Tom"]}]
@@ -75,7 +75,7 @@ In contrast to FHIR, Aidbox conditional update allows the creation of a resource
 
 Create a patient with the name Julie and specified id if no other patients with the same name exist:
 
-```
+```http
 PUT /fhir/Patient?name=Julie
 
 id: julie-id
@@ -95,7 +95,7 @@ While you update, there is a risk of overriding the latest changes done by anoth
 
 Let's say we created a patient:
 
-```
+```http
 POST /fhir/Patient
 
 id: pt-1
@@ -104,7 +104,7 @@ name: [{family: Wrong}]
 
 To fix the family for this patient without the risk of overriding someone else's changes, we can use a versioned update request:
 
-```
+```http
 PUT /fhir/Patient/pt-1
 If-Match: 30
 
@@ -133,7 +133,7 @@ This instructs the server to execute the update only if the target resource exis
 This approach lets you avoid the “two‑call” pattern (GET → PUT) and ensures the semantics of “update only” are preserved. Refer to the [FHIR specification](https://hl7.org/fhir/R4/http.html#concurrency) to learn more.
 
 ### Example
-```
+```http
 PUT /fhir/Patient/pt-12345
 If-Match: *
 Content-Type: application/fhir+json
@@ -170,7 +170,7 @@ Allowed values are:
 
 Example:
 
-```
+```http
 PUT /fhir/Patient?name=Julie
 x-max-isolation-level: repeatable-read
 

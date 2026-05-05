@@ -79,7 +79,7 @@ GET /Concept/?system=http://www.nlm.nih.gov/research/umls/rxnorm&code=636671
 {% endtab %}
 
 {% tab title="Response" %}
-```
+```yaml
 resourceType: Bundle
 type: searchset
 entry:

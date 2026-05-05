@@ -156,13 +156,13 @@ Now we can test it.
 
 Start Aidbox:
 
-```
+```bash
 docker compose up --force-recreate
 ```
 
 Test if new `Patient.brthdt` search parameter work:
 
-```
+```http
 GET /fhir/Patient?brthdt=2000-01-01&_explain=plan
 ```
 
@@ -176,7 +176,7 @@ Start synchronization _**task**_ of indexes from zen-schemas. About tasks and wo
 
 Request:
 
-```
+```http
 POST /rpc
 Content-Type: text/yaml
 Accept: text/yaml

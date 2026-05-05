@@ -132,7 +132,7 @@ aws --endpoint-url=http://localhost:4566 events list-event-buses
 
 ### 1. Create a subscription topic
 
-```
+```http
 POST /fhir/AidboxSubscriptionTopic
 content-type: application/json
 accept: application/json
@@ -152,7 +152,7 @@ accept: application/json
 
 ### 2. Create AidboxTopicDestination
 
-```
+```http
 POST /fhir/AidboxTopicDestination
 content-type: application/json
 accept: application/json
@@ -202,7 +202,7 @@ accept: application/json
 
 ### 3. Create a Patient
 
-```
+```http
 POST /fhir/Patient
 content-type: application/json
 
@@ -215,7 +215,7 @@ content-type: application/json
 
 Check the topic destination status:
 
-```
+```http
 GET /fhir/AidboxTopicDestination/eventbridge-destination/$status
 ```
 
@@ -266,7 +266,7 @@ aws --endpoint-url=http://localhost:4566 sqs receive-message \
 
 For guaranteed delivery with batch processing, use the at-least-once profile:
 
-```
+```http
 POST /fhir/AidboxTopicDestination
 content-type: application/json
 accept: application/json
@@ -437,7 +437,7 @@ aws events put-targets \
 
 ### Status Endpoint
 
-```
+```http
 GET /fhir/AidboxTopicDestination/{id}/$status
 ```
 
@@ -455,7 +455,7 @@ GET /fhir/AidboxTopicDestination/{id}/$status
 
 ### Prometheus Metrics
 
-```
+```http
 GET /metrics
 ```
 
@@ -533,7 +533,7 @@ aws sqs set-queue-attributes \
 
 When running on AWS infrastructure (EC2, ECS, EKS), use IAM roles instead of access keys. See [AWS Authentication](aws-eventbridge-aidboxtopicdestination.md#aws-authentication) for details.
 
-```
+```http
 POST /fhir/AidboxTopicDestination
 content-type: application/json
 

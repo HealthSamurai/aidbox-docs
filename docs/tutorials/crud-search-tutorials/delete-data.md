@@ -14,7 +14,7 @@ Note that Aidbox does not enforce referential integrity for `DELETE` method.
 
 Request:
 
-```
+```http
 DELETE /fhir/Patient/pt-1
 ```
 
@@ -39,7 +39,7 @@ Available since version 2602.
 
 To delete a Patient and **all resources in their compartment** (Observations, Conditions, Encounters, etc.) including full history, use the [`$purge` operation](../../api/bulk-api/purge.md):
 
-```
+```http
 POST /fhir/Patient/pt-1/$purge
 ```
 
@@ -67,7 +67,7 @@ If you need to delete resource history, you need to execute SQL manually.
 
 Example:
 
-```
+```sql
 DELETE FROM Patient_history
 WHERE id='pt-1'
 ```
@@ -90,7 +90,7 @@ type: execute
 
 And then run it with
 
-```
+```http
 GET /$query/remove-patient-history?id=pt-1
 ```
 
@@ -100,7 +100,7 @@ You can use `truncate` PostgreSQL statement to delete everything from the specif
 
 Example:
 
-```
+```sql
 truncate Patient;
 truncate Patient_history;
 ```
@@ -116,7 +116,7 @@ type: execute
 
 And then run it with
 
-```
+```http
 GET /Patient?_query=truncate
 ```
 

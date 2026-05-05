@@ -37,7 +37,7 @@ If you already have a configuration project, you can replicate these steps to en
 #### Added LOINC dependency to configuration project
 
 {% code title="zen-package.edn" %}
-```
+```clojure
 {:deps {loinc "https://github.com/zen-fhir/loinc.git"}}
 ```
 {% endcode %}

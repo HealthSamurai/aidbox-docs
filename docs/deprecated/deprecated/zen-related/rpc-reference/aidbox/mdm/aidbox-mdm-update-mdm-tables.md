@@ -4,7 +4,7 @@ Create denormalized MDM tables for specified resource type. These tables are req
 
 ## Syntax
 
-```
+```http
 POST /rpc
 
 method: aidbox.mdm/update-mdm-tables
@@ -27,7 +27,7 @@ Resource type for which to create/update MDM tables. MDM model has to be set up 
 
 Create MDM tables for Patient resource
 
-```
+```http
 POST /rpc
 
 method: aidbox.mdm/update-mdm-tables

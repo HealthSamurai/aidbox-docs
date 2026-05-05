@@ -188,7 +188,7 @@ In this example we create SearchParameter with name `composite-string-date` whic
 
 This request
 
-```
+```http
 GET /SomeType?composite-string-date=somename$2023-08-01
 ```
 

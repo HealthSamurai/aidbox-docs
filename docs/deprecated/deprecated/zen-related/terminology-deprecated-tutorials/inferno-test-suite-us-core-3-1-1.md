@@ -16,7 +16,7 @@ To correctly set up Aidbox, we'll utilize the Aidbox configuration projects.
 
 There's an [existing guide](broken-reference/) for this process. Adhere to this guide, but note a variation when you reach the `Configure the Aidbox` step: instead of using the recommended configuration projects (R4,R4B,R5,etc.) — clone this specific project:
 
-```
+```bash
 git clone \
   --branch=us-core-3.1.1 \
   --depth=1 \

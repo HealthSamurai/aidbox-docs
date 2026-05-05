@@ -115,7 +115,7 @@ If you want to verify that validation with IGs work, you can create FHIR resourc
 For example, if you want to check that US Core IG works, you can send the following requests and check that response statuses are as expected.
 
 {% code title="Status: 201" %}
-```
+```http
 POST /Patient
 content-type: text/yaml
 accept: text/yaml
@@ -135,7 +135,7 @@ identifier:
 This request checks that valid values for `birthsex` field are allowed.
 
 {% code title="Status: 422" %}
-```
+```http
 POST /Patient
 content-type: text/yaml
 accept: text/yaml

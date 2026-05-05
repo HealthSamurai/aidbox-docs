@@ -146,7 +146,7 @@ You pass both Mapping and incoming data (scope) in a request body. Request respo
 
 In Aidbox, there is the `$include` directive which allows you to include a Mapping within another one:
 
-```
+```http
 PUT /Mapping/index
 Content-Type: text/yaml
 

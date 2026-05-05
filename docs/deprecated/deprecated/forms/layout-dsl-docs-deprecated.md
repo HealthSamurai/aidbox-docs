@@ -24,7 +24,7 @@ Container node is a node that contains several children elements.
 
 Typical description of node:
 
-```
+```clojure
 {:type aidbox.sdc/fields
  :children [{...} {...}]
 ```
@@ -95,7 +95,7 @@ To show field from document as static text use `:bind` key
 
 Minimal example of input node:
 
-```
+```clojure
 {:bind [:blood-pressure]}
 ```
 
@@ -217,7 +217,7 @@ SuperDocumentLayout
 
 If you need to to group input fields or handle multiple readings of some field, you can use subforms.
 
-```
+```clojure
 {:type aidbox.sdc/subform
  :bind [:blood-pressure]
  :form-layout {:type aidbox.sdc/fields
@@ -265,7 +265,7 @@ Just declare your field as `zen/vector` in the document:
 
 And in subform definition set `collection=true`
 
-```
+```clojure
 {:type aidbox.sdc/subform
  :bind [:blood-pressure]
  :collection true
@@ -283,7 +283,7 @@ For each node we can use two types of rules:
 
 Usage:
 
-```
+```clojure
 {:bind [:blood-pressure :position]
  :sdc/display-when (get-in [:blood-pressure :systolic])} ;; field will show only if :systolic field is filled
 ```
@@ -292,7 +292,7 @@ Usage:
 
 If you want to show something different than usual select component, you can customize visual view of node using `:control` field.
 
-```
+```clojure
 {:bind [:loinc-80884-0] :control ScoreSelector}
 ```
 

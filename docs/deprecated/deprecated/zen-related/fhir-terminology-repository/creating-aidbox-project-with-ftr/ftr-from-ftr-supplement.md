@@ -68,7 +68,7 @@ project/
 {% endcode %}
 
 {% code title="resources/ig/package.json" %}
-```
+```json
 {
   "name": "supplementdependant.core",
   "version": "0.0.1",
@@ -94,7 +94,7 @@ The ValueSet definition conforms to the [zen.fhir ValueSet schema](../../profili
 ```
 
 {% code title="zrc/angina.edn" %}
-```
+```json
 {ns angina
  import #{zen.fhir}
  angina-vs

@@ -221,7 +221,7 @@ RabbitMQ natively uses AMQP 0-9-1 protocol and also supports AMQP 1.0 (since Rab
 
 Check the status of your topic destination:
 
-```
+```http
 GET /fhir/AidboxTopicDestination/rabbitmq-destination/$status
 ```
 

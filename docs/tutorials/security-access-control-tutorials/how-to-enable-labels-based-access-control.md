@@ -20,7 +20,7 @@ mkdir aidbox && cd aidbox
 
 ### 2. Run Aidbox on Docker
 
-```
+```bash
 curl -JO https://aidbox.app/runme && docker compose up
 ```
 

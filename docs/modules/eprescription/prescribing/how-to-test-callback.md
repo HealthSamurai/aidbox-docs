@@ -18,7 +18,7 @@ Endpoint expects a `xml` body with message. In a Header element there is `Relate
 For `CancelRx` there is same `MedicationRequest` used, so to distinguish between `NewRx` and `CancelRx` there is type specified, eg:
 {% endhint %}
 
-```
+```json
 {
   "system": "urn:app:aidbox:e-prescriptions:surescripts:message-id",
   "type": {

@@ -7,14 +7,14 @@ description: >-
 
 There is the configuration project template prepared for the service deployment:
 
-```
+```bash
 git clone --depth=1 --branch=aidbox-ccda-service https://github.com/Aidbox/aidbox-project-template.git aidbox-project && cd aidbox-project && rm -rf .git && mkdir zen-packages
 ```
 
 For detailed instructions on deploying the service based on the configuration project template please refer to the [deployment guide](../../../deployment-and-maintenance/deploy-aidbox/README.md)
 
 The next step is starting of docker-containers:
-```
+```bash
 docker compose up --force-recreate --remove-orphans
 ```
 

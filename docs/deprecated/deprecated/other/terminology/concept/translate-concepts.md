@@ -18,7 +18,7 @@ concepts:
 
 Search for translations of concepts with LOINC codes 2-6 and 1-8 in French:&#x20;
 
-```
+```http
 POST /$translate-concepts
 
 language: fr-CA

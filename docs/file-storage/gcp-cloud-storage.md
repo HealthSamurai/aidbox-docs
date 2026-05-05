@@ -73,7 +73,7 @@ Configure your workload to use the GCP service account identity:
 
 After configuration, Aidbox will automatically use the ambient credentials. Test by making a request to generate a signed URL:
 
-```
+```http
 POST /gcp/workload-identity/storage/<bucket-name>
 
 filename: test.txt
@@ -90,7 +90,7 @@ See also:
 
 Request a signed URL for uploading a file to Cloud Storage.
 
-```
+```http
 POST /gcp/workload-identity/storage/<bucket-id>
 
 filename: documents/consent.txt
@@ -98,7 +98,7 @@ filename: documents/consent.txt
 
 Response contains a signed URL that you can use to upload your file:
 
-```
+```yaml
 status: 200
 url: https://storage.googleapis.com/my-bucket/documents/consent.txt?X-Goog-Algorithm=...
 ```
@@ -109,7 +109,7 @@ Example workflow:
 
 1. Request upload URL from Aidbox:
 
-```
+```http
 POST /gcp/workload-identity/storage/my-bucket
 Body: {"filename": "reports/results.txt"}
 ```
@@ -125,19 +125,19 @@ Body: <file-content>
 
 Request a signed URL for downloading a file from Cloud Storage.
 
-```
+```http
 GET /gcp/workload-identity/storage/<bucket-id>/<file-path>
 ```
 
 Example:
 
-```
+```http
 GET /gcp/workload-identity/storage/my-bucket/documents/consent.txt
 ```
 
 Response:
 
-```
+```yaml
 status: 200
 url: https://storage.googleapis.com/my-bucket/documents/consent.txt?X-Goog-Algorithm=...
 ```
@@ -148,19 +148,19 @@ The file path can include multiple directory levels (e.g., `documents/2024/janua
 
 Request a signed URL for deleting a file from Cloud Storage.
 
-```
+```http
 DELETE /gcp/workload-identity/storage/<bucket-id>/<file-path>
 ```
 
 Example:
 
-```
+```http
 DELETE /gcp/workload-identity/storage/my-bucket/temp/backup.txt
 ```
 
 Response:
 
-```
+```yaml
 status: 200
 url: https://storage.googleapis.com/my-bucket/temp/backup.txt?X-Goog-Algorithm=...
 ```
@@ -169,7 +169,7 @@ url: https://storage.googleapis.com/my-bucket/temp/backup.txt?X-Goog-Algorithm=.
 
 All Workload Identity endpoints accept an optional `expiration` query parameter that sets the signed URL lifetime in seconds. If not specified, URLs expire after 7 days (604800 seconds).
 
-```
+```http
 POST /gcp/workload-identity/storage/my-bucket?expiration=3600
 
 filename: data.txt
@@ -187,7 +187,7 @@ This approach uses explicit service account credentials stored in Aidbox. It rem
 
 Create a resource containing service account credentials with read/write access to Cloud Storage.
 
-```
+```http
 PUT /GcpServiceAccount
 
 id: my-account
@@ -199,7 +199,7 @@ The private key is sensitive data. Store it securely and rotate it periodically.
 
 ### Generate upload URL
 
-```
+```http
 POST /gcp/storage/<service-account-id>/<bucket-id>
 
 filename: documents/report.txt
@@ -207,26 +207,26 @@ filename: documents/report.txt
 
 Response:
 
-```
+```yaml
 status: 200
 url: <signed-url>
 ```
 
 ### Generate download URL
 
-```
+```http
 GET /gcp/storage/<service-account-id>/<bucket-id>/<file-path>
 ```
 
 Example:
 
-```
+```http
 GET /gcp/storage/my-account/my-bucket/documents/report.txt
 ```
 
 Response:
 
-```
+```yaml
 status: 200
 url: <signed-url>
 ```
@@ -235,7 +235,7 @@ url: <signed-url>
 
 The service account endpoints also support the `expiration` query parameter to control URL lifetime.
 
-```
+```http
 POST /gcp/storage/my-account/my-bucket?expiration=1800
 
 filename: data.txt

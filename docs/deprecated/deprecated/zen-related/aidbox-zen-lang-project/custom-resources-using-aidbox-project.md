@@ -258,7 +258,7 @@ In this example, the OurType schema will be used to validate OurType resource, r
 
 <summary>Extending USCore patient</summary>
 
-```
+```json
 {ns main
  import #{aidbox.index.v1
           aidbox.search-parameter.v1

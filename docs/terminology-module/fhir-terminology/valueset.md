@@ -195,7 +195,7 @@ Validates whether a given code is a member of the ValueSet. This operation is es
 **Example:**
 {% tabs %}
 {% tab title="Request" %}
-```
+```http
 GET /fhir/ValueSet/$validate-code?url=http://hl7.org/fhir/ValueSet/administrative-gender&code=male&inferSystem=true
 ```
 {% endtab %}
@@ -226,7 +226,7 @@ Transforms a ValueSet definition into a complete enumerated list of codes. This 
 **Example:**
 {% tabs %}
 {% tab title="Request" %}
-```
+```http
 GET /fhir/ValueSet/$expand?url=http://hl7.org/fhir/ValueSet/administrative-gender
 ```
 {% endtab %}

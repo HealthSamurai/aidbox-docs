@@ -226,13 +226,13 @@ The operation supports both type-level and system-level invocation:
 
 **Type-level** (when you know the resource type):
 
-```
+```http
 GET /fhir/StructureDefinition/$current-canonical?url=http://hl7.org/fhir/StructureDefinition/Patient
 ```
 
 **System-level** (searches across all canonical resource types):
 
-```
+```http
 GET /fhir/$current-canonical?url=http://hl7.org/fhir/StructureDefinition/Patient
 ```
 

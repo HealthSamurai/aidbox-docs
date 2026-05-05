@@ -33,7 +33,7 @@ Also every Addendum Type has additional keys.
 
 Example:
 
-```
+```yaml
 resourceType: SDCAddendum
 type: "aidbox.sdc.addendum/History"
 target: {id: "doc-1", resourceType "SDCDocument"}

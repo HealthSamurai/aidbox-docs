@@ -33,7 +33,7 @@ params:
 | ----- | ----------------------------------- | ------ | --------- |
 | q     | substring of Workflow symbolic name | String | yes       |
 
-```
+```http
 POST /rpc?
 
 method: aidbox.sdc/get-workflows
@@ -43,7 +43,7 @@ params:
 
 Response:
 
-```
+```yaml
 result:
  - workflow: 'box.sdc.sdc-example/DemoWF
    title:Demo workflow,
@@ -59,7 +59,7 @@ Get workflow definition by name
 | -------- | -------------------- | ------ | --------- |
 | workflow | Workflow Symbol name | String | yes       |
 
-```
+```http
 POST /rpc?
 
 method: aidbox.sdc/get-workflow
@@ -78,7 +78,7 @@ error:
 
 > Success
 
-```
+```yaml
 result:
   title: Demo workflow
   version: 0.0.1
@@ -101,7 +101,7 @@ Launch all forms of the WF and create `SDCWorkflow` resource.
 | params   | Parameters wich will be propagated to forms | Map\<Any,Any> | yes       |
 | dry-run  | Run without saving document and extractions | boolean       | no        |
 
-```
+```http
 POST /rpc?
 
 method: aidbox.sdc/start-workflow,
@@ -114,7 +114,7 @@ params:
 
 Result:
 
-```
+```yaml
 ---
 result:
   title: Demo workflow
@@ -174,7 +174,7 @@ Returns patches for workflow or error
 
 Request:
 
-```
+```http
 POST /rpc?
 
 method: aidbox.sdc/save-step,
@@ -212,7 +212,7 @@ error:
 
 > Success
 
-```
+```yaml
 result:
   document:
     id: doc-1,
@@ -258,7 +258,7 @@ Returns patches for workflow or error
 
 Request:
 
-```
+```http
 POST /rpc?
 
 method: aidbox.sdc/complete-step,
@@ -304,7 +304,7 @@ error:
 
 > Success
 
-```
+```yaml
 result:
     updates:
     - [[phisical-exam] {status: "completed"}]
@@ -343,7 +343,7 @@ Returns patches for workflow or error
 
 Request:
 
-```
+```http
 POST /rpc?
 
 method: aidbox.sdc/skip-step,
@@ -357,7 +357,7 @@ Result:
 
 > Error
 
-```
+```yaml
 error:
   message: Resource SDCWorkflow/id not found
   message: Can't skip step in workflow with status: '<(new/in-progress)>' 
@@ -369,7 +369,7 @@ error:
 
 > Success
 
-```
+```yaml
 result:
     document: {... status: "skipped"}
     updates:
@@ -399,7 +399,7 @@ Returns patches for workflow or error
 
 Request:
 
-```
+```http
 POST /rpc?
 
 method: 'aidbox.sdc/amend-step,
@@ -426,7 +426,7 @@ error:
 
 > Success
 
-```
+```yaml
 result:
     document: {... status: "in-amendment"}
     updates:
@@ -468,7 +468,7 @@ Returns patches for workflow or error
 
 Request:
 
-```
+```http
 POST /rpc?
 
 method: aidbox.sdc/complete-workflow,
@@ -478,7 +478,7 @@ params:
 
 Params with direct document placement
 
-```
+```http
 POST /rpc?
 
 method: aidbox.sdc/complete-workflow,
@@ -497,7 +497,7 @@ Result:
 
 > Error
 
-```
+```yaml
 error:
   message: Resource SDCWorkflow/id not found
   message: Can't complete workflow in status: <(completed/canceled)>
@@ -512,7 +512,7 @@ error:
 
 > Success
 
-```
+```yaml
 result:
     updates:
     - [[] {status: "completed"}]
@@ -541,7 +541,7 @@ Returns patches for workflow or error
 
 Request:
 
-```
+```http
 POST /rpc?
 
 method: aidbox.sdc/cancel-workflow,
@@ -554,7 +554,7 @@ Result:
 
 > Error
 
-```
+```yaml
 error:
   message: Resource SDCWorkflow/id not found
   message: Can't cancel workflow in status: <(completed/canceled)>
@@ -563,7 +563,7 @@ error:
 
 > Success
 
-```
+```yaml
 result:
     updates:
     - [[section1 questionnaire] {status: "skipped", skip-reason "My private reason"}]
@@ -593,7 +593,7 @@ Returns patches for workflow or error
 
 Request:
 
-```
+```http
 POST /rpc?
 
 method: aidbox.sdc/amend-workflow,
@@ -605,7 +605,7 @@ Result:
 
 > Error
 
-```
+```yaml
 error:
   message: Resource SDCWorkflow/id not found
   message: Can't amend workflow in status: <(new/in-progress/in-amendment/canceled)>
@@ -615,7 +615,7 @@ error:
 
 > Success
 
-```
+```yaml
 result:
     updates:
     - [[section1 questionnaire] {status: "in-amendment"}]
@@ -643,7 +643,7 @@ Params:
 
 Request:
 
-```
+```http
 POST /rpc?
 content-type: text/yaml
 
@@ -677,7 +677,7 @@ Server responds with `HTTP 422 Unprocessable Entity` if wrong workflow id is pro
 
 Request:
 
-```
+```http
 POST /rpc?
 
 method: aidbox.sdc/add-workflow-note
@@ -714,7 +714,7 @@ Params:
 
 Request:
 
-```
+```http
 POST /rpc?
 
 method: aidbox.sdc/get-workflow-addendums
@@ -724,7 +724,7 @@ params:
 
 Response:
 
-```
+```yaml
 result:
   - date: '2022-10-01T12:00:00.000Z'
     meta: ...
@@ -744,7 +744,7 @@ Server responds with `HTTP 422 Unprocessable Entity` if wrong id is provided.
 
 Request:
 
-```
+```http
 POST /rpc?
 
 method: aidbox.sdc.addendum/get-addendums

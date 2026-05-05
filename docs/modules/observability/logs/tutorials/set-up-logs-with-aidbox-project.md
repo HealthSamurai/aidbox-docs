@@ -122,7 +122,7 @@ When configuration is ready run Aidbox and login to the Aidbox UI.
 
 In the terminal you should see a lot of lines like those below.
 
-```
+```bash
 aidbox-project-aidbox-1 | devbox 11:06:57 w18 GET /fhir/Patient
 aidbox-project-aidbox-1 | devbox 11:06:57 w18 policy admin-seed-policy
 aidbox-project-aidbox-1 | devbox 11:06:57 w19 PUT /ui_history/4a3133aa3d02ef4a03caa05f2aec108ac0710eee
@@ -229,7 +229,7 @@ Restart Aidbox and [repeat the actions](set-up-logs-with-aidbox-project.md#logs-
 
 There are fewer lines in the output.
 
-```
+```bash
 aidbox-project-aidbox-1 | devbox 11:21:29 w15 [9ms] SELECT "id" FROM "ui_history" WHERE "id" = ? ["4a3133aa3d02ef4a03caa05f2aec108ac0710eee"]
 aidbox-project-aidbox-1 | devbox 11:21:29 w13 [24ms] SELECT "patient".* FROM "patient" LIMIT ? OFFSET ?  ["100" "0"]
 aidbox-project-aidbox-1 | devbox 11:21:29 w15 :resource/update-dup {:rid "4a3133aa3d02ef4a03caa05f2aec108ac0710eee", :rtp "ui_history", :ctx "017963eb-6010-4d92-8ba8-71619b0fb565", :op "update"}
@@ -307,7 +307,7 @@ This transformation does two things:
 
 There is only one line related to the SQL. It is there since the query was slow. Elasticsearch still receives all logs without omissions and transformations.
 
-```
+```bash
 aidbox-project-aidbox-1 | devbox 11:38:11 w18 policy admin-seed-policy
 aidbox-project-aidbox-1 | devbox 11:38:11 w17 policy admin-seed-policy
 aidbox-project-aidbox-1 | devbox 11:38:11 w19 policy admin-seed-policy

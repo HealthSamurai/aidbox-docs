@@ -220,7 +220,7 @@ For dynamic queries — to parameterize table name, for example — you have to 
 
 In this example, `User` as a `Practitioner` is only allowed to see the conditions of his patients — those who reference him as their `generalPractitioner`.
 
-```
+```http
 PUT /AccessPolicy/practitioner-only-allowed-to-see-his-patients-conditions
 
 resourceType: AccessPolicy

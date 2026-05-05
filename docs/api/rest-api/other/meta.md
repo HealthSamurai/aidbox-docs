@@ -9,7 +9,7 @@ description: Retrieve profile, tag, and security labels from FHIR resource metad
 The `$meta` operation retrieves a summary of the `profile`, `tag`, and `security` labels for a given resource.
 See [http://hl7.org/fhir/resource-operation-meta.html](http://hl7.org/fhir/resource-operation-meta.html) for the official documentation.
 
-```
+```http
 GET /fhir/<resourceType>/<id>/$meta
 ```
 

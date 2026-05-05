@@ -20,13 +20,13 @@ GET [base]/Patient/[id]/$everything
 
 Get all resources directly linked to the patient `pt-1`:
 
-```
+```http
 GET /Patient/pt-1/$everything
 ```
 
 Get all resources directly linked to the patient `pt-1` that were created or updated after Jan 1st 2021:
 
-```
+```http
 GET /Patient/pt-1/$everything?_since=2021-01-01T00:00:00Z
 ```
 
@@ -56,19 +56,19 @@ For example, we suspect, that $everything operation is slow because we have a lo
 
 It will be transformed into:
 
-```
+```http
 GET /fhir/Observation?_filter=(subject eq Patient/pt1) or (performer eq Patient/pt1)
 ```
 
 To debug this, we can query using [\_explain](aidbox-search.md#explain) search parameter:
 
-```
+```http
 GET /fhir/Observation?_filter=(subject eq Patient/pt1) or (performer eq Patient/pt1)&_explain=plan
 ```
 
 And now we see the SQL and the PostgreSQL plan:
 
-```
+```sql
 query:
   - >-
     SELECT "observation".* FROM "observation" WHERE (("observation".resource @>

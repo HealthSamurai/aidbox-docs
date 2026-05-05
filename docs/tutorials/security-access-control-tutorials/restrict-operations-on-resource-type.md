@@ -93,7 +93,7 @@ resourceType: Patient
 
 When you make a query
 
-```
+```http
 GET /{resource-type}/{resource-id}
 ```
 

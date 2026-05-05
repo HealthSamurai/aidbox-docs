@@ -41,7 +41,7 @@ If you already have a configuration project, you can replicate these steps to en
 #### Added ICD-10-CM dependency to configuration project
 
 {% code title="zen-package.edn" %}
-```
+```clojure
 {:deps {icd10cm "https://github.com/zen-fhir/icd10-cm.git"}}
 ```
 {% endcode %}

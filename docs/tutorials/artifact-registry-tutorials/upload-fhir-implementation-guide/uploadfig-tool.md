@@ -20,7 +20,7 @@ To get started with the **UploadFIG**, you'll first need to install **Dotnet** a
 
 {% tabs %}
 {% tab title="Mac OS" %}
-```
+```bash
 $ brew install dotnet
 $ dotnet tool install uploadfig --global
 $ export PATH="$PATH:/Users/<USER_NAME>/.dotnet/tools"

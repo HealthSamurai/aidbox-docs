@@ -8,13 +8,13 @@ Aidbox supports [FHIR Search API](https://www.hl7.org/fhir/search.html).\
 The FHIR Search API is the primary mechanism for finding FHIR resources by conditions.\
 A base search request is composed of a list of pairs `<parameter>=<value>`:
 
-```
+```http
 GET /fhir/[resourceType]?param1=value2&param2=value2&...
 ```
 
 For example, to search for a Patient resource with the name "John" and a birthdate of "1900-01-01", the request would look like this:
 
-```
+```http
 GET /fhir/Patient?name=John&birthdate=1900-01-01
 ```
 
@@ -136,7 +136,7 @@ See also [SearchParameter Types](searchparameter.md#search-parameter-types).
 Modifiers change the behavior of a search parameter to support more specific queries.\
 For example, searching for patients with the name exactly "Smith", rather than the default partial matching:
 
-```
+```http
 GET /fhir/Patient?name:exact=Smith
 ```
 
@@ -166,7 +166,7 @@ When searching for resources, you can include referenced resources in the search
 
 For example, to search for patients and include their referenced practitioners:
 
-```
+```http
 GET /fhir/Patient?_include=Patient:practitioner
 ```
 
@@ -176,7 +176,7 @@ The `_revinclude` parameter does the opposite of `_include`. It returns resource
 
 For example, to search for practitioners and include all patients who reference them:
 
-```
+```http
 GET /fhir/Practitioner?_revinclude=Patient:practitioner
 ```
 

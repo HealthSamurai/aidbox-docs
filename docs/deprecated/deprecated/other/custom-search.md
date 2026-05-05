@@ -424,7 +424,7 @@ Let's try it in action!
 
 {% tabs %}
 {% tab title="Request" %}
-```
+```http
 GET /$query/patient-with-encounters?patient-id=patient1
 ```
 {% endtab %}
@@ -456,7 +456,7 @@ data:
 
 {% tabs %}
 {% tab title="Request" %}
-```
+```http
 GET /$query/patient-with-encounters?patient-id=patient2
 ```
 {% endtab %}

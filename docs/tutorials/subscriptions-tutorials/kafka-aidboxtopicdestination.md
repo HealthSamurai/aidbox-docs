@@ -103,7 +103,7 @@ accept: application/json
 
 ### AWS MSK Kafka with IAM (best effort)
 
-```
+```http
 POST /fhir/AidboxTopicDestination
 content-type: application/json
 accept: application/json

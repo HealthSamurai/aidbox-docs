@@ -44,7 +44,7 @@ Rule of thumb: reach for **merge-patch** for one-off updates, **JSON Patch** whe
 
 Since version 2503, It is also possible to [encode JSON patches using base64 Binary.data](https://www.hl7.org/fhir/http.html#jsonpatch-transaction):
 
-```
+```http
 PATCH /fhir/Patient/1?_method=json-patch
 content-type: application/json
 accept: application/json

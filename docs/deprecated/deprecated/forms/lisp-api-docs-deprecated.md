@@ -17,7 +17,7 @@ Params:
 
 Request:
 
-```
+```http
 POST /rpc?
 
 method: lisp/get-specification
@@ -27,7 +27,7 @@ params:
 
 Response:
 
-```
+```yaml
 result:
   - spec-edn: ... "complete zen specification in ZEN format"
     fn-spec: ... "zen specification of a test function"
@@ -54,7 +54,7 @@ The lisp expression `expr` can be used to retrieve data directly from the provid
 
 Request:
 
-```
+```http
 POST /rpc?
 
 method: lisp/eval-lisp
@@ -78,7 +78,7 @@ Or the expression `expr` can be used for example to retrieve data via `sql` func
 
 Request:
 
-```
+```http
 POST /rpc?
 
 method: lisp/eval-lisp
@@ -91,7 +91,7 @@ params:
 
 Response:
 
-```
+```yaml
 result:
   address: ...
   name:
@@ -110,7 +110,7 @@ The expression `expr` can also be used to grab data from a particular Resource.
 
 Request:
 
-```
+```http
 POST /rpc?
 
 method: lisp/eval-lisp

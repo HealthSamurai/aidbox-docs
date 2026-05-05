@@ -23,7 +23,7 @@ To achieve such a behavior, you may consider an Aidbox feature called organizati
 
 Let's create the organization structure in Aidbox:
 
-```
+```http
 POST /fhir
 
 resourceType: Bundle
@@ -89,7 +89,7 @@ Let's play with new APIs.
 
 We will create a Patient resource in Org B:
 
-```
+```http
 PUT /Organization/org-b/fhir/Patient/pt-1
 content-type: text/yaml
 accept: text/yaml
@@ -100,7 +100,7 @@ gender: male
 
 Now we can read it:
 
-```
+```http
 GET /Organization/org-b/fhir/Patient/pt-1
 ```
 
@@ -128,13 +128,13 @@ resourceType: Patient
 
 The resource is also accessible through Org A API:
 
-```
+```http
 GET /Organization/org-a/fhir/Patient/pt-1
 ```
 
 But this resource is not accessible through Org C, Org D and Org E API:
 
-```
+```http
 GET /Organization/org-c/fhir/Patient/pt-1
 # 403 Forbidden
 ```
@@ -173,7 +173,7 @@ Conditional operations are available starting from version 2509.
 
 Create the resource only if no existing resource matches the given search criteria.
 
-```
+```http
 POST /Organization/<org-id>/fhir/Observation
 If-None-Exist: identifier=http://acme.org/obs|12345
 Content-Type: application/fhir+json
@@ -208,7 +208,7 @@ Conditional operations are available starting from version 2509.
 
 Update a resource that matches the search; create if none exists.
 
-```
+```http
 PUT /Organization/<org-id>/fhir/Observation?identifier=http://acme.org/obs|12345
 Content-Type: application/fhir+json
 
@@ -235,7 +235,7 @@ Conditional operations are available starting from version 2509.
 
 Patch a resource matched by a search expression.
 
-```
+```http
 PATCH /Organization/<org-id>/fhir/Observation?identifier=http://acme.org/obs|12345&_method=merge-patch
 Content-Type: application/merge-patch+json
 
@@ -256,7 +256,7 @@ Conditional operations are available starting from version 2509.
 
 Delete resource(s) matching a search expression at the type endpoint under the organization.
 
-```
+```http
 DELETE /Organization/<org-id>/fhir/Observation?identifier=http://acme.org/obs|12345
 ```
 
@@ -377,7 +377,7 @@ See also [Transactions page](../../../api/batch-transaction.md)
 Conditional operations are available starting from version 2509.
 {% endhint %}
 
-```
+```http
 POST /Organization/org-a/fhir/
 Content-Type: application/fhir+json
 
@@ -408,7 +408,7 @@ Content-Type: application/fhir+json
 Conditional operations are available starting from version 2509.
 {% endhint %}
 
-```
+```http
 POST /Organization/org-a/fhir/
 Content-Type: application/fhir+json
 
@@ -438,7 +438,7 @@ Content-Type: application/fhir+json
 Conditional operations are available starting from version 2509.
 {% endhint %}
 
-```
+```http
 POST /Organization/org-a/fhir/
 Content-Type: application/fhir+json
 
@@ -489,7 +489,7 @@ GET /Organization/<org-id>/$query/<query-name>
 
 ### GraphQL
 
-```
+```http
 POST /Organization/<org-id>/aidbox/$graphql
 ```
 
@@ -555,7 +555,7 @@ Update and delete operations are not allowed from nested organizations' APIs. To
 
 To create a shared resource, use the `https://aidbox.app/tenant-resource-mode` extension.
 
-```
+```http
 PUT /Organization/org-a/fhir/Practitioner/prac-1
 content-type: text/yaml
 
@@ -569,7 +569,7 @@ meta:
 
 Now, if `org-b` is a child organization of `org-a`, (**Organization.partOf** references `org-a`), we get the access to the shared resource:
 
-```
+```http
 GET /Organization/org-b/fhir/Practitioner/prac-1
 ```
 
@@ -591,7 +591,7 @@ A system-shared resource **cannot** have an organization binding (`tenant-organi
 
 Use the root FHIR API with the `https://aidbox.app/tenant-resource-mode` extension set to `system-shared`:
 
-```
+```http
 PUT /fhir/Practitioner/global-prac-1
 content-type: text/yaml
 
@@ -608,7 +608,7 @@ name:
 
 The resource is now readable from any organization-scoped API:
 
-```
+```http
 GET /Organization/org-a/fhir/Practitioner/global-prac-1
 # 200 OK
 
@@ -621,7 +621,7 @@ GET /Organization/org-d/fhir/Practitioner/global-prac-1
 
 System-shared resources also appear in search results for all organizations:
 
-```
+```http
 GET /Organization/org-b/fhir/Practitioner?_sort=id
 # Returns: global-prac-1 + org-b's own practitioners
 ```

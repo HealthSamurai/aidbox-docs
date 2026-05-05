@@ -538,7 +538,7 @@ spec:
 
 To deploy Smartbox run the command.
 
-```
+```bash
 kubectl apply -f smartbox.yaml
 ```
 

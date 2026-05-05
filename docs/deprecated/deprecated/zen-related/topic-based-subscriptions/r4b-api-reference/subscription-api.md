@@ -257,7 +257,7 @@ RPC endpoint: `fhir.topic-based-subscription/get-subscription-by-id`
 
 {% tabs %}
 {% tab title="Request" %}
-```
+```http
 POST /rpc
 
 method: fhir.topic-based-subscription/get-subscription-by-id

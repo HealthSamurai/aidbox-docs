@@ -214,7 +214,7 @@ For high-volume scenarios, configure connection settings:
 
 Check the status of your topic destination:
 
-```
+```http
 GET /fhir/AidboxTopicDestination/activemq-destination/$status
 ```
 

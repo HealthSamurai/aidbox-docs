@@ -4,7 +4,7 @@ Find matches for the given resource
 
 ## Syntax
 
-```
+```http
 POST /rpc
 
 method: aidbox.mdm/match
@@ -32,7 +32,7 @@ FHIR resource of type ResourceType. Search for resources matching the given reso
 
 Find matching patients for the given one
 
-```
+```http
 POST /rpc
 
 method: aidbox.mdm/match
@@ -51,7 +51,7 @@ params:
 
 Example output:
 
-```
+```yaml
 result:
   - id: pt-1
     normalized_prob: 0.8

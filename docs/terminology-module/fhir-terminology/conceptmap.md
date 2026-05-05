@@ -205,7 +205,7 @@ Translates concepts from one CodeSystem to another using ConceptMap definitions.
 
 {% tabs %}
 {% tab title="Basic Translation Request" %}
-```
+```http
 POST /fhir/ConceptMap/$translate
 Content-Type: application/json
 
@@ -267,7 +267,7 @@ Content-Type: application/json
 
 {% tabs %}
 {% tab title="Coding Parameter Request" %}
-```
+```http
 POST /fhir/ConceptMap/$translate
 Content-Type: application/json
 
@@ -324,7 +324,7 @@ Content-Type: application/json
 
 {% tabs %}
 {% tab title="Instance-Level Operation Request" %}
-```
+```http
 POST /fhir/ConceptMap/cm1/$translate
 Content-Type: application/json
 
@@ -382,7 +382,7 @@ Content-Type: application/json
 
 {% tabs %}
 {% tab title="Missing Code Request" %}
-```
+```http
 POST /fhir/ConceptMap/$translate
 Content-Type: application/json
 

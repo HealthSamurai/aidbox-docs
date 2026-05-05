@@ -46,7 +46,7 @@ If a string starts with `.` , it is interpreted as a path in the provided reques
 
 In this example, $matcho will evaluate true only if 'a' is equal to my-value from the context.
 
-```
+```http
 POST /$matcho
 
 context: { my-value: 'value'}

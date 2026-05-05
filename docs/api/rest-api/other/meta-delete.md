@@ -9,7 +9,7 @@ description: Remove profile, tag, and security labels from FHIR resource metadat
 The `$meta-delete` operation removes `profile`, `tag`, and `security` labels from a resource's metadata.
 See [http://hl7.org/fhir/resource-operation-meta-delete.html](http://hl7.org/fhir/resource-operation-meta-delete.html) for the official documentation.
 
-```
+```http
 POST /fhir/<resourceType>/<id>/$meta-delete
 ```
 
@@ -65,7 +65,7 @@ parameter:
 {% endcode %}
 
 {% code title="Response" %}
-```
+```yaml
 HTTP 200 OK
 
 resourceType: Parameters

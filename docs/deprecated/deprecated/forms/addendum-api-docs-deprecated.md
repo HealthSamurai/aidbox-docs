@@ -27,7 +27,7 @@ Should be used only for custom created(by user) SDCAddendum resources
 
 Request:
 
-```
+```http
 POST /rpc?
 
 method: aidbox.sdc.addendum/create-addendum
@@ -77,7 +77,7 @@ Should be used for creating Note addendum for SDCDocument/SDCWorkflow
 
 Request:
 
-```
+```http
 POST /rpc?
 
 method: aidbox.sdc.addendum/add-note
@@ -125,7 +125,7 @@ Should be used for storing status changes for SDCDocument/SDCWorkflow.
 
 Request:
 
-```
+```http
 POST /rpc?
 
 method: aidbox.sdc.addendum/add-to-history
@@ -201,7 +201,7 @@ Diff object is a map of keys
 
 Request:
 
-```
+```http
 POST /rpc?
 
 method: aidbox.sdc.addendum/create-amendment
@@ -263,7 +263,7 @@ Should be used for creating Comment addendum for SDCDocument/SDCWorkflow
 
 Request:
 
-```
+```http
 POST /rpc?
 
 method: aidbox.sdc.addendum/add-comment
@@ -309,7 +309,7 @@ Params:
 
 Request:
 
-```
+```http
 POST /rpc?
 
 method: aidbox.sdc.addendum/get-addendums
@@ -321,7 +321,7 @@ params:
 
 Response:
 
-```
+```yaml
 result:
   - date: '2022-10-01T12:00:00.000Z'
     meta: ...
@@ -341,7 +341,7 @@ Server responds with `HTTP 422 Unprocessable Entity` if wrong target is provided
 
 Request:
 
-```
+```http
 POST /rpc?
 
 method: aidbox.sdc.addendum/get-addendums

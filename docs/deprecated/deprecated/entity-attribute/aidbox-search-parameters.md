@@ -41,7 +41,7 @@ Be aware of the [Aidbox format](../../../api/rest-api/other/aidbox-and-fhir-form
 
 In this example, the `["value", "string"]` expression is used to look into FHIR `valueString` field:
 
-```
+```http
 PUT /fhir/SearchParameter/Observation.value-string
 content-type: application/json
 accept: application/json

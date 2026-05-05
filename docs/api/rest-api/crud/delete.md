@@ -43,7 +43,7 @@ Delete a patient by id:
 
 {% tabs %}
 {% tab title="Request" %}
-```
+```http
 DELETE /Patient/tom-id
 ```
 {% endtab %}
@@ -70,7 +70,7 @@ Attempt to delete an already deleted resource:
 
 {% tabs %}
 {% tab title="Request" %}
-```
+```http
 DELETE /Patient/tom-id
 ```
 {% endtab %}
@@ -103,7 +103,7 @@ x-conditional-delete: remove-all
 
 Example:
 
-```
+```http
 DELETE /fhir/Patient?identifier=abc
 x-conditional-delete: remove-all
 ```

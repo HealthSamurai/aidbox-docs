@@ -173,7 +173,7 @@ The `Consent` part is the provider's attestation that a treatment relationship e
 
 After a successful demographic match, the server searches for an active opt-out `Consent` on the matched payer-side Patient:
 
-```
+```http
 GET /fhir/Consent
   ?patient=<matched-patient-id>
   &status=active

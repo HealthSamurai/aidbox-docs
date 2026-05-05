@@ -76,7 +76,7 @@ Go to “Profiles” page in the Aidbox UI (`http://localhost:8888/ui/zen-ui`) a
 You can also verify that validation with US Core IG works. For that you can make the following HTTP requests and check that response statuses are returned as expected.
 
 {% code title="Status: 201" %}
-```
+```http
 POST /Patient
 content-type: text/yaml
 accept: text/yaml
@@ -96,7 +96,7 @@ identifier:
 This request checks that valid values for `birthsex` field are allowed.
 
 {% code title="Status: 422" %}
-```
+```http
 POST /Patient
 content-type: text/yaml
 accept: text/yaml

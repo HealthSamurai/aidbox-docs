@@ -177,7 +177,7 @@ Let's check `pgagent` logs:
 
 {% tabs %}
 {% tab title="Plain Text" %}
-```
+```bash
 cat /tmp/pgagent.logs
 ```
 {% endtab %}

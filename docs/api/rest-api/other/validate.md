@@ -8,7 +8,7 @@ description: Validate FHIR resources before committing changes using $validate o
 
 The tool introduced by FHIR to provide a separate validation mechanism for 2-steps commit workflow or for development needs. It works for create, update and delete operations, is called using `?mode=` query parameter with values `create`, `update`, `delete` but changes won't be committed. Instead a requester will get an `OperationOutcome` with information about validation results. See [http://hl7.org/fhir/resource-operation-validate.html](http://hl7.org/fhir/resource-operation-validate.html) for the official documentation.
 
-```
+```http
 #FHIR format endpoint:
 POST /fhir/<resourceType>/$validate
 POST /fhir/<resourceType>/<id>/$validate

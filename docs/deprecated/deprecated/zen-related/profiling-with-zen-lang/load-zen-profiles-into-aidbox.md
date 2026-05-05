@@ -102,7 +102,7 @@ Now Aidbox will automatically reload when changes are made in the project. Note 
 
 Start Aidbox.
 
-```
+```bash
 docker compose up
 ```
 

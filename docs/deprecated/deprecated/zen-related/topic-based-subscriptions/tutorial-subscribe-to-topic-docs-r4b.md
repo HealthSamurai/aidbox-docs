@@ -14,7 +14,7 @@ Use FHIR API to discover available topics. Each topic contains `URL` field which
 
 {% tabs %}
 {% tab title="Request" %}
-```
+```http
 GET /fhir/SubscriptionTopic
 accept: application/json
 ```
@@ -240,7 +240,7 @@ After the successful handshake, the status of the Subscription will be `active`.
 
 {% tabs %}
 {% tab title="Request" %}
-```
+```http
 GET /fhir/Subscription/test-sub-id/$status
 content-type: application/json
 accept: application/json

@@ -20,7 +20,7 @@ Navigate to the AIdbox REST Console.
 
 Create two Practitioners by executing the following requests.
 
-```
+```http
 POST /fhir/Practitioner
 content-type: application/json
 accept: application/json
@@ -38,7 +38,7 @@ accept: application/json
 }
 ```
 
-```
+```http
 POST /fhir/Practitioner
 content-type: application/json
 accept: application/json
@@ -58,7 +58,7 @@ accept: application/json
 
 Create the Patient resource.
 
-```
+```http
 POST /fhir/Patient
 content-type: application/json
 accept: application/json
@@ -79,7 +79,7 @@ accept: application/json
 
 Create the Observation and Encounter for the Patient.
 
-```
+```http
 POST /fhir/Observation
 content-type: application/json
 accept: application/json
@@ -100,7 +100,7 @@ accept: application/json
 }
 ```
 
-```
+```http
 POST /fhir/Encounter
 content-type: application/json
 accept: application/json
@@ -152,7 +152,7 @@ For example, the consent for accessing the Observations is modeled as follows:
 
 Create the Consent resource that models the permission for the Practitioner `pr-1` to access Observations.
 
-```
+```http
 POST /fhir/Consent
 content-type: application/json
 accept: application/json
@@ -207,7 +207,7 @@ accept: application/json
 
 Create the Consent resource that models the permission for the Practitioner `pr-2` to access Encounters.
 
-```
+```http
 POST /fhir/Consent
 content-type: application/json
 accept: application/json
@@ -264,7 +264,7 @@ accept: application/json
 
 The FHIR Search that, for the given practitioner, will get all the Observations that have consent from the patients is:
 
-```
+```http
 GET /fhir/Consent?actor=pr-1&scope=Observation&_include=Consent:patient&_revinclude:iterate=Observation:subject
 content-type: application/json
 accept: application/json
@@ -278,7 +278,7 @@ You can learn more about FHIR Search here: [FHIR Search](../../api/rest-api/fhir
 
 Assuming that the authentication is configured to have a real end-user session, and we have linked the Aidbox User resource to the Practitioner resource with `User.fhirUser` element, the following will be the access policy that allows the FHIR Search above:
 
-```
+```http
 PUT /fhir/AccessPolicy/practitioner-consent-based-observation
 content-type: application/json
 accept: application/json

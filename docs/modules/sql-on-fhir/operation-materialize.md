@@ -21,7 +21,7 @@ SQL on FHIR provides the `$materialize` operation to transform a ViewDefinition 
 
 To call the `$materialize` operation, use the following request format:
 
-```
+```http
 POST /fhir/ViewDefinition/[<resource-id>/]$materialize
 Content-Type: application/json
 Accept: application/json
@@ -142,7 +142,7 @@ For example, with the given saved ViewDefinition:
 
 Materialization into a table can be performed in the REST console with the following request:
 
-```
+```http
 POST /fhir/ViewDefinition/0448a9a8-6114-4a19-aa8e-fc5f60c4d714/$materialize
 Content-Type: application/json
 Accept: application/json
@@ -160,7 +160,7 @@ Accept: application/json
 
 Alternatively, it can be materialized as a view:
 
-```
+```http
 POST /fhir/ViewDefinition/$materialize
 Content-Type: application/json
 Accept: application/json
@@ -184,7 +184,7 @@ Accept: application/json
 
 Or a materialized view:
 
-```
+```http
 POST /fhir/ViewDefinition/$materialize
 Content-Type: application/json
 Accept: application/json
@@ -225,7 +225,7 @@ Accept: application/json
 
 ViewDefinition creation and materialization can be performed with a Bundle, making it ideal for inclusion in an InitBundle for automated setup during Aidbox initialization:
 
-```
+```http
 POST /fhir/
 Content-Type: application/json
 Accept: application/json

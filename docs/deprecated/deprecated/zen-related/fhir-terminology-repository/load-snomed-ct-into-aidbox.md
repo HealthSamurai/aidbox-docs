@@ -40,7 +40,7 @@ If you already have a configuration project, you can replicate these steps to en
 #### Added SNOMED dependency to configuration project
 
 {% code title="zen-package.edn" %}
-```
+```clojure
 {:deps {snomed "https://github.com/zen-fhir/snomed.git"}}
 ```
 {% endcode %}

@@ -370,7 +370,7 @@ spec:
 
 This will prepare your cluster for a switchover. To trigger the switchover, you need to add the `postgres-operator.crunchydata.com/trigger-switchover` annotation to your custom resource. It's recommended to use a timestamp as the value for the annotation so you can track when you initiated the change.
 
-```
+```bash
 $ kubectl annotate -n aidboxdb-db  postgrescluster aidboxdb --overwrite \
         postgres-operator.crunchydata.com/trigger-switchover="$(date)"
 ```
@@ -379,7 +379,7 @@ $ kubectl annotate -n aidboxdb-db  postgrescluster aidboxdb --overwrite \
 
 PGO Command Line Interface (CLI) for the Crunchy Operator built as a `kubectl` plugin, the `pgo` CLI facilitates the creation and management of PostgreSQL clusters created using the Crunchy Postgres Operator. For more information about using the CLI and the various commands available, please see the [`pgo` CLI documentation](https://access.crunchydata.com/documentation/postgres-operator-client/latest).
 
-```
+```bash
 # Create a new backup
 $ kubectl pgo backup aidboxdb -n aidboxdb-db
 

@@ -51,7 +51,7 @@ params:
 
 Request:
 
-```
+```http
 POST /rpc
 
 method: aidbox.sdc/convert-questionnaire
@@ -165,7 +165,7 @@ params:
 
 Request:
 
-```
+```http
 POST /rpc
 
 method: aidbox.sdc/convert-form
@@ -258,7 +258,7 @@ Returns list of pairs \[form-name, convertions-result] where convertion result i
 
 Request:
 
-```
+```http
 POST /rpc
 
 method: aidbox.sdc/convert-forms
@@ -369,7 +369,7 @@ if `show-keys` is not given - generate layout for all fields in the document.
 
 > NOTE: layout fields order will be the same as natural keys order in SDCDocument
 
-```
+```http
 POST /rpc?
 
 method: aidbox.sdc/generate-form-layout
@@ -397,7 +397,7 @@ result: |
 
 Error
 
-```
+```yaml
 error:
   message: Invalid params
   method: aidbox.sdc/generate-form-layout
@@ -421,7 +421,7 @@ params:
 
 if `required-keys` is not given - all fields are required by default.
 
-```
+```http
 POST /rpc?
 
 method: aidbox.sdc/generate-form-constraints
@@ -443,7 +443,7 @@ result: |
 
 Error
 
-```
+```yaml
 error:
   message: Invalid params
   method: aidbox.sdc/generate-form-layout
@@ -468,7 +468,7 @@ params:
 
 if `extract-keys` is not given - generate layout for all fields in the document.
 
-```
+```http
 POST /rpc?
 
 method: aidbox.sdc/generate-form-finalize
@@ -496,7 +496,7 @@ result: |
 
 Error
 
-```
+```yaml
 error:
   message: Invalid params
   method: aidbox.sdc/generate-form-layout
@@ -529,7 +529,7 @@ params:
 
 Request:
 
-```
+```http
 POST /rpc?
 
 method: aidbox.sdc/get-form-properties
@@ -567,7 +567,7 @@ params:
 
 Request:
 
-```
+```http
 POST /rpc?
 
 method: aidbox.sdc/add-form-properties
@@ -582,7 +582,7 @@ Result:
 
 > Success
 
-```
+```yaml
 result:
     id: my.company.forms.vitals/Vitals
     resourceType: SDCFormMetadata
@@ -609,7 +609,7 @@ params:
 
 Request:
 
-```
+```http
 POST /rpc?
 
 method: aidbox.sdc/delete-form-properties
@@ -624,7 +624,7 @@ Response:
 
 > Success
 
-```
+```yaml
 result:
     id: my.company.forms.vitals/Vitals
     resourceType: SDCFormMetadata
@@ -666,7 +666,7 @@ params:
 
 Request:
 
-```
+```http
 POST /rpc?
 
 method: aidbox.sdc/get-forms
@@ -680,7 +680,7 @@ params:
 
 Result
 
-```
+```yaml
 result:
   entries:
   - form: box.sdc.sdc-example/VitalsForm
@@ -699,7 +699,7 @@ params:
 | ----- | ---------------- | ------ | --------- |
 | form  | Form Symbol name | String | yes       |
 
-```
+```http
 POST /rpc?
 
 method: aidbox.sdc/get-form
@@ -719,7 +719,7 @@ Launch form with given launch, prepoluate data, and return enriched with metadat
 | rules-in-lisp | Return rules as Lisp or AST               | boolean             | no        |
 | params        | Params to launch-context                  | map                 | no        |
 
-```
+```http
 POST /rpc?
 
 method: aidbox.sdc/launch
@@ -734,7 +734,7 @@ Result:
 
 > Success
 
-```
+```yaml
 result:
    form: 'box.sdc.sdc-example/VitalsForm' ;; Form name
    title: "MyForm"                        ;; Form title
@@ -750,7 +750,7 @@ result:
 
 Error:
 
-```
+```yaml
 error:
     message:  "Wrong population logic for resource defined"
     errors:   [{message: "..."}] ;; schema validation errors  (zen-style errors)
@@ -772,7 +772,7 @@ Get form for saved document.
 | id            | Document id                 | String  | yes       |
 | rules-in-lisp | Return rules as Lisp or AST | boolean | no        |
 
-```
+```http
 POST /rpc?
 
 method: aidbox.sdc/read-document
@@ -784,7 +784,7 @@ Result:
 
 > Success
 
-```
+```yaml
 result:
    form: 'box.sdc.sdc-example/VitalsForm' ;; Form name
    title: "MyForm"                        ;; Form title
@@ -817,7 +817,7 @@ If document in `draft` status - set `in-progress` status to it.
 
 Request:
 
-```
+```http
 POST /rpc?
 
 method: aidbox.sdc/save,
@@ -838,14 +838,14 @@ Result:
 
 > Error
 
-```
+```yaml
 error:
   message: Can't be saved in final status: <(completed/canceled/amended)>
 ```
 
 > Success
 
-```
+```yaml
 result:
   document:
     id: doc-1,
@@ -881,7 +881,7 @@ Apply `created`/`patched`/`deleted` extractions. Create `Provenance` resource wi
 > * delete previously created extractions, Provenance resource, and recreate them with new data.
 > * create Amendment SDCAddendum resource with timestamp, user, and diff between last two snapshots from History addendums.
 
-```
+```http
 POST /rpc?
 
 method: aidbox.sdc/sign,
@@ -916,7 +916,7 @@ result
 
 > Error
 
-```
+```yaml
 error:
   message: Document didn't pass sign validations
   type: :sdc.error/validation
@@ -974,7 +974,7 @@ Request:
 
 > Example with document stored in DB
 
-```
+```http
 POST /rpc
 
 method: aidbox.sdc/convert-document
@@ -985,7 +985,7 @@ params:
 
 > Example with SDCDocument resource body
 
-```
+```http
 POST /rpc
 
 method: aidbox.sdc/convert-document
@@ -1035,7 +1035,7 @@ Result:
 
 > Success
 
-```
+```yaml
 result:
   resourceType: QuestionnaireResponse
   status: in-progress
@@ -1192,7 +1192,7 @@ Can be used only for documents in `completed`, `amended` statuses.
 
 Request:
 
-```
+```http
 POST /rpc?
 
 method: aidbox.sdc/amend,
@@ -1235,7 +1235,7 @@ Params:
 
 Request:
 
-```
+```http
 POST /rpc?
 
 method: aidbox.sdc/add-note
@@ -1268,7 +1268,7 @@ result:
 
 Server responds with `HTTP 422 Unprocessable Entity` if wrong document id is provided.
 
-```
+```http
 POST /rpc?
 
 method: aidbox.sdc/add-note

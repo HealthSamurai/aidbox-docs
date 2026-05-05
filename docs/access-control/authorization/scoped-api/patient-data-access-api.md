@@ -95,7 +95,7 @@ X-Patient-id: pt-1
 {% endtab %}
 
 {% tab title="Response" %}
-```
+```yaml
 status: 200
 body:
   resourceType: Bundle
@@ -129,7 +129,7 @@ X-Patient-id: pt-2
 {% endtab %}
 
 {% tab title="Response" %}
-```
+```yaml
 status: 200
 body:
   resourceType: Bundle

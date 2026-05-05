@@ -92,7 +92,7 @@ When WF is started - it will be populated with items `:order` information, launc
 
 Section item is item with type aidbox.sdc/SectionItem`It contains`title`and children`items\`. These fields are mandatory
 
-```
+```clojure
 {:item aidbox.sdc/SectionItem
  :title "My custom Section"
  :items {:form1 {:item aidbox.sdc/FormItem
@@ -107,7 +107,7 @@ When workflow is started - all `SectionItems` will be populated with meta inform
 
 > Order generated from `:items` natural placement in ZEN file.
 
-```
+```clojure
 {:item aidbox.sdc/SectionItem
  :title "My custom Section"
  :order [:form1 :section1]
@@ -124,7 +124,7 @@ When workflow is started - all `SectionItems` will be populated with meta inform
 
 FormItem is item with type `aidbox.sdc/FormItem` It contains only reference to existed `form`. This field is mandatory
 
-```
+```clojure
 {:item aidbox.sdc/FormItem
  :form myforms/Demographic}
 ```
@@ -133,7 +133,7 @@ FormItem is item with type `aidbox.sdc/FormItem` It contains only reference to e
 
 When workflow is started - all `FormItems` will be populated with `Form` definition, Launched `Layout`, form+document rules and reference to created `Document`.
 
-```
+```clojure
 {:item aidbox.sdc/FormItem
  :form myforms/Demographic
  :title "Demographic"
@@ -152,7 +152,7 @@ It is different from typical `FormItem` in that way:
 * data extracted and populated back on every save operation.
 * this form can't be skipped.
 
-```
+```clojure
 {:item aidbox.sdc/StatelessFormItem
  :form myforms/AllergyIntolerance}
 ```
@@ -161,7 +161,7 @@ It is different from typical `FormItem` in that way:
 
 There is no difference between `StatelessFormItems` and `FormItem` on `workflow-start`
 
-```
+```clojure
 {:item aidbox.sdc/StatelessFormItem
  :form myforms/AllergyIntolerance
  :title "AllergyIntolerance"
@@ -182,7 +182,7 @@ FormItem also supports special rule based keys: `sdc/inject`, `sdc/enable-when`
 
 Value of the `:sdc/inject` key should be rules map - where key should match expected key by form's rules, and value is a lisp expression. Lisp expressions are invoked in the context of workflow state.
 
-```
+```clojure
 {:item aidbox.sdc/SectionItem
  :title "My custom Section"
  :order [:form1 :form2]
@@ -213,7 +213,7 @@ Demographic
 
 Value of the key `:sdc/enable-when` should be boolean lisp expression. Lisp expression is invoked in the context of workflow state.
 
-```
+```clojure
 {:item aidbox.sdc/SectionItem
  :title "My custom Section"
  :order [:form1 :form2]
@@ -296,7 +296,7 @@ Example:
 
 This WF definition
 
-```
+```clojure
  {:zen/tags #{aidbox.sdc/Workflow} 
   :title "My Workflow"
   :items {:section1 {:item aidbox.sdc/SectionItem
@@ -308,7 +308,7 @@ This WF definition
 
 on `start-workflow`/`read-workflow` rpcs call - adds items :id information to payload
 
-```
+```clojure
  {:title "My Workflow"
   :items {:section1 {:id "section1"
                      :items {:phisical-exam {... :id "section1.phisical-exam" ...}

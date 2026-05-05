@@ -164,13 +164,13 @@ Theme that you specify in sdc-service is default theme. You can specify theme fo
 In the link that you share with users just set query parameter theme with the symbol of form:
 
 {% code title="link " %}
-```
+```bash
 aidbox-instance.io/ui/sdc#/documents/33fbdccb-0398-46ab-bce4-6160259552a8?policy-token=...
 ```
 {% endcode %}
 
 {% code title="link with theme specified" %}
-```
+```bash
 aidbox-instance.io/ui/sdc?theme=sdc-box/hs-red-theme#/documents/33fbdccb-0398-46ab-bce4-6160259552a8?policy-token=...
 ```
 {% endcode %}

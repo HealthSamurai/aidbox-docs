@@ -25,7 +25,7 @@ To parse a message, use `/x12/parse` endpoint.
 
 {% tabs %}
 {% tab title="835 & 837 Request" %}
-```
+```http
 POST /x12/parse
 content-type: text/plain
 accept: application/json

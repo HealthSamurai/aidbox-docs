@@ -15,7 +15,7 @@ To migrate them to Aidbox instance, you need to issue an Aidbox license for each
 
 Stop Multibox instance
 
-```
+```bash
 docker compose stop multibox
 ```
 
@@ -109,7 +109,7 @@ AIDBOX_CLIENT_SECRET=secret
 
 Now you can run your aidbox instances
 
-```
+```bash
 docker compose up -d fhirr4box fhirr5box
 ```
 

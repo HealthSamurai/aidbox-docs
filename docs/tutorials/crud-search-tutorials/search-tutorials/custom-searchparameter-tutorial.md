@@ -62,7 +62,7 @@ You can read more about these fields [here](../../../api/rest-api/fhir-search/se
 
 Let's define a custom search parameter that allows searching Patient resources by a specific extension with "http://example.org/fhir/StructureDefinition/occupation" URL:
 
-```
+```http
 POST /fhir/SearchParameter
 Content-Type: application/json
 Accept: application/json
@@ -96,7 +96,7 @@ You can find all SearchParameters created by you in **app.aidbox.main** package:
 
 Create a Patient resource with the required extension:
 
-```
+```http
 POST /fhir/Patient
 content-type: application/json
 accept: application/json
@@ -125,7 +125,7 @@ accept: application/json
 
 Search for Patient by occupation:
 
-```
+```http
 GET /fhir/Patient?occupation=Engin
 ```
 
@@ -176,7 +176,7 @@ entry:
 
 ### Composite SearchParameter
 
-```
+```http
 POST /fhir/SearchParameter
 content-type: application/json
 accept: application/json

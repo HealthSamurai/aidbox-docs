@@ -25,7 +25,7 @@ Explained in the following page:
 
 The Notification resource is used to send notifications using a specified provider. Simplest notification can be created like this:
 
-```
+```http
 PUT /Notification/notification-1
 
 provider: '<yourProviderId>'
@@ -37,7 +37,7 @@ providerData:
 
 It is also possible to create a predefined notification template. The resource supports dynamic content by including a payload that is merged into the template.
 
-```
+```http
 PUT /Notification/notification-1
 
 provider: '<yourProviderId>'
@@ -58,7 +58,7 @@ The NotificationTemplate resource is used to store and manage the body of email 
 
 NotificationTemplate example:
 
-```
+```http
 PUT /NotificationTemplate/notification-template-1
 
 # foo.bar value is placed in the Notification.providerData.payload object
@@ -69,7 +69,7 @@ template: <b>Hello world! {{foo.bar}}</b>
 
 Use `$send` endpoint:
 
-```
+```http
 POST /Notification/notification-1/$send
 ```
 

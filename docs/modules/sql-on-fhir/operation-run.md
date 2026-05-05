@@ -19,7 +19,7 @@ SQL on FHIR specification [defines $run operation](https://sql-on-fhir.org/ig/la
 
 To call the `$run` operation, use the following request format:
 
-```
+```http
 POST /fhir/ViewDefinition/[<resource-id>/]$run
 Content-Type: application/json
 Accept: preferred format
@@ -180,7 +180,7 @@ If you specify `Accept: application/json` and `_format`: JSON, the server will r
 
 ### Provided resources and ViewDefinition
 
-```
+```http
 POST /fhir/ViewDefinition/$run
 Content-Type: application/json
 Accept: application/json
@@ -231,7 +231,7 @@ Accept: application/json
 
 ### Provided resources, stored ViewDefinition
 
-```
+```http
 POST /fhir/ViewDefinition/$run
 Content-Type: application/json
 Accept: application/json
@@ -269,7 +269,7 @@ Accept: application/json
 
 ### Stored resources, stored ViewDefinition
 
-```
+```http
 POST /fhir/ViewDefinition/$run
 Content-Type: application/json
 Accept: application/json

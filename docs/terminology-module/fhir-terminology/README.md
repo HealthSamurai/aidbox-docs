@@ -43,7 +43,7 @@ Here's how canonicals are used in practice:
 
 {% tabs %}
 {% tab title="Request" %}
-```
+```http
 GET /fhir/ValueSet/$expand?url=http://hl7.org/fhir/ValueSet/condition-clinical
 ```
 {% endtab %}

@@ -30,7 +30,7 @@ Refer to [the GraphQL documentation](https://graphql.org/learn/serving-over-http
 
 Get IDs of two Patients. This query is similar to FHIR query
 
-```
+```http
 GET /fhir/Patient?_count=3
 ```
 
@@ -136,7 +136,7 @@ The `resource` field is an `AllResource` union. You can use it to fetch the refe
 
 The following query is similar to
 
-```
+```http
 GET /Patient?_include=organization:Organization
 ```
 
@@ -194,7 +194,7 @@ _Note: unlike FHIR revincludes, GraphQL revincludes use field path, not paramete
 
 The following query is similar to
 
-```
+```http
 GET /Organization?_revinclude=CareTeam:participant
 ```
 
@@ -247,7 +247,7 @@ This query accepts a single argument `id` and returns a resource with the specif
 
 The following query is similar to
 
-```
+```http
 GET /Patient/pt-1
 ```
 
@@ -297,7 +297,7 @@ The query accepts an `id` argument (GraphQL type **`ID`**) and returns the histo
 
 The following query is similar to
 
-```
+```http
 GET /Practitioner/pr-1/_history
 ```
 
@@ -357,7 +357,7 @@ Each search parameter leads to 2 arguments:
 
 The following query is similar to
 
-```
+```http
 GET /Practitioner?name=another
 ```
 

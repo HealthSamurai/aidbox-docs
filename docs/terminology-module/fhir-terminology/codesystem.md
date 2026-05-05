@@ -182,7 +182,7 @@ Retrieves detailed information about a specific code within a CodeSystem, includ
 
 {% tabs %}
 {% tab title="Request" %}
-```
+```http
 GET /fhir/CodeSystem/$lookup?system=http://loinc.org&code=1751-7
 ```
 {% endtab %}
@@ -229,7 +229,7 @@ Validates whether a given code exists in the CodeSystem and optionally checks if
 
 {% tabs %}
 {% tab title="Valid Code Request" %}
-```
+```http
 GET /fhir/CodeSystem/$validate-code?url=http://hl7.org/fhir/administrative-gender&code=male&display=Male
 ```
 {% endtab %}
@@ -253,7 +253,7 @@ GET /fhir/CodeSystem/$validate-code?url=http://hl7.org/fhir/administrative-gende
 {% endtab %}
 
 {% tab title="Invalid Code Request" %}
-```
+```http
 GET /fhir/CodeSystem/$validate-code?url=http://hl7.org/fhir/administrative-gender&code=invalid
 ```
 {% endtab %}

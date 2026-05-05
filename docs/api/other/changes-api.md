@@ -144,7 +144,7 @@ Accept: text/yaml
 version: 2
 ```
 
-```
+```http
 GET /Patient/pt-1/$changes?version=1
 Accept: text/yaml
 

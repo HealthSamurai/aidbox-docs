@@ -15,7 +15,7 @@ GET /$version
 
 {% tab title="Response" %}
 {% code title="Status 200" %}
-```
+```yaml
 version: '2602'
 commit: abc12345
 timestamp: '2026-02-01T12:00:00Z'

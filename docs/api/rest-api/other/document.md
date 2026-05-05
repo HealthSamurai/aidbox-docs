@@ -12,13 +12,13 @@ $document operation uses several Search requests under the hood. These requests 
 
 ### Example request
 
-```
+```http
 GET /fhir/Composition/<composition-id>/$document
 ```
 
 ### Example response
 
-```
+```json
 {
   "resourceType" : "Bundle",
   "type" : "document",
@@ -59,13 +59,13 @@ GET /fhir/Composition/<composition-id>/$document
 
 When `persist` parameter is provided, the generated bundle is saved in the database. The request
 
-```
+```http
 GET /fhir/Composition/<composition-id>/$document?persist=true
 ```
 
 will return the Bundle containing `id` of the saved Bundle. The following request can retrieve it:
 
-```
+```http
 GET /fhir/Bundle/<bundle-id>
 ```
 

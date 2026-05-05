@@ -30,7 +30,7 @@ This operation implements the [FHIR Patient Purge](https://build.fhir.org/patien
 
 ## Endpoint
 
-```
+```http
 POST /fhir/Patient/<patient-id>/$purge
 ```
 

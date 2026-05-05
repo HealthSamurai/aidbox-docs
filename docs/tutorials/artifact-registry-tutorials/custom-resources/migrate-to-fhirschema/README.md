@@ -198,7 +198,7 @@ Since the FHIR Schema validation engine is more reliable and validates all the F
 
 ### Check Deprecated Capabilities
 
-```
+```http
 GET /deprecated/capabilities
 ```
 

@@ -83,7 +83,7 @@ Dump Appointments in CSV
 {% tab title="Request" %}
 **REST Console**
 
-```
+```http
 GET /Appointment/$dump-csv
 ```
 

@@ -54,7 +54,7 @@ POST [base]/fhir/Questionnaire/[id]/$populate
 
 Example
 
-```
+```yaml
 resourceType: Parameters
 parameter:
 - name: subject
@@ -538,7 +538,7 @@ URL: [base]/fhir/QuestionnaireResponse/[id]/$extract
 
 Example
 
-```
+```yaml
 resourceType: Parameters
 parameter:
 - name: questionnaire-response

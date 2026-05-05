@@ -20,7 +20,7 @@ In this guide, the external auth server URL is `https://auth.example.com`
 
 ## Create `TokenIntrospector`
 
-```
+```http
 PUT /fhir/TokenIntrospector/external-auth-server
 content-type: text/yaml
 

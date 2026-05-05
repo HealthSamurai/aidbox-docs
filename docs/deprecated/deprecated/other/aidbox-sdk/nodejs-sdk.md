@@ -12,13 +12,13 @@ We have first-class TypeScript support, but this library can also be used in a j
 
 **npm**
 
-```
+```bash
 npm install @aidbox/node-server-sdk
 ```
 
 **yarn**
 
-```
+```bash
 yarn add @aidbox/node-server-sdk
 ```
 

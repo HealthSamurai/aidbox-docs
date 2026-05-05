@@ -199,7 +199,7 @@ tar -czvf package.tar.gz package
 {% tab title="Windows" %}
 If Windows supports a native tar command:
 
-```
+```bash
 tar -cvzf package.tar.gz package
 ```
 

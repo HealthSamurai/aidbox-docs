@@ -87,7 +87,7 @@ GET /Patient/$dump
 
 **Body**
 
-```
+```json
 {"id": "pt-1", "meta": {"createdAt": "2021-06-10T08:26:10.707454Z", "versionId": "481", "lastUpdated": "2021-06-10T08:26:10.707454Z"}, "name": [{"given": ["Alice"]}], "resourceType": "Patient"}
 {"id": "pt-2", "meta": {"createdAt": "2021-06-10T08:26:10.707454Z", "versionId": "482", "lastUpdated": "2021-06-10T08:26:10.707454Z"}, "name": [{"given": ["Bob"]}], "resourceType": "Patient"}
 {"id": "pt-3", "meta": {"createdAt": "2021-06-10T08:26:10.707454Z", "versionId": "483", "lastUpdated": "2021-06-10T08:26:10.707454Z"}, "name": [{"given": ["Charles"]}], "citizenship": [{"code": {"text": "ru"}}], "resourceType": "Patient"}
@@ -161,7 +161,7 @@ Dump appointments
 {% tab title="Request" %}
 **REST Console**
 
-```
+```http
 GET /Appointment/$dump
 ```
 
@@ -263,7 +263,7 @@ Dump patients in FHIR format
 {% tab title="Request" %}
 **REST Console**
 
-```
+```http
 GET /Patient/$dump?fhir=true
 ```
 
@@ -288,7 +288,7 @@ curl -u bulk-client:secret $AIDBOX_BASE_URL/Patient/\$dump?fhir=true
 
 **Body**
 
-```
+```json
 {"id":"pt-1","meta":{"versionId":"481","lastUpdated":"2021-06-10T08:26:10.707454Z","extension":[{"url":"ex:createdAt","valueInstant":"2021-06-10T08:26:10.707454Z"}]},"name":[{"given":["Alice"]}],"resourceType":"Patient"}
 {"id":"pt-2","meta":{"versionId":"482","lastUpdated":"2021-06-10T08:26:10.707454Z","extension":[{"url":"ex:createdAt","valueInstant":"2021-06-10T08:26:10.707454Z"}]},"name":[{"given":["Bob"]}],"resourceType":"Patient"}
 {"id":"pt-3","meta":{"versionId":"483","lastUpdated":"2021-06-10T08:26:10.707454Z","extension":[{"url":"ex:createdAt","valueInstant":"2021-06-10T08:26:10.707454Z"}]},"name":[{"given":["Charles"]}],"citizenship":[{"code":{"text":"ru"}}],"resourceType":"Patient"}

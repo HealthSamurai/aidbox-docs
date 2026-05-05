@@ -22,7 +22,7 @@ pg_dump aidbox | gzip > aidbox_dump.sql.gz
 
 To restore a database feed the dump file[ to psql](https://www.postgresql.org/docs/12/app-psql.html).
 
-```
+```bash
 cat aidbox_dump.sql | psql aidbox
 ```
 

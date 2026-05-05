@@ -43,7 +43,7 @@ If you already have a configuration project, you can replicate these steps to en
 #### Added RxNorm dependency to configuration project
 
 {% code title="zen-package.edn" %}
-```
+```clojure
 {:deps {rxnorm "https://github.com/zen-fhir/rxnorm.git"}}
 ```
 {% endcode %}

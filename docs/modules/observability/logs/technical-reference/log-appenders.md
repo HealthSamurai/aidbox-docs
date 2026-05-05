@@ -66,7 +66,7 @@ The `stdout-appender` directs the logs stream to the standard output (stdout).
 
 It directs the stream of log messages to the Elasticsearch instance.
 
-```
+```clojure
 {:ns     main
  :import #{aidbox
            aidbox.log

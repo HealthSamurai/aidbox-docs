@@ -173,7 +173,7 @@ Open the [list of forms](http://localhost:8888/ui/sdc#/), click `share` -> enabl
 
 Open the Aidbox [REST Console](http://localhost:8888/ui/console#/rest) and get the AidboxTopicDestination status:
 
-```
+```http
 GET /fhir/AidboxTopicDestination/kafka-destination/$status
 ```
 
