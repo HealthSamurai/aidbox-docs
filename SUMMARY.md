@@ -129,6 +129,7 @@
     * [How to run SQL statements via Init Bundle](tutorials/other-tutorials/how-to-run-sql-via-init-bundle.md)
     * [Azure Key Vault external secrets](tutorials/other-tutorials/azure-key-vault-external-secrets.md)
     * [HashiCorp Vault external secrets](tutorials/other-tutorials/hashicorp-vault-external-secrets.md)
+    * [How to load large FHIR bundles via NGINX](tutorials/other-tutorials/how-to-load-large-fhir-bundles-via-nginx.md)
 
 ## Overview
 
