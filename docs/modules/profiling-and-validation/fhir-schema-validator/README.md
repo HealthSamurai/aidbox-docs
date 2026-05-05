@@ -125,6 +125,61 @@ When a profile defines **slicing** on a Reference array (e.g. `DiagnosticReport.
 
 **Invalid**: A DiagnosticReport whose `result` references an Observation with `status: preliminary` or a different `code`. The referenced resource does not conform to LabObservation, so validation fails with `invalid-target-profile`: "Referenced resource Observation/xyz content doesn't conform to any of target profiles: http://example.org/StructureDefinition/LabObservation".
 
+## Slicing on canonical arrays (`patternCanonical`)
+
+Some FHIR profiles slice canonical arrays — most commonly `meta.profile` (a `canonical[]` array) — to enforce a `supportedProfile` slice. Many DaVinci IGs use this pattern. Aidbox supports `patternCanonical` discriminators in StructureDefinition slicing.
+
+### Example
+
+```json
+{
+  "path": "ExplanationOfBenefit.meta.profile",
+  "slicing": {
+    "discriminator": [{ "type": "pattern", "path": "$this" }],
+    "rules": "open"
+  }
+},
+{
+  "path": "ExplanationOfBenefit.meta.profile",
+  "sliceName": "supportedProfile",
+  "min": 1,
+  "max": "1",
+  "patternCanonical": "http://hl7.org/fhir/us/davinci-pdex/StructureDefinition/pdex-priorauthorization"
+}
+```
+
+A resource that declares `meta.profile: ["http://hl7.org/fhir/us/davinci-pdex/StructureDefinition/pdex-priorauthorization"]` matches the `supportedProfile` slice and validates successfully.
+
+### Canonical matching rules
+
+A canonical URL has two parts separated by `|`:
+
+```
+http://hl7.org/fhir/us/davinci-pdex/StructureDefinition/pdex-priorauthorization|2.1.0
+└──────────────────────────── url part ─────────────────────────────────────┘ └ ver ┘
+```
+
+Per [FHIR R4 canonical matching](https://hl7.org/fhir/R4/references.html#canonical-matching), the matching rule depends on whether the pattern includes a version:
+
+| Pattern (`patternCanonical`) | Resource value (`meta.profile[i]`) | Should match? |
+| --- | --- | --- |
+| `…/profile` (unversioned) | `…/profile` | ✅ |
+| `…/profile` (unversioned) | `…/profile\|2.1.0` | ✅ — version suffix is ignored when the pattern has none |
+| `…/profile\|2.1.0` | `…/profile\|2.1.0` | ✅ |
+| `…/profile\|2.1.0` | `…/profile\|2.0.0` | ❌ |
+| `…/profile\|2.1.0` | `…/profile` (unversioned) | ❌ |
+
+{% hint style="warning" %}
+**Known limitation** — Aidbox currently uses exact string equality for `patternCanonical` matching, so an **unversioned** `patternCanonical` does **not** yet match a **versioned** URL in the resource (third row above is the case the spec requires but Aidbox returns `Invalid slice cardinality` for). Tracked in [HealthSamurai/sansara#7518](https://github.com/HealthSamurai/sansara/issues/7518).
+
+Until the fix ships, use one of these workarounds:
+
+* **Drop the version suffix in submitted resources** — write `meta.profile: ["http://…/pdex-priorauthorization"]` instead of `…|2.1.0`. The [Artifact Registry version selection](../../../artifact-registry/artifact-registry-overview.md#versioning-strategy) resolves the unversioned URL to the latest installed version.
+* **Pin the pattern to the same version** — if you control the profile, write `patternCanonical: "…/pdex-priorauthorization|2.1.0"` and require submitting clients to use the same `|<version>` suffix.
+
+A versioned `meta.profile` that points at a non-installed version (e.g. `|9.9.9`) does not trigger the error — the profile fails to resolve, so profile-specific slicing is not applied at all. The bug only surfaces when the versioned canonical resolves to a real, loaded StructureDefinition.
+{% endhint %}
+
 ## Useful pages
 
 * [Setup ⚙️](setup-aidbox-with-fhir-schema-validation-engine.md)

@@ -207,6 +207,15 @@ This recursive collection results in a **tree-shaken** package: the system conta
 
 Canonical resources can reference each other using versioned URLs (e.g., `http://example.com/StructureDefinition/Patient|1.0.0`). If you specify a version, the registry uses it exactly. Otherwise, it automatically picks the latest version.
 
+### Canonical matching in validation
+
+Per [FHIR R4 canonical matching rules](https://hl7.org/fhir/R4/references.html#canonical-matching), a canonical URL has two parts: the URL itself and an optional `|<version>` suffix. When validation compares a canonical pattern against a resource value (for example, a `patternCanonical` discriminator on `meta.profile`), the rules are:
+
+* An **unversioned pattern** matches the URL regardless of the value's version suffix.
+* A **versioned pattern** requires both the URL and the version to match exactly.
+
+See [FHIR Schema Validator → Slicing on canonical arrays](../modules/profiling-and-validation/fhir-schema-validator/README.md#slicing-on-canonical-arrays-patterncanonical) for the validator behavior, including a current limitation around unversioned patterns matching versioned values.
+
 ## $current-canonical Operation
 
 The `$current-canonical` operation returns the most current version of a canonical resource with the specified URL. This operation implements the [FHIR $current-canonical specification](https://build.fhir.org/canonicalresource-operation-current-canonical.html).
