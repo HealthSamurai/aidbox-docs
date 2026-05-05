@@ -3,6 +3,7 @@ description: >-
   This page describes C-CDA built-in module which provides API to convert C-CDA
   documents to FHIR documents and backward.
 coverY: 0
+keywords: [ccda, c-cda, cda, fhir converter, ccda converter, c-cda fhir converter]
 ---
 
 # C-CDA / FHIR Converter
