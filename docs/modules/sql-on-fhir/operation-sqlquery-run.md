@@ -8,7 +8,7 @@ Requires **fhir-schema mode**.
 {% endhint %}
 
 {% hint style="info" %}
-This functionality is available in Aidbox versions 2606 and later.
+This functionality is available in Aidbox versions 2605 and later.
 {% endhint %}
 
 SQL on FHIR provides the `$sqlquery-run` operation to execute a SQLQuery Library synchronously against ViewDefinition tables. The operation resolves dependencies declared in `relatedArtifact` and exposes each one to SQL as a table named after its `label`, binds input parameters to `:name` placeholders in SQL, runs the query, and streams the result in the requested format.
