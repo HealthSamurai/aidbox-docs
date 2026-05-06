@@ -324,6 +324,7 @@
 * [Formbox](https://www.health-samurai.io/docs/formbox)
 * [SQL on FHIR](modules/sql-on-fhir/README.md)
   * [$run operation](modules/sql-on-fhir/operation-run.md)
+  * [$sqlquery-run operation](modules/sql-on-fhir/operation-sqlquery-run.md)
   * [$materialize operation](modules/sql-on-fhir/operation-materialize.md)
   * [Defining flat views with view definitions](modules/sql-on-fhir/defining-flat-views-with-view-definitions.md)
   * [Migrate to the spec-compliant ViewDefinition format](modules/sql-on-fhir/migrate-to-the-spec-compliant-viewdefinition-format.md)

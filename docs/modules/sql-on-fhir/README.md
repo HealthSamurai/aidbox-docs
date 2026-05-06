@@ -22,6 +22,12 @@ Once your flat view is defined and materialized, you can query data from it usin
 
 See [Query data from flat views](./query-data-from-flat-views.md).
 
+## Run shareable SQL queries
+
+Bundle a SQL query, its ViewDefinition dependencies, and parameters into a SQLQuery Library and execute it synchronously with the `$sqlquery-run` operation.
+
+See [$sqlquery-run operation](./operation-sqlquery-run.md).
+
 ## De-identification
 
 Starting from version **2604**, ViewDefinition columns can be annotated with de-identification methods to transform sensitive data during SQL generation. Supported methods include redact, cryptoHash, dateshift, encrypt, substitute, perturb, and custom PostgreSQL functions.
