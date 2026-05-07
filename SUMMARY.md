@@ -504,7 +504,9 @@
   * [Prior Authorization Support (PAS) API](solutions/CMS-0057-F/prior-authorization-support-pas-api.md)
   * [Developer Docs](solutions/CMS-0057-F/developer-docs/README.md)
     * [Provider Access API](solutions/CMS-0057-F/developer-docs/provider-access-api/README.md)
-      * [$provider-member-match](solutions/CMS-0057-F/developer-docs/provider-access-api/provider-member-match.md)
+      * [Matching logic](solutions/CMS-0057-F/developer-docs/provider-access-api/matching-logic.md)
+      * [Async and authorization](solutions/CMS-0057-F/developer-docs/provider-access-api/async-and-auth.md)
+      * [$provider-member-match](solutions/CMS-0057-F/developer-docs/provider-access-api/operations/provider-member-match.md)
 
 ## Reference
 
