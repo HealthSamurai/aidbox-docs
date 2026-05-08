@@ -507,6 +507,10 @@
       * [Matching logic](solutions/CMS-0057-F/developer-docs/provider-access-api/matching-logic.md)
       * [Async and authorization](solutions/CMS-0057-F/developer-docs/provider-access-api/async-and-auth.md)
       * [$provider-member-match](solutions/CMS-0057-F/developer-docs/provider-access-api/operations/provider-member-match.md)
+    * [Payer-to-Payer API](solutions/CMS-0057-F/developer-docs/payer-to-payer-api/README.md)
+      * [Matching logic](solutions/CMS-0057-F/developer-docs/payer-to-payer-api/matching-logic.md)
+      * [Async and authorization](solutions/CMS-0057-F/developer-docs/payer-to-payer-api/async-and-auth.md)
+      * [$bulk-member-match](solutions/CMS-0057-F/developer-docs/payer-to-payer-api/operations/bulk-member-match.md)
 
 ## Reference
 

@@ -625,7 +625,7 @@ redirects:
   modules/compliance/aidbox-+-fhir-app-portal: solutions/aidbox-+-fhir-app-portal/README.md
   modules/compliance/payers-or-cms-0057-f: solutions/CMS-0057-F/README.md
   modules/compliance/payers-or-cms-0057-f/patient-access-api: solutions/CMS-0057-F/README.md
-  modules/compliance/payers-or-cms-0057-f/payer-to-payer-api: solutions/CMS-0057-F/README.md
+  modules/compliance/payers-or-cms-0057-f/payer-to-payer-api: solutions/CMS-0057-F/developer-docs/payer-to-payer-api/README.md
   modules/compliance/payers-or-cms-0057-f/prior-auth-api: solutions/CMS-0057-F/prior-authorization-support-pas-api.md
   modules/compliance/payers-or-cms-0057-f/provider-access-api: solutions/CMS-0057-F/README.md
   modules/compliance/payers-or-cms-0057-f/provider-directory-api: solutions/CMS-0057-F/README.md
@@ -709,7 +709,7 @@ redirects:
   # solutions/* redirects (case changes, old paths)
   solutions/payers-or-cms-0057-f: solutions/CMS-0057-F/README.md
   solutions/payers-or-cms-0057-f/patient-access-api: solutions/CMS-0057-F/README.md
-  solutions/payers-or-cms-0057-f/payer-to-payer-api: solutions/CMS-0057-F/README.md
+  solutions/payers-or-cms-0057-f/payer-to-payer-api: solutions/CMS-0057-F/developer-docs/payer-to-payer-api/README.md
   solutions/payers-or-cms-0057-f/prior-auth-api: solutions/CMS-0057-F/prior-authorization-support-pas-api.md
   solutions/payers-or-cms-0057-f/provider-access-api: solutions/CMS-0057-F/README.md
   solutions/payers-or-cms-0057-f/provider-directory-api: solutions/CMS-0057-F/README.md
