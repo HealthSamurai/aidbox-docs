@@ -27,7 +27,7 @@ You can find all settings organized into these categories in the Aidbox UI under
 * **Web**: HTTP server configuration
 * **Database**: Database connection and connection pool settings
 * **Observability**: Logging, monitoring, and debugging options
-* **Zen**: Legacy settings (Note: Will be removed in July 2025)
+* **Zen**: Legacy settings (deprecated)
 
 ### Setting groups
 
@@ -71,11 +71,45 @@ Possible values:
 
 * `read-write`: enables editing Aidbox settings using the UI. This mode disables loading configuration from the Aidbox configuration project (zen).
 * `read-only`: reads settings values from environment variables and Aidbox settings in read-only mode. This mode disables loading configuration from the Aidbox configuration project (zen).
-* `legacy`: reads configuration values from the legacy Aidbox configuration project (zen) in read-only mode. This mode exists for backward compatibility. It will be obsolete in July 2025. Read [more](https://www.health-samurai.io/news/aidbox-transitions-to-the-fhir-schema-engine).
+* `legacy`: reads configuration values from the legacy Aidbox configuration project (zen) in read-only mode. This mode exists for backward compatibility. Read [more](https://www.health-samurai.io/news/aidbox-transitions-to-the-fhir-schema-engine).
 
 For example, a user can set `BOX_SETTINGS_MODE: read-write` in the environment variables to enable runtime editing of Aidbox settings.
 
-Starting from March 2025 existing instances will use `legacy` mode for backward compatibility. All new instances by default will use `read-write`. Starting from July 2025 `legacy` option will not be available.
+Starting from March 2025 existing instances use `legacy` mode for backward compatibility. All new instances use `read-write` by default.
+
+### Environment variable naming by settings mode
+
+The format of environment variable names depends on the active settings mode. Using the wrong format for your mode means the setting will be **silently ignored**.
+
+| Settings mode | Separator | Example |
+|---|---|---|
+| `read-write` | `_` (single underscore) | `BOX_DB_POOL_MAXIMUM_POOL_SIZE` |
+| `read-only` | `_` (single underscore) | `BOX_DB_POOL_MAXIMUM_POOL_SIZE` |
+| `legacy` | `__` (double underscore) | `BOX_DB_POOL_MAXIMUM__POOL__SIZE` |
+
+In `legacy` mode Aidbox uses a different env var parser that treats `__` as a path separator. The newer single-underscore names map to wrong config paths and their values are never applied.
+
+{% hint style="warning" %}
+If you rename env vars from the `__`-style to the `_`-style, you must also switch `BOX_SETTINGS_MODE` to `read-write` or `read-only`. Renaming env vars alone will silently break your configuration.
+{% endhint %}
+
+### Migrating from legacy to read-write mode
+
+{% stepper %}
+{% step %}
+Set `BOX_SETTINGS_MODE=read-write` in your environment variables.
+{% endstep %}
+{% step %}
+Replace all double-underscore separators in env var names with single underscores.
+
+For example: `BOX_DB_POOL_MAXIMUM__POOL__SIZE` → `BOX_DB_POOL_MAXIMUM_POOL_SIZE`
+
+The [Settings reference](../reference/all-settings.md) lists the current env var name for each setting under **Environment variable** and the legacy `__`-style name under **Legacy mode environment variable**.
+{% endstep %}
+{% step %}
+Restart Aidbox to apply the changes.
+{% endstep %}
+{% endstepper %}
 
 ### Product-specific settings
 
