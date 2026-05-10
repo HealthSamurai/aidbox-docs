@@ -113,7 +113,7 @@ BOX_SETTINGS_MODE: "read-write"
 Settings mode defines the source of settings values and
     possibility to change them at runtime.
 
-<details><summary>Details</summary><table data-header-hidden="true"><thead><tr><th width="200"></th><th></th></tr></thead><tbody><tr><td>ID</td><td><code>settings-mode</code></td></tr><tr><td>Type</td><td>Enum</td></tr><tr><td>Values</td><td><code>legacy</code> — Reads configuration values from the legacy Aidbox                 configuration project (zen) in read-only mode. This mode exists                 for backward compatibility. It will be obsolete in July 2025.                 &lt;a href=&apos;https://www.health-samurai.io/news/aidbox-transitions-to-the-fhir-schema-engine&apos;&gt;Read more&lt;/a&gt;<br /><code>read-only</code> — Reads settings values from environment variables and                 Aidbox settings in read-only mode. Loading configuration from                 the Aidbox configuration project (Zen) is disabled.<br /><code>read-write</code> — Enables editing Aidbox settings using the UI. Loading                 configuration from the Aidbox configuration project (Zen) is                 disabled.</td></tr><tr><td>Recommended value</td><td><code>read-write</code></td></tr><tr><td>Default value</td><td><code>legacy</code></td></tr><tr><td>Environment variable</td><td><code>BOX_SETTINGS_MODE</code></td></tr><tr><td>Available from</td><td><code>2502</code></td></tr><tr><td>Sensitive</td><td><code>false</code> — value will be visible in plaintext in Admin UI</td></tr><tr><td>Set via</td><td>Environment variables</td></tr><tr><td>Hot reload</td><td><code>false</code> — setting requires system restart</td></tr></tbody></table></details>
+<details><summary>Details</summary><table data-header-hidden="true"><thead><tr><th width="200"></th><th></th></tr></thead><tbody><tr><td>ID</td><td><code>settings-mode</code></td></tr><tr><td>Type</td><td>Enum</td></tr><tr><td>Values</td><td><code>legacy</code> — Reads configuration values from the legacy Aidbox                 configuration project (zen) in read-only mode. This mode exists                 for backward compatibility.                 &lt;a href=&apos;https://www.health-samurai.io/news/aidbox-transitions-to-the-fhir-schema-engine&apos;&gt;Read more&lt;/a&gt;<br /><code>read-only</code> — Reads settings values from environment variables and                 Aidbox settings in read-only mode. Loading configuration from                 the Aidbox configuration project (Zen) is disabled.<br /><code>read-write</code> — Enables editing Aidbox settings using the UI. Loading                 configuration from the Aidbox configuration project (Zen) is                 disabled.</td></tr><tr><td>Recommended value</td><td><code>read-write</code></td></tr><tr><td>Default value</td><td><code>legacy</code></td></tr><tr><td>Environment variable</td><td><code>BOX_SETTINGS_MODE</code></td></tr><tr><td>Available from</td><td><code>2502</code></td></tr><tr><td>Sensitive</td><td><code>false</code> — value will be visible in plaintext in Admin UI</td></tr><tr><td>Set via</td><td>Environment variables</td></tr><tr><td>Hot reload</td><td><code>false</code> — setting requires system restart</td></tr></tbody></table></details>
 
 ### Enable export settings endpoint<a href="#export-settings-endpoint" id="export-settings-endpoint"></a>
 
@@ -170,6 +170,18 @@ BOX_SCHEDULER_EXECUTORS: 4
 Number of executor threads for the async task scheduler.
 
 <details><summary>Details</summary><table data-header-hidden="true"><thead><tr><th width="200"></th><th></th></tr></thead><tbody><tr><td>ID</td><td><code>scheduler-executors</code></td></tr><tr><td>Type</td><td>Int</td></tr><tr><td>Default value</td><td><code>4</code></td></tr><tr><td>Environment variable</td><td><code>BOX_SCHEDULER_EXECUTORS</code></td></tr><tr><td>Available from</td><td><code>2602</code></td></tr><tr><td>Sensitive</td><td><code>false</code> — value will be visible in plaintext in Admin UI</td></tr><tr><td>Set via</td><td>Admin UI → Settings<br />Environment variables</td></tr><tr><td>Hot reload</td><td><code>false</code> — setting requires system restart</td></tr></tbody></table></details>
+
+### Enable API auto mount<a href="#enable-api-auto-mount" id="enable-api-auto-mount"></a>
+
+```yaml
+BOX_ENABLE_API_AUTO_MOUNT: true
+```
+
+When true, Aidbox automatically generates APIs for all existing StructureDefinitions (which define new types) and SearchParameters,
+For example, `/fhir/Patient` or `/fhir/Patient?active=true`.
+When false, storage and API APIs (e.g. `/fhir/$create-storage`, `/fhir/$create-api`) must be used to manage available APIs.
+
+<details><summary>Details</summary><table data-header-hidden="true"><thead><tr><th width="200"></th><th></th></tr></thead><tbody><tr><td>ID</td><td><code>enable-api-auto-mount</code></td></tr><tr><td>Type</td><td>Bool</td></tr><tr><td>Default value</td><td><code>true</code></td></tr><tr><td>Environment variable</td><td><code>BOX_ENABLE_API_AUTO_MOUNT</code></td></tr><tr><td>Available from</td><td><code>2604</code></td></tr><tr><td>Sensitive</td><td><code>false</code> — value will be visible in plaintext in Admin UI</td></tr><tr><td>Set via</td><td>Admin UI → Settings<br />Environment variables</td></tr><tr><td>Hot reload</td><td><code>false</code> — setting requires system restart</td></tr></tbody></table></details>
 
 ## FHIR
 
@@ -895,6 +907,16 @@ structure. Restricts user access to resources based on their organizational
 affiliation and hierarchy position. 
 
 <details><summary>Details</summary><table data-header-hidden="true"><thead><tr><th width="200"></th><th></th></tr></thead><tbody><tr><td>ID</td><td><code>security.orgbac.enabled</code></td></tr><tr><td>Type</td><td>Bool</td></tr><tr><td>Default value</td><td><code>false</code></td></tr><tr><td>Environment variable</td><td><code>BOX_SECURITY_ORGBAC_ENABLED</code></td></tr><tr><td>Deprecated environment variables</td><td><code>BOX_FEATURES_ORGBAC_ENABLE</code></td></tr><tr><td>Sensitive</td><td><code>false</code> — value will be visible in plaintext in Admin UI</td></tr><tr><td>Set via</td><td>Admin UI → Settings<br />Environment variables</td></tr><tr><td>Hot reload</td><td><code>false</code> — setting requires system restart</td></tr></tbody></table></details>
+
+### User password minimum length<a href="#security.user-password.min-length" id="security.user-password.min-length"></a>
+
+```yaml
+BOX_SECURITY_USER_PASSWORD_MIN_LENGTH: "<Int>"
+```
+
+Minimum allowed length of a user password.
+
+<details><summary>Details</summary><table data-header-hidden="true"><thead><tr><th width="200"></th><th></th></tr></thead><tbody><tr><td>ID</td><td><code>security.user-password.min-length</code></td></tr><tr><td>Type</td><td>Int</td></tr><tr><td>Default value</td><td>(no default)</td></tr><tr><td>Environment variable</td><td><code>BOX_SECURITY_USER_PASSWORD_MIN_LENGTH</code></td></tr><tr><td>Available from</td><td><code>2605</code></td></tr><tr><td>Sensitive</td><td><code>false</code> — value will be visible in plaintext in Admin UI</td></tr><tr><td>Set via</td><td>Admin UI → Settings<br />Environment variables</td></tr><tr><td>Hot reload</td><td><code>true</code> — setting can be changed at runtime</td></tr></tbody></table></details>
 
 ### Enable SU header<a href="#security.debug-su-enable" id="security.debug-su-enable"></a>
 
