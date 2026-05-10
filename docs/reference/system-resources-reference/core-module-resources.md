@@ -3993,6 +3993,12 @@ Configures where and how notifications triggered by a subscription topic should 
 } ]
 ```
 
+### Search Parameters
+
+| SearchParameter | Type | Expression | Description |
+|---|---|---|---|
+| topic | token | `topic` | Search AidboxTopicDestination by topic |
+
 
 ## AidboxTrigger
 
@@ -5406,6 +5412,167 @@ BigQuery at-least-once delivery profile for AidboxTopicDestination.
   "min" : 0,
   "max" : 1,
   "type" : "",
+  "desc" : ""
+} ]
+```
+
+
+## BulkExportProfile
+
+Profile for FHIR Bulk Data $export operation POST parameters. Based on https://build.fhir.org/ig/HL7/bulk-data/export.html
+
+```fhir-structure
+[ {
+  "path" : "parameter",
+  "name" : "parameter",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter:_outputFormat",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : "Output format for exported files (default: application/fhir+ndjson)."
+}, {
+  "path" : "parameter.name",
+  "name" : "name",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "string",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter:_since",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : "Include resources modified after this timestamp."
+}, {
+  "path" : "parameter.name",
+  "name" : "name",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "instant",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter:_type",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : "*",
+  "type" : "",
+  "desc" : "Comma-delimited FHIR resource types to include in the export."
+}, {
+  "path" : "parameter.name",
+  "name" : "name",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "string",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter:_typeFilter",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : "*",
+  "type" : "",
+  "desc" : "FHIR REST queries to constrain the exported dataset (ResourceType?params)."
+}, {
+  "path" : "parameter.name",
+  "name" : "name",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "string",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter:_until",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : "Include resources modified before this timestamp. Defaults to operation start time."
+}, {
+  "path" : "parameter.name",
+  "name" : "name",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "instant",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter:patient",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : "*",
+  "type" : "",
+  "desc" : "Specific patients to export. Omit to export all."
+}, {
+  "path" : "parameter.name",
+  "name" : "name",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "Reference",
   "desc" : ""
 } ]
 ```
@@ -8981,6 +9148,14 @@ GCP Pub/Sub at-least-once delivery profile for AidboxTopicDestination.
   "desc" : "Reference to the user who granted the access. \n\n**Allowed references**: User"
 } ]
 ```
+
+### Search Parameters
+
+| SearchParameter | Type | Expression | Description |
+|---|---|---|---|
+| client | reference | `client` | Search Grant by client |
+| patient | reference | `patient` | Search Grant by patient |
+| user | reference | `user` | Search Grant by user |
 
 
 ## Hl7v2Config
@@ -13258,6 +13433,38 @@ PostgreSQL sequence definition resource for Aidbox.
   "type" : "Object",
   "desc" : ""
 }, {
+  "path" : "params.form-params",
+  "name" : "form-params",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "BackboneElement",
+  "desc" : ""
+}, {
+  "path" : "params.form-params.username",
+  "name" : "username",
+  "lvl" : 2,
+  "min" : 0,
+  "max" : 1,
+  "type" : "string",
+  "desc" : ""
+}, {
+  "path" : "params.resource",
+  "name" : "resource",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "BackboneElement",
+  "desc" : ""
+}, {
+  "path" : "params.resource.username",
+  "name" : "username",
+  "lvl" : 2,
+  "min" : 0,
+  "max" : 1,
+  "type" : "string",
+  "desc" : ""
+}, {
   "path" : "resource",
   "name" : "resource",
   "lvl" : 0,
@@ -13275,6 +13482,13 @@ PostgreSQL sequence definition resource for Aidbox.
   "desc" : "Status of the registration process. \n\n**Allowed values**: `activated` | `active`"
 } ]
 ```
+
+### Search Parameters
+
+| SearchParameter | Type | Expression | Description |
+|---|---|---|---|
+| status | token | `status` | Search Registration by status |
+| username | token | `params.`form-params`.username \| params.resource.username` | Search Registration by username |
 
 
 ## Role
@@ -14276,6 +14490,12 @@ Seed data import resource for initial data loading.
 } ]
 ```
 
+### Search Parameters
+
+| SearchParameter | Type | Expression | Description |
+|---|---|---|---|
+| md5-hash | token | ``md5-hash`` | Search SeedImport by md5 hash |
+
 
 ## Session
 
@@ -14442,6 +14662,14 @@ Seed data import resource for initial data loading.
   "desc" : "Reference to the user associated with this session. \n\n**Allowed references**: User"
 } ]
 ```
+
+### Search Parameters
+
+| SearchParameter | Type | Expression | Description |
+|---|---|---|---|
+| access_token | token | `access_token` | Search Session by access token |
+| client | reference | `client` | Search Session by client |
+| jti | string | `jti` | Search Session by jti |
 
 
 ## SqlText
@@ -15251,6 +15479,14 @@ Terminology bundle file tracking resource.
   "type" : "",
   "desc" : "The User's cleartext password, used for initial or reset scenarios."
 }, {
+  "path" : "passwordResetJti",
+  "name" : "passwordResetJti",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "string",
+  "desc" : "Active password-reset JWT id; non-nil means a reset link is outstanding."
+}, {
   "path" : "phoneNumber",
   "name" : "phoneNumber",
   "lvl" : 0,
@@ -15539,12 +15775,14 @@ Terminology bundle file tracking resource.
 |---|---|---|---|
 | active | token | `active` | Search User by active status |
 | email | string | `email` | Search User by email |
+| email-token | token | `email` | Search User by email (token) |
 | gender | string | `gender` | Search User by gender |
 | identifier | token | `identifier` | Search User by identifier |
 | inactive | token | `inactive` | Search User by inactive status |
 | name | string | `name.formatted \| name.givenName \| name.familyName` | Search User by name |
 | organization | reference | `organization` | Search User by organization |
 | phoneNumber | string | `phoneNumber` | Search User by phone number |
+| scim-v2-fields | string | `email \| userName \| identifier.value` | Search User by SCIM v2 fields |
 | title | string | `title` | Search User by title |
 | userName | string | `userName` | Search User by userName |
 
