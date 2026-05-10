@@ -1017,6 +1017,12 @@ Configuration resource for SDC system settings including language, theme, storag
 } ]
 ```
 
+### Search Parameters
+
+| SearchParameter | Type | Expression | Description |
+|---|---|---|---|
+| default | token | `default` | Search SDCConfig by default |
+
 
 ## SDCDocument
 
