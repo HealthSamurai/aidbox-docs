@@ -43,7 +43,7 @@ BOX_DB_INSTALL_PG_EXTENSIONS=false
 ```
 
 {% hint style="warning" %}
-Aidbox expects extensions to be installed in the [`BOX_DB_EXTENSION_SCHEMA`](../../reference/all-settings.md#db.extension-schema) schema (`public` by default). If extensions live in a different schema, Aidbox won't start.
+Aidbox expects extensions to be installed in the [`BOX_DB_EXTENSION_SCHEMA`](../../reference/all-settings.md#db.extension-schema) schema (`public` by default). If extensions live not in a `BOX_DB_EXTENSION_SCHEMA` schema, Aidbox won't start.
 
 ```shell
 BOX_DB_EXTENSION_SCHEMA=public
