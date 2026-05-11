@@ -66,6 +66,16 @@ Since this is a redirection-based flow, the client must be capable of interactin
 [authorization-code-grant.md](../../tutorials/security-access-control-tutorials/authorization-code-grant.md)
 {% endcontent-ref %}
 
+### Pre-filling the login form with `login_hint`
+
+When redirecting to `/auth/authorize`, you can pass a `login_hint` query parameter to pre-fill the "Username or Email" field on the login page. This follows the [OpenID Connect standard](https://openid.net/specs/openid-connect-core-1_0.html#AuthRequest) for `login_hint`.
+
+```
+GET /auth/authorize?response_type=code&client_id=myapp&redirect_uri=...&login_hint=user@example.com
+```
+
+The field remains editable — the user can change the value before submitting. This is useful in multi-customer setups or when the application already knows the user's email (e.g., from a previous session or an invitation link).
+
 ## Resource Owner Credentials Grant
 
 ```mermaid fullWidth="true"
