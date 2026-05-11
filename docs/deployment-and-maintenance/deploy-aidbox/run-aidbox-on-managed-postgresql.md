@@ -105,18 +105,18 @@ If your PostgreSQL user used by Aidbox does not have sufficient privileges to in
 The list of required extensions:&#x20;
 
 * pgcrypto&#x20;
-* unaccent
 * &#x20;pg\_trgm
-* &#x20;fuzzystrmatch
 
-If `AIDBOX_INSTALL_PG_EXTENSIONS` is set to `false`, Aidbox will not start without them, so you have to install them manually.&#x20;
+If `AIDBOX_INSTALL_PG_EXTENSIONS` is set to `false`, Aidbox will not start without them, so you have to install them manually.&#x20; 
 
 Optional list of extensions:&#x20;
 
 * pg\_similarity
+* unaccent
 * &#x20;jsonknife
 * &#x20;pg\_stat\_statements
 * &#x20;postgis
+* &#x20;fuzzystrmatch
 
 ### Setup Aidbox to use new user
 
