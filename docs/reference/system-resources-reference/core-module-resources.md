@@ -5766,6 +5766,30 @@ Profile for FHIR Bulk Data $export operation POST parameters. Based on https://b
   "type" : "string",
   "desc" : "FHIR search query strings for filtering exported resources in ResourceType?params format."
 }, {
+  "path" : "params.export-type",
+  "name" : "export-type",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "string",
+  "desc" : "DaVinci export type canonical (e.g. hl7.fhir.us.davinci-pdex#provider-delta)."
+}, {
+  "path" : "params.source-org-id",
+  "name" : "source-org-id",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "string",
+  "desc" : "Source (old payer) Organization ID for payer-to-payer consent actor matching."
+}, {
+  "path" : "params.recipient-org-id",
+  "name" : "recipient-org-id",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "string",
+  "desc" : "Recipient (new payer) Organization ID for payer-to-payer consent actor matching."
+}, {
   "path" : "params.storage",
   "name" : "storage",
   "lvl" : 1,
@@ -8190,6 +8214,191 @@ A modifier extension for ElementDefinition that indicates the element uses a cus
   "max" : 1,
   "type" : "code",
   "desc" : "Custom type code"
+} ]
+```
+
+
+## DaVinciDataExportProfile
+
+Profile for $davinci-data-export operation input parameters. Based on http://hl7.org/fhir/us/davinci-atr/OperationDefinition/davinci-data-export
+
+```fhir-structure
+[ {
+  "path" : "parameter",
+  "name" : "parameter",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter:_outputFormat",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : "Output format for exported files (default: application/fhir+ndjson)."
+}, {
+  "path" : "parameter.name",
+  "name" : "name",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "string",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter:_since",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : "Include resources modified after this timestamp."
+}, {
+  "path" : "parameter.name",
+  "name" : "name",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "instant",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter:_type",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : "Comma-delimited FHIR resource types to include in the export."
+}, {
+  "path" : "parameter.name",
+  "name" : "name",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "string",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter:_typeFilter",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : "FHIR REST queries to constrain the exported dataset (ResourceType?params)."
+}, {
+  "path" : "parameter.name",
+  "name" : "name",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "string",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter:_until",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : "Include resources modified before this timestamp. Defaults to operation start time."
+}, {
+  "path" : "parameter.name",
+  "name" : "name",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "instant",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter:exportType",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : "Export type classification (e.g. hl7.fhir.us.davinci-atr, hl7.fhir.us.davinci-pdex#payertopayer)."
+}, {
+  "path" : "parameter.name",
+  "name" : "name",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "canonical",
+  "desc" : "\n\n**Allowed values**: `hl7.fhir.us.davinci-atr` | `hl7.fhir.us.davinci-pdex#payertopayer` | `hl7.fhir.us.davinci-pdex#provider-delta` | `hl7.fhir.us.davinci-pdex#provider-download` | `hl7.fhir.us.davinci-pdex#provider-snapshot`"
+}, {
+  "path" : "parameter",
+  "name" : "parameter:patient",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : "*",
+  "type" : "",
+  "desc" : "Specific members to export. Omit to export all Group members."
+}, {
+  "path" : "parameter.name",
+  "name" : "name",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "Reference",
+  "desc" : ""
 } ]
 ```
 
