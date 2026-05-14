@@ -149,6 +149,20 @@ params:
   query: date=gt2022-01-01&_id=myid
 ```
 
+See [Get Suggested Indexes](get-suggested-indexes.md) for the full response shape.
+
+## Usage statistics and the Indexes RPCs
+
+Aidbox tracks every search call into `_aidbox_search_param_stats` and exposes both the stats and a candidate-index inventory through dedicated RPCs:
+
+* `aidbox.index/get-search-param-stats` — per-shape or per-SP usage counters.
+* `aidbox.index/reset-search-param-stats` — wipe stats globally or for a specific resource type / parameter / shape.
+* `aidbox.index/list-search-param-indexes` — enumerate candidate indexes for a SearchParameter, joined with `pg_indexes`, `pg_stat_user_indexes`, and the recorded usage stats. Surfaces `exists`, `building`, scans, size, and `hit_calls`.
+* `aidbox.index/drop-search-param-index` — drop a candidate index by name (uses `DROP INDEX CONCURRENTLY`).
+
+See [Search Parameter Usage Statistics](search-parameter-usage-stats.md) for the full surface, including a step-by-step "decide which index to create" workflow.
+
 ## See also
 
+* [Search Parameter Usage Statistics](search-parameter-usage-stats.md) — record, inspect and reset per-SP usage; tie candidates to real call counts.
 * [Set up uniqueness in Resource](../../tutorials/crud-search-tutorials/set-up-uniqueness-in-resource.md) - Enforce unique constraints on FHIR resources using PostgreSQL indexes
