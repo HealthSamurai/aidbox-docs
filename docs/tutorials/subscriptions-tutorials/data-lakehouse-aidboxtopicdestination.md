@@ -72,7 +72,9 @@ The Data Lakehouse Topic Destination module exports FHIR resources from Aidbox t
 
 The module supports two **write modes**, picked per-destination via the `writeMode` parameter.
 
-### `writeMode: managed`
+### `writeMode: managed` (default)
+
+Targets a **Databricks Unity Catalog managed table**.
 
 ```mermaid
 graph LR
@@ -86,7 +88,13 @@ graph LR
     A --> B --> C --> D --> M --> T1
 ```
 
+- Each batch becomes a single `INSERT INTO managed (cols) VALUES (...)` statement sent to a Databricks SQL warehouse over REST. The warehouse writes Parquet + commits to the managed table.
+- Initial bulk export stages rows into an external Delta table on your bucket, then materializes them into the target via `INSERT INTO managed SELECT * FROM staging` and drops the staging table.
+- The warehouse must stay warm to keep INSERT latency low — you trade compute hours for UC governance + Predictive Optimization.
+
 ### `writeMode: external-direct`
+
+Targets a **non-managed external Delta table** that you own.
 
 ```mermaid
 graph LR
@@ -100,23 +108,28 @@ graph LR
     A --> B --> C --> D --> K --> T2
 ```
 
-### Mode summary
+- The module writes Parquet + Delta commits straight to your bucket from the Aidbox process. No SQL warehouse involved.
+- Storage backends supported: S3, MinIO, Garage, GCS, Azure ADLS Gen2.
+- Zero Databricks compute cost. In return, you're responsible for running `OPTIMIZE` / `VACUUM` on the table yourself.
 
-**`managed`** (default) — targets a **Databricks Unity Catalog managed table**:
+## Delivery guarantees
 
-- Hot path: a single `INSERT INTO managed (cols) VALUES (...)` over the Databricks SQL warehouse REST API.
-- Initial bulk export: stage rows into an external Delta table on your bucket → `INSERT INTO managed SELECT * FROM staging` → `DROP TABLE staging`.
-- Cost: warehouse must stay warm. Trade compute hours for UC governance + Predictive Optimization.
+Both modes are **at-least-once**. Messages are persisted in a PostgreSQL queue before being sent — if delivery fails, the message stays in the queue and is retried on the next batch cycle.
 
-**`external-direct`** — targets a **non-managed external Delta table** you own:
+The two modes differ in what happens during a crash-between-commit-and-ack — the narrow window where the write landed in storage but the sender died before marking the queue entry as delivered:
 
-- Hot path: write Parquet + commit to `_delta_log/` directly on your bucket. No SQL warehouse involved.
-- Storage: S3 / MinIO / Garage / GCS / Azure ADLS Gen2.
-- Cost: zero Databricks compute. You're responsible for `OPTIMIZE` / `VACUUM`.
+- **`external-direct`** is restart-safe-idempotent. Every commit carries a stable transaction id, so when the replayed batch hits Delta a second time, Delta itself recognises it and silently skips it.
+- **`managed`** can produce duplicates. The route to the warehouse can't carry that transaction id, so a replayed batch becomes a second INSERT and a duplicate row.
 
-{% hint style="info" %}
-**Delivery guarantee.** Both modes are at-least-once. Messages are persisted in a PostgreSQL queue before being sent. **`external-direct`** is restart-safe-idempotent — every commit carries a stable transaction id, so Delta silently de-duplicates a replayed batch. **`managed`** routes through the Databricks SQL warehouse, which can't carry that transaction id, so duplicates on crash-between-commit-and-ack are possible. Deduplicate downstream on read with `QUALIFY ROW_NUMBER() OVER (PARTITION BY id ORDER BY ts DESC) = 1` or a similar window.
-{% endhint %}
+Deduplicate downstream on read with a window function on `(id, ts)`:
+
+```sql
+SELECT * EXCEPT(rn) FROM (
+  SELECT *, ROW_NUMBER() OVER (PARTITION BY id ORDER BY ts DESC) AS rn
+  FROM aidbox_export.healthcare.patients
+)
+WHERE rn = 1 AND is_deleted = 0;
+```
 
 ## Key Features
 
@@ -384,38 +397,44 @@ Instead of embedding the SP secret inline, store it on disk and reference it thr
 
 ## Required Databricks privileges
 
-The service principal needs different grants depending on the write mode.
+### Common to both modes
+
+The service principal needs catalog/schema visibility and read+write access to the target table — regardless of `writeMode`:
+
+```sql
+GRANT USE CATALOG ON CATALOG <catalog>             TO `<sp-client-id>`;
+GRANT USE SCHEMA  ON SCHEMA  <catalog>.<schema>    TO `<sp-client-id>`;
+GRANT MODIFY      ON TABLE   <catalog>.<schema>.<table> TO `<sp-client-id>`;
+GRANT SELECT      ON TABLE   <catalog>.<schema>.<table> TO `<sp-client-id>`;
+```
+
+### Mode-specific additions
 
 {% tabs %}
 {% tab title="managed mode" %}
+The SP also needs to drive a SQL warehouse:
+
 ```sql
--- Catalog + schema visibility
-GRANT USE CATALOG ON CATALOG <catalog>       TO `<sp-client-id>`;
-GRANT USE SCHEMA  ON SCHEMA  <catalog>.<schema> TO `<sp-client-id>`;
-
--- Write + read on the managed target
-GRANT MODIFY ON TABLE <catalog>.<schema>.<table> TO `<sp-client-id>`;
-GRANT SELECT ON TABLE <catalog>.<schema>.<table> TO `<sp-client-id>`;
-
--- Warehouse access (also via UI: SQL Warehouses → Permissions → Add → Can use)
+-- Also grantable via UI: SQL Warehouses → your warehouse → Permissions → Add → Can use
 GRANT USAGE ON WAREHOUSE `<warehouse-id>` TO `<sp-client-id>`;
 ```
 
-If you're using `skipInitialExport=false` and need initial bulk export, add the External Location grants from the `external-direct` tab too — the staging table goes through the same UC vending flow.
+If you set `skipInitialExport=false` and need initial bulk export, you **also** need the `external-direct` grants — the staging table the module creates during initial export is itself an external Delta table and goes through UC credential vending.
 {% endtab %}
 
 {% tab title="external-direct mode" %}
+The SP needs Unity Catalog to vend storage credentials for the external target:
+
 ```sql
--- Catalog + schema visibility
-GRANT USE CATALOG ON CATALOG <catalog>       TO `<sp-client-id>`;
-GRANT USE SCHEMA  ON SCHEMA  <catalog>.<schema> TO `<sp-client-id>`;
-
--- The critical one — required for UC credential vending on external tables
+-- Required for UC credential vending on external tables
 GRANT EXTERNAL USE SCHEMA ON SCHEMA <catalog>.<schema> TO `<sp-client-id>`;
+```
 
--- Write on the external Delta table
-GRANT MODIFY ON TABLE <catalog>.<schema>.<table> TO `<sp-client-id>`;
-GRANT SELECT ON TABLE <catalog>.<schema>.<table> TO `<sp-client-id>`;
+If the table sits at a registered External Location, also grant on that location:
+
+```sql
+GRANT READ FILES, WRITE FILES, CREATE EXTERNAL TABLE
+  ON EXTERNAL LOCATION `<external-location-name>` TO `<sp-client-id>`;
 ```
 
 {% hint style="warning" %}
@@ -860,25 +879,11 @@ The module is append-only — both modes commit a **new row** for every change t
 - **Update**: new row with `is_deleted = 0` (old row remains in the table; no `UPDATE` is issued)
 - **Delete**: new row with `is_deleted = 1`
 
-So a resource that was created and then updated 3 times will have 4 rows with the same `id`. To query only the latest non-deleted state, add a timestamp column to your ViewDefinition (e.g., `meta.lastUpdated` as `ts`) and use a window function:
-
-```sql
-SELECT * EXCEPT(rn) FROM (
-  SELECT *, ROW_NUMBER() OVER (PARTITION BY id ORDER BY ts DESC) as rn
-  FROM aidbox_export.healthcare.patients
-)
-WHERE rn = 1 AND is_deleted = 0;
-```
+So a resource created and then updated 3 times will have 4 rows with the same `id`. The same window-function pattern shown in [Delivery guarantees](#delivery-guarantees) returns just the latest non-deleted state — one query handles both append-only history and managed-mode retry duplicates.
 
 {% hint style="info" %}
 To track versions, add `meta.lastUpdated` to your ViewDefinition as a `ts` column (type `TIMESTAMP`). Each update appends a new row with a newer `ts`, so you can always find the latest state.
 {% endhint %}
-
-## Idempotency
-
-- **`external-direct`** is restart-safe-idempotent on commit retry. Every commit carries a stable per-destination transaction id; on startup the module reads the latest committed version from the Delta log and resumes its counter from there. Replaying the same logical batch (network timeout, sender restart mid-flight) is silently deduplicated by Delta itself.
-
-- **`managed`** is at-least-once with no server-side dedup. The Databricks REST path that submits INSERTs cannot carry that transaction id, so if the sender commits an `INSERT` successfully but the response is lost (TCP reset / timeout) and the batch replays from the Aidbox queue, the rows duplicate. The crash-between-commit-and-ack window is single-digit seconds; deduplicate in downstream queries via the `(id, ts)` natural key — see [Soft Deletes and Updates](#soft-deletes-and-updates) for the recommended `QUALIFY ROW_NUMBER()` pattern.
 
 ## Compaction and maintenance
 
@@ -973,9 +978,11 @@ Pre-register an external Delta table in OSS UC via its REST API, then point the 
 
 OSS UC does not implement the Statement Execution API, so **`writeMode=managed` is not testable locally** — only `external-direct` works against OSS UC. For full end-to-end coverage of `managed` mode, point at a Databricks Free Edition workspace (no credit card required for evaluation).
 
-## Delivery Guarantees and Retry
+## Retry behavior
 
-The module provides **at-least-once delivery**. Messages are persisted in a PostgreSQL queue before being sent. If delivery fails, the message remains in the queue and is retried on the next batch cycle (every `sendIntervalMs`). There is a 1-second backoff between failed delivery attempts to prevent log storms. In `external-direct` mode, Delta's transaction-id mechanism eliminates duplicates on commit retry. In `managed` mode the SQL warehouse path can't carry that transaction id — see [Idempotency](#idempotency) for the deduplication-on-read pattern.
+See [Delivery guarantees](#delivery-guarantees) for the at-least-once semantics and the per-mode dedup story. This section covers what happens on the wire when a single attempt fails.
+
+If a delivery fails, the message stays in the PostgreSQL queue and is retried on the next batch cycle (every `sendIntervalMs`). There is a 1-second backoff between failed attempts to prevent log storms.
 
 ### Token refresh
 
