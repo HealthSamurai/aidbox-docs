@@ -21,18 +21,14 @@ If you're already comfortable with Databricks, Unity Catalog, and Delta Lake, sk
 
 The module talks to both: Unity Catalog for metadata + credential vending, and the SQL warehouse for executing INSERTs into Databricks-managed tables.
 
-### Data lakehouse
+### Data lakehouse, and Delta Lake as its implementation
 
 A **data lakehouse** is a hybrid of two older patterns:
 
 - A **data lake** stores raw files (Parquet, JSON, CSV) on cheap object storage (S3, GCS, ADLS). Scalable and cheap, but no schema enforcement, no ACID transactions, no time travel.
 - A **data warehouse** (Snowflake, Redshift, BigQuery) gives you ACID + schema + indexes — at the cost of a proprietary storage format you don't own.
 
-A lakehouse keeps the lake's open-format storage but adds a transaction-log layer on top, giving you ACID + schema + time travel **on Parquet files in your own bucket**. Delta Lake is one such layer.
-
-### Delta Lake
-
-[Delta Lake](https://delta.io/) is an open table format. A Delta table is a directory on object storage that looks like this:
+A lakehouse is the lake side with the warehouse's guarantees bolted on: ACID, schema, and time travel **on plain Parquet files in your own bucket**. The thing doing that bolting is an **open table format** — and [Delta Lake](https://delta.io/) is the one this module uses. A Delta table is a directory on object storage:
 
 ```
 s3://bucket/prefix/my_table/
@@ -40,12 +36,12 @@ s3://bucket/prefix/my_table/
 │   ├── 00000000000000000000.json       ← transaction log: each commit is one JSON file
 │   ├── 00000000000000000001.json
 │   └── ...
-├── part-00000-xxx.snappy.parquet       ← actual row data
+├── part-00000-xxx.snappy.parquet       ← row data
 ├── part-00001-xxx.snappy.parquet
 └── ...
 ```
 
-The `_delta_log/` directory is the source of truth. To read the table you replay the log to get a list of active Parquet files and their stats; to write you append a new `.json` commit describing what files you added or removed. Multiple writers coordinate via optimistic concurrency on log filenames.
+The `_delta_log/` directory is the source of truth. To read the table, replay the log to get a list of active Parquet files and their stats. To write, append a new `.json` commit describing the files added or removed. Multiple writers coordinate via optimistic concurrency on log filenames — that's where Delta's ACID comes from.
 
 ### External vs managed tables
 
@@ -69,6 +65,40 @@ The split matters because it dictates which write path the module can use:
 ## Overview
 
 The Data Lakehouse Topic Destination module exports FHIR resources from Aidbox to a Delta Lake table in a flattened format using [ViewDefinitions](../../modules/sql-on-fhir/defining-flat-views-with-view-definitions.md) and SQL-on-FHIR technology.
+
+### High-level architecture
+
+```mermaid
+graph LR
+    Client((User / FHIR API client)):::blue2
+    Aidbox[Aidbox process]:::blue2
+    PG[(Aidbox PostgreSQL<br/>resources + topic queue + sof.&lt;view&gt;)]:::neutral2
+    Mod[Data Lakehouse topic-destination module<br/>runs inside Aidbox JVM]:::yellow2
+    DBX[Databricks workspace<br/>Unity Catalog + SQL warehouse]:::green2
+    FS[(Cloud storage<br/>S3 / GCS / ADLS)]:::violet2
+
+    Client -- FHIR POST / PUT / DELETE --> Aidbox
+    Aidbox -- write resource + enqueue topic event --> PG
+    Mod -- poll batch --> PG
+    Mod -- flatten via ViewDefinition --> Mod
+    Mod -- bearer-authenticated REST --> DBX
+    Mod -- Delta write (external-direct mode) --> FS
+    DBX -- read / write Delta files --> FS
+```
+
+The module ships as a JAR loaded into the Aidbox JVM. It does not run as a separate process and has no state of its own — everything it needs (resources, topic queue, ViewDefinition output) lives in Aidbox PostgreSQL.
+
+### Append-only output
+
+Every change to a FHIR resource is written as a **new row** in the Delta table — there are no in-place UPDATEs or DELETEs:
+
+- **Create** → new row with `is_deleted = 0`
+- **Update** → new row with `is_deleted = 0` (old row remains)
+- **Delete** → new row with `is_deleted = 1`
+
+So a patient that was created and then updated 3 times appears as 4 rows. Add `meta.lastUpdated` to your ViewDefinition as a `ts` column and use a window function to recover the latest state. The query is in [Delivery guarantees](#delivery-guarantees) and reused for read-time dedup.
+
+### Write modes
 
 The module supports two **write modes**, picked per-destination via the `writeMode` parameter.
 
@@ -144,17 +174,18 @@ WHERE rn = 1 AND is_deleted = 0;
 
 |                                | `managed` (default)                                                      | `external-direct`                                                  |
 | ------------------------------ | ------------------------------------------------------------------------ | ------------------------------------------------------------------ |
-| Target                         | Databricks UC managed table                                              | Any external Delta table (S3 / MinIO / GCS / ADLS)                 |
-| Write path                     | SQL warehouse runs INSERT                                                | Direct Parquet + Delta commit to your bucket                       |
+| Table type                     | Unity Catalog **managed** (Databricks owns the files)                    | **External** (the User's bucket owns the files)                    |
+| Storage backends               | Whatever Databricks-managed storage your workspace is set up with        | S3, MinIO, Garage, GCS, ADLS Gen2                                  |
+| Write path                     | SQL warehouse runs `INSERT`                                              | Direct Parquet + Delta commit straight to the User's bucket        |
 | Initial export                 | Staging external Delta → `INSERT INTO managed SELECT * FROM staging`     | Single Delta commit straight to the target                         |
 | Throughput                     | Bound by warehouse size (~10-100k rows/sec)                              | 100k+ rows/sec direct-to-storage                                   |
 | Databricks compute cost        | Warehouse must stay warm — ~$2,000/month per running 2X-Small Serverless | Zero — no warehouse involvement                                    |
-| Compaction / OPTIMIZE / VACUUM | Free via Predictive Optimization                                         | Customer's responsibility (e.g. scheduled `OPTIMIZE` job)          |
-| Schema drift handling          | Auto-`ALTER` (we own the schema)                                         | Fail-loud at bootstrap (customer owns the schema)                  |
+| Compaction / OPTIMIZE / VACUUM | Automatic via Databricks Predictive Optimization                         | The User runs them (e.g. scheduled `OPTIMIZE` job)                 |
+| Schema drift handling          | Aidbox auto-`ALTER`s the target on schema mismatch                       | Fail-loud at bootstrap — the User runs `ALTER TABLE`               |
 | Best for                       | Production analytics with UC governance                                  | High-throughput pipelines, multi-cloud, cost-sensitive deployments |
 
 {% hint style="info" %}
-**Default is `managed`.** Customers who don't set `writeMode` get the Databricks SQL warehouse path. Set `writeMode=external-direct` explicitly to get the direct-to-storage flow.
+**Default is `managed`.** If `writeMode` isn't set on the destination, the module uses the Databricks SQL warehouse path. Set `writeMode=external-direct` explicitly to get the direct-to-storage flow.
 {% endhint %}
 
 ## Before you begin
@@ -163,7 +194,7 @@ WHERE rn = 1 AND is_deleted = 0;
 - Set up a local Aidbox instance using the getting started [guide](../../getting-started/run-aidbox-locally.md)
 - Have a Databricks workspace (Free Edition works for evaluation, paid for production)
 - Have a service principal (SP) with OAuth M2M credentials (`client_id` + `client_secret`)
-- For `managed` mode: a running SQL warehouse, a managed Delta table, and (if doing initial export) a customer-owned S3/GCS/ADLS path with a UC External Location for staging
+- For `managed` mode: a running SQL warehouse, a managed Delta table, and (if doing initial export) an S3/GCS/ADLS path you control with a UC External Location for staging
 - For `external-direct` mode: an external Delta table registered in UC (or static AWS keys for non-UC deployments)
 
 ## Installation
@@ -558,7 +589,7 @@ CREATE TABLE aidbox_export.healthcare.patients (
 {% hint style="warning" %}
 The table **must** include an `is_deleted` column (`INT`). The module sets this to `0` for create/update operations and `1` for delete operations.
 
-**No `LOCATION` clause** — that's what makes this a managed table. UC owns the physical layout, runs Predictive Optimization automatically, and refuses external STS-vended writes (which is why our `managed` mode goes through the SQL warehouse).
+**No `LOCATION` clause** — that's what makes this a managed table. UC owns the physical layout, runs Predictive Optimization automatically, and refuses external STS-vended writes — which is why `managed` mode goes through the SQL warehouse.
 {% endhint %}
 
 **Type mapping:**
@@ -740,7 +771,7 @@ If you don't need UC managed-table governance and want the highest throughput (d
 
 4. **No `stagingTablePath`** — initial export writes directly to the final external table; no intermediate staging.
 
-5. **The customer owns the schema** — there's no auto-`ALTER` in this mode. If you add a column to the ViewDefinition, you must `ALTER TABLE` yourself before recreating the destination, or initial validation will fail.
+5. **The User owns the schema** — there's no auto-`ALTER` in this mode. If you add a column to the ViewDefinition, you must `ALTER TABLE` yourself before recreating the destination, or initial validation will fail.
 
 ### Destination configuration
 
@@ -902,15 +933,9 @@ The module automatically:
 3. **Batches messages**: Groups messages according to `batchSize` and `sendIntervalMs` parameters
 4. **Coerces types**: Java SQL dates / timestamps from PostgreSQL are converted to ISO-8601 strings; the warehouse parses them into `DATE` / `TIMESTAMP` columns
 
-### Soft Deletes and Updates
+### Append-only output and dedup query
 
-The module is append-only — both modes commit a **new row** for every change to a FHIR resource:
-
-- **Create**: new row with `is_deleted = 0`
-- **Update**: new row with `is_deleted = 0` (old row remains in the table; no `UPDATE` is issued)
-- **Delete**: new row with `is_deleted = 1`
-
-So a resource created and then updated 3 times will have 4 rows with the same `id`. The same window-function pattern shown in [Delivery guarantees](#delivery-guarantees) returns just the latest non-deleted state — one query handles both append-only history and managed-mode retry duplicates.
+See [Append-only output](#append-only-output) in the Overview for the full pattern. In short: every FHIR resource change produces a new row, never an in-place UPDATE; the window-function query in [Delivery guarantees](#delivery-guarantees) returns the latest non-deleted state and also collapses managed-mode retry duplicates.
 
 {% hint style="info" %}
 To track versions, add `meta.lastUpdated` to your ViewDefinition as a `ts` column (type `TIMESTAMP`). Each update appends a new row with a newer `ts`, so you can always find the latest state.
@@ -955,7 +980,7 @@ The module only ADDS columns automatically. Column drops, renames, or narrowing 
 
 ### `external-direct` mode (manual)
 
-The customer owns the external table schema. If the ViewDefinition adds a column without a matching `ALTER TABLE` on the Databricks side, the destination's healthcheck will **fail at startup** with a clear error message pointing at the missing column.
+The User owns the external table schema. If the ViewDefinition adds a column without a matching `ALTER TABLE` on the Databricks side, the destination's healthcheck will **fail at startup** with a clear error message pointing at the missing column.
 
 To add a column:
 
