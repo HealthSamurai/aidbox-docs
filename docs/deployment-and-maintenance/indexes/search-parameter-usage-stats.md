@@ -37,7 +37,7 @@ Each row stores:
 | `mean_time_ms` | Running average, `total_time_ms / calls` |
 | `last_used_at` | `timestamptz` of the most recent matching request |
 
-Recording is non-blocking: each search appends to an in-memory buffer; a background worker UPSERTs the buffer into Postgres on a fixed interval. Failed searches (validation errors, query timeouts, errors raised mid-execution) are not counted — only completed responses land in the table.
+Recording is non-blocking: each search appends to an in-memory buffer; a background worker UPSERTs the buffer into Postgres every 60 seconds. Failed searches (validation errors, query timeouts, errors raised mid-execution) are not counted — only completed responses land in the table. Use `flush-first: true` on a read to force a synchronous drain when you need the latest samples immediately.
 
 ## Reading the stats: `aidbox.index/get-search-param-stats`
 
@@ -215,7 +215,10 @@ A successful response is `{result: {dropped: "<index-name>"}}`. The index name m
 {% endstep %}
 
 {% step %}
-**Create the index in the background.** Issue `POST /$psql` with the row's `definition` (the `CREATE INDEX CONCURRENTLY …` statement). Use `Aidbox-Sql-Async: true` so the HTTP request returns immediately while Postgres keeps building.
+**Create the index in the background.** Issue `POST /$psql` with the row's `definition` (the `CREATE INDEX CONCURRENTLY …` statement). Send two headers:
+
+* `Aidbox-Sql-Autocommit: true` — `CREATE INDEX CONCURRENTLY` cannot run inside a transaction.
+* `Aidbox-Sql-Async: true` — the HTTP request returns `202` immediately while Postgres keeps building in the background.
 {% endstep %}
 
 {% step %}
