@@ -303,30 +303,30 @@ All requests in this tutorial use `Content-Type: application/json`.
 
 ## Authentication
 
-Both modes authenticate to Databricks via **OAuth Machine-to-Machine (M2M)** with a service principal. PAT (Personal Access Token) is intentionally not supported — this is a 24/7 production sender, not an interactive user.
+Both modes authenticate to Databricks via **OAuth Machine-to-Machine (M2M)** with a service principal.
 
 ```mermaid
 sequenceDiagram
     autonumber
     participant S as Aidbox sender
-    participant T as POST /oidc/v1/token
+    participant T as Databricks token endpoint
     participant UC as Unity Catalog REST
     participant WH as SQL warehouse
     participant FS as Cloud storage (S3 / GCS / ADLS)
 
     S->>T: client_id + client_secret (HTTP Basic)
-    T-->>S: bearer token (≈1h TTL)
-    Note over S: cached; refreshed when < 5 min left
+    T-->>S: bearer token (about 1h TTL)
+    Note over S: cached; refreshed when under 5 min remain
 
     alt writeMode = managed
-        S->>WH: /api/2.0/sql/statements<br/>(INSERT · ALTER · DESCRIBE) + bearer
+        S->>WH: submit INSERT / ALTER / DESCRIBE + bearer
         WH->>FS: warehouse storage credential writes parquet
         WH-->>S: SUCCEEDED
     else writeMode = external-direct
-        S->>UC: GET /tables/{full_name} + bearer
+        S->>UC: resolve table_id + bearer
         UC-->>S: table_id
-        S->>UC: POST /temporary-table-credentials + bearer
-        UC-->>S: STS (access_key + secret + session_token)
+        S->>UC: request temporary credentials + bearer
+        UC-->>S: STS access_key + secret + session_token
         S->>FS: module writes parquet + Delta commit using STS
     end
 ```
