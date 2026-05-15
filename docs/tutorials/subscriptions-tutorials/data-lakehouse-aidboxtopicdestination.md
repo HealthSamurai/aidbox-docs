@@ -89,8 +89,8 @@ graph LR
 ```
 
 - Each batch becomes a single `INSERT INTO managed (cols) VALUES (...)` statement sent to a Databricks SQL warehouse over REST. The warehouse writes Parquet + commits to the managed table.
-- Initial bulk export stages rows into an external Delta table on your bucket, then materializes them into the target via `INSERT INTO managed SELECT * FROM staging` and drops the staging table.
-- The warehouse must stay warm to keep INSERT latency low — you trade compute hours for UC governance + Predictive Optimization.
+- Initial bulk export uses a **temporary staging table** under `stagingTablePath` because Databricks-managed tables refuse direct writes from outside their compute. See [Initial Export](#how-it-works-managed-mode) for the staging diagram.
+- The warehouse must stay warm to keep INSERT latency low — you trade compute hours for Unity Catalog governance + Predictive Optimization.
 
 ### `writeMode: external-direct`
 
@@ -815,20 +815,51 @@ To skip the initial export (e.g., the table is already populated or you only nee
 
 ### How it works — `managed` mode
 
-1. Register a UC external Delta table at `stagingTablePath` (the customer-provisioned S3 / GCS / ADLS prefix). Databricks writes the bootstrap `_delta_log/0.json` with the sof.&lt;view&gt; schema.
-2. UC-vend STS credentials for the staging table.
-3. Stream sof.&lt;view&gt; rows to the staging path — one Parquet rotation, one Delta commit.
-4. `INSERT INTO {managed_target} SELECT * FROM {staging}` via SQL API. Delta-aware (reads the staging snapshot through the Delta protocol).
-5. `DROP TABLE staging` — cleanup.
+Managed tables can't accept direct writes from outside Databricks compute, so initial bulk export uses a **temporary staging table** as a relay: the module writes the bulk Parquet to an external Delta table at `stagingTablePath` (which it can write to directly via Unity Catalog credential vending), then asks the SQL warehouse to copy from staging into the managed target, then drops the staging table.
 
-The whole sequence runs as one atomic operation from the destination's lifecycle perspective. On failure: best-effort drop staging, retry up to 3 times with exponential backoff (1s → 2s → 4s).
+```mermaid
+graph LR
+    PG[(Aidbox PostgreSQL<br/>sof.&lt;view&gt;)]:::neutral2
+    M[Aidbox sender]:::blue2
+    Staging[Staging external Delta table<br/>on stagingTablePath]:::yellow2
+    WH[Databricks SQL warehouse]:::green2
+    Target[(UC managed Delta target)]:::violet2
+
+    M -- 1. read rows --> PG
+    M -- 2. write Parquet + Delta commit<br/>via UC-vended STS --> Staging
+    M -- 3. INSERT INTO target SELECT * FROM staging --> WH
+    WH -- 4. read --> Staging
+    WH -- 5. write --> Target
+    M -- 6. DROP TABLE staging --> WH
+```
+
+Steps in detail:
+
+1. Register a temporary external Delta table at `stagingTablePath` with the same schema as `sof.<view>`.
+2. Unity Catalog vends short-lived STS credentials for the staging path.
+3. The module writes all `sof.<view>` rows to the staging path as one Delta commit.
+4. The module issues `INSERT INTO {managed_target} SELECT * FROM {staging}` against the SQL warehouse — Databricks reads the staging Delta snapshot and writes into the managed table.
+5. The module drops the staging table.
+
+The whole sequence runs as one atomic operation from the destination's lifecycle perspective. On failure: best-effort drop of the staging table, retry up to 3 times with exponential backoff (1s → 2s → 4s).
+
+{% hint style="info" %}
+The staging table lives only for the duration of initial export — typically minutes. Once `DROP TABLE staging` succeeds, `stagingTablePath` is left as an empty bucket prefix; you can reuse the same path for future destinations or other purposes.
+{% endhint %}
 
 ### How it works — `external-direct` mode
 
-1. Stream sof.&lt;view&gt; rows directly to the target table.
-2. All rows land in ONE Delta commit at the end — all-or-nothing visibility.
+```mermaid
+graph LR
+    PG[(Aidbox PostgreSQL<br/>sof.&lt;view&gt;)]:::neutral2
+    M[Aidbox sender]:::blue2
+    Target[(External Delta target<br/>on S3 / GCS / ADLS)]:::violet2
 
-This is more efficient than the managed path (no intermediate staging) but requires the customer to grant `EXTERNAL USE SCHEMA` so UC will vend write credentials for the external target.
+    M -- 1. read rows --> PG
+    M -- 2. write Parquet + Delta commit<br/>via UC-vended STS --> Target
+```
+
+No staging — the module writes `sof.<view>` rows straight to the external target table. All rows land in one Delta commit at the end, so consumers see either zero rows or the full historical batch (all-or-nothing visibility). Requires `EXTERNAL USE SCHEMA` so UC will vend write credentials for the target.
 
 ## Monitoring
 
