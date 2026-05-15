@@ -8403,9 +8403,9 @@ Profile for $davinci-data-export operation input parameters. Based on http://hl7
 ```
 
 
-## DeltaLakeAtLeastOnceProfile
+## DataLakehouseAtLeastOnceProfile
 
-Delta Lake at-least-once delivery profile for AidboxTopicDestination. Writes Parquet files to S3 + commits to _delta_log, suitable for Databricks-readable tables.
+Data Lakehouse at-least-once delivery profile for AidboxTopicDestination. Default writeMode 'managed' routes writes into a Databricks Unity Catalog managed table through a SQL warehouse (single INSERT INTO managed VALUES (...) for ongoing events — at-least-once, customer dedups on read; staging external Delta + INSERT INTO target SELECT * FROM staging for initial export). Setting writeMode='external-direct' falls back to writing Parquet directly to an external Delta table on S3/GCS/ADLS via the Delta Kernel writer (no SQL warehouse involvement, restart-safe-idempotent via Delta txn action).
 
 ```fhir-structure
 [ {
@@ -8586,6 +8586,166 @@ Delta Lake at-least-once delivery profile for AidboxTopicDestination. Writes Par
   "desc" : ""
 }, {
   "path" : "parameter",
+  "name" : "parameter:databricksClientId",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : "Service principal client_id for OAuth M2M auth. Required (with databricksClientSecret) when databricksWorkspaceUrl is set."
+}, {
+  "path" : "parameter.name",
+  "name" : "name",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 1,
+  "max" : 1,
+  "type" : "string",
+  "desc" : ""
+}, {
+  "path" : "parameter.resource",
+  "name" : "resource",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part",
+  "name" : "part",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter:databricksClientSecret",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : "Service principal client_secret for OAuth M2M auth. Required (with databricksClientId) when databricksWorkspaceUrl is set. Supports vault refs."
+}, {
+  "path" : "parameter.name",
+  "name" : "name",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 1,
+  "max" : 1,
+  "type" : "string",
+  "desc" : ""
+}, {
+  "path" : "parameter.resource",
+  "name" : "resource",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part",
+  "name" : "part",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter:databricksWarehouseId",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : "Databricks SQL warehouse ID. Required when writeMode=managed; the warehouse executes INSERT / COPY INTO / ALTER on behalf of this destination."
+}, {
+  "path" : "parameter.name",
+  "name" : "name",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 1,
+  "max" : 1,
+  "type" : "string",
+  "desc" : ""
+}, {
+  "path" : "parameter.resource",
+  "name" : "resource",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part",
+  "name" : "part",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter:databricksWorkspaceUrl",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : "Databricks workspace URL, e.g. https://workspace.cloud.databricks.com. PRESENCE of this parameter activates Unity Catalog credential vending — tablePath and AWS credentials are then resolved from UC."
+}, {
+  "path" : "parameter.name",
+  "name" : "name",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 1,
+  "max" : 1,
+  "type" : "string",
+  "desc" : ""
+}, {
+  "path" : "parameter.resource",
+  "name" : "resource",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part",
+  "name" : "part",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter",
   "name" : "parameter:s3Endpoint",
   "lvl" : 0,
   "min" : 0,
@@ -8706,12 +8866,92 @@ Delta Lake at-least-once delivery profile for AidboxTopicDestination. Writes Par
   "desc" : ""
 }, {
   "path" : "parameter",
-  "name" : "parameter:tablePath",
+  "name" : "parameter:stagingTablePath",
   "lvl" : 0,
-  "min" : 1,
+  "min" : 0,
   "max" : 1,
   "type" : "",
-  "desc" : "Delta table URI (e.g. s3://bucket/path/to/table). Must already exist."
+  "desc" : "S3/GCS/ADLS URI for an external Delta table used as staging during managed mode's initial-export phase. Required when writeMode=managed AND skipInitialExport is not true. The customer must pre-configure a UC external location at this path."
+}, {
+  "path" : "parameter.name",
+  "name" : "name",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 1,
+  "max" : 1,
+  "type" : "string",
+  "desc" : ""
+}, {
+  "path" : "parameter.resource",
+  "name" : "resource",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part",
+  "name" : "part",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter:tableName",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : "Unity Catalog table full name: catalog.schema.table. Required when databricksWorkspaceUrl is set."
+}, {
+  "path" : "parameter.name",
+  "name" : "name",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 1,
+  "max" : 1,
+  "type" : "string",
+  "desc" : ""
+}, {
+  "path" : "parameter.resource",
+  "name" : "resource",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part",
+  "name" : "part",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter:tablePath",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : "Delta table URI, e.g. s3://my-bucket/path/to/table. Must exist (created via Databricks UI / SQL). Required when databricksWorkspaceUrl is absent; ignored when set (table location resolved from Unity Catalog instead)."
 }, {
   "path" : "parameter.name",
   "name" : "name",
@@ -8792,6 +9032,46 @@ Delta Lake at-least-once delivery profile for AidboxTopicDestination. Writes Par
   "max" : 1,
   "type" : "",
   "desc" : "Name of the ViewDefinition resource for data transformation"
+}, {
+  "path" : "parameter.name",
+  "name" : "name",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 1,
+  "max" : 1,
+  "type" : "string",
+  "desc" : ""
+}, {
+  "path" : "parameter.resource",
+  "name" : "resource",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part",
+  "name" : "part",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter:writeMode",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : "Write path strategy. Default managed (SQL warehouse routes writes into a Databricks Unity Catalog managed table). Set external-direct to write directly into a non-managed external Delta table (S3 / MinIO / GCS / ADLS) via Kernel."
 }, {
   "path" : "parameter.name",
   "name" : "name",
