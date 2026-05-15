@@ -4,11 +4,7 @@ description: Get automatic index suggestions for Aidbox search queries. API supp
 
 # Get Suggested Indexes
 
-Since version 2211, Aidbox can suggest indexes for Search API.&#x20;
-
-{% hint style="warning" %}
-Index suggestion API is in the draft stage.
-{% endhint %}
+Since version 2211, Aidbox can suggest indexes for Search API.
 
 Supported FHIR Search parameter types:
 
@@ -212,35 +208,6 @@ result:
 
 Suggested indexes will increase performance of Observation.date and Observation.\_id. The date parameter now returns 4 indexes: `_min_low_tstz` and `_max_high_tstz` for comparison operators (`ge`, `gt`, `le`, `lt`, `eq`, `ne`, `sa`, `eb`), plus `_min_tstz` and `_max_tstz` for the `btw` (between) operator.
 
-## Index name changes
-
-Some suggested index names changed so the same SearchParameter can coexist across resource types and so two distinct GIN flavors aren't collapsed under one name.
-
-### Full-resource GIN: `resource` → `<rt>_resource_jsonb`
-
-The full-resource fallback GIN (used by token and reference parameters that don't have a dedicated path expression) used to suggest a bare `resource` index. That name collides the moment a second resource type wants the same kind of index. The suggester now scopes it by table:
-
-| Resource | Old name | New name |
-|---|---|---|
-| Patient | `resource` | `patient_resource_jsonb` |
-| Observation | `resource` | `observation_resource_jsonb` |
-
 {% hint style="info" %}
-If you've created the old unscoped `resource` index by hand, it still works (Postgres doesn't care what the index is called) — but `aidbox.index/list-search-param-indexes` won't recognize it as a candidate. Drop it manually and let the suggester rebuild under the new name.
+If you've created suggested indexes by hand and the names don't match what the RPC returns now, drop the old indexes and re-create them under the names the RPC currently emits. [`aidbox.index/list-search-param-indexes`](search-parameter-usage-stats.md#listing-indexes-for-a-searchparameter) matches indexes by name against its candidate set — an index whose body is correct but whose name is stale will read as `exists: false` in the Indexes tab and won't be eligible for the drop RPC. The names emitted today follow the patterns described in [Create Indexes Manually](create-indexes-manually.md) (`<rt>_<sp>_param_*` for SP-specific indexes, `<rt>_resource_jsonb` for the full-resource GIN fallback).
 {% endhint %}
-
-### String knife: `<sp>_param_knife_string` split into fuzzy and exact
-
-The string knife generators used to suggest a single `<rt>_<sp>_param_knife_string` index for both:
-
-* fuzzy / contains / starts-with matching (`gin_trgm_ops` over `aidbox_text_search(extract_text(...))`), and
-* exact equality (`gin_default` over the raw `extract_text(...) text[]`).
-
-Same name, two different `USING gin (…)` bodies — only one could exist at a time. The suggester now emits two distinct names:
-
-| Modifiers covered | Index name |
-|---|---|
-| default, `:contains`, `:starts`, `:ends`, `:otherwise`, `:co`, `:sw`, `:ew` | `<rt>_<sp>_param_knife_string` |
-| `:eq`, `:exact` | `<rt>_<sp>_param_knife_string_exact` |
-
-Creating both gives full-modifier coverage. Existing deployments that ran one or the other under the old name should re-suggest and create whichever variant is missing.
