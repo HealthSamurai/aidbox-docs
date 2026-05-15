@@ -237,5 +237,9 @@ body:
 
 This is equivalent to sending the `aidbox-validation-skip: reference` header on a regular transaction request. It is useful in HL7v2 integration pipelines where the mapping produces bundles with references that are valid in the source system but may not yet exist in Aidbox at the time of ingestion.
 
+{% hint style="warning" %}
+`skipReferenceValidation` only takes effect when the [BOX\_FHIR\_VALIDATION\_SKIP\_REFERENCE](../../reference/all-settings.md#fhir.validation.skip-reference) setting is enabled (`true`) on the Aidbox instance. If the setting is disabled (the default), reference validation is always performed regardless of this field.
+{% endhint %}
+
 ### Mapping Editor in the Aidbox UI
 There is a Mapping Editor in the Aidbox UI with a built-in syntax checker and Debug capabilities. Search for the "Mappings" item in the left navigation menu.
