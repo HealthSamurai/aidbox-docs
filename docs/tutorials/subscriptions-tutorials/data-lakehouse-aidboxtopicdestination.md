@@ -8,6 +8,10 @@ description: Export FHIR resources to a Data Lakehouse — Databricks Unity Cata
 This functionality is available starting from Aidbox version **2605**.
 {% endhint %}
 
+{% hint style="success" %}
+**In a hurry?** Jump straight to [Usage Example: Patient Data Export](#usage-example-patient-data-export) for the end-to-end setup walkthrough (Topic + ViewDefinition + Databricks side + destination).
+{% endhint %}
+
 ## Background: the stack you'll be using
 
 If you're already comfortable with Databricks, Unity Catalog, and Delta Lake, skip to [Overview](#overview).
@@ -49,7 +53,7 @@ Unity Catalog tables come in two flavours:
 
 |                                | **Managed**                                                          | **External**                                                          |
 | ------------------------------ | -------------------------------------------------------------------- | --------------------------------------------------------------------- |
-| Storage location               | Databricks-managed bucket (you don't see / pick the path)            | Your bucket — declared with `LOCATION 's3://...'` at `CREATE TABLE`   |
+| Storage location               | Databricks-managed bucket (you don't see / pick the path)            | Your bucket — declared with `LOCATION 's3://...' / 'gs://...' / 'abfss://...'` at `CREATE TABLE` |
 | Who owns the files             | Databricks runtime                                                   | You                                                                   |
 | `DROP TABLE`                   | Deletes the data                                                     | Drops metadata only — files stay in your bucket                       |
 | Can Aidbox write directly?     | **No** — Aidbox has to route the INSERT through a Databricks SQL warehouse | **Yes** — Aidbox writes Parquet + Delta commits to your bucket itself |
@@ -87,6 +91,16 @@ graph LR
 
 The Data Lakehouse module ships as a JAR loaded into the Aidbox JVM — there is no separate process, and the module has no state of its own. Everything it needs (resources, topic queue, `sof.<view>` output) lives in Aidbox PostgreSQL.
 
+What the arrows in the diagram mean, in order:
+
+1. A FHIR API client (a user, an integration, a backfill script) sends a `POST` / `PUT` / `DELETE` to Aidbox.
+2. Aidbox persists the resource and enqueues a topic event for the destination in PostgreSQL.
+3. The Data Lakehouse module polls the destination's batch from the same PostgreSQL queue.
+4. For `managed` mode: the module sends `INSERT` (and `ALTER` / `DESCRIBE` when needed) to the Databricks SQL warehouse; the warehouse writes the Delta files to storage.
+5. For `external-direct` mode: the module gets short-lived storage credentials from Unity Catalog and writes Delta files directly to your bucket.
+
+The first time the destination starts, the module also performs an initial export of pre-existing resources — see [Initial Export](#initial-export) for details.
+
 ### Append-only output
 
 Every change to a FHIR resource is written as a **new row** in the Delta table — there are no in-place UPDATEs or DELETEs:
@@ -117,7 +131,7 @@ graph LR
     A --> B --> C --> D --> M --> T1
 ```
 
-- Each batch becomes a single `INSERT INTO managed (cols) VALUES (...)` statement sent to a Databricks SQL warehouse over REST. The warehouse writes Parquet + commits to the managed table.
+- Each batch becomes a single `INSERT INTO managed (cols) VALUES (...)` statement sent to a Databricks SQL warehouse. The warehouse writes the Delta files (Parquet + a transaction-log commit) under the managed table.
 - Initial bulk export uses a **temporary staging table** under `stagingTablePath` because Databricks-managed tables refuse direct writes from outside their compute. See [Initial Export](#how-it-works-managed-mode) for the staging diagram.
 - The warehouse must stay warm to keep INSERT latency low — you trade compute hours for Unity Catalog governance + Predictive Optimization.
 
@@ -137,9 +151,9 @@ graph LR
     A --> B --> C --> D --> K --> T2
 ```
 
-- The module writes Parquet + Delta commits straight to your bucket from the Aidbox process. No SQL warehouse involved.
-- Storage backends supported: S3, MinIO, Garage, GCS, Azure ADLS Gen2.
-- Zero Databricks compute cost. In return, you're responsible for running `OPTIMIZE` / `VACUUM` on the table yourself.
+- The module writes Delta files straight to your bucket from the Aidbox process. No SQL warehouse involved.
+- Storage backends supported: AWS S3, Google Cloud Storage, Azure ADLS Gen2.
+- No Databricks compute is involved in the write path. In return, the User runs `OPTIMIZE` / `VACUUM` on the table.
 
 ## Delivery guarantees
 
@@ -150,32 +164,15 @@ The two modes differ in what happens during a crash-between-commit-and-ack — t
 - **`external-direct`** is restart-safe-idempotent. Every commit carries a stable transaction id, so when the replayed batch hits Delta a second time, Delta itself recognises it and silently skips it.
 - **`managed`** can produce duplicates. The route to the warehouse can't carry that transaction id, so a replayed batch becomes a second INSERT and a duplicate row.
 
-Deduplicate downstream on read with a window function on `(id, ts)`:
-
-```sql
-SELECT * EXCEPT(rn) FROM (
-  SELECT *, ROW_NUMBER() OVER (PARTITION BY id ORDER BY ts DESC) AS rn
-  FROM aidbox_export.healthcare.patients
-)
-WHERE rn = 1 AND is_deleted = 0;
-```
-
-## Key Features
-
-- **Real-time data export**: Automatically exports FHIR resources to Delta Lake as they are created, updated, or deleted
-- **Data flattening**: Uses ViewDefinitions to transform complex FHIR resources into flat, analytical-friendly tables
-- **At-least-once delivery**: Persistent message queue with guaranteed delivery and batch processing
-- **Initial export**: Automatically exports existing data when setting up a new destination
-- **Schema drift auto-heal (managed mode)**: When a column is added to the ViewDefinition, the module automatically issues `ALTER TABLE ADD COLUMNS` on the managed target — no manual sync required
-- **Monitoring**: Built-in metrics and status reporting via `$status` endpoint
+To handle the duplicates in `managed` mode, deduplicate downstream on read — keep only the most recent row per resource `id`, partitioned on a timestamp column from your ViewDefinition (`meta.lastUpdated` as `ts` is the usual pattern). The exact SQL is in [Soft Deletes and Updates](#append-only-output-and-dedup-query) — the same query also collapses the append-only history of a resource into its latest state, so one downstream view solves both problems.
 
 ## Choosing between `managed` and `external-direct`
 
 |                                | `managed` (default)                                                                    | `external-direct`                                                  |
 | ------------------------------ | -------------------------------------------------------------------------------------- | ------------------------------------------------------------------ |
 | Table type                     | Unity Catalog **managed** (Databricks owns the files)                                  | **External** (the User's bucket owns the files)                    |
-| Storage backends               | Whatever Databricks-managed storage your workspace is set up with                      | S3, MinIO, Garage, GCS, ADLS Gen2                                  |
-| Write path                     | SQL warehouse runs `INSERT`                                                            | Direct Parquet + Delta commit straight to the User's bucket        |
+| Storage backends               | Whatever Databricks-managed storage your workspace is set up with                      | AWS S3, GCS, Azure ADLS Gen2                                       |
+| Write path                     | SQL warehouse runs `INSERT`                                                            | Direct Delta write to the User's bucket                            |
 | Initial export                 | Temporary staging Delta table → `INSERT INTO managed SELECT * FROM staging` → drop it. See [How it works — `managed` mode](#how-it-works-managed-mode) | Single Delta commit straight to the target |
 | Databricks compute cost        | A SQL warehouse must be running to accept INSERTs — Databricks bills for warehouse uptime per their pricing | Zero — no warehouse involvement                                    |
 | Compaction / OPTIMIZE / VACUUM | Handled by Databricks Predictive Optimization — the User doesn't run them              | The User runs them (e.g. scheduled `OPTIMIZE` job)                 |
@@ -284,64 +281,6 @@ This is a partial Deployment manifest showing only the module-related configurat
 ### Updating the module
 
 When a new version is released, update the JAR URL/filename in your deployment configuration and restart Aidbox. Available versions are listed in `gs://aidbox-modules/topic-destination-deltalake/`.
-
-## Configuration
-
-All requests in this tutorial use `Content-Type: application/json`.
-
-{% tabs %}
-{% tab title="managed mode" %}
-**Common parameters:**
-
-| Parameter           | Type        | Required | Description                                                |
-| ------------------- | ----------- | -------- | ---------------------------------------------------------- |
-| `viewDefinition`    | string      | yes      | The `name` field of the ViewDefinition resource (not `id`) |
-| `batchSize`         | unsignedInt | yes      | Rows per worker tick / batch commit                        |
-| `sendIntervalMs`    | unsignedInt | yes      | Max time between batched commits, in ms                    |
-| `writeMode`         | string      | no       | `managed` (default) or `external-direct`                   |
-| `skipInitialExport` | boolean     | no       | Skip initial export of existing data (default: `false`)    |
-| `targetFileSizeMb`  | unsignedInt | no       | Parquet target size during initial export (default: `128`) |
-
-**`managed`-specific parameters:**
-
-| Parameter                | Type   | Required    | Description                                                                                               |
-| ------------------------ | ------ | ----------- | --------------------------------------------------------------------------------------------------------- |
-| `databricksWorkspaceUrl` | string | yes         | `https://<workspace>.cloud.databricks.com`                                                                |
-| `databricksClientId`     | string | yes         | Service principal `client_id` for OAuth M2M                                                               |
-| `databricksClientSecret` | string | yes         | Service principal `client_secret`; supports vault refs                                                    |
-| `tableName`              | string | yes         | Managed table full name: `catalog.schema.table`                                                           |
-| `databricksWarehouseId`  | string | yes         | SQL warehouse ID for INSERT / COPY INTO / ALTER                                                           |
-| `awsRegion`              | string | yes         | AWS region of the staging bucket                                                                          |
-| `stagingTablePath`       | string | conditional | `s3://bucket/path/` for the staging Delta table created during initial export. Required when `skipInitialExport` is not `true` |
-{% endtab %}
-
-{% tab title="external-direct mode" %}
-**Common parameters:**
-
-| Parameter           | Type        | Required | Description                                                |
-| ------------------- | ----------- | -------- | ---------------------------------------------------------- |
-| `viewDefinition`    | string      | yes      | The `name` field of the ViewDefinition resource (not `id`) |
-| `batchSize`         | unsignedInt | yes      | Rows per worker tick / batch commit                        |
-| `sendIntervalMs`    | unsignedInt | yes      | Max time between batched commits, in ms                    |
-| `writeMode`         | string      | no       | `managed` (default) or `external-direct`                   |
-| `skipInitialExport` | boolean     | no       | Skip initial export of existing data (default: `false`)    |
-| `targetFileSizeMb`  | unsignedInt | no       | Parquet target size during initial export (default: `128`) |
-
-**`external-direct`-specific parameters:**
-
-| Parameter                | Type   | Required    | Description                                                                            |
-| ------------------------ | ------ | ----------- | -------------------------------------------------------------------------------------- |
-| `tablePath`              | string | conditional | `s3://...` / `gs://...` / `abfss://...` — required unless using UC vending             |
-| `databricksWorkspaceUrl` | string | no          | If set: UC credential vending; `tableName` must also be set                            |
-| `databricksClientId`     | string | conditional | Required iff `databricksWorkspaceUrl` set                                              |
-| `databricksClientSecret` | string | conditional | Required iff `databricksWorkspaceUrl` set                                              |
-| `tableName`              | string | conditional | UC `catalog.schema.table` (when using UC vending)                                      |
-| `awsRegion`              | string | conditional | Required for real AWS / GovCloud                                                       |
-| `awsAccessKeyId`         | string | no          | Static IAM key (falls back to default provider chain when absent). Supports vault refs |
-| `awsSecretAccessKey`     | string | no          | Static IAM secret. Supports vault refs                                                 |
-| `s3Endpoint`             | string | no          | MinIO / LocalStack endpoint (forces path-style URLs)                                   |
-{% endtab %}
-{% endtabs %}
 
 ## Authentication
 
@@ -482,6 +421,64 @@ GRANT READ FILES, WRITE FILES, CREATE EXTERNAL TABLE
 {% hint style="warning" %}
 `EXTERNAL USE SCHEMA` is **only grantable on external schemas** (where the schema's tables sit at an external location). UC managed schemas refuse this grant by design — managed tables can't be vended.
 {% endhint %}
+{% endtab %}
+{% endtabs %}
+
+## Configuration
+
+All requests in this tutorial use `Content-Type: application/json`.
+
+{% tabs %}
+{% tab title="managed mode" %}
+**Common parameters:**
+
+| Parameter           | Type        | Required | Description                                                |
+| ------------------- | ----------- | -------- | ---------------------------------------------------------- |
+| `viewDefinition`    | string      | yes      | The `name` field of the ViewDefinition resource (not `id`) |
+| `batchSize`         | unsignedInt | yes      | Rows per worker tick / batch commit                        |
+| `sendIntervalMs`    | unsignedInt | yes      | Max time between batched commits, in ms                    |
+| `writeMode`         | string      | no       | `managed` (default) or `external-direct`                   |
+| `skipInitialExport` | boolean     | no       | Skip initial export of existing data (default: `false`)    |
+| `targetFileSizeMb`  | unsignedInt | no       | Parquet target size during initial export (default: `128`) |
+
+**`managed`-specific parameters:**
+
+| Parameter                | Type   | Required    | Description                                                                                               |
+| ------------------------ | ------ | ----------- | --------------------------------------------------------------------------------------------------------- |
+| `databricksWorkspaceUrl` | string | yes         | `https://<workspace>.cloud.databricks.com`                                                                |
+| `databricksClientId`     | string | yes         | Service principal `client_id` for OAuth M2M                                                               |
+| `databricksClientSecret` | string | yes         | Service principal `client_secret`; supports vault refs                                                    |
+| `tableName`              | string | yes         | Managed table full name: `catalog.schema.table`                                                           |
+| `databricksWarehouseId`  | string | yes         | SQL warehouse ID for INSERT / COPY INTO / ALTER                                                           |
+| `awsRegion`              | string | yes         | AWS region of the staging bucket                                                                          |
+| `stagingTablePath`       | string | conditional | `s3://bucket/path/` for the staging Delta table created during initial export. Required when `skipInitialExport` is not `true` |
+{% endtab %}
+
+{% tab title="external-direct mode" %}
+**Common parameters:**
+
+| Parameter           | Type        | Required | Description                                                |
+| ------------------- | ----------- | -------- | ---------------------------------------------------------- |
+| `viewDefinition`    | string      | yes      | The `name` field of the ViewDefinition resource (not `id`) |
+| `batchSize`         | unsignedInt | yes      | Rows per worker tick / batch commit                        |
+| `sendIntervalMs`    | unsignedInt | yes      | Max time between batched commits, in ms                    |
+| `writeMode`         | string      | no       | `managed` (default) or `external-direct`                   |
+| `skipInitialExport` | boolean     | no       | Skip initial export of existing data (default: `false`)    |
+| `targetFileSizeMb`  | unsignedInt | no       | Parquet target size during initial export (default: `128`) |
+
+**`external-direct`-specific parameters:**
+
+| Parameter                | Type   | Required    | Description                                                                            |
+| ------------------------ | ------ | ----------- | -------------------------------------------------------------------------------------- |
+| `tablePath`              | string | conditional | `s3://...` / `gs://...` / `abfss://...` — required unless using UC vending             |
+| `databricksWorkspaceUrl` | string | no          | If set: UC credential vending; `tableName` must also be set                            |
+| `databricksClientId`     | string | conditional | Required iff `databricksWorkspaceUrl` set                                              |
+| `databricksClientSecret` | string | conditional | Required iff `databricksWorkspaceUrl` set                                              |
+| `tableName`              | string | conditional | UC `catalog.schema.table` (when using UC vending)                                      |
+| `awsRegion`              | string | conditional | Required for real AWS / GovCloud                                                       |
+| `awsAccessKeyId`         | string | no          | Static IAM key (falls back to default provider chain when absent). Supports vault refs |
+| `awsSecretAccessKey`     | string | no          | Static IAM secret. Supports vault refs                                                 |
+| `s3Endpoint`             | string | no          | MinIO / LocalStack endpoint (forces path-style URLs)                                   |
 {% endtab %}
 {% endtabs %}
 
@@ -946,7 +943,17 @@ The module automatically:
 
 ### Append-only output and dedup query
 
-See [Append-only output](#append-only-output) in the Overview for the full pattern. In short: every FHIR resource change produces a new row, never an in-place UPDATE; the window-function query in [Delivery guarantees](#delivery-guarantees) returns the latest non-deleted state and also collapses managed-mode retry duplicates.
+The module is append-only: every FHIR resource change produces a new row, never an in-place UPDATE (see [Append-only output](#append-only-output) for details). To query only the latest non-deleted state of each resource, add a timestamp column like `meta.lastUpdated` to your ViewDefinition and use a window function:
+
+```sql
+SELECT * EXCEPT(rn) FROM (
+  SELECT *, ROW_NUMBER() OVER (PARTITION BY id ORDER BY ts DESC) AS rn
+  FROM aidbox_export.healthcare.patients
+)
+WHERE rn = 1 AND is_deleted = 0;
+```
+
+The same query also collapses any duplicate rows produced by `managed`-mode retries (see [Delivery guarantees](#delivery-guarantees)) — one downstream view solves both problems.
 
 {% hint style="info" %}
 To track versions, add `meta.lastUpdated` to your ViewDefinition as a `ts` column (type `TIMESTAMP`). Each update appends a new row with a newer `ts`, so you can always find the latest state.
@@ -1002,17 +1009,17 @@ To add a column:
 
 ## Cost considerations
 
-**`managed` mode**:
+This module doesn't add any billing surface of its own — it just changes **which Databricks / cloud services see your write traffic**. Refer to Databricks and your cloud provider's published pricing for actual numbers; what follows is a map of the cost surfaces:
 
-- Databricks bills the warehouse on its own pricing schedule whenever it accepts INSERTs — see [Databricks SQL pricing](https://www.databricks.com/product/pricing/databricks-sql) for current rates. The warehouse must be available during the destination's hot path, so plan for steady warehouse uptime.
-- Managed-table data sits in Databricks-managed cloud storage — still billed to your cloud account, but you don't pick the path.
-- In return: Predictive Optimization, Unity Catalog governance, audit trail, no compaction work for the User.
+**`managed` mode** runs writes through a Databricks SQL warehouse:
 
-**`external-direct` mode**:
+- Warehouse uptime is billed by Databricks (see [Databricks SQL pricing](https://www.databricks.com/product/pricing/databricks-sql)). Because the destination's write path needs the warehouse to be running, plan for warehouse uptime that matches your topic activity.
+- Managed-table data files live in Databricks-managed cloud storage; cloud storage bills still apply to your cloud account, you just don't pick the path.
 
-- No Databricks warehouse runs — no compute charge from Databricks for the write path.
-- Storage: your bucket — Parquet + `_delta_log/` written directly. Standard S3 / GCS / ADLS pricing.
-- Trade-off: the User runs `OPTIMIZE` / `VACUUM` on a schedule.
+**`external-direct` mode** writes Delta files straight to your bucket:
+
+- No Databricks warehouse runs for the write path — no compute charge for it.
+- Cloud-storage charges apply normally to your bucket.
 
 ## Multiple Destinations
 
@@ -1058,7 +1065,7 @@ If the delivery worker thread crashes with an unexpected error, it automatically
 
 ### Initial Export Retry
 
-Initial export retries up to 3 times with exponential backoff (1s → 2s → 4s, capped at 30s). If all attempts fail:
+Initial export retries up to 3 times with exponential backoff (1s → 2s → 4s between attempts). If all attempts fail:
 
 - The `initialExportStatus` is set to `failed`
 - The error message is available via the `$status` endpoint
