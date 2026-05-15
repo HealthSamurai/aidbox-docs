@@ -17,6 +17,8 @@ body:
   # Executable part of the mapping written in the JUTE language (required)
 scopeSchema:
   # A JSON schema for the incoming data (optional)
+skipReferenceValidation: false
+  # Skip FHIR reference validation when the resulting bundle is posted (optional, default: false)
 ```
 
 If the `scopeSchema` attribute is provided, incoming mapping data (also called a scope) will be validated against it first. Then, a JUTE template from the `body` will be executed. Mapping should return a valid [Transaction Bundle](../../api/batch-transaction.md), so when applied, it will be able to operate with multiple resources not just single one.
@@ -210,6 +212,30 @@ body:
           $then: $ gender
           $else: null
 ```
+
+### Skipping Reference Validation
+
+By default, when a Mapping's transaction bundle is applied via `$apply`, Aidbox validates all FHIR references in the bundle. You can disable this validation by setting `skipReferenceValidation: true` on the Mapping resource:
+
+```yaml
+resourceType: Mapping
+id: example
+skipReferenceValidation: true
+body:
+  resourceType: Bundle
+  type: transaction
+  entry:
+    - request:
+        url: /fhir/Observation
+        method: POST
+      resource:
+        resourceType: Observation
+        subject:
+          reference: Patient/some-patient-id
+        # ...
+```
+
+This is equivalent to sending the `aidbox-validation-skip: reference` header on a regular transaction request. It is useful in HL7v2 integration pipelines where the mapping produces bundles with references that are valid in the source system but may not yet exist in Aidbox at the time of ingestion.
 
 ### Mapping Editor in the Aidbox UI
 There is a Mapping Editor in the Aidbox UI with a built-in syntax checker and Debug capabilities. Search for the "Mappings" item in the left navigation menu.
