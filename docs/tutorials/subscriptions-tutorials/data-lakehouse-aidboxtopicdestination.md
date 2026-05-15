@@ -101,16 +101,6 @@ What the arrows in the diagram mean, in order:
 
 The first time the destination starts, the module also performs an initial export of pre-existing resources — see [Initial Export](#initial-export) for details.
 
-### Append-only output
-
-Every change to a FHIR resource is written as a **new row** in the Delta table — there are no in-place UPDATEs or DELETEs:
-
-- **Create** → new row with `is_deleted = 0`
-- **Update** → new row with `is_deleted = 0` (old row remains)
-- **Delete** → new row with `is_deleted = 1`
-
-So a patient that was created and then updated 3 times appears as 4 rows. Add `meta.lastUpdated` to your ViewDefinition as a `ts` column and use a window function to recover the latest state. The query is in [Delivery guarantees](#delivery-guarantees) and reused for read-time dedup.
-
 ### Write modes
 
 The module supports two **write modes**, picked per-destination via the `writeMode` parameter.
@@ -155,28 +145,52 @@ graph LR
 - Storage backends supported: AWS S3, Google Cloud Storage, Azure ADLS Gen2.
 - No Databricks compute is involved in the write path. In return, the User runs `OPTIMIZE` / `VACUUM` on the table.
 
-## Delivery guarantees
+## Output semantics
 
-Both modes are **at-least-once**. Messages are persisted in a PostgreSQL queue before being sent — if delivery fails, the message stays in the queue and is retried on the next batch cycle.
+How writes show up in your Delta table, and how to query the result.
 
-The two modes differ in what happens during a crash-between-commit-and-ack — the narrow window where the write landed in storage but the sender died before marking the queue entry as delivered:
+### Append-only
+
+Every change to a FHIR resource is written as a **new row** — there are no in-place UPDATEs or DELETEs:
+
+- **Create** → new row with `is_deleted = 0`
+- **Update** → new row with `is_deleted = 0` (old row remains)
+- **Delete** → new row with `is_deleted = 1`
+
+So a patient that was created and then updated 3 times appears as 4 rows with the same `id`.
+
+### At-least-once delivery
+
+Messages are persisted in a PostgreSQL queue before being sent. If delivery fails, the message stays in the queue and is retried on the next batch cycle. The two modes differ in what happens during a crash-between-commit-and-ack — the narrow window where the write landed in storage but the sender died before marking the queue entry as delivered:
 
 - **`external-direct`** is restart-safe-idempotent. Every commit carries a stable transaction id, so when the replayed batch hits Delta a second time, Delta itself recognises it and silently skips it.
 - **`managed`** can produce duplicates. The route to the warehouse can't carry that transaction id, so a replayed batch becomes a second INSERT and a duplicate row.
 
-To handle the duplicates in `managed` mode, deduplicate downstream on read — keep only the most recent row per resource `id`, partitioned on a timestamp column from your ViewDefinition (`meta.lastUpdated` as `ts` is the usual pattern). The exact SQL is in [Soft Deletes and Updates](#append-only-output-and-dedup-query) — the same query also collapses the append-only history of a resource into its latest state, so one downstream view solves both problems.
+### Recovering the latest state on read
+
+Add a timestamp column to your ViewDefinition (e.g. `meta.lastUpdated` as `ts`) and use a window function. The same query collapses both append-only history **and** any duplicates from `managed`-mode retries, so one downstream view solves both:
+
+```sql
+SELECT * EXCEPT(rn) FROM (
+  SELECT *, ROW_NUMBER() OVER (PARTITION BY id ORDER BY ts DESC) AS rn
+  FROM aidbox_export.healthcare.patients
+)
+WHERE rn = 1 AND is_deleted = 0;
+```
 
 ## Choosing between `managed` and `external-direct`
 
-|                                | `managed` (default)                                                                    | `external-direct`                                                  |
-| ------------------------------ | -------------------------------------------------------------------------------------- | ------------------------------------------------------------------ |
-| Table type                     | Unity Catalog **managed** (Databricks owns the files)                                  | **External** (the User's bucket owns the files)                    |
-| Storage backends               | Whatever Databricks-managed storage your workspace is set up with                      | AWS S3, GCS, Azure ADLS Gen2                                       |
-| Write path                     | SQL warehouse runs `INSERT`                                                            | Direct Delta write to the User's bucket                            |
-| Initial export                 | Temporary staging Delta table → `INSERT INTO managed SELECT * FROM staging` → drop it. See [How it works — `managed` mode](#how-it-works-managed-mode) | Single Delta commit straight to the target |
-| Databricks compute cost        | A SQL warehouse must be running to accept INSERTs — Databricks bills for warehouse uptime per their pricing | Zero — no warehouse involvement                                    |
-| Compaction / OPTIMIZE / VACUUM | Handled by Databricks Predictive Optimization — the User doesn't run them              | The User runs them (e.g. scheduled `OPTIMIZE` job)                 |
-| Schema drift handling          | Aidbox auto-`ALTER`s the target on schema mismatch                                     | Fail-loud at bootstrap — the User runs `ALTER TABLE`               |
+|                                | `managed` (default)                                                                      | `external-direct`                                            |
+| ------------------------------ | ---------------------------------------------------------------------------------------- | ------------------------------------------------------------ |
+| Table type                     | Unity Catalog **managed** (Databricks owns the files)                                    | **External** (the User's bucket owns the files)              |
+| Who runs maintenance           | Databricks (Predictive Optimization handles `OPTIMIZE` / `VACUUM`)                       | The User schedules `OPTIMIZE` / `VACUUM`                     |
+| Databricks compute cost surface| SQL warehouse must be running to accept INSERTs — Databricks bills for warehouse uptime  | No warehouse — no Databricks compute charge for the write path |
+
+Details that follow from those three rows:
+
+- **Schema drift** — in `managed` mode Aidbox auto-`ALTER`s the target on schema mismatch (since Databricks owns the files, Aidbox can adjust them). In `external-direct` mode the User runs `ALTER TABLE` and recreates the destination — the User owns the schema.
+- **Initial export path** — `managed` materializes via a temporary staging Delta table on your bucket (see [Initial Export — managed mode](#how-it-works-managed-mode)). `external-direct` writes the bulk straight to the target in one commit.
+- **Storage backends** — `external-direct` supports AWS S3, GCS, Azure ADLS Gen2. `managed` uses whatever Databricks-managed storage your workspace is configured with.
 
 {% hint style="info" %}
 **Default is `managed`.** If `writeMode` isn't set on the destination, the module uses the Databricks SQL warehouse path. Set `writeMode=external-direct` explicitly to get the direct-to-storage flow.
@@ -346,83 +360,7 @@ The module exchanges `databricksClientId` + `databricksClientSecret` for a short
 | `managed` (default) | only during initial-export (staging vending) | every batch (INSERT, ALTER, DESCRIBE) | SQL warehouse compute   |
 | `external-direct`   | every cred-refresh (~45 min)                 | none                                  | sender process          |
 
-### Setting up a service principal
-
-1. In your Databricks workspace, go to **Settings → Identity and access → Service principals → Add service principal**.
-2. Give it a name (e.g., `aidbox-topic-destination`) and create.
-3. Click on the new SP, go to **Secrets** tab → **Generate secret**.
-4. Copy the **Client ID** and **Secret** — you'll use these as `databricksClientId` / `databricksClientSecret`.
-
-### Storing the secret in Vault (recommended for production)
-
-Instead of embedding the SP secret inline, store it on disk and reference it through Aidbox [External Secrets](../../configuration/secret-files.md):
-
-1. Place the secret in a file on disk (e.g., via [Kubernetes Secrets](https://kubernetes.io/docs/concepts/configuration/secret/), [Docker Secrets](https://docs.docker.com/engine/swarm/secrets/), or [Secrets Store CSI Driver](../../tutorials/other-tutorials/hashicorp-vault-external-secrets.md)).
-
-2. Create a vault config file (e.g., `vault-config.json`):
-
-   ```json
-   {
-     "secret": {
-       "dbx-sp-secret": {
-         "path": "/run/secrets/dbx-sp-secret",
-         "scope": { "resource_type": "AidboxTopicDestination" }
-       }
-     }
-   }
-   ```
-
-3. Set `BOX_VAULT_CONFIG` environment variable to point to the vault config file.
-
-4. Reference the secret in the destination configuration using the FHIR primitive extension pattern (see [Step 6](#step-6-configure-the-destination-managed) below).
-
-## Required Databricks privileges
-
-### Common to both modes
-
-The service principal needs catalog/schema visibility and read+write access to the target table — regardless of `writeMode`:
-
-```sql
-GRANT USE CATALOG ON CATALOG <catalog>             TO `<sp-client-id>`;
-GRANT USE SCHEMA  ON SCHEMA  <catalog>.<schema>    TO `<sp-client-id>`;
-GRANT MODIFY      ON TABLE   <catalog>.<schema>.<table> TO `<sp-client-id>`;
-GRANT SELECT      ON TABLE   <catalog>.<schema>.<table> TO `<sp-client-id>`;
-```
-
-### Mode-specific additions
-
-{% tabs %}
-{% tab title="managed mode" %}
-The SP also needs to drive a SQL warehouse:
-
-```sql
--- Also grantable via UI: SQL Warehouses → your warehouse → Permissions → Add → Can use
-GRANT USAGE ON WAREHOUSE `<warehouse-id>` TO `<sp-client-id>`;
-```
-
-If you set `skipInitialExport=false` and need initial bulk export, you **also** need the `external-direct` grants — the staging table the module creates during initial export is itself an external Delta table and goes through UC credential vending.
-{% endtab %}
-
-{% tab title="external-direct mode" %}
-The SP needs Unity Catalog to vend storage credentials for the external target:
-
-```sql
--- Required for UC credential vending on external tables
-GRANT EXTERNAL USE SCHEMA ON SCHEMA <catalog>.<schema> TO `<sp-client-id>`;
-```
-
-If the table sits at a registered External Location, also grant on that location:
-
-```sql
-GRANT READ FILES, WRITE FILES, CREATE EXTERNAL TABLE
-  ON EXTERNAL LOCATION `<external-location-name>` TO `<sp-client-id>`;
-```
-
-{% hint style="warning" %}
-`EXTERNAL USE SCHEMA` is **only grantable on external schemas** (where the schema's tables sit at an external location). UC managed schemas refuse this grant by design — managed tables can't be vended.
-{% endhint %}
-{% endtab %}
-{% endtabs %}
+The concrete steps to create the service principal, grant privileges, and (optionally) wire up vault-backed secrets are part of [Usage Example: Patient Data Export](#usage-example-patient-data-export) — that walkthrough sets up everything end-to-end without duplicating the GRANT SQL or the Databricks UI clicks across sections.
 
 ## Configuration
 
@@ -430,55 +368,74 @@ All requests in this tutorial use `Content-Type: application/json`.
 
 {% tabs %}
 {% tab title="managed mode" %}
-**Common parameters:**
+**Required:**
 
-| Parameter           | Type        | Required | Description                                                |
-| ------------------- | ----------- | -------- | ---------------------------------------------------------- |
-| `viewDefinition`    | string      | yes      | The `name` field of the ViewDefinition resource (not `id`) |
-| `batchSize`         | unsignedInt | yes      | Rows per worker tick / batch commit                        |
-| `sendIntervalMs`    | unsignedInt | yes      | Max time between batched commits, in ms                    |
-| `writeMode`         | string      | no       | `managed` (default) or `external-direct`                   |
-| `skipInitialExport` | boolean     | no       | Skip initial export of existing data (default: `false`)    |
-| `targetFileSizeMb`  | unsignedInt | no       | Parquet target size during initial export (default: `128`) |
+| Parameter                | Type        | Description                                                              |
+| ------------------------ | ----------- | ------------------------------------------------------------------------ |
+| `viewDefinition`         | string      | The `name` field of the ViewDefinition resource (not `id`)               |
+| `batchSize`              | unsignedInt | Rows per worker tick / batch commit                                      |
+| `sendIntervalMs`         | unsignedInt | Max time between batched commits, in ms                                  |
+| `databricksWorkspaceUrl` | string      | `https://<workspace>.cloud.databricks.com`                               |
+| `databricksClientId`     | string      | Service principal `client_id` for OAuth M2M                              |
+| `databricksClientSecret` | string      | Service principal `client_secret`; supports vault refs                   |
+| `tableName`              | string      | Managed table full name: `catalog.schema.table`                          |
+| `databricksWarehouseId`  | string      | SQL warehouse ID                                                         |
+| `awsRegion`              | string      | AWS region of the staging bucket                                         |
+| `stagingTablePath`       | string      | `s3://bucket/path/` for the staging Delta table created during initial export. Required when `skipInitialExport` is not `true` |
 
-**`managed`-specific parameters:**
+<details>
 
-| Parameter                | Type   | Required    | Description                                                                                               |
-| ------------------------ | ------ | ----------- | --------------------------------------------------------------------------------------------------------- |
-| `databricksWorkspaceUrl` | string | yes         | `https://<workspace>.cloud.databricks.com`                                                                |
-| `databricksClientId`     | string | yes         | Service principal `client_id` for OAuth M2M                                                               |
-| `databricksClientSecret` | string | yes         | Service principal `client_secret`; supports vault refs                                                    |
-| `tableName`              | string | yes         | Managed table full name: `catalog.schema.table`                                                           |
-| `databricksWarehouseId`  | string | yes         | SQL warehouse ID for INSERT / COPY INTO / ALTER                                                           |
-| `awsRegion`              | string | yes         | AWS region of the staging bucket                                                                          |
-| `stagingTablePath`       | string | conditional | `s3://bucket/path/` for the staging Delta table created during initial export. Required when `skipInitialExport` is not `true` |
+<summary>Advanced parameters</summary>
+
+| Parameter           | Type        | Description                                                                         |
+| ------------------- | ----------- | ----------------------------------------------------------------------------------- |
+| `writeMode`         | string      | `managed` (default) or `external-direct`. Omit to get `managed`                     |
+| `skipInitialExport` | boolean     | Skip initial export of existing data (default: `false`)                             |
+| `targetFileSizeMb`  | unsignedInt | Parquet target size during initial export (default: `128`)                          |
+
+</details>
 {% endtab %}
 
 {% tab title="external-direct mode" %}
-**Common parameters:**
+**Required:**
 
-| Parameter           | Type        | Required | Description                                                |
-| ------------------- | ----------- | -------- | ---------------------------------------------------------- |
-| `viewDefinition`    | string      | yes      | The `name` field of the ViewDefinition resource (not `id`) |
-| `batchSize`         | unsignedInt | yes      | Rows per worker tick / batch commit                        |
-| `sendIntervalMs`    | unsignedInt | yes      | Max time between batched commits, in ms                    |
-| `writeMode`         | string      | no       | `managed` (default) or `external-direct`                   |
-| `skipInitialExport` | boolean     | no       | Skip initial export of existing data (default: `false`)    |
-| `targetFileSizeMb`  | unsignedInt | no       | Parquet target size during initial export (default: `128`) |
+| Parameter                | Type        | Description                                                                            |
+| ------------------------ | ----------- | -------------------------------------------------------------------------------------- |
+| `viewDefinition`         | string      | The `name` field of the ViewDefinition resource (not `id`)                             |
+| `batchSize`              | unsignedInt | Rows per worker tick / batch commit                                                    |
+| `sendIntervalMs`         | unsignedInt | Max time between batched commits, in ms                                                |
+| `writeMode`              | string      | Must be `external-direct` (otherwise the default `managed` path is used)               |
+| `tablePath`              | string      | `s3://...` / `gs://...` / `abfss://...`. Required unless `databricksWorkspaceUrl` set (then resolved from Unity Catalog) |
+| `awsRegion`              | string      | Required for real AWS / GovCloud (skip for MinIO / LocalStack)                         |
 
-**`external-direct`-specific parameters:**
+<details>
 
-| Parameter                | Type   | Required    | Description                                                                            |
-| ------------------------ | ------ | ----------- | -------------------------------------------------------------------------------------- |
-| `tablePath`              | string | conditional | `s3://...` / `gs://...` / `abfss://...` — required unless using UC vending             |
-| `databricksWorkspaceUrl` | string | no          | If set: UC credential vending; `tableName` must also be set                            |
-| `databricksClientId`     | string | conditional | Required iff `databricksWorkspaceUrl` set                                              |
-| `databricksClientSecret` | string | conditional | Required iff `databricksWorkspaceUrl` set                                              |
-| `tableName`              | string | conditional | UC `catalog.schema.table` (when using UC vending)                                      |
-| `awsRegion`              | string | conditional | Required for real AWS / GovCloud                                                       |
-| `awsAccessKeyId`         | string | no          | Static IAM key (falls back to default provider chain when absent). Supports vault refs |
-| `awsSecretAccessKey`     | string | no          | Static IAM secret. Supports vault refs                                                 |
-| `s3Endpoint`             | string | no          | MinIO / LocalStack endpoint (forces path-style URLs)                                   |
+<summary>Authentication parameters</summary>
+
+Pick **one** of: UC credential vending, static AWS keys, or default AWS provider chain.
+
+| Parameter                | Type   | Description                                                                                                  |
+| ------------------------ | ------ | ------------------------------------------------------------------------------------------------------------ |
+| `databricksWorkspaceUrl` | string | If set: UC credential vending; `databricksClientId` + `databricksClientSecret` + `tableName` must also be set |
+| `databricksClientId`     | string | SP `client_id` (required iff `databricksWorkspaceUrl` set)                                                   |
+| `databricksClientSecret` | string | SP `client_secret`; supports vault refs (required iff `databricksWorkspaceUrl` set)                          |
+| `tableName`              | string | UC `catalog.schema.table` (when using UC vending)                                                            |
+| `awsAccessKeyId`         | string | Static IAM key (falls back to default provider chain when absent). Supports vault refs                       |
+| `awsSecretAccessKey`     | string | Static IAM secret. Supports vault refs                                                                       |
+
+</details>
+
+<details>
+
+<summary>Advanced parameters</summary>
+
+| Parameter           | Type        | Description                                                              |
+| ------------------- | ----------- | ------------------------------------------------------------------------ |
+| `skipInitialExport` | boolean     | Skip initial export of existing data (default: `false`)                  |
+| `targetFileSizeMb`  | unsignedInt | Parquet target size during initial export (default: `128`)               |
+| `s3Endpoint`        | string      | MinIO / LocalStack endpoint (forces path-style URLs)                     |
+
+</details>
 {% endtab %}
 {% endtabs %}
 
@@ -619,25 +576,46 @@ The module **automatically issues `ALTER TABLE ADD COLUMNS`** in managed mode wh
 
 Compute → SQL Warehouses → use an existing warehouse or create a new one. Serverless 2X-Small is the cheapest option that supports the Statement Execution API. Copy the **Warehouse ID** — you'll use it as `databricksWarehouseId`.
 
-#### 4d. Service principal grants
+#### 4d. Service principal
+
+1. In your Databricks workspace, go to **Settings → Identity and access → Service principals → Add service principal**.
+2. Give it a name (e.g. `aidbox-topic-destination`) and create.
+3. Click the new SP, open the **Secrets** tab, click **Generate secret**.
+4. Copy the **Client ID** and **Secret** — you'll use these as `databricksClientId` / `databricksClientSecret`.
+
+#### 4e. Grant the service principal
 
 ```sql
-GRANT USE CATALOG ON CATALOG aidbox_export       TO `<sp-client-id>`;
-GRANT USE SCHEMA  ON SCHEMA  aidbox_export.healthcare TO `<sp-client-id>`;
-GRANT MODIFY ON TABLE aidbox_export.healthcare.patients TO `<sp-client-id>`;
-GRANT SELECT ON TABLE aidbox_export.healthcare.patients TO `<sp-client-id>`;
+GRANT USE CATALOG ON CATALOG aidbox_export                          TO `<sp-client-id>`;
+GRANT USE SCHEMA  ON SCHEMA  aidbox_export.healthcare               TO `<sp-client-id>`;
+GRANT MODIFY      ON TABLE   aidbox_export.healthcare.patients      TO `<sp-client-id>`;
+GRANT SELECT      ON TABLE   aidbox_export.healthcare.patients      TO `<sp-client-id>`;
+
+-- managed mode only: warehouse access
+GRANT USAGE ON WAREHOUSE `<warehouse-id>` TO `<sp-client-id>`;
 ```
 
-And via UI: SQL Warehouses → your warehouse → **Permissions** → Add → service principal → **Can use**.
+And via UI: **SQL Warehouses → your warehouse → Permissions → Add → service principal → Can use**.
 
-#### 4e. (Optional) Staging location for initial export
+For `external-direct` mode, also grant credential vending:
 
-If you plan to use `skipInitialExport=false` (the default), you also need a UC **External Location** for the staging Delta table the module will write to during bulk export.
+```sql
+-- external-direct mode only: lets UC vend STS credentials for the target
+GRANT EXTERNAL USE SCHEMA ON SCHEMA aidbox_export.healthcare TO `<sp-client-id>`;
+```
 
-1. **Provision an S3 bucket** (or GCS / ADLS prefix) owned by your account. Example: `s3://my-aidbox-staging/`.
-2. **Configure a Storage Credential** in Databricks (Data → External Data → Credentials). For S3 this is an IAM role with trust policy granting Databricks AWS account access; follow [Databricks docs on storage credentials](https://docs.databricks.com/en/connect/unity-catalog/storage-credentials.html).
-3. **Create the External Location** in Databricks (Data → External Data → External Locations) pointing at the bucket path with the Storage Credential.
-4. **Grant the SP** read/write on the external location:
+{% hint style="warning" %}
+`EXTERNAL USE SCHEMA` is **only grantable on external schemas** (where the schema's tables sit at an external location). UC managed schemas refuse this grant by design — managed tables can't be vended.
+{% endhint %}
+
+#### 4f. (Optional, `managed` mode only) Staging location for initial export
+
+If you plan to use `skipInitialExport=false` (the default), you also need a UC **External Location** for the staging Delta table the module writes to during bulk export.
+
+1. Provision an S3 bucket (or GCS / ADLS prefix) you control. Example: `s3://my-aidbox-staging/`.
+2. Configure a **Storage Credential** in Databricks (Data → External Data → Credentials). For S3 this is an IAM role with trust policy granting Databricks AWS account access; follow [Databricks docs on storage credentials](https://docs.databricks.com/en/connect/unity-catalog/storage-credentials.html).
+3. Create the **External Location** in Databricks (Data → External Data → External Locations) pointing at the bucket path with the Storage Credential.
+4. Grant the SP read/write on the External Location plus the EXTERNAL USE SCHEMA on the target schema (because the staging table is created as an external table under it):
 
    ```sql
    GRANT READ FILES, WRITE FILES, CREATE EXTERNAL TABLE
@@ -645,7 +623,26 @@ If you plan to use `skipInitialExport=false` (the default), you also need a UC *
    GRANT EXTERNAL USE SCHEMA ON SCHEMA aidbox_export.healthcare TO `<sp-client-id>`;
    ```
 
-   `EXTERNAL USE SCHEMA` is required because the staging table is created as an external table under `aidbox_export.healthcare`.
+#### 4g. (Optional, recommended for production) Store the SP secret in vault
+
+In production you'll want to avoid embedding `databricksClientSecret` inline in the FHIR resource. Aidbox can read it from a file on disk via [External Secrets](../../configuration/secret-files.md):
+
+1. Place the secret in a file on disk (e.g. via [Kubernetes Secrets](https://kubernetes.io/docs/concepts/configuration/secret/), [Docker Secrets](https://docs.docker.com/engine/swarm/secrets/), or [Secrets Store CSI Driver](../../tutorials/other-tutorials/hashicorp-vault-external-secrets.md)).
+2. Create a vault config file (e.g. `vault-config.json`):
+
+   ```json
+   {
+     "secret": {
+       "dbx-sp-secret": {
+         "path": "/run/secrets/dbx-sp-secret",
+         "scope": { "resource_type": "AidboxTopicDestination" }
+       }
+     }
+   }
+   ```
+
+3. Set the `BOX_VAULT_CONFIG` environment variable on Aidbox to point at `vault-config.json`.
+4. Reference the secret in the destination using the FHIR primitive-extension pattern shown in the "Vault secret reference" example in Step 5.
 
 {% endstep %}
 
@@ -941,23 +938,7 @@ The module automatically:
 3. **Batches messages**: Groups messages according to `batchSize` and `sendIntervalMs` parameters
 4. **Coerces types**: Java SQL dates / timestamps from PostgreSQL are converted to ISO-8601 strings; the warehouse parses them into `DATE` / `TIMESTAMP` columns
 
-### Append-only output and dedup query
-
-The module is append-only: every FHIR resource change produces a new row, never an in-place UPDATE (see [Append-only output](#append-only-output) for details). To query only the latest non-deleted state of each resource, add a timestamp column like `meta.lastUpdated` to your ViewDefinition and use a window function:
-
-```sql
-SELECT * EXCEPT(rn) FROM (
-  SELECT *, ROW_NUMBER() OVER (PARTITION BY id ORDER BY ts DESC) AS rn
-  FROM aidbox_export.healthcare.patients
-)
-WHERE rn = 1 AND is_deleted = 0;
-```
-
-The same query also collapses any duplicate rows produced by `managed`-mode retries (see [Delivery guarantees](#delivery-guarantees)) — one downstream view solves both problems.
-
-{% hint style="info" %}
-To track versions, add `meta.lastUpdated` to your ViewDefinition as a `ts` column (type `TIMESTAMP`). Each update appends a new row with a newer `ts`, so you can always find the latest state.
-{% endhint %}
+See [Output semantics](#output-semantics) for append-only behaviour, at-least-once delivery, and the recommended read-time dedup query.
 
 ## Compaction and maintenance
 
@@ -1024,30 +1005,6 @@ This module doesn't add any billing surface of its own — it just changes **whi
 ## Multiple Destinations
 
 You can create multiple destinations for the same topic — for example, to mirror the same data into both a managed analytics table and an external archive table, or to use different ViewDefinitions for different downstream consumers. Each destination operates independently with its own queue, writer, and status.
-
-## Local Testing with OSS Unity Catalog
-
-You can develop and test the destination locally against [OSS Unity Catalog](https://github.com/unitycatalog/unitycatalog) (which exposes the same REST API surface as Databricks) plus MinIO for storage. This is the setup the module's own integration tests use.
-
-```yaml
-services:
-  unitycatalog:
-    image: unitycatalog/unitycatalog:0.4.0
-    ports: ["8081:8081"]
-    # ... full config in the topic-destination-deltalake repo's docker-compose.yaml ...
-
-  minio:
-    image: quay.io/minio/minio:RELEASE.2024-10-29T16-01-48Z
-    ports: ["9000:9000", "9001:9001"]
-    environment:
-      MINIO_ROOT_USER: minioadmin
-      MINIO_ROOT_PASSWORD: minioadmin
-    command: server /data --console-address ":9001"
-```
-
-Pre-register an external Delta table in OSS UC via its REST API, then point the destination at `databricksWorkspaceUrl=http://unitycatalog:8081`. OSS UC accepts any bearer token in `auth=disable` mode, so the OAuth M2M flow short-circuits.
-
-OSS UC does not implement the Statement Execution API, so **`writeMode=managed` is not testable locally** — only `external-direct` works against OSS UC. For full end-to-end coverage of `managed` mode, point at a Databricks Free Edition workspace (no credit card required for evaluation).
 
 ## Retry behavior
 
