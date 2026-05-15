@@ -61,10 +61,7 @@ Unity Catalog tables come in two flavours:
 | Predictive Optimization        | Automatic — Databricks runs `OPTIMIZE` / `VACUUM` / `ANALYZE` for you | Not applicable — you run them yourself                                |
 | Liquid Clustering              | Default                                                              | Opt-in per table                                                      |
 
-The split matters because it dictates which write path the module can use:
-
-- For a **managed table** the module must route writes through Databricks compute (a SQL warehouse) — UC vending is a non-starter. That's `writeMode=managed`.
-- For an **external table** the module can either route through compute (also possible, but pays for warehouse hours unnecessarily) or have UC vend STS credentials and write directly from the sender process. The module picks the direct path — that's `writeMode=external-direct`.
+The "Can Aidbox write directly?" row drives the module's two `writeMode` values — see [Overview](#overview) for the resulting write paths.
 
 ## Overview
 
