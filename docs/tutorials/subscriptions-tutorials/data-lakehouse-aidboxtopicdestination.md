@@ -103,9 +103,17 @@ graph LR
 
 The module supports two **write modes**, picked per-destination via the `writeMode` parameter:
 
-- **`managed`** (default) — writes target a **Databricks Unity Catalog managed table**. The hot path sends a single `INSERT INTO managed (cols) VALUES (...)` statement to a Databricks SQL warehouse over REST. Initial bulk export first stages rows into an external Delta table on your bucket, then materializes them into the managed target via `INSERT INTO managed SELECT * FROM staging`, then drops the staging table.
+**`managed`** (default) — targets a **Databricks Unity Catalog managed table**:
 
-- **`external-direct`** — the module writes Parquet + Delta commits **directly** to a non-managed external Delta table on S3 / MinIO / Garage / GCS / Azure ADLS Gen2. No SQL warehouse involved. Useful when you own the bucket and don't need UC governance on the target.
+- Hot path: a single `INSERT INTO managed (cols) VALUES (...)` over the Databricks SQL warehouse REST API.
+- Initial bulk export: stage rows into an external Delta table on your bucket → `INSERT INTO managed SELECT * FROM staging` → `DROP TABLE staging`.
+- Cost: warehouse must stay warm. Trade compute hours for UC governance + Predictive Optimization.
+
+**`external-direct`** — targets a **non-managed external Delta table** you own:
+
+- Hot path: write Parquet + commit to `_delta_log/` directly on your bucket. No SQL warehouse involved.
+- Storage: S3 / MinIO / Garage / GCS / Azure ADLS Gen2.
+- Cost: zero Databricks compute. You're responsible for `OPTIMIZE` / `VACUUM`.
 
 {% hint style="info" %}
 **Delivery guarantee.** Both modes are at-least-once. Messages are persisted in a PostgreSQL queue before being sent. **`external-direct`** is restart-safe-idempotent — every commit carries a stable transaction id, so Delta silently de-duplicates a replayed batch. **`managed`** routes through the Databricks SQL warehouse, which can't carry that transaction id, so duplicates on crash-between-commit-and-ack are possible. Deduplicate downstream on read with `QUALIFY ROW_NUMBER() OVER (PARTITION BY id ORDER BY ts DESC) = 1` or a similar window.
@@ -313,35 +321,30 @@ sequenceDiagram
 
 ### How the same token gets used differently in each mode
 
-The module exchanges `databricksClientId` + `databricksClientSecret` for a short-lived bearer token via `POST /oidc/v1/token` (`client_credentials` grant). That bearer is then used differently depending on `writeMode`:
+The module exchanges `databricksClientId` + `databricksClientSecret` for a short-lived bearer token via `POST /oidc/v1/token` (`client_credentials` grant). That bearer is cached and re-issued automatically when less than 5 minutes remain. What changes between modes is **what the bearer authorizes**:
 
-**`managed`** — the bearer authenticates **every call to Databricks compute**. The module never touches your S3 bucket directly; instead it submits SQL to the warehouse and the warehouse holds the IAM role that talks to storage:
+**`managed`** — bearer authenticates every call to Databricks compute:
 
-```
-sender → POST /api/2.0/sql/statements (INSERT ... VALUES ...)
-         POST /api/2.0/sql/statements (ALTER TABLE ADD COLUMNS ...)
-         POST /api/2.0/sql/statements (SELECT * FROM information_schema.columns ...)
-         (bearer)               ↓
-                            SQL warehouse executes
-                            (warehouse's storage credential → S3)
-```
+- The module never touches your bucket directly.
+- The module submits SQL to the warehouse; the warehouse's storage credential talks to storage.
+- Calls the module makes:
+  - `POST /api/2.0/sql/statements` — `INSERT INTO target VALUES (...)` (every batch)
+  - `POST /api/2.0/sql/statements` — `ALTER TABLE ADD COLUMNS (...)` (schema drift)
+  - `POST /api/2.0/sql/statements` — `SELECT * FROM information_schema.columns ...` (schema introspection)
+- Initial bulk export reuses the same bearer twice:
+  - once to register a staging external Delta table + UC-vend STS for it (so the module can write the bulk parquet from the Aidbox process)
+  - once to issue `INSERT INTO target SELECT * FROM staging` on the warehouse
 
-The bearer is refreshed automatically by the module (cached, replaced when <5 min remaining). Initial bulk export reuses the same bearer twice: once to register a staging external Delta table + UC-vend STS for it (so the module can write the bulk parquet from the Aidbox process), then again to issue `INSERT INTO target SELECT * FROM staging` on the warehouse.
+**`external-direct`** — bearer authenticates Unity Catalog REST only, never SQL:
 
-**`external-direct`** — the bearer authenticates **UC REST only**, never SQL. The module asks UC for short-lived AWS STS credentials scoped to one table, then writes directly to S3 from the sender process (no Databricks compute involved):
-
-```
-sender → GET  /api/2.1/unity-catalog/tables/{full_name}             (bearer → table_id)
-         POST /api/2.1/unity-catalog/temporary-table-credentials    (bearer + table_id + READ_WRITE
-                                                                     → access_key + secret_key + session_token)
-                                                                  ↓
-         module writer → S3 PUT _delta_log/N.json + parquet
-                         (using vended STS — no Databricks compute)
-```
-
-A background thread refreshes the STS session 15 min before expiry and reconnects the writer to the new credentials, so writes never see expired session tokens.
-
-If `databricksWorkspaceUrl` is **not** set, `external-direct` skips UC entirely and uses either static AWS keys from `awsAccessKeyId` / `awsSecretAccessKey`, or the [AWS default provider chain](https://docs.aws.amazon.com/sdk-for-java/latest/developer-guide/credentials-chain.html) (IAM instance profile, IRSA on EKS, etc.).
+- The module asks UC for short-lived AWS STS credentials scoped to one table, then writes directly to S3 from the sender process. No Databricks compute involved.
+- Calls the module makes:
+  - `GET /api/2.1/unity-catalog/tables/{full_name}` — resolves `full_name` to a `table_id`
+  - `POST /api/2.1/unity-catalog/temporary-table-credentials` — exchanges `table_id` + `READ_WRITE` for `access_key` + `secret_key` + `session_token`
+- A background thread refreshes the STS session 15 min before expiry and reconnects the writer, so writes never see expired session tokens.
+- If `databricksWorkspaceUrl` is **not** set, UC is skipped entirely:
+  - static AWS keys from `awsAccessKeyId` / `awsSecretAccessKey`, or
+  - the [AWS default provider chain](https://docs.aws.amazon.com/sdk-for-java/latest/developer-guide/credentials-chain.html) — IAM instance profile, IRSA on EKS, environment variables.
 
 ### Side-by-side
 
@@ -880,20 +883,22 @@ To track versions, add `meta.lastUpdated` to your ViewDefinition as a `ts` colum
 
 ## Compaction and maintenance
 
-### `managed` mode
+**`managed` mode** — Databricks runs maintenance for you:
 
-The managed target benefits from Databricks **[Predictive Optimization](https://docs.databricks.com/aws/en/optimizations/predictive-optimization)** automatically. Databricks runs `OPTIMIZE`, `VACUUM`, and `ANALYZE` in the background — no manual maintenance required. This is the main value-prop of managed mode beyond governance.
+- [Predictive Optimization](https://docs.databricks.com/aws/en/optimizations/predictive-optimization) is automatic.
+- It runs `OPTIMIZE`, `VACUUM`, and `ANALYZE` in the background.
+- No manual maintenance required.
+- This is the main value-prop of managed mode beyond governance.
 
-### `external-direct` mode
+**`external-direct` mode** — you own the table and the maintenance:
 
-The customer owns the external table and is responsible for maintenance. Recommended pattern: schedule a [Databricks SQL Job](https://docs.databricks.com/aws/en/jobs/) running:
+- Predictive Optimization does **not** apply to external tables.
+- Recommended pattern: schedule a [Databricks SQL Job](https://docs.databricks.com/aws/en/jobs/) running
 
-```sql
-OPTIMIZE aidbox_export.healthcare.patients;
-VACUUM   aidbox_export.healthcare.patients RETAIN 168 HOURS;
-```
-
-Predictive Optimization does **not** apply to external tables.
+  ```sql
+  OPTIMIZE aidbox_export.healthcare.patients;
+  VACUUM   aidbox_export.healthcare.patients RETAIN 168 HOURS;
+  ```
 
 ## Schema Evolution
 
@@ -926,12 +931,20 @@ To add a column:
 
 ## Cost notes
 
-| Mode                | Databricks compute                                                                                                                          | S3 / cloud storage                                                             |
-| ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------ |
-| `managed` (default) | **~$2,000/month per running 2X-Small Serverless warehouse** (24/7 warm to keep INSERT latency low). Larger warehouses scale proportionally. | Customer's storage account — managed table data sits in Databricks-managed S3. |
-| `external-direct`   | **$0** — no warehouse involvement.                                                                                                          | Customer's bucket — Parquet + `_delta_log/` written directly.                  |
+**`managed` mode** — pays for Databricks compute:
 
-For `managed` mode, the warehouse cost is the price of UC managed-table benefits (Predictive Optimization, governance, audit trail). For high-throughput, cost-sensitive deployments, prefer `external-direct` and run your own `OPTIMIZE` schedule.
+- ~$2,000/month per running 2X-Small Serverless warehouse, kept warm 24/7 to keep INSERT latency low.
+- Larger warehouses scale proportionally.
+- Storage: managed-table data lives in Databricks-managed cloud storage (still billed to your cloud account, but invisible to you).
+- What you get for the money: Predictive Optimization, UC governance, audit trail, zero maintenance.
+
+**`external-direct` mode** — pays for nothing on the Databricks side:
+
+- $0 Databricks compute — no warehouse involvement.
+- Storage: your bucket — Parquet + `_delta_log/` written directly. Standard S3 / GCS / ADLS pricing.
+- Trade-off: you run your own `OPTIMIZE` / `VACUUM` schedule.
+
+For high-throughput, cost-sensitive deployments, prefer `external-direct`.
 
 ## Multiple Destinations
 
