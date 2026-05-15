@@ -5,31 +5,21 @@ description: Export FHIR resources to a Data Lakehouse — Databricks Unity Cata
 # Data Lakehouse AidboxTopicDestination
 
 {% hint style="info" %}
-This functionality is available starting from version 2605.
-{% endhint %}
-
-{% hint style="warning" %}
-**Aidbox version compatibility**
-
-| Aidbox | Connector JAR                            | Profile URL                                                                                                     |
-| ------ | ---------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
-| ≥ 2605 | `topic-destination-deltalake-2605.0.jar` | `http://health-samurai.io/fhir/core/StructureDefinition/aidboxtopicdestination-dataLakehouseAtLeastOnceProfile` |
-
-Older Aidbox versions do not support this module — Delta Lake support requires the FHIR Schema validation engine and the IG slices that ship with Aidbox 2605+.
+This functionality is available starting from Aidbox version **2605**.
 {% endhint %}
 
 ## Background: the stack you'll be using
 
-If you're already comfortable with Databricks, Unity Catalog, and Delta Lake, skip to [Overview](#overview). Otherwise the following four-minute primer will save you a lot of confusion later — the configuration parameters and grant lists below assume you know what each layer does and why it exists.
+If you're already comfortable with Databricks, Unity Catalog, and Delta Lake, skip to [Overview](#overview).
 
 ### Databricks
 
-[Databricks](https://www.databricks.com/) is a managed analytics platform built on top of [Apache Spark](https://spark.apache.org/). For this tutorial you only need to think of it as **two things bundled together**:
+[Databricks](https://www.databricks.com/) is a managed analytics platform. For this tutorial you only need to think of it as **two things bundled together**:
 
 1. **Unity Catalog (UC)** — the metadata + governance layer. UC knows about every catalog, schema, table, column, and grant in your workspace. It also issues short-lived cloud-storage credentials on demand ("vending") so external clients can write data without being given long-lived bucket keys.
-2. **SQL warehouse** — a Spark cluster that executes SQL on your behalf. Submit a statement over REST (`POST /api/2.0/sql/statements`), the warehouse plans and runs it on data sitting in cloud storage, and returns the result.
+2. **SQL warehouse** — a compute cluster that executes SQL on your behalf. You send a statement over a REST endpoint, the warehouse runs it on data sitting in cloud storage, and returns the result.
 
-The module talks to both: UC for metadata + cred vending, the SQL warehouse only for `managed` mode's INSERT path.
+The module talks to both: Unity Catalog for metadata + credential vending, and the SQL warehouse for executing INSERTs into Databricks-managed tables.
 
 ### Data lakehouse
 
@@ -76,13 +66,13 @@ The split matters because it dictates which write path the module can use:
 - For a **managed table** the module must route writes through Databricks compute (a SQL warehouse) — UC vending is a non-starter. That's `writeMode=managed`.
 - For an **external table** the module can either route through compute (also possible, but pays for warehouse hours unnecessarily) or have UC vend STS credentials and write directly from the sender process. The module picks the direct path — that's `writeMode=external-direct`.
 
-{% hint style="info" %}
-**Common confusion.** "External Location" (Data → External Data → External Locations in the Databricks UI) is **not** the same as "external table". An External Location is a UC-registered bucket prefix with an attached storage credential — a piece of infrastructure that grants UC permission to vend creds for paths under it. An external table sits **inside** an External Location's prefix. You can have an External Location with zero external tables in it.
-{% endhint %}
-
 ## Overview
 
 The Data Lakehouse Topic Destination module exports FHIR resources from Aidbox to a Delta Lake table in a flattened format using [ViewDefinitions](../../modules/sql-on-fhir/defining-flat-views-with-view-definitions.md) and SQL-on-FHIR technology.
+
+The module supports two **write modes**, picked per-destination via the `writeMode` parameter.
+
+### `writeMode: managed`
 
 ```mermaid
 graph LR
@@ -90,18 +80,27 @@ graph LR
     B(Aidbox Topics API):::blue2
     C(PostgreSQL queue):::neutral2
     D(ViewDefinition flatten):::yellow2
-    E{writeMode}:::violet2
     M(Databricks SQL warehouse):::green2
-    K(Direct Delta writer):::green2
     T1(UC managed Delta table):::violet2
-    T2(External Delta table on S3 / GCS / ADLS):::violet2
 
-    A --> B --> C --> D --> E
-    E -- managed --> M --> T1
-    E -- external-direct --> K --> T2
+    A --> B --> C --> D --> M --> T1
 ```
 
-The module supports two **write modes**, picked per-destination via the `writeMode` parameter:
+### `writeMode: external-direct`
+
+```mermaid
+graph LR
+    A(FHIR resource POST / PUT / DELETE):::blue2
+    B(Aidbox Topics API):::blue2
+    C(PostgreSQL queue):::neutral2
+    D(ViewDefinition flatten):::yellow2
+    K(Direct Delta writer):::green2
+    T2(External Delta table on S3 / GCS / ADLS):::violet2
+
+    A --> B --> C --> D --> K --> T2
+```
+
+### Mode summary
 
 **`managed`** (default) — targets a **Databricks Unity Catalog managed table**:
 
