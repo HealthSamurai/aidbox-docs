@@ -17,7 +17,7 @@ If you're already comfortable with Databricks, Unity Catalog, and Delta Lake, sk
 [Databricks](https://www.databricks.com/) is a managed analytics platform. For this tutorial you only need to think of it as **two things bundled together**:
 
 1. **Unity Catalog (UC)** — the metadata + governance layer. UC knows about every catalog, schema, table, column, and grant in your workspace. It also issues short-lived cloud-storage credentials on demand ("vending") so external clients can write data without being given long-lived bucket keys.
-2. **SQL warehouse** — a compute cluster that executes SQL on your behalf. You send a statement over a REST endpoint, the warehouse runs it on data sitting in cloud storage, and returns the result.
+2. **SQL warehouse** — a compute cluster that runs SQL queries against tables in your Unity Catalog. Usually you query it from the Databricks UI's SQL Editor; the module drives it programmatically over an API instead.
 
 The module talks to both: Unity Catalog for metadata + credential vending, and the SQL warehouse for executing INSERTs into Databricks-managed tables.
 
@@ -47,15 +47,15 @@ The `_delta_log/` directory is the source of truth. To read the table, replay th
 
 Unity Catalog tables come in two flavours:
 
-|                          | **Managed**                                                        | **External**                                                                |
-| ------------------------ | ------------------------------------------------------------------ | --------------------------------------------------------------------------- |
-| Storage location         | Databricks-managed bucket (you don't see / pick the path)          | Your bucket — declared with `LOCATION 's3://...'` at `CREATE TABLE`         |
-| Who owns the files       | Databricks runtime                                                 | You                                                                         |
-| `DROP TABLE`             | Deletes the data                                                   | Drops metadata only — files stay in your bucket                             |
-| External STS vending     | **Refused.** UC won't hand out write creds — managed tables can't be written by anything but Databricks compute | **Allowed** if the principal has `EXTERNAL USE SCHEMA`                      |
-| Predictive Optimization  | Automatic — Databricks runs `OPTIMIZE` / `VACUUM` / `ANALYZE` for you | Not applicable — you run them yourself                                      |
-| Liquid Clustering        | Default                                                            | Opt-in per table                                                            |
-| Best for                 | Production analytics with UC governance + zero maintenance         | Multi-cloud, cost-sensitive, you-own-the-files architectures                |
+|                                | **Managed**                                                          | **External**                                                          |
+| ------------------------------ | -------------------------------------------------------------------- | --------------------------------------------------------------------- |
+| Storage location               | Databricks-managed bucket (you don't see / pick the path)            | Your bucket — declared with `LOCATION 's3://...'` at `CREATE TABLE`   |
+| Who owns the files             | Databricks runtime                                                   | You                                                                   |
+| `DROP TABLE`                   | Deletes the data                                                     | Drops metadata only — files stay in your bucket                       |
+| Can Aidbox write directly?     | **No** — Aidbox has to route the INSERT through a Databricks SQL warehouse | **Yes** — Aidbox writes Parquet + Delta commits to your bucket itself |
+| External STS vending           | **Refused.** UC won't hand out write creds                           | **Allowed** if the principal has `EXTERNAL USE SCHEMA`                |
+| Predictive Optimization        | Automatic — Databricks runs `OPTIMIZE` / `VACUUM` / `ANALYZE` for you | Not applicable — you run them yourself                                |
+| Liquid Clustering              | Default                                                              | Opt-in per table                                                      |
 
 The split matters because it dictates which write path the module can use:
 
@@ -70,23 +70,22 @@ The Data Lakehouse Topic Destination module exports FHIR resources from Aidbox t
 
 ```mermaid
 graph LR
-    Client((User / FHIR API client)):::blue2
-    Aidbox[Aidbox process]:::blue2
-    PG[(Aidbox PostgreSQL<br/>resources + topic queue + sof.&lt;view&gt;)]:::neutral2
-    Mod[Data Lakehouse topic-destination module<br/>runs inside Aidbox JVM]:::yellow2
-    DBX[Databricks workspace<br/>Unity Catalog + SQL warehouse]:::green2
+    Client[User / FHIR API client]:::blue2
+    Aidbox[Aidbox]:::blue2
+    PG[(Aidbox PostgreSQL)]:::neutral2
+    Mod[Data Lakehouse module]:::yellow2
+    DBX[Databricks workspace]:::green2
     FS[(Cloud storage<br/>S3 / GCS / ADLS)]:::violet2
 
     Client -- FHIR POST / PUT / DELETE --> Aidbox
-    Aidbox -- write resource + enqueue topic event --> PG
+    Aidbox -- write resource +<br/>enqueue topic event --> PG
     Mod -- poll batch --> PG
-    Mod -- flatten via ViewDefinition --> Mod
-    Mod -- bearer-authenticated REST --> DBX
-    Mod -- Delta write (external-direct mode) --> FS
+    Mod -- bearer-authenticated calls --> DBX
+    Mod -- Delta write<br/>(external-direct mode) --> FS
     DBX -- read / write Delta files --> FS
 ```
 
-The module ships as a JAR loaded into the Aidbox JVM. It does not run as a separate process and has no state of its own — everything it needs (resources, topic queue, ViewDefinition output) lives in Aidbox PostgreSQL.
+The Data Lakehouse module ships as a JAR loaded into the Aidbox JVM — there is no separate process, and the module has no state of its own. Everything it needs (resources, topic queue, `sof.<view>` output) lives in Aidbox PostgreSQL.
 
 ### Append-only output
 
@@ -172,17 +171,15 @@ WHERE rn = 1 AND is_deleted = 0;
 
 ## Choosing between `managed` and `external-direct`
 
-|                                | `managed` (default)                                                      | `external-direct`                                                  |
-| ------------------------------ | ------------------------------------------------------------------------ | ------------------------------------------------------------------ |
-| Table type                     | Unity Catalog **managed** (Databricks owns the files)                    | **External** (the User's bucket owns the files)                    |
-| Storage backends               | Whatever Databricks-managed storage your workspace is set up with        | S3, MinIO, Garage, GCS, ADLS Gen2                                  |
-| Write path                     | SQL warehouse runs `INSERT`                                              | Direct Parquet + Delta commit straight to the User's bucket        |
-| Initial export                 | Staging external Delta → `INSERT INTO managed SELECT * FROM staging`     | Single Delta commit straight to the target                         |
-| Throughput                     | Bound by warehouse size (~10-100k rows/sec)                              | 100k+ rows/sec direct-to-storage                                   |
-| Databricks compute cost        | Warehouse must stay warm — ~$2,000/month per running 2X-Small Serverless | Zero — no warehouse involvement                                    |
-| Compaction / OPTIMIZE / VACUUM | Automatic via Databricks Predictive Optimization                         | The User runs them (e.g. scheduled `OPTIMIZE` job)                 |
-| Schema drift handling          | Aidbox auto-`ALTER`s the target on schema mismatch                       | Fail-loud at bootstrap — the User runs `ALTER TABLE`               |
-| Best for                       | Production analytics with UC governance                                  | High-throughput pipelines, multi-cloud, cost-sensitive deployments |
+|                                | `managed` (default)                                                                    | `external-direct`                                                  |
+| ------------------------------ | -------------------------------------------------------------------------------------- | ------------------------------------------------------------------ |
+| Table type                     | Unity Catalog **managed** (Databricks owns the files)                                  | **External** (the User's bucket owns the files)                    |
+| Storage backends               | Whatever Databricks-managed storage your workspace is set up with                      | S3, MinIO, Garage, GCS, ADLS Gen2                                  |
+| Write path                     | SQL warehouse runs `INSERT`                                                            | Direct Parquet + Delta commit straight to the User's bucket        |
+| Initial export                 | Temporary staging Delta table → `INSERT INTO managed SELECT * FROM staging` → drop it. See [How it works — `managed` mode](#how-it-works-managed-mode) | Single Delta commit straight to the target |
+| Databricks compute cost        | A SQL warehouse must be running to accept INSERTs — Databricks bills for warehouse uptime per their pricing | Zero — no warehouse involvement                                    |
+| Compaction / OPTIMIZE / VACUUM | Handled by Databricks Predictive Optimization — the User doesn't run them              | The User runs them (e.g. scheduled `OPTIMIZE` job)                 |
+| Schema drift handling          | Aidbox auto-`ALTER`s the target on schema mismatch                                     | Fail-loud at bootstrap — the User runs `ALTER TABLE`               |
 
 {% hint style="info" %}
 **Default is `managed`.** If `writeMode` isn't set on the destination, the module uses the Databricks SQL warehouse path. Set `writeMode=external-direct` explicitly to get the direct-to-storage flow.
@@ -193,9 +190,10 @@ WHERE rn = 1 AND is_deleted = 0;
 - Make sure your Aidbox version is **2605** or newer
 - Set up a local Aidbox instance using the getting started [guide](../../getting-started/run-aidbox-locally.md)
 - Have a Databricks workspace (Free Edition works for evaluation, paid for production)
-- Have a service principal (SP) with OAuth M2M credentials (`client_id` + `client_secret`)
 - For `managed` mode: a running SQL warehouse, a managed Delta table, and (if doing initial export) an S3/GCS/ADLS path you control with a UC External Location for staging
 - For `external-direct` mode: an external Delta table registered in UC (or static AWS keys for non-UC deployments)
+
+The service principal that authenticates the module is created in the [Authentication](#authentication) section below, as part of the setup flow — you don't need it before you start.
 
 ## Installation
 
@@ -291,7 +289,9 @@ When a new version is released, update the JAR URL/filename in your deployment c
 
 All requests in this tutorial use `Content-Type: application/json`.
 
-### Common parameters (both modes)
+{% tabs %}
+{% tab title="managed mode" %}
+**Common parameters:**
 
 | Parameter           | Type        | Required | Description                                                |
 | ------------------- | ----------- | -------- | ---------------------------------------------------------- |
@@ -302,19 +302,32 @@ All requests in this tutorial use `Content-Type: application/json`.
 | `skipInitialExport` | boolean     | no       | Skip initial export of existing data (default: `false`)    |
 | `targetFileSizeMb`  | unsignedInt | no       | Parquet target size during initial export (default: `128`) |
 
-### `writeMode = managed` parameters
+**`managed`-specific parameters:**
 
 | Parameter                | Type   | Required    | Description                                                                                               |
 | ------------------------ | ------ | ----------- | --------------------------------------------------------------------------------------------------------- |
 | `databricksWorkspaceUrl` | string | yes         | `https://<workspace>.cloud.databricks.com`                                                                |
-| `databricksClientId`     | string | yes         | SP `client_id` for OAuth M2M                                                                              |
-| `databricksClientSecret` | string | yes         | SP `client_secret`; supports vault refs                                                                   |
+| `databricksClientId`     | string | yes         | Service principal `client_id` for OAuth M2M                                                               |
+| `databricksClientSecret` | string | yes         | Service principal `client_secret`; supports vault refs                                                    |
 | `tableName`              | string | yes         | Managed table full name: `catalog.schema.table`                                                           |
 | `databricksWarehouseId`  | string | yes         | SQL warehouse ID for INSERT / COPY INTO / ALTER                                                           |
 | `awsRegion`              | string | yes         | AWS region of the staging bucket                                                                          |
-| `stagingTablePath`       | string | conditional | `s3://bucket/path/` for the external staging Delta table. Required when `skipInitialExport` is not `true` |
+| `stagingTablePath`       | string | conditional | `s3://bucket/path/` for the staging Delta table created during initial export. Required when `skipInitialExport` is not `true` |
+{% endtab %}
 
-### `writeMode = external-direct` parameters
+{% tab title="external-direct mode" %}
+**Common parameters:**
+
+| Parameter           | Type        | Required | Description                                                |
+| ------------------- | ----------- | -------- | ---------------------------------------------------------- |
+| `viewDefinition`    | string      | yes      | The `name` field of the ViewDefinition resource (not `id`) |
+| `batchSize`         | unsignedInt | yes      | Rows per worker tick / batch commit                        |
+| `sendIntervalMs`    | unsignedInt | yes      | Max time between batched commits, in ms                    |
+| `writeMode`         | string      | no       | `managed` (default) or `external-direct`                   |
+| `skipInitialExport` | boolean     | no       | Skip initial export of existing data (default: `false`)    |
+| `targetFileSizeMb`  | unsignedInt | no       | Parquet target size during initial export (default: `128`) |
+
+**`external-direct`-specific parameters:**
 
 | Parameter                | Type   | Required    | Description                                                                            |
 | ------------------------ | ------ | ----------- | -------------------------------------------------------------------------------------- |
@@ -327,10 +340,8 @@ All requests in this tutorial use `Content-Type: application/json`.
 | `awsAccessKeyId`         | string | no          | Static IAM key (falls back to default provider chain when absent). Supports vault refs |
 | `awsSecretAccessKey`     | string | no          | Static IAM secret. Supports vault refs                                                 |
 | `s3Endpoint`             | string | no          | MinIO / LocalStack endpoint (forces path-style URLs)                                   |
-
-{% hint style="info" %}
-**Choosing batch parameters:** For low-latency dashboards, use small batches (e.g., `batchSize: 10`, `sendIntervalMs: 1000`). For high-throughput bulk workloads, use larger batches (e.g., `batchSize: 500`, `sendIntervalMs: 5000`). Start with `batchSize: 50` and `sendIntervalMs: 5000` as a reasonable default.
-{% endhint %}
+{% endtab %}
+{% endtabs %}
 
 ## Authentication
 
@@ -989,22 +1000,19 @@ To add a column:
 3. Re-materialize: `POST /fhir/ViewDefinition/{id}/$materialize`.
 4. Delete and recreate the destination.
 
-## Cost notes
+## Cost considerations
 
-**`managed` mode** — pays for Databricks compute:
+**`managed` mode**:
 
-- ~$2,000/month per running 2X-Small Serverless warehouse, kept warm 24/7 to keep INSERT latency low.
-- Larger warehouses scale proportionally.
-- Storage: managed-table data lives in Databricks-managed cloud storage (still billed to your cloud account, but invisible to you).
-- What you get for the money: Predictive Optimization, UC governance, audit trail, zero maintenance.
+- Databricks bills the warehouse on its own pricing schedule whenever it accepts INSERTs — see [Databricks SQL pricing](https://www.databricks.com/product/pricing/databricks-sql) for current rates. The warehouse must be available during the destination's hot path, so plan for steady warehouse uptime.
+- Managed-table data sits in Databricks-managed cloud storage — still billed to your cloud account, but you don't pick the path.
+- In return: Predictive Optimization, Unity Catalog governance, audit trail, no compaction work for the User.
 
-**`external-direct` mode** — pays for nothing on the Databricks side:
+**`external-direct` mode**:
 
-- $0 Databricks compute — no warehouse involvement.
+- No Databricks warehouse runs — no compute charge from Databricks for the write path.
 - Storage: your bucket — Parquet + `_delta_log/` written directly. Standard S3 / GCS / ADLS pricing.
-- Trade-off: you run your own `OPTIMIZE` / `VACUUM` schedule.
-
-For high-throughput, cost-sensitive deployments, prefer `external-direct`.
+- Trade-off: the User runs `OPTIMIZE` / `VACUUM` on a schedule.
 
 ## Multiple Destinations
 
