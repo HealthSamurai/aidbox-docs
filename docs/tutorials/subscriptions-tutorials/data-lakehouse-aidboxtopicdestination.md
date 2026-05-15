@@ -160,12 +160,12 @@ So a patient that was created and then updated 3 times appears as 4 rows with th
 
 Messages are persisted in a PostgreSQL queue before being sent. If delivery fails, the message stays in the queue and is retried on the next batch cycle. The two modes differ in what happens during a crash-between-commit-and-ack — the narrow window where the write landed in storage but the sender died before marking the queue entry as delivered:
 
-- **`external-direct`** is restart-safe-idempotent. Every commit carries a stable transaction id, so when the replayed batch hits Delta a second time, Delta itself recognises it and silently skips it.
-- **`managed`** can produce duplicates. The route to the warehouse can't carry that transaction id, so a replayed batch becomes a second INSERT and a duplicate row.
+- **`external-direct`** — restart-safe-idempotent for both hot path and initial export. Every Delta commit carries a stable transaction id; a replay lands on the same id and Delta silently skips it.
+- **`managed`** — initial export is idempotent (MERGE keyed on `id` no-ops on replay), but the **hot path** can produce duplicates. The per-batch INSERT route to the SQL warehouse can't carry a transaction id, so a replayed batch becomes a second INSERT and a duplicate row.
 
 ### Recovering the latest state on read
 
-Add a timestamp column to your ViewDefinition (e.g. `meta.lastUpdated` as `ts`) and use a window function. The same query collapses both append-only history **and** any duplicates from `managed`-mode retries, so one downstream view solves both:
+Add a timestamp column to your ViewDefinition (e.g. `meta.lastUpdated` as `ts`) and use a window function. The same query collapses both append-only history **and** any duplicates from `managed`-mode hot-path retries, so one downstream view solves both:
 
 ```sql
 SELECT * EXCEPT(rn) FROM (
@@ -337,7 +337,7 @@ The module exchanges `databricksClientId` + `databricksClientSecret` for a short
   - `POST /api/2.0/sql/statements` — `SELECT * FROM information_schema.columns ...` (schema introspection)
 - Initial bulk export reuses the same bearer twice:
   - once to register a staging external Delta table + UC-vend STS for it (so the module can write the bulk parquet from the Aidbox process)
-  - once to issue `INSERT INTO target SELECT * FROM staging` on the warehouse
+  - once to issue `MERGE INTO target USING staging ON id WHEN NOT MATCHED THEN INSERT *` on the warehouse
 
 **`external-direct`** — bearer authenticates Unity Catalog REST only, never SQL:
 
@@ -848,7 +848,7 @@ To skip the initial export (e.g., the table is already populated or you only nee
 
 ### How it works — `managed` mode
 
-Managed tables can't accept direct writes from outside Databricks compute, so initial bulk export uses a **temporary staging table** as a relay: the module writes the bulk Parquet to an external Delta table at `stagingTablePath` (which it can write to directly via Unity Catalog credential vending), then asks the SQL warehouse to copy from staging into the managed target, then drops the staging table.
+Managed tables can't accept direct writes from outside Databricks compute, so initial bulk export uses a **temporary staging table** as a relay: the module writes the bulk Parquet to an external Delta table at `stagingTablePath` (which it can write to directly via Unity Catalog credential vending), then asks the SQL warehouse to merge from staging into the managed target on the resource `id`, then drops the staging table.
 
 ```mermaid
 graph LR
@@ -860,7 +860,7 @@ graph LR
 
     M -- 1. read rows --> PG
     M -- 2. write Parquet + Delta commit<br/>via UC-vended STS --> Staging
-    M -- 3. INSERT INTO target SELECT * FROM staging --> WH
+    M -- 3. MERGE INTO target USING staging ON id<br/>WHEN NOT MATCHED THEN INSERT * --> WH
     WH -- 4. read --> Staging
     WH -- 5. write --> Target
     M -- 6. DROP TABLE staging --> WH
@@ -871,10 +871,16 @@ Steps in detail:
 1. Register a temporary external Delta table at `stagingTablePath` with the same schema as `sof.<view>`.
 2. Unity Catalog vends short-lived STS credentials for the staging path.
 3. The module writes all `sof.<view>` rows to the staging path as one Delta commit.
-4. The module issues `INSERT INTO {managed_target} SELECT * FROM {staging}` against the SQL warehouse — Databricks reads the staging Delta snapshot and writes into the managed table.
+4. The module issues `MERGE INTO {managed_target} USING {staging} ON t.id = s.id WHEN NOT MATCHED THEN INSERT *` against the SQL warehouse. The MERGE reads the staging Delta snapshot through the Delta protocol and inserts any rows whose `id` is not yet present in the target.
 5. The module drops the staging table.
 
 The whole sequence runs as one atomic operation from the destination's lifecycle perspective. On failure: best-effort drop of the staging table, retry up to 3 times with exponential backoff (1s → 2s → 4s).
+
+{% hint style="success" %}
+**Why MERGE INTO and not plain INSERT SELECT?** Initial export is a one-shot operation that imports the current state of every existing resource. If the MERGE commits successfully but the network response is lost — and the sender retries — the second MERGE finds the same `id`s already in the target and inserts nothing. A plain `INSERT INTO target SELECT * FROM staging` would have re-inserted every row, doubling the initial dataset. The MERGE has no `WHEN MATCHED` clause, so it never overwrites existing rows — the append-only contract is preserved.
+
+This idempotency relies on your ViewDefinition having an `id` column, which is the standard pattern (the resource id). If it's missing, the SQL planner will fail with a clear column-resolution error before any data moves.
+{% endhint %}
 
 {% hint style="info" %}
 The staging table lives only for the duration of initial export — typically minutes. Once `DROP TABLE staging` succeeds, `stagingTablePath` is left as an empty bucket prefix; you can reuse the same path for future destinations or other purposes.
