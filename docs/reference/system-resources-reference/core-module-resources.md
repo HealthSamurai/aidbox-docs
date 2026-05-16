@@ -13152,6 +13152,14 @@ Data transformation mapping resource for Aidbox.
   "type" : "Object",
   "desc" : "Schema defining the scope for mapping."
 }, {
+  "path" : "skipReferenceValidation",
+  "name" : "skipReferenceValidation",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "boolean",
+  "desc" : "Skip FHIR reference validation when applying the mapping's transaction bundle."
+}, {
   "path" : "text",
   "name" : "text",
   "lvl" : 0,
