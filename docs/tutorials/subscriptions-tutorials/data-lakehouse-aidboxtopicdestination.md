@@ -544,7 +544,7 @@ When the destination starts, by default the module copies everything that's alre
 
 If you only need new data going forward — i.e. you don't want the module to backfill what's already in Aidbox at the moment the destination is created — you can skip this whole section. The grants in step 1f that reference `<staging-external-location>` aren't required either. (The destination resource has a parameter that turns the backfill off; you'll see it in step 5.)
 
-Otherwise, the setup is: bucket prefix → IAM role / service account that Databricks can assume → Storage Credential in Databricks → External Location combining the prefix and the credential. The collapsible below walks through it end-to-end on S3; GCS and ADLS follow the same Databricks-side flow but with their own credential type.
+Otherwise, the setup is: bucket prefix → IAM role that Databricks can assume → Storage Credential in Databricks → External Location combining the prefix and the credential. The collapsible below walks through it end-to-end on S3.
 
 <details>
 
@@ -641,28 +641,17 @@ aws iam update-assume-role-policy \
   --policy-document file://trust-policy.json
 ```
 
-Wait \~30 seconds for IAM eventual consistency.
+**Register the External Location** combining the credential with the bucket prefix. Pick a name (e.g. `aidbox-staging-loc`); that's what step 1f references as `<staging-external-location>`.
 
-For GCS the role is a service account with `roles/storage.admin` on the bucket; for ADLS it's an Azure Databricks access connector. Same Databricks-side flow: Storage Credential → External Location → grants.
-
-</details>
-
-Once the Storage Credential exists, **register the External Location** combining it with the bucket prefix. Pick a name (e.g. `aidbox-staging-loc`); that's what step 1f references as `<staging-external-location>`.
-
-{% tabs %}
-{% tab title="Databricks UI" %}
-**Catalog → External Data → External Locations**, click **Create**. Pick the Storage Credential, set **URL** to your bucket prefix (`s3://<your-bucket-name>/staging/`), give the location a **Name**.
-{% endtab %}
-{% tab title="SQL" %}
 ```sql
 CREATE EXTERNAL LOCATION aidbox_staging_loc
   URL 's3://<your-bucket-name>/staging/'
   WITH (STORAGE CREDENTIAL aidbox_staging_cred);
 ```
-{% endtab %}
-{% endtabs %}
 
-Then click **Test connection** on the External Location page — Databricks runs a list + put + delete probe. Green means the IAM trust + permission policies are correct.
+Then click **Test connection** on the External Location page in Databricks — it runs a list + put + delete probe. Green means the IAM trust + permission policies are correct.
+
+</details>
 
 #### 1f. Grant the service principal
 
@@ -746,9 +735,8 @@ GRANT READ FILES, WRITE FILES, CREATE EXTERNAL TABLE
 {% step %}
 ### Step 2: Create subscription topic
 
-```http
-POST /fhir/AidboxSubscriptionTopic
-
+{% code title="POST /fhir/AidboxSubscriptionTopic" %}
+```json
 {
   "resourceType": "AidboxSubscriptionTopic",
   "url": "http://example.org/subscriptions/patient-updates",
@@ -762,6 +750,7 @@ POST /fhir/AidboxSubscriptionTopic
   ]
 }
 ```
+{% endcode %}
 
 {% endstep %}
 
@@ -770,9 +759,8 @@ POST /fhir/AidboxSubscriptionTopic
 
 A [ViewDefinition](../../modules/sql-on-fhir/defining-flat-views-with-view-definitions.md) defines how to transform a complex FHIR resource into a flat table structure suitable for analytics. Each `column` maps a [FHIRPath](https://hl7.org/fhirpath/) expression to a named column.
 
-```http
-POST /fhir/ViewDefinition
-
+{% code title="POST /fhir/ViewDefinition" %}
+```json
 {
   "resourceType": "ViewDefinition",
   "id": "patient_flat",
@@ -797,6 +785,7 @@ POST /fhir/ViewDefinition
   ]
 }
 ```
+{% endcode %}
 
 {% endstep %}
 
@@ -805,9 +794,8 @@ POST /fhir/ViewDefinition
 
 The ViewDefinition must be [materialized](../../modules/sql-on-fhir/operation-materialize.md) as a database view before the module can use it to transform data. Materialization creates a SQL view in the `sof` schema.
 
-```http
-POST /fhir/ViewDefinition/patient_flat/$materialize
-
+{% code title="POST /fhir/ViewDefinition/patient_flat/$materialize" %}
+```json
 {
   "resourceType": "Parameters",
   "parameter": [
@@ -818,6 +806,7 @@ POST /fhir/ViewDefinition/patient_flat/$materialize
   ]
 }
 ```
+{% endcode %}
 
 {% hint style="info" %}
 The ViewDefinition must be materialized as a **view** (not a table). See the [`$materialize` operation](../../modules/sql-on-fhir/operation-materialize.md) documentation for details.
@@ -828,9 +817,8 @@ The ViewDefinition must be materialized as a **view** (not a table). See the [`$
 {% step %}
 ### Step 5: Configure the destination (`managed-zerobus`)
 
-```http
-POST /fhir/AidboxTopicDestination
-
+{% code title="POST /fhir/AidboxTopicDestination" %}
+```json
 {
   "resourceType": "AidboxTopicDestination",
   "id": "patient-databricks",
@@ -858,6 +846,7 @@ POST /fhir/AidboxTopicDestination
   ]
 }
 ```
+{% endcode %}
 
 **Externalising the SP secret.** The example above passes `databricksClientSecret` inline. In production you'll typically keep it out of the destination resource and resolve it from a file at request time via Aidbox's [External Secrets](../../configuration/secret-files.md) integration — store the secret in a file (Kubernetes Secrets, Docker Secrets, CSI driver, …) and reference it from the destination parameter via the FHIR primitive-extension pattern:
 
@@ -882,15 +871,15 @@ The string `dbx-sp-secret` is a secret name from your `BOX_VAULT_CONFIG` mapping
 
 Create a test patient:
 
-```http
-POST /fhir/Patient
-
+{% code title="POST /fhir/Patient" %}
+```json
 {
   "name": [{"use": "official", "family": "Smith", "given": ["John"]}],
   "gender": "male",
   "birthDate": "1990-01-15"
 }
 ```
+{% endcode %}
 
 Then query your Databricks table to confirm the data arrived:
 
@@ -904,7 +893,7 @@ SELECT * FROM aidbox_export.fhir.patients;
 
 To stop exporting data, delete the `AidboxTopicDestination` resource:
 
-```http
+```
 DELETE /fhir/AidboxTopicDestination/patient-databricks
 ```
 
@@ -916,9 +905,8 @@ If Zerobus isn't available on your Databricks SKU (older paid plans, some region
 
 The destination payload differs from the `managed-zerobus` example in three rows: drop `databricksWorkspaceId` + `databricksRegion`, change `writeMode` to `managed-sql`:
 
-```http
-POST /fhir/AidboxTopicDestination
-
+{% code title="POST /fhir/AidboxTopicDestination" %}
+```json
 {
   "resourceType": "AidboxTopicDestination",
   "id": "patient-databricks-sql",
@@ -944,6 +932,7 @@ POST /fhir/AidboxTopicDestination
   ]
 }
 ```
+{% endcode %}
 
 The Databricks setup in Step 4 is identical for `managed-sql` — same table, same warehouse, same SP, same grants. The warehouse simply ends up servicing every batch instead of only the bootstrap.
 
@@ -976,9 +965,8 @@ If you don't need Unity Catalog managed-table governance and want the highest th
 
 ### Destination configuration
 
-```http
-POST /fhir/AidboxTopicDestination
-
+{% code title="POST /fhir/AidboxTopicDestination" %}
+```json
 {
   "resourceType": "AidboxTopicDestination",
   "id": "patient-databricks-external",
@@ -1002,14 +990,14 @@ POST /fhir/AidboxTopicDestination
   ]
 }
 ```
+{% endcode %}
 
 ### Static AWS keys (no Unity Catalog vending)
 
 `external-direct` can also write to a Delta table that isn't governed by Unity Catalog — for example, a bucket your own AWS account owns directly, or a MinIO / non-Databricks S3 deployment. Omit `databricksWorkspaceUrl` entirely and provide static AWS keys + `tablePath`:
 
-```http
-POST /fhir/AidboxTopicDestination
-
+{% code title="POST /fhir/AidboxTopicDestination" %}
+```json
 {
   "resourceType": "AidboxTopicDestination",
   "id": "patient-deltalake-s3",
@@ -1032,6 +1020,7 @@ POST /fhir/AidboxTopicDestination
   ]
 }
 ```
+{% endcode %}
 
 You can also omit `awsAccessKeyId` / `awsSecretAccessKey` to fall back to the [AWS SDK default credentials provider chain](https://docs.aws.amazon.com/sdk-for-java/latest/developer-guide/credentials-chain.html) — env vars, EC2 instance profile / ECS task role, EKS IRSA, or shared profile from `~/.aws/credentials`.
 
@@ -1108,7 +1097,7 @@ No staging — the module writes `sof.<view>` rows straight to the external targ
 
 ### Status endpoint
 
-```http
+```
 GET /fhir/AidboxTopicDestination/patient-databricks/$status
 ```
 
