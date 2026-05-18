@@ -14,18 +14,17 @@ This functionality is available starting from Aidbox version **2605**.
 
 ## Background: the stack you'll be using
 
+"Data Lakehouse" is the generic name for the destination category — a hybrid of object-storage data lake and warehouse, implemented here on top of the Delta Lake table format. Concretely the module writes Delta-formatted tables that can live on plain cloud object storage you own, or in Databricks Unity Catalog managed storage; either way the destination kind is the same (`data-lakehouse-at-least-once`).
+
 If you're already comfortable with Databricks, Unity Catalog, and Delta Lake, skip to [Overview](#overview).
 
 ### Databricks
 
-[Databricks](https://www.databricks.com/) is a managed analytics platform. For this tutorial you only need to think of it as **two things bundled together**:
+[Databricks](https://www.databricks.com/) is a managed analytics platform. For this tutorial you only need to think of it as **three things bundled together**:
 
 1. **Unity Catalog (UC)** — the metadata + governance layer. UC knows about every catalog, schema, table, column, and grant in your workspace. It also issues short-lived cloud-storage credentials on demand ("vending") so external clients can write data without being given long-lived bucket keys.
-2. **SQL warehouse** — a compute cluster that runs SQL queries against tables in your Unity Catalog. Usually you query it from the Databricks UI's SQL Editor; the module drives it programmatically over an API instead.
-
-The module talks to both: Unity Catalog for metadata + credential vending, and (in `managed-sql` mode) the SQL warehouse for executing INSERTs into Databricks-managed tables.
-
-3. **Zerobus** — Databricks' gRPC streaming-ingest service. It writes directly to UC managed tables without going through a SQL warehouse, so you don't pay for warm compute on the write path. Used by `managed-zerobus` mode.
+2. **SQL warehouse** — a compute cluster that runs SQL queries against tables in your Unity Catalog. Usually you query it from the Databricks UI's SQL Editor; the module can drive it programmatically over an API.
+3. **[Zerobus Ingest](https://docs.databricks.com/aws/en/ingestion/zerobus-overview)** — a push-based ingestion API that writes data directly into Unity Catalog Delta tables. Designed for high-throughput, low-overhead row ingestion: clients open a stream, push records, and Zerobus durably commits them with per-stream ordering guarantees.
 
 ### Data lakehouse, and Delta Lake as its implementation
 
@@ -97,7 +96,7 @@ What the arrows in the diagram mean, in order:
 1. A FHIR API client (a user, an integration, a backfill script) sends a `POST` / `PUT` / `DELETE` to Aidbox.
 2. Aidbox persists the resource and enqueues a topic event for the destination in PostgreSQL.
 3. The Data Lakehouse module polls the destination's batch from the same PostgreSQL queue.
-4. For `managed-zerobus` mode (default): the module streams each batch into the managed table over the Zerobus gRPC ingest service. No SQL warehouse on the hot path — pay-per-row ingest only.
+4. For `managed-zerobus` mode (default): the module pushes each batch into the managed table over Zerobus, Databricks' streaming-ingest API. No SQL parsing / planning per write.
 5. For `managed-sql` mode: the module sends `INSERT` (and `ALTER` / `DESCRIBE` when needed) to the Databricks SQL warehouse; the warehouse writes the Delta files to storage.
 6. For `external-direct` mode: the module gets short-lived storage credentials from Unity Catalog and writes Delta files directly to your bucket.
 
@@ -123,10 +122,10 @@ graph LR
     A --> B --> C --> D --> Z --> T0
 ```
 
-- Each batch is JSON-encoded and streamed into the managed table via the `zerobus-ingest-sdk` (`ingestRecordsOffset` → `waitForOffset` → `flush`).
-- **No SQL warehouse on the hot path** — pay-per-row Zerobus ingest + storage instead of a continuously-warm 2X-Small (~$2k/month).
-- Initial bulk export still uses a **temporary staging table** under `stagingTablePath` (Zerobus is append-only stream ingest and can't replay bulk loads). The bulk merge is the same `MERGE INTO managed USING staging` pattern as `managed-sql`.
+- Each batch is JSON-encoded and pushed into the managed table via the `zerobus-ingest-sdk` (`ingestRecordsOffset` → `waitForOffset` → `flush`). Zerobus is a purpose-built ingest pipe: no SQL parsing / planning / scheduling per batch, server-side offset tracking with per-stream ordering, and a long-lived stream that doesn't cold-start per write.
+- Initial bulk export still uses a **temporary staging table** under `stagingTablePath` (Zerobus is append-only stream ingest, designed for incremental row writes, not bulk loads). The bulk merge is the same `MERGE INTO managed USING staging` pattern as `managed-sql`.
 - Schema sync at sender bootstrap still uses a SQL warehouse (one-shot `INFORMATION_SCHEMA.COLUMNS` describe + optional `ALTER TABLE`) — the warehouse is required but only used at boot, not on every batch.
+- See [Cost considerations](#cost-considerations) for the billing surface.
 
 ### `writeMode: managed-sql`
 
@@ -186,13 +185,13 @@ So a patient that was created and then updated 3 times appears as 4 rows with th
 
 Messages are persisted in a PostgreSQL queue before being sent. If delivery fails, the message stays in the queue and is retried on the next batch cycle. The three modes differ in what happens during a crash-between-commit-and-ack — the narrow window where the write landed in storage but the sender died before marking the queue entry as delivered:
 
+- **`managed-zerobus`** — initial export is idempotent (`MERGE INTO managed USING staging ON id` no-ops on replay). The **hot path** is at-least-once: Zerobus has server-side offset dedup, but on Aidbox queue replay after a sender crash the SDK allocates a fresh offset, which Zerobus treats as a new record.
+- **`managed-sql`** — initial export is idempotent (same MERGE pattern as `managed-zerobus`). The **hot path** can produce duplicates. The per-batch INSERT route to the SQL warehouse can't carry a transaction id, so a replayed batch becomes a second INSERT and a duplicate row.
 - **`external-direct`** — restart-safe-idempotent for both hot path and initial export. Every Delta commit carries a stable transaction id; a replay lands on the same id and Delta silently skips it.
-- **`managed-sql`** — initial export is idempotent (MERGE keyed on `id` no-ops on replay), but the **hot path** can produce duplicates. The per-batch INSERT route to the SQL warehouse can't carry a transaction id, so a replayed batch becomes a second INSERT and a duplicate row.
-- **`managed-zerobus`** — initial export is idempotent (same MERGE pattern as `managed-sql`). The **hot path** is also at-least-once: Zerobus has server-side offset dedup, but on Aidbox queue replay after a sender crash the SDK allocates a fresh offset, which Zerobus treats as a new record. Same on-read dedup as `managed-sql`.
 
-### Recovering the latest state on read
+### Reading "current state" out of the append-only history
 
-Add a timestamp column to your ViewDefinition (e.g. `meta.lastUpdated` as `ts`) and use a window function. The same query collapses both append-only history **and** any duplicates from managed-mode (`managed-sql` or `managed-zerobus`) hot-path retries, so one downstream view solves both:
+Because every change is written as a new row (and `managed-*` modes can deliver duplicates on crash-replay), querying the table directly gives you all historical versions plus possible dupes. To project the table down to one row per resource id — i.e. "the latest state of each resource, with deletes excluded" — add a timestamp column to your ViewDefinition (e.g. `meta.lastUpdated` as `ts`) and select via a window function:
 
 ```sql
 SELECT * EXCEPT(rn) FROM (
@@ -217,10 +216,6 @@ Details that follow:
 - **Initial export path** — both managed modes materialize via a temporary staging Delta table on your bucket (see [Initial Export — managed modes](#how-it-works-managed-modes)). `external-direct` writes the bulk straight to the target in one commit.
 - **Bootstrap warehouse use** — `managed-zerobus` still pings a SQL warehouse ONCE at sender boot for schema sync (`INFORMATION_SCHEMA.COLUMNS` + optional `ALTER`). After that, no warehouse traffic on the hot path. `managed-sql` keeps the warehouse warm.
 - **Storage backends** — `external-direct` supports AWS S3, GCS, Azure ADLS Gen2. Both managed modes use whatever Databricks-managed storage your workspace is configured with.
-
-{% hint style="info" %}
-**Default is `managed-zerobus`.** If `writeMode` isn't set on the destination, the module streams writes through Zerobus directly into the managed table. Set `writeMode=managed-sql` if Zerobus isn't available on your SKU. Set `writeMode=external-direct` to write straight to a non-managed external Delta table on your own bucket.
-{% endhint %}
 
 ## Before you begin
 
@@ -315,17 +310,9 @@ spec:
           emptyDir: {}
 ```
 
-{% hint style="info" %}
-This is a partial Deployment manifest showing only the module-related configuration. You still need your existing Aidbox environment variables, Service, and other Kubernetes resources. Use a pinned Aidbox version (e.g., `healthsamurai/aidboxone:2605`) for production instead of `edge`.
-{% endhint %}
-
-### Updating the module
-
-When a new version is released, update the JAR URL/filename in your deployment configuration and restart Aidbox. Available versions are listed in `gs://aidbox-modules/topic-destination-deltalake/`.
-
 ## Authentication
 
-Both modes authenticate to Databricks via **OAuth Machine-to-Machine (M2M)** with a service principal.
+All three modes authenticate to Databricks via **OAuth Machine-to-Machine (M2M)** with a service principal.
 
 ```mermaid
 sequenceDiagram
@@ -440,9 +427,6 @@ All requests in this tutorial use `Content-Type: application/json`.
 
 </details>
 
-{% hint style="info" %}
-Where do `databricksWorkspaceId` and `databricksRegion` come from? Open your workspace in a browser — the URL is `https://dbc-XXXXXXXX-YYYY.cloud.databricks.com`. The numeric workspace ID is shown in **Settings → Workspace → ID** (also visible at the bottom-left of the SQL Editor). The region is shown in **Workspace admin → Region** and matches the bucket region the workspace runs in (e.g. `us-east-1`). Both together compose the Zerobus gRPC endpoint URL the SDK uses internally: `https://<workspace-id>.zerobus.<region>.cloud.databricks.com`. You don't need to pass that URL to Aidbox — the module composes it from the workspace ID and region you set on the destination.
-{% endhint %}
 {% endtab %}
 
 {% tab title="managed-sql mode" %}
