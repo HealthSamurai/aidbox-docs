@@ -115,7 +115,7 @@ graph LR
 ```
 
 - Each batch is JSON-encoded as an array and POSTed to `https://<workspace-id>.zerobus.<region>.cloud.databricks.com/zerobus/v1/tables/<catalog>.<schema>.<table>/insert` with an OAuth M2M bearer. Zerobus is a purpose-built ingest pipe — no SQL parsing / planning / scheduling per batch, and no warehouse cold-start.
-- Initial bulk export still uses a one-shot staging Delta table under `stagingTablePath` (Zerobus is append-only ingest, designed for incremental row writes, not bulk loads). The bulk merge is the same `MERGE INTO managed USING staging` pattern as `managed-sql`. This staging table is a plain external Delta table the module drops after the merge — not a Databricks [temporary table](https://docs.databricks.com/aws/en/tables/temporary-tables).
+- Initial bulk export still uses a one-shot staging Delta table at a cloud-storage prefix you configure (Zerobus is append-only ingest, designed for incremental row writes, not bulk loads). The bulk merge is the same `MERGE INTO managed USING staging` pattern as `managed-sql`. This staging table is a plain external Delta table the module drops after the merge — not a Databricks [temporary table](https://docs.databricks.com/aws/en/tables/temporary-tables).
 - Schema sync at sender bootstrap still uses a SQL warehouse (one-shot `INFORMATION_SCHEMA.COLUMNS` describe + optional `ALTER TABLE`) — the warehouse is required but only used at boot, not on every batch.
 
 ### managed-sql mode
@@ -135,7 +135,7 @@ graph LR
 ```
 
 - Each batch becomes a single `INSERT INTO managed (cols) VALUES (...)` statement sent to a Databricks SQL warehouse. The warehouse writes the Delta files (Parquet + a transaction-log commit) under the managed table.
-- Initial bulk export uses a one-shot staging Delta table under `stagingTablePath` because Databricks-managed tables refuse direct writes from outside Databricks compute. See [Initial export](#how-it-works-managed-modes) for the staging diagram.
+- Initial bulk export uses a one-shot staging Delta table at a cloud-storage prefix you configure, because Databricks-managed tables refuse direct writes from outside Databricks compute. See [Initial export](#how-it-works-managed-modes) for the staging diagram.
 
 ### external-direct mode
 
@@ -536,11 +536,11 @@ Compute → SQL Warehouses → use an existing warehouse or create a new one. Co
 3. Click the new SP, open the **Secrets** tab, click **Generate secret**.
 4. Copy the **Client ID** and **Secret** — you'll use these as `databricksClientId` / `databricksClientSecret`.
 
-#### 1e. (Skip if you set `skipInitialExport: true`) Staging location for initial export
+#### 1e. (Skip if you don't need an initial bulk copy of existing data) Staging location
 
 When the destination starts, by default the module copies everything that's already in Aidbox into the target table before turning on live writes. That bulk copy needs a place to stage Parquet files — a cloud bucket prefix that Databricks is allowed to write to through Unity Catalog. Both `managed-zerobus` and `managed-sql` use the same staging path; `external-direct` writes the bulk straight to the target and skips this step.
 
-If you set `skipInitialExport: true` on the destination, you can skip this whole section — no staging is needed and the grants in step 1f that reference `<staging-external-location>` aren't required either.
+If you only need new data going forward — i.e. you don't want the module to backfill what's already in Aidbox at the moment the destination is created — you can skip this whole section. The grants in step 1f that reference `<staging-external-location>` aren't required either. (The destination resource has a parameter that turns the backfill off; you'll see it in step 5.)
 
 Otherwise, in your cloud account first:
 
