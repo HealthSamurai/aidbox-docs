@@ -547,56 +547,92 @@ Compute → SQL Warehouses → use an existing warehouse or create a new one. Se
 
 #### 1e. Grant the service principal
 
-The module needs the following privileges on the SP. Grant the set that matches the `writeMode` you'll use:
+Grant only the set that matches the `writeMode` you'll use.
 
-| Privilege | Granted on | Needed by | Purpose |
-|---|---|---|---|
-| `USE CATALOG` | `aidbox_export` | all modes | navigate the catalog |
-| `USE SCHEMA` | `aidbox_export.fhir` | all modes | resolve the target table |
-| `SELECT`, `MODIFY` | target table | all modes | DESCRIBE / INSERT / MERGE |
-| `USAGE` (UI: "Can use") | the SQL warehouse | `managed-zerobus`, `managed-sql` | submit statements (schema sync + MERGE for both; every INSERT for `managed-sql`) |
-| `EXTERNAL USE SCHEMA` | the target's schema | `external-direct` | UC vends STS creds for direct-to-bucket writes |
-| `EXTERNAL USE SCHEMA` | the **staging** schema | `managed-zerobus`, `managed-sql` (when initial-export runs) | UC vends STS for the staging table created under it |
-| `READ FILES`, `WRITE FILES`, `CREATE EXTERNAL TABLE` | the External Location backing the staging bucket | `managed-zerobus`, `managed-sql` (when initial-export runs) | write the bulk Parquet via UC-vended STS |
-| `READ FILES`, `WRITE FILES`, `CREATE EXTERNAL TABLE` | the External Location backing the **target's** bucket | `external-direct` | write Parquet + Delta commits directly |
-
-SQL for the common subset (`managed-*` minus initial-export):
+{% tabs %}
+{% tab title="managed-zerobus" %}
+| Privilege | Granted on | Purpose |
+|---|---|---|
+| `USE CATALOG` | `aidbox_export` | navigate the catalog |
+| `USE SCHEMA` | `aidbox_export.fhir` | resolve the target table |
+| `SELECT`, `MODIFY` | target table | `DESCRIBE` + initial-bulk `MERGE INTO` |
+| `USAGE` (UI: "Can use") | the SQL warehouse | submit bootstrap schema-sync statements + initial-bulk `MERGE` (no warehouse traffic on the hot path) |
+| `EXTERNAL USE SCHEMA` | the staging schema | UC vends STS for the staging table (initial-export only) |
+| `READ FILES`, `WRITE FILES`, `CREATE EXTERNAL TABLE` | staging External Location | write the bulk Parquet via UC-vended STS (initial-export only) |
 
 ```sql
-GRANT USE CATALOG ON CATALOG aidbox_export                    TO `<sp-client-id>`;
-GRANT USE SCHEMA  ON SCHEMA  aidbox_export.fhir               TO `<sp-client-id>`;
-GRANT SELECT, MODIFY ON TABLE aidbox_export.fhir.patients     TO `<sp-client-id>`;
-GRANT USAGE ON WAREHOUSE `<warehouse-id>`                     TO `<sp-client-id>`;
+GRANT USE CATALOG ON CATALOG aidbox_export                TO `<sp-client-id>`;
+GRANT USE SCHEMA  ON SCHEMA  aidbox_export.fhir           TO `<sp-client-id>`;
+GRANT SELECT, MODIFY ON TABLE aidbox_export.fhir.patients TO `<sp-client-id>`;
+GRANT USAGE ON WAREHOUSE `<warehouse-id>`                 TO `<sp-client-id>`;
+-- initial-export only:
+GRANT EXTERNAL USE SCHEMA ON SCHEMA aidbox_export.fhir    TO `<sp-client-id>`;
+GRANT READ FILES, WRITE FILES, CREATE EXTERNAL TABLE
+  ON EXTERNAL LOCATION `<staging-external-location>`      TO `<sp-client-id>`;
 ```
 
-Warehouse "Can use" also has to be granted via UI: **SQL Warehouses → your warehouse → Permissions → Add → service principal → Can use**.
+The warehouse "Can use" also has to be granted via UI: **SQL Warehouses → your warehouse → Permissions → Add → service principal → Can use**.
+{% endtab %}
 
-For `external-direct`, also:
+{% tab title="managed-sql" %}
+| Privilege | Granted on | Purpose |
+|---|---|---|
+| `USE CATALOG` | `aidbox_export` | navigate the catalog |
+| `USE SCHEMA` | `aidbox_export.fhir` | resolve the target table |
+| `SELECT`, `MODIFY` | target table | every `INSERT` + bootstrap `DESCRIBE` + initial-bulk `MERGE` |
+| `USAGE` (UI: "Can use") | the SQL warehouse | submit every statement |
+| `EXTERNAL USE SCHEMA` | the staging schema | UC vends STS for the staging table (initial-export only) |
+| `READ FILES`, `WRITE FILES`, `CREATE EXTERNAL TABLE` | staging External Location | write the bulk Parquet via UC-vended STS (initial-export only) |
 
 ```sql
-GRANT EXTERNAL USE SCHEMA ON SCHEMA aidbox_export.fhir TO `<sp-client-id>`;
+GRANT USE CATALOG ON CATALOG aidbox_export                TO `<sp-client-id>`;
+GRANT USE SCHEMA  ON SCHEMA  aidbox_export.fhir           TO `<sp-client-id>`;
+GRANT SELECT, MODIFY ON TABLE aidbox_export.fhir.patients TO `<sp-client-id>`;
+GRANT USAGE ON WAREHOUSE `<warehouse-id>`                 TO `<sp-client-id>`;
+-- initial-export only:
+GRANT EXTERNAL USE SCHEMA ON SCHEMA aidbox_export.fhir    TO `<sp-client-id>`;
+GRANT READ FILES, WRITE FILES, CREATE EXTERNAL TABLE
+  ON EXTERNAL LOCATION `<staging-external-location>`      TO `<sp-client-id>`;
+```
+
+The warehouse "Can use" also has to be granted via UI: **SQL Warehouses → your warehouse → Permissions → Add → service principal → Can use**.
+{% endtab %}
+
+{% tab title="external-direct" %}
+| Privilege | Granted on | Purpose |
+|---|---|---|
+| `USE CATALOG` | `aidbox_export` | navigate the catalog |
+| `USE SCHEMA` | `aidbox_export.fhir` | resolve the target table |
+| `SELECT`, `MODIFY` | target table | UC checks before vending creds |
+| `EXTERNAL USE SCHEMA` | the target's schema | UC vends STS creds for direct-to-bucket writes |
+| `READ FILES`, `WRITE FILES`, `CREATE EXTERNAL TABLE` | target's External Location | write Parquet + Delta commits directly to the bucket |
+
+```sql
+GRANT USE CATALOG ON CATALOG aidbox_export                TO `<sp-client-id>`;
+GRANT USE SCHEMA  ON SCHEMA  aidbox_export.fhir           TO `<sp-client-id>`;
+GRANT SELECT, MODIFY ON TABLE aidbox_export.fhir.patients TO `<sp-client-id>`;
+GRANT EXTERNAL USE SCHEMA ON SCHEMA aidbox_export.fhir    TO `<sp-client-id>`;
+GRANT READ FILES, WRITE FILES, CREATE EXTERNAL TABLE
+  ON EXTERNAL LOCATION `<target-external-location>`       TO `<sp-client-id>`;
 ```
 
 {% hint style="warning" %}
 `EXTERNAL USE SCHEMA` is **only grantable on external schemas** (where the schema's tables sit at an external location). UC managed schemas refuse this grant by design — managed tables can't be vended.
 {% endhint %}
+{% endtab %}
+{% endtabs %}
 
-The External-Location-related grants land in step 1f below alongside the staging-location setup.
+External-Location provisioning + Storage Credential setup live in step 1f below.
 
 #### 1f. (Optional, `managed-zerobus` / `managed-sql` only) Staging location for initial export
 
-If you plan to use `skipInitialExport=false` (the default), you also need a UC **External Location** for the staging Delta table the module writes to during bulk export. Both `managed-zerobus` and `managed-sql` go through the same staging path during initial bulk; `external-direct` writes the bulk straight to the target.
+If you plan to use `skipInitialExport=false` (the default), you also need a UC **External Location** for the staging Delta table the module writes to during bulk export. Both `managed-zerobus` and `managed-sql` go through the same staging path during initial bulk; `external-direct` writes the bulk straight to the target instead and skips this step.
 
 1. Provision an S3 bucket (or GCS / ADLS prefix) you control. Example: `s3://my-aidbox-staging/`.
 2. Configure a **Storage Credential** in Databricks (Data → External Data → Credentials). For S3 this is an IAM role with trust policy granting Databricks AWS account access; follow [Databricks docs on storage credentials](https://docs.databricks.com/en/connect/unity-catalog/storage-credentials.html).
-3. Create the **External Location** in Databricks (Data → External Data → External Locations) pointing at the bucket path with the Storage Credential.
-4. Grant the SP read/write on the External Location plus `EXTERNAL USE SCHEMA` on the target schema (because the staging table is created as an external table under it):
+3. Create the **External Location** in Databricks (Data → External Data → External Locations) pointing at the bucket path with the Storage Credential. The location's name is what you reference as `<staging-external-location>` in the grants in step 1e.
 
-   ```sql
-   GRANT READ FILES, WRITE FILES, CREATE EXTERNAL TABLE
-     ON EXTERNAL LOCATION `<external-location-name>` TO `<sp-client-id>`;
-   GRANT EXTERNAL USE SCHEMA ON SCHEMA aidbox_export.fhir TO `<sp-client-id>`;
-   ```
+The SP grants for the staging External Location are already covered in the `managed-zerobus` / `managed-sql` tabs of step 1e.
 
 #### 1g. (Optional) Store the SP secret in vault
 
