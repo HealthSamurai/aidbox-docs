@@ -633,7 +633,30 @@ aws iam get-role --role-name aidbox-staging-role \
 
 ![Create a new credential](../../../assets/data-lakehouse-storage-credential-form.avif)
 
-**Finish the trust policy with the real External ID.** Databricks generates the credential's `external_id` server-side when you click Save above — you can't know the value before this point, so the trust policy you just applied still has `<EXTERNAL_ID>` as a literal placeholder. Open the credential's detail page in Databricks, copy the **External ID** field, replace `<EXTERNAL_ID>` in your existing `trust-policy.json` with that value, then re-run:
+**Patch the trust policy with the External ID Databricks just generated.** The credential's detail page now shows an **External ID** field (a UUID like `5b5987f0-0ebe-4dbf-a010-45a1f3f6cb75`). Copy it. Edit `trust-policy.json`, replace `<EXTERNAL_ID>` with the value, so the file looks like:
+
+{% code overflow="wrap" %}
+```json
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Principal": {
+        "AWS": [
+          "arn:aws:iam::414351767826:role/unity-catalog-prod-UCMasterRole-14S5ZJVKOTYTL",
+          "arn:aws:iam::<YOUR_AWS_ACCOUNT_ID>:role/aidbox-staging-role"
+        ]
+      },
+      "Action": "sts:AssumeRole",
+      "Condition": { "StringEquals": { "sts:ExternalId": "5b5987f0-0ebe-4dbf-a010-45a1f3f6cb75" } }
+    }
+  ]
+}
+```
+{% endcode %}
+
+Then push the updated trust policy:
 
 ```sh
 aws iam update-assume-role-policy \
