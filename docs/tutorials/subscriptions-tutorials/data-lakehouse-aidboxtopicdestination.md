@@ -672,7 +672,7 @@ CREATE EXTERNAL LOCATION aidbox_staging_loc
   WITH (STORAGE CREDENTIAL aidbox_staging_cred);
 ```
 
-Then click **Test connection** on the External Location page in Databricks — it runs a list + put + delete probe. Green means the IAM trust + permission policies are correct.
+`CREATE EXTERNAL LOCATION` itself runs a list + put + delete probe against the bucket as part of the command. If it returned without an error, the IAM trust + permission policies are correct. If it fails with `PERMISSION_DENIED` / 403, the External ID round-trip above almost certainly hasn't propagated yet — wait \~10 s and retry, or confirm the External ID in `trust-policy.json` matches the one shown on the credential's detail page.
 
 </details>
 
