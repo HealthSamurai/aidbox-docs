@@ -8,7 +8,7 @@ description: Export FHIR resources to a Data Lakehouse — Databricks Unity Cata
 This functionality is available starting from Aidbox version **2605**.
 {% endhint %}
 
-## Background: the stack you'll be using
+## Background
 
 "Data Lakehouse" is the generic name for the destination category — a hybrid of object-storage data lake and warehouse, implemented here on top of the Delta Lake table format. Concretely the module writes Delta-formatted tables that can live on plain cloud object storage you own, or in Databricks Unity Catalog managed storage; either way the destination kind is the same (`data-lakehouse-at-least-once`).
 
@@ -54,16 +54,16 @@ Unity Catalog tables come in two flavours:
 | Storage location               | Databricks-managed cloud storage (path picked by UC)                 | Your bucket — declared with `LOCATION 's3://...' / 'gs://...' / 'abfss://...'` at `CREATE TABLE` |
 | Who owns the files             | Unity Catalog — manages read, write, storage, and optimization       | You — UC manages metadata only                                        |
 | `DROP TABLE`                   | Deletes the data                                                     | Drops metadata only — files stay in your bucket                       |
-| Sanctioned write paths from Aidbox | **Zerobus REST ingest** (Aidbox `managed-zerobus`), or **SQL warehouse INSERT** (Aidbox `managed-sql`) | **Direct Parquet + Delta commit** via STS-vended UC creds (Aidbox `external-direct`) |
+| Supported write paths from Aidbox | **Zerobus REST ingest** (Aidbox `managed-zerobus`), or **SQL warehouse INSERT** (Aidbox `managed-sql`) | **Direct Parquet + Delta commit** via STS-vended UC creds (Aidbox `external-direct`) |
 | External STS credential vending| Not available for managed targets (`EXTERNAL USE SCHEMA` is only grantable on external schemas) | Allowed if the principal has `EXTERNAL USE SCHEMA` on the schema      |
 | Predictive Optimization        | Enabled by default for accounts created on or after **2024-11-11**; runs `OPTIMIZE` / `VACUUM` / `ANALYZE` automatically. Billed under the **Jobs Serverless** SKU. | **Not supported** — Predictive Optimization runs only on managed tables |
 | Liquid Clustering              | Opt-in per table (automatic liquid clustering requires Predictive Optimization and is also opt-in) | Opt-in per table                                                      |
 
-The "Sanctioned write paths" row drives the module's three `writeMode` values — see [Overview](#overview) for the resulting write paths.
+The "Supported write paths" row drives the module's three `writeMode` values — see [Overview](#overview) for the resulting write paths.
 
 ## Overview
 
-The Data Lakehouse Topic Destination module exports FHIR resources from Aidbox to a Delta Lake table in a flattened format using [ViewDefinitions](../../modules/sql-on-fhir/defining-flat-views-with-view-definitions.md) (SQL-on-FHIR).
+The module exports FHIR resources from Aidbox to a Delta Lake table in a flattened format using [ViewDefinitions](../../modules/sql-on-fhir/defining-flat-views-with-view-definitions.md) (SQL-on-FHIR).
 
 ```mermaid
 graph LR
@@ -135,7 +135,7 @@ graph LR
 ```
 
 - Each batch becomes a single `INSERT INTO managed (cols) VALUES (...)` statement sent to a Databricks SQL warehouse. The warehouse writes the Delta files (Parquet + a transaction-log commit) under the managed table.
-- Initial bulk export uses a one-shot staging Delta table under `stagingTablePath` because Databricks-managed tables refuse direct writes from outside Databricks compute. See [Initial Export](#how-it-works-managed-modes) for the staging diagram.
+- Initial bulk export uses a one-shot staging Delta table under `stagingTablePath` because Databricks-managed tables refuse direct writes from outside Databricks compute. See [Initial export](#how-it-works-managed-modes) for the staging diagram.
 
 ### external-direct mode
 
@@ -156,53 +156,6 @@ graph LR
 - The module writes Delta files straight to your bucket from the Aidbox process. No SQL warehouse involved.
 - Storage backends supported: AWS S3, Google Cloud Storage, Azure ADLS Gen2.
 - No Databricks compute is involved in the write path — you pay only for the bucket. Because Databricks doesn't own the files, you're responsible for the maintenance Databricks would otherwise run automatically: schedule `OPTIMIZE` (file compaction) and `VACUUM` (cleanup of stale Parquet referenced by no commit) yourself. See [Compaction and maintenance](#compaction-and-maintenance).
-
-## Output semantics
-
-How writes show up in your Delta table, and how to query the result.
-
-### Append-only
-
-Every change to a FHIR resource is written as a **new row** — there are no in-place UPDATEs or DELETEs:
-
-- **Create** → new row with `is_deleted = 0`
-- **Update** → new row with `is_deleted = 0` (old row remains)
-- **Delete** → new row with `is_deleted = 1`
-
-Example — a single patient created, updated twice, then deleted produces four rows with the same `id`:
-
-| `id` | `ts` (`meta.lastUpdated`) | `gender` | `family_name` | `is_deleted` |
-|------|-----|---------|--------|---|
-| `p-1` | `2026-04-01T10:00:00Z` | `male`   | `Smith`        | `0` |
-| `p-1` | `2026-04-02T08:00:00Z` | `male`   | `Smith-Jones`  | `0` |
-| `p-1` | `2026-04-03T14:00:00Z` | `other`  | `Smith-Jones`  | `0` |
-| `p-1` | `2026-04-04T09:00:00Z` | `other`  | `Smith-Jones`  | `1` |
-
-Use [the read-time projection below](#reading-current-state-out-of-the-append-only-history) to collapse history to "latest row per id, excluding deleted".
-
-### At-least-once delivery
-
-Messages are persisted in a PostgreSQL queue before being sent. If delivery fails, the message stays in the queue and is retried on the next batch cycle. The three modes differ in what happens during a crash-between-commit-and-ack — the narrow window where the write landed in storage but the sender died before marking the queue entry as delivered:
-
-- **`managed-zerobus`** — initial export is idempotent (`MERGE INTO managed USING staging ON id` no-ops on replay). Live per-batch writes are at-least-once: Zerobus has server-side offset dedup, but on Aidbox queue replay after a sender crash the SDK allocates a fresh offset, which Zerobus treats as a new record.
-- **`managed-sql`** — initial export is idempotent (same MERGE pattern as `managed-zerobus`). Live per-batch writes can produce duplicates. The per-batch INSERT route to the SQL warehouse can't carry a transaction id, so a replayed batch becomes a second INSERT and a duplicate row.
-- **`external-direct`** — restart-safe-idempotent for both live writes and initial export. Every Delta commit carries a stable transaction id; a replay lands on the same id and Delta silently skips it.
-
-### Querying the table
-
-Because every change is written as a new row (and `managed-*` modes can deliver duplicates on crash-replay), querying the table directly returns full history plus possible dupes. Most analytics workloads (cohort builds, longitudinal queries, time-windowed aggregates) want exactly this — full event history is the point.
-
-If your query needs "latest state per resource", one common SQL pattern is window-function dedup. Add a timestamp column to your ViewDefinition (e.g. `meta.lastUpdated` as `ts`) and:
-
-```sql
-SELECT * EXCEPT(rn) FROM (
-  SELECT *, ROW_NUMBER() OVER (PARTITION BY id ORDER BY ts DESC) AS rn
-  FROM aidbox_export.fhir.patients
-)
-WHERE rn = 1 AND is_deleted = 0;
-```
-
-This is one example, not the only approach — wrap it in a Databricks SQL view if used frequently, or skip it entirely if your queries already aggregate over history.
 
 ## Choosing between the three modes
 
@@ -233,7 +186,7 @@ The bearer is sent on every Databricks call. What differs between modes is which
 | `managed-sql`               | only during initial-export (staging vending)  | every batch (`INSERT` / `ALTER` / `DESCRIBE`) | —                          | SQL warehouse compute                 |
 | `external-direct`           | every cred-refresh (~45 min)                  | none                                       | —                          | sender process, with UC-vended STS    |
 
-In `external-direct` you can also skip Databricks entirely and authenticate against the bucket with static AWS keys (`awsAccessKeyId` + `awsSecretAccessKey`) or the [AWS default provider chain](https://docs.aws.amazon.com/sdk-for-java/latest/developer-guide/credentials-chain.html). Set up of the SP and grants is part of [Step 1](#step-1-set-up-databricks-side).
+In `external-direct` you can also skip Databricks entirely and authenticate against the bucket with static AWS keys (`awsAccessKeyId` + `awsSecretAccessKey`) or the [AWS default provider chain](https://docs.aws.amazon.com/sdk-for-java/latest/developer-guide/credentials-chain.html). The service principal and the grants it needs are created in [Step 1](#step-1-set-up-databricks-side).
 
 ## Installation
 
@@ -471,6 +424,53 @@ Pick **one** of: UC credential vending, static AWS keys, or default AWS provider
 </details>
 {% endtab %}
 {% endtabs %}
+
+## Output semantics
+
+How writes show up in your Delta table, and how to query the result.
+
+### Append-only
+
+Every change to a FHIR resource is written as a **new row** — there are no in-place UPDATEs or DELETEs:
+
+- **Create** → new row with `is_deleted = 0`
+- **Update** → new row with `is_deleted = 0` (old row remains)
+- **Delete** → new row with `is_deleted = 1`
+
+Example — a single patient created, updated twice, then deleted produces four rows with the same `id`:
+
+| `id` | `ts` (`meta.lastUpdated`) | `gender` | `family_name` | `is_deleted` |
+|------|-----|---------|--------|---|
+| `p-1` | `2026-04-01T10:00:00Z` | `male`   | `Smith`        | `0` |
+| `p-1` | `2026-04-02T08:00:00Z` | `male`   | `Smith-Jones`  | `0` |
+| `p-1` | `2026-04-03T14:00:00Z` | `other`  | `Smith-Jones`  | `0` |
+| `p-1` | `2026-04-04T09:00:00Z` | `other`  | `Smith-Jones`  | `1` |
+
+Use [the read-time projection below](#querying-the-table) to collapse history to "latest row per id, excluding deleted".
+
+### At-least-once delivery
+
+Messages are persisted in a PostgreSQL queue before being sent. If delivery fails, the message stays in the queue and is retried on the next batch cycle. The three modes differ in what happens during a crash-between-commit-and-ack — the narrow window where the write landed in storage but the sender died before marking the queue entry as delivered:
+
+- **`managed-zerobus`** — initial export is idempotent (`MERGE INTO managed USING staging ON id` no-ops on replay). Live per-batch writes are at-least-once: the REST insert endpoint has no offset/transaction-id concept, so a replayed POST after a sender crash re-inserts the same rows.
+- **`managed-sql`** — initial export is idempotent (same MERGE pattern as `managed-zerobus`). Live per-batch writes can produce duplicates. The per-batch INSERT route to the SQL warehouse can't carry a transaction id, so a replayed batch becomes a second INSERT and a duplicate row.
+- **`external-direct`** — restart-safe-idempotent for both live writes and initial export. Every Delta commit carries a stable transaction id; a replay lands on the same id and Delta silently skips it.
+
+### Querying the table
+
+Because every change is written as a new row (and `managed-*` modes can deliver duplicates on crash-replay), querying the table directly returns full history plus possible dupes. Most analytics workloads (cohort builds, longitudinal queries, time-windowed aggregates) want exactly this — full event history is the point.
+
+If your query needs "latest state per resource", one common SQL pattern is window-function dedup. Add a timestamp column to your ViewDefinition (e.g. `meta.lastUpdated` as `ts`) and:
+
+```sql
+SELECT * EXCEPT(rn) FROM (
+  SELECT *, ROW_NUMBER() OVER (PARTITION BY id ORDER BY ts DESC) AS rn
+  FROM aidbox_export.fhir.patients
+)
+WHERE rn = 1 AND is_deleted = 0;
+```
+
+This is one example, not the only approach — wrap it in a Databricks SQL view if used frequently, or skip it entirely if your queries already aggregate over history.
 
 ## Usage example: patient data export
 
