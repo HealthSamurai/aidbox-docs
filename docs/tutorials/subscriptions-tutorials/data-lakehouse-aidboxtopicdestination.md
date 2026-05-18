@@ -629,7 +629,7 @@ aws iam get-role --role-name aidbox-staging-role \
 
 (If you re-run this after a typo and `create-role` fails with `EntityAlreadyExists`, swap that first command for `aws iam update-assume-role-policy --role-name aidbox-staging-role --policy-document file://trust-policy.json`. `put-role-policy` is already idempotent.)
 
-**Register the Storage Credential in Databricks.** **Catalog → External Data → Credentials**, click **Create → AWS IAM role**. Pick a credential name (anything — e.g. `aidbox-staging-cred`; this is a Databricks-side label for the credential object, unrelated to the service principal name). Paste the IAM role ARN from above into the **IAM role (ARN)** field. Save.
+**Register the Storage Credential in Databricks.** **Catalog → External Data → Credentials**, click **Create → AWS IAM role**. Pick a credential name — use underscores, e.g. `aidbox_staging_cred` (this is a Databricks-side label, unrelated to the service principal name; SQL identifiers can't contain hyphens without backtick-quoting, so the name you pick here must match the `STORAGE CREDENTIAL <name>` clause below verbatim). Paste the IAM role ARN from above into the **IAM role (ARN)** field. Save.
 
 ![Create a new credential](../../../assets/data-lakehouse-storage-credential-form.avif)
 
