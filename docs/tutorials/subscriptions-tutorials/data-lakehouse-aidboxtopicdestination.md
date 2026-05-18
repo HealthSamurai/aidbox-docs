@@ -631,7 +631,7 @@ Otherwise, in your cloud account first:
 
    3. **Register the Storage Credential in Databricks.** **Catalog → External Data → Credentials**, click **Create → AWS IAM role**. Pick a credential name (anything — e.g. `aidbox-staging-cred`; this is a Databricks-side label for the credential object, unrelated to the service principal name). Paste the IAM role ARN from step 2 into the **IAM role (ARN)** field. Save.
 
-      ![Create a new credential](../../../assets/data-lakehouse-storage-credential-form.png)
+      ![Create a new credential](../../../assets/data-lakehouse-storage-credential-form.avif)
 
       After saving, the credential's detail page shows the auto-generated **External ID**. Plug it into `trust-policy.json` (replace `<EXTERNAL_ID>`) and re-apply:
 
