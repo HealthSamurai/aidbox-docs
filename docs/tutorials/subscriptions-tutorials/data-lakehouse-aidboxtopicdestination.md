@@ -529,22 +529,14 @@ In both `managed-*` modes the module **automatically issues `ALTER TABLE ADD COL
 
 #### 1c. SQL warehouse
 
-Compute → SQL Warehouses → use an existing warehouse or create a new one. Copy the **Warehouse ID** — you'll use it as `databricksWarehouseId`. Stash it in your shell for the grants in 1f:
-
-```sh
-export WAREHOUSE_ID=<paste-the-warehouse-id>
-```
+Compute → SQL Warehouses → use an existing warehouse or create a new one. Copy the **Warehouse ID** — you'll use it as `databricksWarehouseId`.
 
 #### 1d. Service principal
 
 1. In your Databricks workspace, go to **Settings → Identity and access → Service principals → Add service principal**.
 2. Give it a name (e.g. `aidbox-topic-destination`) and create.
 3. Click the new SP, open the **Secrets** tab, click **Generate secret**.
-4. Copy the **Client ID** and **Secret** — you'll use these as `databricksClientId` / `databricksClientSecret`. Stash the Client ID in your shell:
-
-```sh
-export SP_CLIENT_ID=<paste-the-client-id>
-```
+4. Copy the **Client ID** and **Secret** — you'll use these as `databricksClientId` / `databricksClientSecret`.
 
 #### 1e. (Skip if you don't need an initial bulk copy of existing data) Staging location
 
@@ -682,17 +674,11 @@ CREATE EXTERNAL LOCATION aidbox_staging_loc
 
 `CREATE EXTERNAL LOCATION` itself runs a list + put + delete probe against the bucket as part of the command. If it returned without an error, the IAM trust + permission policies are correct. If it fails with `PERMISSION_DENIED` / 403, the External ID round-trip above almost certainly hasn't propagated yet — wait \~10 s and retry, or confirm the External ID in `trust-policy.json` matches the one shown on the credential's detail page.
 
-Stash the location name in your shell:
-
-```sh
-export STAGING_EXTERNAL_LOCATION=aidbox_staging_loc
-```
-
 </details>
 
 #### 1f. Grant the service principal
 
-Grant only the set that matches the `writeMode` you'll use. The blocks below reference `${SP_CLIENT_ID}`, `${WAREHOUSE_ID}`, `${STAGING_EXTERNAL_LOCATION}` and (for `external-direct`) `${TARGET_EXTERNAL_LOCATION}` — these are the shell variables you exported in steps 1c–1e. Pipe the SQL through `envsubst` to substitute them, or paste the literal values into the Databricks SQL editor. For `external-direct`, the target External Location is the one you registered around your target table's bucket prefix — give it a name like `aidbox_patients_loc` and export it now: `export TARGET_EXTERNAL_LOCATION=aidbox_patients_loc`.
+Grant only the set that matches the `writeMode` you'll use. Substitute `<sp-client-id>` with the service principal Client ID from step 1d, and the External Location name with whatever you picked in step 1e (or registered around the target bucket for `external-direct`).
 
 {% tabs %}
 {% tab title="managed-zerobus" %}
@@ -706,13 +692,13 @@ Grant only the set that matches the `writeMode` you'll use. The blocks below ref
 | `READ FILES`, `WRITE FILES`, `CREATE EXTERNAL TABLE` | staging External Location | write the bulk Parquet via Unity-Catalog-vended STS (initial-export only) |
 
 ```sql
-GRANT USE CATALOG ON CATALOG aidbox_export                TO `${SP_CLIENT_ID}`;
-GRANT USE SCHEMA  ON SCHEMA  aidbox_export.fhir           TO `${SP_CLIENT_ID}`;
-GRANT SELECT, MODIFY ON TABLE aidbox_export.fhir.patients TO `${SP_CLIENT_ID}`;
+GRANT USE CATALOG ON CATALOG aidbox_export                TO `<sp-client-id>`;
+GRANT USE SCHEMA  ON SCHEMA  aidbox_export.fhir           TO `<sp-client-id>`;
+GRANT SELECT, MODIFY ON TABLE aidbox_export.fhir.patients TO `<sp-client-id>`;
 -- initial-export only:
-GRANT EXTERNAL USE SCHEMA ON SCHEMA aidbox_export.fhir    TO `${SP_CLIENT_ID}`;
+GRANT EXTERNAL USE SCHEMA ON SCHEMA aidbox_export.fhir    TO `<sp-client-id>`;
 GRANT READ FILES, WRITE FILES, CREATE EXTERNAL TABLE
-  ON EXTERNAL LOCATION `${STAGING_EXTERNAL_LOCATION}`     TO `${SP_CLIENT_ID}`;
+  ON EXTERNAL LOCATION `aidbox_staging_loc`               TO `<sp-client-id>`;
 ```
 
 Warehouse permissions are **not grantable in SQL** — there's no `GRANT … ON WAREHOUSE` syntax. Do it through the UI: **SQL Warehouses → your warehouse → Permissions (top right) → Add principal → pick the service principal → Can use**.
@@ -729,13 +715,13 @@ Warehouse permissions are **not grantable in SQL** — there's no `GRANT … ON 
 | `READ FILES`, `WRITE FILES`, `CREATE EXTERNAL TABLE` | staging External Location | write the bulk Parquet via Unity-Catalog-vended STS (initial-export only) |
 
 ```sql
-GRANT USE CATALOG ON CATALOG aidbox_export                TO `${SP_CLIENT_ID}`;
-GRANT USE SCHEMA  ON SCHEMA  aidbox_export.fhir           TO `${SP_CLIENT_ID}`;
-GRANT SELECT, MODIFY ON TABLE aidbox_export.fhir.patients TO `${SP_CLIENT_ID}`;
+GRANT USE CATALOG ON CATALOG aidbox_export                TO `<sp-client-id>`;
+GRANT USE SCHEMA  ON SCHEMA  aidbox_export.fhir           TO `<sp-client-id>`;
+GRANT SELECT, MODIFY ON TABLE aidbox_export.fhir.patients TO `<sp-client-id>`;
 -- initial-export only:
-GRANT EXTERNAL USE SCHEMA ON SCHEMA aidbox_export.fhir    TO `${SP_CLIENT_ID}`;
+GRANT EXTERNAL USE SCHEMA ON SCHEMA aidbox_export.fhir    TO `<sp-client-id>`;
 GRANT READ FILES, WRITE FILES, CREATE EXTERNAL TABLE
-  ON EXTERNAL LOCATION `${STAGING_EXTERNAL_LOCATION}`     TO `${SP_CLIENT_ID}`;
+  ON EXTERNAL LOCATION `aidbox_staging_loc`               TO `<sp-client-id>`;
 ```
 
 Warehouse permissions are **not grantable in SQL** — there's no `GRANT … ON WAREHOUSE` syntax. Do it through the UI: **SQL Warehouses → your warehouse → Permissions (top right) → Add principal → pick the service principal → Can use**.
@@ -751,12 +737,12 @@ Warehouse permissions are **not grantable in SQL** — there's no `GRANT … ON 
 | `READ FILES`, `WRITE FILES`, `CREATE EXTERNAL TABLE` | target's External Location | write Parquet + Delta commits directly to the bucket |
 
 ```sql
-GRANT USE CATALOG ON CATALOG aidbox_export                TO `${SP_CLIENT_ID}`;
-GRANT USE SCHEMA  ON SCHEMA  aidbox_export.fhir           TO `${SP_CLIENT_ID}`;
-GRANT SELECT, MODIFY ON TABLE aidbox_export.fhir.patients TO `${SP_CLIENT_ID}`;
-GRANT EXTERNAL USE SCHEMA ON SCHEMA aidbox_export.fhir    TO `${SP_CLIENT_ID}`;
+GRANT USE CATALOG ON CATALOG aidbox_export                TO `<sp-client-id>`;
+GRANT USE SCHEMA  ON SCHEMA  aidbox_export.fhir           TO `<sp-client-id>`;
+GRANT SELECT, MODIFY ON TABLE aidbox_export.fhir.patients TO `<sp-client-id>`;
+GRANT EXTERNAL USE SCHEMA ON SCHEMA aidbox_export.fhir    TO `<sp-client-id>`;
 GRANT READ FILES, WRITE FILES, CREATE EXTERNAL TABLE
-  ON EXTERNAL LOCATION `${TARGET_EXTERNAL_LOCATION}`      TO `${SP_CLIENT_ID}`;
+  ON EXTERNAL LOCATION `<target-external-location>`       TO `<sp-client-id>`;
 ```
 
 {% hint style="warning" %}
