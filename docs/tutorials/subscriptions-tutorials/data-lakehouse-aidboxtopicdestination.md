@@ -563,8 +563,9 @@ aws s3api create-bucket --bucket <your-bucket-name> --region us-east-1
 - `<YOUR_AWS_ACCOUNT_ID>` is yours. `aws sts get-caller-identity --query Account --output text`.
 - `<EXTERNAL_ID>` is a placeholder. Databricks generates the real value when you create the Storage Credential below; you'll come back once to plug it in.
 
-Save as `trust-policy.json`:
+Save as `trust-policy.json` (`<YOUR_AWS_ACCOUNT_ID>` is a 12-digit number — make sure not to drop a digit when pasting):
 
+{% code overflow="wrap" %}
 ```json
 {
   "Version": "2012-10-17",
@@ -583,9 +584,11 @@ Save as `trust-policy.json`:
   ]
 }
 ```
+{% endcode %}
 
 Save as `s3-access.json` (inline permissions policy scoping the role to your bucket):
 
+{% code overflow="wrap" %}
 ```json
 {
   "Version": "2012-10-17",
@@ -605,6 +608,7 @@ Save as `s3-access.json` (inline permissions policy scoping the role to your buc
   ]
 }
 ```
+{% endcode %}
 
 Apply (AWS Console: IAM → Roles → Create role; or CLI):
 
