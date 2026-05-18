@@ -8,10 +8,6 @@ description: Export FHIR resources to a Data Lakehouse — Databricks Unity Cata
 This functionality is available starting from Aidbox version **2605**.
 {% endhint %}
 
-{% hint style="success" %}
-**In a hurry?** Jump straight to [Usage Example: Patient Data Export](#usage-example-patient-data-export) for the end-to-end setup walkthrough (Topic + ViewDefinition + Databricks side + destination).
-{% endhint %}
-
 ## Background: the stack you'll be using
 
 "Data Lakehouse" is the generic name for the destination category — a hybrid of object-storage data lake and warehouse, implemented here on top of the Delta Lake table format. Concretely the module writes Delta-formatted tables that can live on plain cloud object storage you own, or in Databricks Unity Catalog managed storage; either way the destination kind is the same (`data-lakehouse-at-least-once`).
@@ -22,8 +18,8 @@ If you're already comfortable with Databricks, Unity Catalog, and Delta Lake, sk
 
 [Databricks](https://www.databricks.com/) is a managed analytics platform. For this tutorial you only need to think of it as **three things bundled together**:
 
-1. **Unity Catalog (UC)** — the metadata + governance layer. UC knows about every catalog, schema, table, column, and grant in your workspace. It also issues short-lived cloud-storage credentials on demand ("vending") so external clients can write data without being given long-lived bucket keys.
-2. **SQL warehouse** — a compute cluster that runs SQL queries against tables in your Unity Catalog. Usually you query it from the Databricks UI's SQL Editor; the module can drive it programmatically over an API.
+1. **[Unity Catalog (UC)](https://docs.databricks.com/aws/en/data-governance/unity-catalog/)** — the metadata + governance layer. UC knows about every catalog, schema, table, column, and grant in your workspace. It also issues short-lived cloud-storage credentials on demand ("vending") so external clients can write data without being given long-lived bucket keys.
+2. **[SQL warehouse](https://docs.databricks.com/aws/en/compute/sql-warehouse/)** — a compute cluster that runs SQL queries against tables in your Unity Catalog. Usually you query it from the Databricks UI's SQL Editor; the module can drive it programmatically over an API.
 3. **[Zerobus Ingest](https://docs.databricks.com/aws/en/ingestion/zerobus-overview)** — a push-based ingestion API that writes data directly into Unity Catalog Delta tables. Designed for high-throughput, low-overhead row ingestion: clients open a stream, push records, and Zerobus durably commits them with per-stream ordering guarantees.
 
 ### Data lakehouse, and Delta Lake as its implementation
@@ -102,9 +98,9 @@ The module may also perform an initial export of pre-existing resources at first
 
 The module supports three **write modes**, picked per-destination via the `writeMode` parameter (see the [Configuration](#configuration) section below for the full parameter list).
 
-### `writeMode: managed-zerobus` (default)
+### managed-zerobus mode (default)
 
-Targets a **Databricks Unity Catalog managed table** via the Zerobus gRPC streaming-ingest service.
+`writeMode=managed-zerobus` targets a **Databricks Unity Catalog managed table** via the Zerobus gRPC streaming-ingest service.
 
 ```mermaid
 graph LR
@@ -122,9 +118,9 @@ graph LR
 - Initial bulk export still uses a one-shot staging Delta table under `stagingTablePath` (Zerobus is append-only stream ingest, designed for incremental row writes, not bulk loads). The bulk merge is the same `MERGE INTO managed USING staging` pattern as `managed-sql`. This staging table is a plain external Delta table the module drops after the merge — not a Databricks [temporary table](https://docs.databricks.com/aws/en/tables/temporary-tables).
 - Schema sync at sender bootstrap still uses a SQL warehouse (one-shot `INFORMATION_SCHEMA.COLUMNS` describe + optional `ALTER TABLE`) — the warehouse is required but only used at boot, not on every batch.
 
-### `writeMode: managed-sql`
+### managed-sql mode
 
-Same target as `managed-zerobus` (UC **managed** table), but routes the hot path through a Databricks SQL warehouse. Use this when Zerobus isn't available on your Databricks SKU.
+`writeMode=managed-sql` — same target as `managed-zerobus` (UC **managed** table), but routes incoming batches through a Databricks SQL warehouse. Use this when Zerobus isn't available on your Databricks SKU.
 
 ```mermaid
 graph LR
@@ -141,9 +137,9 @@ graph LR
 - Each batch becomes a single `INSERT INTO managed (cols) VALUES (...)` statement sent to a Databricks SQL warehouse. The warehouse writes the Delta files (Parquet + a transaction-log commit) under the managed table.
 - Initial bulk export uses a one-shot staging Delta table under `stagingTablePath` because Databricks-managed tables refuse direct writes from outside Databricks compute. See [Initial Export](#how-it-works-managed-modes) for the staging diagram.
 
-### `writeMode: external-direct`
+### external-direct mode
 
-Targets a **non-managed external Delta table** that you own.
+`writeMode=external-direct` targets a **non-managed external Delta table** that you own.
 
 ```mermaid
 graph LR
@@ -188,13 +184,15 @@ Use [the read-time projection below](#reading-current-state-out-of-the-append-on
 
 Messages are persisted in a PostgreSQL queue before being sent. If delivery fails, the message stays in the queue and is retried on the next batch cycle. The three modes differ in what happens during a crash-between-commit-and-ack — the narrow window where the write landed in storage but the sender died before marking the queue entry as delivered:
 
-- **`managed-zerobus`** — initial export is idempotent (`MERGE INTO managed USING staging ON id` no-ops on replay). The **hot path** is at-least-once: Zerobus has server-side offset dedup, but on Aidbox queue replay after a sender crash the SDK allocates a fresh offset, which Zerobus treats as a new record.
-- **`managed-sql`** — initial export is idempotent (same MERGE pattern as `managed-zerobus`). The **hot path** can produce duplicates. The per-batch INSERT route to the SQL warehouse can't carry a transaction id, so a replayed batch becomes a second INSERT and a duplicate row.
-- **`external-direct`** — restart-safe-idempotent for both hot path and initial export. Every Delta commit carries a stable transaction id; a replay lands on the same id and Delta silently skips it.
+- **`managed-zerobus`** — initial export is idempotent (`MERGE INTO managed USING staging ON id` no-ops on replay). Live per-batch writes are at-least-once: Zerobus has server-side offset dedup, but on Aidbox queue replay after a sender crash the SDK allocates a fresh offset, which Zerobus treats as a new record.
+- **`managed-sql`** — initial export is idempotent (same MERGE pattern as `managed-zerobus`). Live per-batch writes can produce duplicates. The per-batch INSERT route to the SQL warehouse can't carry a transaction id, so a replayed batch becomes a second INSERT and a duplicate row.
+- **`external-direct`** — restart-safe-idempotent for both live writes and initial export. Every Delta commit carries a stable transaction id; a replay lands on the same id and Delta silently skips it.
 
-### Reading "current state" out of the append-only history
+### Querying the table
 
-Because every change is written as a new row (and `managed-*` modes can deliver duplicates on crash-replay), querying the table directly gives you all historical versions plus possible dupes. To project the table down to one row per resource id — i.e. "the latest state of each resource, with deletes excluded" — add a timestamp column to your ViewDefinition (e.g. `meta.lastUpdated` as `ts`) and select via a window function:
+Because every change is written as a new row (and `managed-*` modes can deliver duplicates on crash-replay), querying the table directly returns full history plus possible dupes. Most analytics workloads (cohort builds, longitudinal queries, time-windowed aggregates) want exactly this — full event history is the point.
+
+If your query needs "latest state per resource", one common SQL pattern is window-function dedup. Add a timestamp column to your ViewDefinition (e.g. `meta.lastUpdated` as `ts`) and:
 
 ```sql
 SELECT * EXCEPT(rn) FROM (
@@ -203,6 +201,8 @@ SELECT * EXCEPT(rn) FROM (
 )
 WHERE rn = 1 AND is_deleted = 0;
 ```
+
+This is one example, not the only approach — wrap it in a Databricks SQL view if used frequently, or skip it entirely if your queries already aggregate over history.
 
 ## Choosing between the three modes
 
@@ -223,17 +223,7 @@ WHERE rn = 1 AND is_deleted = 0;
 
 ## Authentication
 
-All three modes authenticate to Databricks via **OAuth Machine-to-Machine (M2M)** with a service principal.
-
-```mermaid
-sequenceDiagram
-    participant S as Aidbox sender
-    participant T as Databricks token endpoint
-
-    S->>T: client_id + client_secret
-    T-->>S: bearer token (~1h TTL)
-    Note over S: cached; refreshed when <5 min remain
-```
+All three modes authenticate to Databricks via [**OAuth Machine-to-Machine (M2M)**](https://docs.databricks.com/aws/en/dev-tools/auth/oauth-m2m) with a service principal: the module exchanges `client_id` + `client_secret` at the workspace token endpoint for a ~1h bearer token, caches it, and re-issues a fresh one when fewer than 5 minutes remain.
 
 The bearer is sent on every Databricks call. What differs between modes is which Databricks surfaces see it:
 
@@ -245,7 +235,7 @@ The bearer is sent on every Databricks call. What differs between modes is which
 
 In `external-direct` you can also skip Databricks entirely and authenticate against the bucket with static AWS keys (`awsAccessKeyId` + `awsSecretAccessKey`) or the [AWS default provider chain](https://docs.aws.amazon.com/sdk-for-java/latest/developer-guide/credentials-chain.html). Set up of the SP and grants is part of [Step 1](#step-1-set-up-databricks-side).
 
-## Before you begin
+## Prerequisites
 
 - Aidbox **2605** or newer ([install guide](../../getting-started/run-aidbox-locally.md))
 - A Databricks workspace (Free Edition works for evaluation, paid for production)
@@ -346,20 +336,25 @@ All requests in this tutorial use `Content-Type: application/json`.
 {% tab title="managed-zerobus mode (default)" %}
 **Required:**
 
-| Parameter                | Type        | Description                                                              |
-| ------------------------ | ----------- | ------------------------------------------------------------------------ |
-| `viewDefinition`         | string      | The `name` field of the ViewDefinition resource (not `id`)               |
-| `batchSize`              | unsignedInt | Rows per worker tick / batch commit                                      |
-| `sendIntervalMs`         | unsignedInt | Max time between batched commits, in ms                                  |
-| `databricksWorkspaceUrl` | string      | `https://<workspace>.cloud.databricks.com`                               |
-| `databricksWorkspaceId`  | string      | Numeric workspace ID (e.g. `1234567890123456`). Composes the Zerobus gRPC endpoint host |
-| `databricksRegion`       | string      | Workspace AWS region (e.g. `us-east-1`). Composes the Zerobus gRPC endpoint host |
-| `databricksClientId`     | string      | Service principal `client_id` for OAuth M2M                              |
-| `databricksClientSecret` | string      | Service principal `client_secret`; supports vault refs                   |
-| `tableName`              | string      | Managed table full name: `catalog.schema.table`                          |
-| `databricksWarehouseId`  | string      | SQL warehouse ID — used at bootstrap for schema sync + (if initial-export runs) the final `MERGE INTO`. No warm-warehouse traffic on the hot path. |
-| `awsRegion`              | string      | AWS region of the staging bucket                                         |
-| `stagingTablePath`       | string      | `s3://bucket/path/` for the staging Delta table created during initial export. Required when `skipInitialExport` is not `true` |
+<table>
+<thead>
+<tr><th width="230">Parameter</th><th width="110">Type</th><th>Description</th></tr>
+</thead>
+<tbody>
+<tr><td><code>viewDefinition</code></td><td>string</td><td>The <code>name</code> field of the ViewDefinition resource (not <code>id</code>)</td></tr>
+<tr><td><code>batchSize</code></td><td>unsignedInt</td><td>Rows per worker tick / batch commit</td></tr>
+<tr><td><code>sendIntervalMs</code></td><td>unsignedInt</td><td>Max time between batched commits, in ms</td></tr>
+<tr><td><code>databricksWorkspaceUrl</code></td><td>string</td><td><code>https://&lt;workspace&gt;.cloud.databricks.com</code></td></tr>
+<tr><td><code>databricksWorkspaceId</code></td><td>string</td><td>Numeric workspace ID (e.g. <code>1234567890123456</code>). Composes the Zerobus gRPC endpoint host</td></tr>
+<tr><td><code>databricksRegion</code></td><td>string</td><td>Workspace AWS region (e.g. <code>us-east-1</code>). Composes the Zerobus gRPC endpoint host</td></tr>
+<tr><td><code>databricksClientId</code></td><td>string</td><td>Service principal <code>client_id</code> for OAuth M2M</td></tr>
+<tr><td><code>databricksClientSecret</code></td><td>string</td><td>Service principal <code>client_secret</code>; supports vault refs</td></tr>
+<tr><td><code>tableName</code></td><td>string</td><td>Managed table full name: <code>catalog.schema.table</code></td></tr>
+<tr><td><code>databricksWarehouseId</code></td><td>string</td><td>SQL warehouse ID — used at bootstrap for schema sync + (if initial-export runs) the final <code>MERGE INTO</code>. No warm-warehouse traffic during live writes.</td></tr>
+<tr><td><code>awsRegion</code></td><td>string</td><td>AWS region of the staging bucket</td></tr>
+<tr><td><code>stagingTablePath</code></td><td>string</td><td><code>s3://bucket/path/</code> for the staging Delta table created during initial export. Required when <code>skipInitialExport</code> is not <code>true</code></td></tr>
+</tbody>
+</table>
 
 <details>
 
@@ -378,19 +373,24 @@ All requests in this tutorial use `Content-Type: application/json`.
 {% tab title="managed-sql mode" %}
 **Required:**
 
-| Parameter                | Type        | Description                                                              |
-| ------------------------ | ----------- | ------------------------------------------------------------------------ |
-| `writeMode`              | string      | Must be `managed-sql` (otherwise the default `managed-zerobus` path is used) |
-| `viewDefinition`         | string      | The `name` field of the ViewDefinition resource (not `id`)               |
-| `batchSize`              | unsignedInt | Rows per worker tick / batch commit                                      |
-| `sendIntervalMs`         | unsignedInt | Max time between batched commits, in ms                                  |
-| `databricksWorkspaceUrl` | string      | `https://<workspace>.cloud.databricks.com`                               |
-| `databricksClientId`     | string      | Service principal `client_id` for OAuth M2M                              |
-| `databricksClientSecret` | string      | Service principal `client_secret`; supports vault refs                   |
-| `tableName`              | string      | Managed table full name: `catalog.schema.table`                          |
-| `databricksWarehouseId`  | string      | SQL warehouse ID                                                         |
-| `awsRegion`              | string      | AWS region of the staging bucket                                         |
-| `stagingTablePath`       | string      | `s3://bucket/path/` for the staging Delta table created during initial export. Required when `skipInitialExport` is not `true` |
+<table>
+<thead>
+<tr><th width="230">Parameter</th><th width="110">Type</th><th>Description</th></tr>
+</thead>
+<tbody>
+<tr><td><code>writeMode</code></td><td>string</td><td>Must be <code>managed-sql</code> (otherwise the default <code>managed-zerobus</code> path is used)</td></tr>
+<tr><td><code>viewDefinition</code></td><td>string</td><td>The <code>name</code> field of the ViewDefinition resource (not <code>id</code>)</td></tr>
+<tr><td><code>batchSize</code></td><td>unsignedInt</td><td>Rows per worker tick / batch commit</td></tr>
+<tr><td><code>sendIntervalMs</code></td><td>unsignedInt</td><td>Max time between batched commits, in ms</td></tr>
+<tr><td><code>databricksWorkspaceUrl</code></td><td>string</td><td><code>https://&lt;workspace&gt;.cloud.databricks.com</code></td></tr>
+<tr><td><code>databricksClientId</code></td><td>string</td><td>Service principal <code>client_id</code> for OAuth M2M</td></tr>
+<tr><td><code>databricksClientSecret</code></td><td>string</td><td>Service principal <code>client_secret</code>; supports vault refs</td></tr>
+<tr><td><code>tableName</code></td><td>string</td><td>Managed table full name: <code>catalog.schema.table</code></td></tr>
+<tr><td><code>databricksWarehouseId</code></td><td>string</td><td>SQL warehouse ID</td></tr>
+<tr><td><code>awsRegion</code></td><td>string</td><td>AWS region of the staging bucket</td></tr>
+<tr><td><code>stagingTablePath</code></td><td>string</td><td><code>s3://bucket/path/</code> for the staging Delta table created during initial export. Required when <code>skipInitialExport</code> is not <code>true</code></td></tr>
+</tbody>
+</table>
 
 <details>
 
@@ -407,14 +407,19 @@ All requests in this tutorial use `Content-Type: application/json`.
 {% tab title="external-direct mode" %}
 **Required:**
 
-| Parameter                | Type        | Description                                                                            |
-| ------------------------ | ----------- | -------------------------------------------------------------------------------------- |
-| `viewDefinition`         | string      | The `name` field of the ViewDefinition resource (not `id`)                             |
-| `batchSize`              | unsignedInt | Rows per worker tick / batch commit                                                    |
-| `sendIntervalMs`         | unsignedInt | Max time between batched commits, in ms                                                |
-| `writeMode`              | string      | Must be `external-direct` (otherwise the default `managed` path is used)               |
-| `tablePath`              | string      | `s3://...` / `gs://...` / `abfss://...`. Required unless `databricksWorkspaceUrl` set (then resolved from Unity Catalog) |
-| `awsRegion`              | string      | Required for real AWS / GovCloud (skip for MinIO / LocalStack)                         |
+<table>
+<thead>
+<tr><th width="230">Parameter</th><th width="110">Type</th><th>Description</th></tr>
+</thead>
+<tbody>
+<tr><td><code>viewDefinition</code></td><td>string</td><td>The <code>name</code> field of the ViewDefinition resource (not <code>id</code>)</td></tr>
+<tr><td><code>batchSize</code></td><td>unsignedInt</td><td>Rows per worker tick / batch commit</td></tr>
+<tr><td><code>sendIntervalMs</code></td><td>unsignedInt</td><td>Max time between batched commits, in ms</td></tr>
+<tr><td><code>writeMode</code></td><td>string</td><td>Must be <code>external-direct</code> (otherwise the default <code>managed-zerobus</code> path is used)</td></tr>
+<tr><td><code>tablePath</code></td><td>string</td><td><code>s3://...</code> / <code>gs://...</code> / <code>abfss://...</code>. Required unless <code>databricksWorkspaceUrl</code> set (then resolved from Unity Catalog)</td></tr>
+<tr><td><code>awsRegion</code></td><td>string</td><td>Required for real AWS / GovCloud (skip for MinIO / LocalStack)</td></tr>
+</tbody>
+</table>
 
 <details>
 
@@ -522,7 +527,7 @@ Grant only the set that matches the `writeMode` you'll use.
 | `USE CATALOG` | `aidbox_export` | navigate the catalog |
 | `USE SCHEMA` | `aidbox_export.fhir` | resolve the target table |
 | `SELECT`, `MODIFY` | target table | `DESCRIBE` + initial-bulk `MERGE INTO` |
-| `USAGE` (UI: "Can use") | the SQL warehouse | submit bootstrap schema-sync statements + initial-bulk `MERGE` (no warehouse traffic on the hot path) |
+| `USAGE` (UI: "Can use") | the SQL warehouse | submit bootstrap schema-sync statements + initial-bulk `MERGE` (no warehouse traffic during live writes) |
 | `EXTERNAL USE SCHEMA` | the staging schema | UC vends STS for the staging table (initial-export only) |
 | `READ FILES`, `WRITE FILES`, `CREATE EXTERNAL TABLE` | staging External Location | write the bulk Parquet via UC-vended STS (initial-export only) |
 
@@ -775,7 +780,7 @@ This stops the export and cleans up the internal message queue. Data already wri
 
 ## Alternative: `managed-sql` configuration
 
-If Zerobus isn't available on your Databricks SKU (older paid plans, some regions), set `writeMode=managed-sql`. Same managed UC target, same staging-MERGE initial-export, but the hot path goes through a Databricks SQL warehouse instead of Zerobus gRPC.
+If Zerobus isn't available on your Databricks SKU (older paid plans, some regions), set `writeMode=managed-sql`. Same managed UC target, same staging-MERGE initial-export, but live per-batch writes go through a Databricks SQL warehouse instead of Zerobus gRPC.
 
 The destination payload differs from the `managed-zerobus` example in three rows: drop `databricksWorkspaceId` + `databricksRegion`, change `writeMode` to `managed-sql`:
 
@@ -868,7 +873,7 @@ POST /fhir/AidboxTopicDestination
 
 ### Static AWS keys (no UC vending)
 
-If you don't want to involve Databricks UC at all — for example, you're writing to a MinIO bucket or a non-Databricks S3 deployment — omit `databricksWorkspaceUrl` entirely and provide static AWS keys + `tablePath`:
+`external-direct` can also write to a Delta table that isn't governed by Unity Catalog — for example, a bucket your own AWS account owns directly, or a MinIO / non-Databricks S3 deployment. Omit `databricksWorkspaceUrl` entirely and provide static AWS keys + `tablePath`:
 
 ```http
 POST /fhir/AidboxTopicDestination
@@ -896,13 +901,16 @@ POST /fhir/AidboxTopicDestination
 }
 ```
 
-You can also omit `awsAccessKeyId` / `awsSecretAccessKey` to use the default AWS credentials provider chain (EC2 instance profile / EKS IRSA / environment variables).
+You can also omit `awsAccessKeyId` / `awsSecretAccessKey` to fall back to the [AWS SDK default credentials provider chain](https://docs.aws.amazon.com/sdk-for-java/latest/developer-guide/credentials-chain.html) — env vars, EC2 instance profile / ECS task role, EKS IRSA, or shared profile from `~/.aws/credentials`.
 
 ## Initial Export
 
-When a new destination is created and `skipInitialExport` is not `true`, the module automatically exports all existing data that matches the subscription topic. This ensures your Databricks table has complete historical data.
+When a new destination is created and `skipInitialExport` is not `true`, the module automatically exports all existing resources that match the subscription topic — one row per resource — so the Delta table has the **current state** of every matching resource as of destination-creation time. Subsequent updates (and the resource's pre-existing history) behave differently:
 
-To skip the initial export (e.g., the table is already populated or you only need real-time data), add `skipInitialExport` to the destination's `parameter` array:
+- **Updates after destination creation** — every `PUT` / `POST` / `DELETE` on a tracked resource appends a new row, so the Delta table accumulates a full audit trail going forward.
+- **History that existed before destination creation** — **not exported**. Initial export reads each resource's _current_ row from the materialized SQL-on-FHIR view (`sof.<view>`), not Aidbox's `_history` table. If you need historical versions in Delta, query Aidbox's `_history` for the resource type yourself and load them with a one-off ETL before creating the destination, or accept that only forward-going history will be present.
+
+To skip the initial export (e.g., the table is already populated or you only need forward-going data), add `skipInitialExport` to the destination's `parameter` array:
 
 ```json
 { "name": "skipInitialExport", "valueBoolean": true }
@@ -912,7 +920,7 @@ To skip the initial export (e.g., the table is already populated or you only nee
 
 Managed tables can't accept direct writes from outside Databricks compute (and Zerobus is append-only stream-ingest, not a bulk-load API), so initial bulk export uses a **temporary staging table** as a relay: the module writes the bulk Parquet to an external Delta table at `stagingTablePath` (which it can write to directly via Unity Catalog credential vending), then asks the SQL warehouse to merge from staging into the managed target on the resource `id`, then drops the staging table.
 
-This path is identical for `managed-zerobus` and `managed-sql` — both modes reuse the same staging + MERGE flow during initial export. The difference between the two modes only shows up on the post-initial-export **hot path**: `managed-zerobus` switches to Zerobus gRPC, `managed-sql` continues to use the warehouse.
+This path is identical for `managed-zerobus` and `managed-sql` — both modes reuse the same staging + MERGE flow during initial export. The difference between the two modes only shows up after initial export, on live per-batch writes: `managed-zerobus` switches to Zerobus gRPC, `managed-sql` continues to use the warehouse.
 
 ```mermaid
 graph LR
@@ -1060,26 +1068,10 @@ You can create multiple destinations for the same topic — for example, to mirr
 
 ## Retry behavior
 
-See [Delivery guarantees](#delivery-guarantees) for the at-least-once semantics and the per-mode dedup story. This section covers what happens on the wire when a single attempt fails.
-
-If a delivery fails, the message stays in the PostgreSQL queue and is retried on the next batch cycle (every `sendIntervalMs`). There is a 1-second backoff between failed attempts to prevent log storms.
-
-### Token refresh
-
-The OAuth M2M bearer token is cached and refreshed automatically — the module re-issues a fresh token via `/oidc/v1/token` when the current one has less than 5 minutes remaining.
-
-### Worker Crash Recovery
-
-If the delivery worker thread crashes with an unexpected error, it automatically restarts with exponential backoff (1 second initially, up to 60 seconds maximum). The PostgreSQL queue ensures no messages are lost between restarts.
-
-### Initial Export Retry
-
-Initial export retries up to 3 times with exponential backoff (1s → 2s → 4s between attempts). If all attempts fail:
-
-- The `initialExportStatus` is set to `failed`
-- The error message is available via the `$status` endpoint
-- Real-time delivery continues to work — only the initial export is affected
-- To retry, delete and recreate the destination
+- **Failed batch** — message stays in the PostgreSQL queue and retries on the next `sendIntervalMs` tick. 1-second backoff between failed attempts.
+- **OAuth bearer token** — cached; auto-refreshed via `/oidc/v1/token` when the current one has under 5 minutes remaining.
+- **Worker thread crash** — auto-restarts with exponential backoff (1s initial, 60s max). The queue ensures no messages are lost.
+- **Initial export failure** — retries up to 3 times with `1s → 2s → 4s` backoff. After 3 failures, `initialExportStatus = failed`, error available via `$status`, live delivery continues unaffected, and recreating the destination kicks off a fresh attempt.
 
 ## Troubleshooting
 
