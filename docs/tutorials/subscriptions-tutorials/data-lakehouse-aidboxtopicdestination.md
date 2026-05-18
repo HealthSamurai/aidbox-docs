@@ -627,26 +627,15 @@ aws iam get-role --role-name aidbox-staging-role \
   --query 'Role.Arn' --output text
 ```
 
-If the role already exists from an earlier attempt, swap the first command for `update-assume-role-policy` (and `put-role-policy` is already idempotent — it overwrites by `--policy-name`):
-
-```sh
-aws iam update-assume-role-policy \
-  --role-name aidbox-staging-role \
-  --policy-document file://trust-policy.json
-```
-
-To delete it and start over: `aws iam delete-role-policy --role-name aidbox-staging-role --policy-name s3-access && aws iam delete-role --role-name aidbox-staging-role`.
+(If you re-run this after a typo and `create-role` fails with `EntityAlreadyExists`, swap that first command for `aws iam update-assume-role-policy --role-name aidbox-staging-role --policy-document file://trust-policy.json`. `put-role-policy` is already idempotent.)
 
 **Register the Storage Credential in Databricks.** **Catalog → External Data → Credentials**, click **Create → AWS IAM role**. Pick a credential name (anything — e.g. `aidbox-staging-cred`; this is a Databricks-side label for the credential object, unrelated to the service principal name). Paste the IAM role ARN from above into the **IAM role (ARN)** field. Save.
 
 ![Create a new credential](../../../assets/data-lakehouse-storage-credential-form.avif)
 
-After saving, the credential's detail page shows the auto-generated **External ID**. Plug it into `trust-policy.json` (replace `<EXTERNAL_ID>`) and re-apply:
+**Finish the trust policy with the real External ID.** Databricks generates the credential's `external_id` server-side when you click Save above — you can't know the value before this point, so the trust policy you just applied still has `<EXTERNAL_ID>` as a literal placeholder. Open the credential's detail page in Databricks, copy the **External ID** field, replace `<EXTERNAL_ID>` in your existing `trust-policy.json` with that value, then re-run:
 
 ```sh
-# Substitute the value Databricks shows on the credential page.
-sed -i.bak 's/<EXTERNAL_ID>/paste-databricks-external-id-here/' trust-policy.json
-
 aws iam update-assume-role-policy \
   --role-name aidbox-staging-role \
   --policy-document file://trust-policy.json
