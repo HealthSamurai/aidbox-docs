@@ -23,7 +23,9 @@ If you're already comfortable with Databricks, Unity Catalog, and Delta Lake, sk
 1. **Unity Catalog (UC)** — the metadata + governance layer. UC knows about every catalog, schema, table, column, and grant in your workspace. It also issues short-lived cloud-storage credentials on demand ("vending") so external clients can write data without being given long-lived bucket keys.
 2. **SQL warehouse** — a compute cluster that runs SQL queries against tables in your Unity Catalog. Usually you query it from the Databricks UI's SQL Editor; the module drives it programmatically over an API instead.
 
-The module talks to both: Unity Catalog for metadata + credential vending, and the SQL warehouse for executing INSERTs into Databricks-managed tables.
+The module talks to both: Unity Catalog for metadata + credential vending, and (in `managed-sql` mode) the SQL warehouse for executing INSERTs into Databricks-managed tables.
+
+3. **Zerobus** — Databricks' gRPC streaming-ingest service. It writes directly to UC managed tables without going through a SQL warehouse, so you don't pay for warm compute on the write path. Used by `managed-zerobus` mode.
 
 ### Data lakehouse, and Delta Lake as its implementation
 
@@ -53,15 +55,16 @@ Unity Catalog tables come in two flavours:
 
 |                                | **Managed**                                                          | **External**                                                          |
 | ------------------------------ | -------------------------------------------------------------------- | --------------------------------------------------------------------- |
-| Storage location               | Databricks-managed bucket (you don't see / pick the path)            | Your bucket — declared with `LOCATION 's3://...' / 'gs://...' / 'abfss://...'` at `CREATE TABLE` |
-| Who owns the files             | Databricks runtime                                                   | You                                                                   |
+| Status                         | Databricks' **default and recommended** table type                   | Use when you need files in your own bucket                            |
+| Storage location               | Databricks-managed cloud storage (path picked by UC)                 | Your bucket — declared with `LOCATION 's3://...' / 'gs://...' / 'abfss://...'` at `CREATE TABLE` |
+| Who owns the files             | Unity Catalog — manages read, write, storage, and optimization       | You — UC manages metadata only                                        |
 | `DROP TABLE`                   | Deletes the data                                                     | Drops metadata only — files stay in your bucket                       |
-| Can Aidbox write directly?     | **No** — Aidbox has to route the INSERT through a Databricks SQL warehouse | **Yes** — Aidbox writes Parquet + Delta commits to your bucket itself |
-| External STS vending           | **Refused.** UC won't hand out write creds                           | **Allowed** if the principal has `EXTERNAL USE SCHEMA`                |
-| Predictive Optimization        | Automatic — Databricks runs `OPTIMIZE` / `VACUUM` / `ANALYZE` for you | Not applicable — you run them yourself                                |
-| Liquid Clustering              | Default                                                              | Opt-in per table                                                      |
+| Sanctioned write paths from Aidbox | **Zerobus gRPC ingest** (Aidbox `managed-zerobus`), or **SQL warehouse INSERT** (Aidbox `managed-sql`) | **Direct Parquet + Delta commit** via STS-vended UC creds (Aidbox `external-direct`) |
+| External STS credential vending| Not available for managed targets (`EXTERNAL USE SCHEMA` is only grantable on external schemas) | Allowed if the principal has `EXTERNAL USE SCHEMA` on the schema      |
+| Predictive Optimization        | Enabled by default for accounts created on or after **2024-11-11**; runs `OPTIMIZE` / `VACUUM` / `ANALYZE` automatically. Billed under the **Jobs Serverless** SKU. | **Not supported** — Predictive Optimization runs only on managed tables |
+| Liquid Clustering              | Opt-in per table (automatic liquid clustering requires Predictive Optimization and is also opt-in) | Opt-in per table                                                      |
 
-The "Can Aidbox write directly?" row drives the module's two `writeMode` values — see [Overview](#overview) for the resulting write paths.
+The "Sanctioned write paths" row drives the module's three `writeMode` values — see [Overview](#overview) for the resulting write paths.
 
 ## Overview
 
@@ -82,6 +85,7 @@ graph LR
     Aidbox -- write resource +<br/>enqueue topic event --> PG
     Mod -- poll batch --> PG
     Mod -- bearer-authenticated calls --> DBX
+    Mod -- gRPC streaming-ingest<br/>(managed-zerobus mode) --> DBX
     Mod -- Delta write<br/>(external-direct mode) --> FS
     DBX -- read / write Delta files --> FS
 ```
@@ -93,18 +97,40 @@ What the arrows in the diagram mean, in order:
 1. A FHIR API client (a user, an integration, a backfill script) sends a `POST` / `PUT` / `DELETE` to Aidbox.
 2. Aidbox persists the resource and enqueues a topic event for the destination in PostgreSQL.
 3. The Data Lakehouse module polls the destination's batch from the same PostgreSQL queue.
-4. For `managed` mode: the module sends `INSERT` (and `ALTER` / `DESCRIBE` when needed) to the Databricks SQL warehouse; the warehouse writes the Delta files to storage.
-5. For `external-direct` mode: the module gets short-lived storage credentials from Unity Catalog and writes Delta files directly to your bucket.
+4. For `managed-zerobus` mode (default): the module streams each batch into the managed table over the Zerobus gRPC ingest service. No SQL warehouse on the hot path — pay-per-row ingest only.
+5. For `managed-sql` mode: the module sends `INSERT` (and `ALTER` / `DESCRIBE` when needed) to the Databricks SQL warehouse; the warehouse writes the Delta files to storage.
+6. For `external-direct` mode: the module gets short-lived storage credentials from Unity Catalog and writes Delta files directly to your bucket.
 
 The first time the destination starts, the module also performs an initial export of pre-existing resources — see [Initial Export](#initial-export) for details.
 
 ### Write modes
 
-The module supports two **write modes**, picked per-destination via the `writeMode` parameter.
+The module supports three **write modes**, picked per-destination via the `writeMode` parameter.
 
-### `writeMode: managed` (default)
+### `writeMode: managed-zerobus` (default)
 
-Targets a **Databricks Unity Catalog managed table**.
+Targets a **Databricks Unity Catalog managed table** via the Zerobus gRPC streaming-ingest service.
+
+```mermaid
+graph LR
+    A(FHIR resource POST / PUT / DELETE):::blue2
+    B(Aidbox Topics API):::blue2
+    C(PostgreSQL queue):::neutral2
+    D(ViewDefinition flatten):::yellow2
+    Z(Zerobus gRPC ingest):::green2
+    T0(UC managed Delta table):::violet2
+
+    A --> B --> C --> D --> Z --> T0
+```
+
+- Each batch is JSON-encoded and streamed into the managed table via the `zerobus-ingest-sdk` (`ingestRecordsOffset` → `waitForOffset` → `flush`).
+- **No SQL warehouse on the hot path** — pay-per-row Zerobus ingest + storage instead of a continuously-warm 2X-Small (~$2k/month).
+- Initial bulk export still uses a **temporary staging table** under `stagingTablePath` (Zerobus is append-only stream ingest and can't replay bulk loads). The bulk merge is the same `MERGE INTO managed USING staging` pattern as `managed-sql`.
+- Schema sync at sender bootstrap still uses a SQL warehouse (one-shot `INFORMATION_SCHEMA.COLUMNS` describe + optional `ALTER TABLE`) — the warehouse is required but only used at boot, not on every batch.
+
+### `writeMode: managed-sql`
+
+Same target as `managed-zerobus` (UC **managed** table), but routes the hot path through a Databricks SQL warehouse. Use this when Zerobus isn't available on your Databricks SKU.
 
 ```mermaid
 graph LR
@@ -119,7 +145,7 @@ graph LR
 ```
 
 - Each batch becomes a single `INSERT INTO managed (cols) VALUES (...)` statement sent to a Databricks SQL warehouse. The warehouse writes the Delta files (Parquet + a transaction-log commit) under the managed table.
-- Initial bulk export uses a **temporary staging table** under `stagingTablePath` because Databricks-managed tables refuse direct writes from outside their compute. See [Initial Export](#how-it-works-managed-mode) for the staging diagram.
+- Initial bulk export uses a **temporary staging table** under `stagingTablePath` because Databricks-managed tables refuse direct writes from outside their compute. See [Initial Export](#how-it-works-managed-modes) for the staging diagram.
 - The warehouse must stay warm to keep INSERT latency low — you trade compute hours for Unity Catalog governance + Predictive Optimization.
 
 ### `writeMode: external-direct`
@@ -158,14 +184,15 @@ So a patient that was created and then updated 3 times appears as 4 rows with th
 
 ### At-least-once delivery
 
-Messages are persisted in a PostgreSQL queue before being sent. If delivery fails, the message stays in the queue and is retried on the next batch cycle. The two modes differ in what happens during a crash-between-commit-and-ack — the narrow window where the write landed in storage but the sender died before marking the queue entry as delivered:
+Messages are persisted in a PostgreSQL queue before being sent. If delivery fails, the message stays in the queue and is retried on the next batch cycle. The three modes differ in what happens during a crash-between-commit-and-ack — the narrow window where the write landed in storage but the sender died before marking the queue entry as delivered:
 
 - **`external-direct`** — restart-safe-idempotent for both hot path and initial export. Every Delta commit carries a stable transaction id; a replay lands on the same id and Delta silently skips it.
-- **`managed`** — initial export is idempotent (MERGE keyed on `id` no-ops on replay), but the **hot path** can produce duplicates. The per-batch INSERT route to the SQL warehouse can't carry a transaction id, so a replayed batch becomes a second INSERT and a duplicate row.
+- **`managed-sql`** — initial export is idempotent (MERGE keyed on `id` no-ops on replay), but the **hot path** can produce duplicates. The per-batch INSERT route to the SQL warehouse can't carry a transaction id, so a replayed batch becomes a second INSERT and a duplicate row.
+- **`managed-zerobus`** — initial export is idempotent (same MERGE pattern as `managed-sql`). The **hot path** is also at-least-once: Zerobus has server-side offset dedup, but on Aidbox queue replay after a sender crash the SDK allocates a fresh offset, which Zerobus treats as a new record. Same on-read dedup as `managed-sql`.
 
 ### Recovering the latest state on read
 
-Add a timestamp column to your ViewDefinition (e.g. `meta.lastUpdated` as `ts`) and use a window function. The same query collapses both append-only history **and** any duplicates from `managed`-mode hot-path retries, so one downstream view solves both:
+Add a timestamp column to your ViewDefinition (e.g. `meta.lastUpdated` as `ts`) and use a window function. The same query collapses both append-only history **and** any duplicates from managed-mode (`managed-sql` or `managed-zerobus`) hot-path retries, so one downstream view solves both:
 
 ```sql
 SELECT * EXCEPT(rn) FROM (
@@ -175,22 +202,24 @@ SELECT * EXCEPT(rn) FROM (
 WHERE rn = 1 AND is_deleted = 0;
 ```
 
-## Choosing between `managed` and `external-direct`
+## Choosing between the three modes
 
-|                                | `managed` (default)                                                                      | `external-direct`                                            |
-| ------------------------------ | ---------------------------------------------------------------------------------------- | ------------------------------------------------------------ |
-| Table type                     | Unity Catalog **managed** (Databricks owns the files)                                    | **External** (the User's bucket owns the files)              |
-| Who runs maintenance           | Databricks (Predictive Optimization handles `OPTIMIZE` / `VACUUM`)                       | The User schedules `OPTIMIZE` / `VACUUM`                     |
-| Databricks compute cost surface| SQL warehouse must be running to accept INSERTs — Databricks bills for warehouse uptime  | No warehouse — no Databricks compute charge for the write path |
+|                                | `managed-zerobus` (default)                                              | `managed-sql`                                                            | `external-direct`                                            |
+| ------------------------------ | ------------------------------------------------------------------------ | ------------------------------------------------------------------------ | ------------------------------------------------------------ |
+| Table type                     | UC **managed** (Databricks owns the files)                               | UC **managed** (Databricks owns the files)                               | **External** (the User's bucket owns the files)              |
+| Hot-path transport             | Zerobus gRPC streaming-ingest SDK                                        | Databricks SQL warehouse (Statement Execution API)                       | Direct Delta commits via Hadoop FS                            |
+| Who runs maintenance           | Databricks (Predictive Optimization handles `OPTIMIZE` / `VACUUM`)       | Databricks (Predictive Optimization handles `OPTIMIZE` / `VACUUM`)       | The User schedules `OPTIMIZE` / `VACUUM`                     |
+| Databricks compute cost surface| **No warm warehouse** — pay-per-row Zerobus + storage only               | SQL warehouse must be running to accept INSERTs — Databricks bills uptime | No warehouse — no Databricks compute charge for write path   |
 
-Details that follow from those three rows:
+Details that follow:
 
-- **Schema drift** — in `managed` mode Aidbox auto-`ALTER`s the target on schema mismatch (since Databricks owns the files, Aidbox can adjust them). In `external-direct` mode the User runs `ALTER TABLE` and recreates the destination — the User owns the schema.
-- **Initial export path** — `managed` materializes via a temporary staging Delta table on your bucket (see [Initial Export — managed mode](#how-it-works-managed-mode)). `external-direct` writes the bulk straight to the target in one commit.
-- **Storage backends** — `external-direct` supports AWS S3, GCS, Azure ADLS Gen2. `managed` uses whatever Databricks-managed storage your workspace is configured with.
+- **Schema drift** — both managed modes auto-`ALTER` the target on schema mismatch (Aidbox owns managed-target schema). `external-direct` requires the User to `ALTER TABLE` manually and recreate the destination.
+- **Initial export path** — both managed modes materialize via a temporary staging Delta table on your bucket (see [Initial Export — managed modes](#how-it-works-managed-modes)). `external-direct` writes the bulk straight to the target in one commit.
+- **Bootstrap warehouse use** — `managed-zerobus` still pings a SQL warehouse ONCE at sender boot for schema sync (`INFORMATION_SCHEMA.COLUMNS` + optional `ALTER`). After that, no warehouse traffic on the hot path. `managed-sql` keeps the warehouse warm.
+- **Storage backends** — `external-direct` supports AWS S3, GCS, Azure ADLS Gen2. Both managed modes use whatever Databricks-managed storage your workspace is configured with.
 
 {% hint style="info" %}
-**Default is `managed`.** If `writeMode` isn't set on the destination, the module uses the Databricks SQL warehouse path. Set `writeMode=external-direct` explicitly to get the direct-to-storage flow.
+**Default is `managed-zerobus`.** If `writeMode` isn't set on the destination, the module streams writes through Zerobus directly into the managed table. Set `writeMode=managed-sql` if Zerobus isn't available on your SKU. Set `writeMode=external-direct` to write straight to a non-managed external Delta table on your own bucket.
 {% endhint %}
 
 ## Before you begin
@@ -198,7 +227,8 @@ Details that follow from those three rows:
 - Make sure your Aidbox version is **2605** or newer
 - Set up a local Aidbox instance using the getting started [guide](../../getting-started/run-aidbox-locally.md)
 - Have a Databricks workspace (Free Edition works for evaluation, paid for production)
-- For `managed` mode: a running SQL warehouse, a managed Delta table, and (if doing initial export) an S3/GCS/ADLS path you control with a UC External Location for staging
+- For `managed-zerobus` mode: a managed Delta table, a SQL warehouse (used at bootstrap for schema sync + initial-export MERGE), the **numeric workspace ID** and **AWS region** of the workspace (to compose the Zerobus endpoint host), and (if doing initial export) an S3/GCS/ADLS path you control with a UC External Location for staging. **Zerobus must be enabled on your SKU** — Databricks Free Edition workspaces support it; check with Databricks support if you're not sure for paid plans.
+- For `managed-sql` mode: a running SQL warehouse, a managed Delta table, and (if doing initial export) an S3/GCS/ADLS path you control with a UC External Location for staging
 - For `external-direct` mode: an external Delta table registered in UC (or static AWS keys for non-UC deployments)
 
 The service principal that authenticates the module is created in the [Authentication](#authentication) section below, as part of the setup flow — you don't need it before you start.
@@ -304,13 +334,22 @@ sequenceDiagram
     participant T as Databricks token endpoint
     participant UC as Unity Catalog REST
     participant WH as SQL warehouse
+    participant ZB as Zerobus gRPC
     participant FS as Cloud storage (S3 / GCS / ADLS)
 
     S->>T: client_id + client_secret (HTTP Basic)
     T-->>S: bearer token (about 1h TTL)
     Note over S: cached; refreshed when under 5 min remain
 
-    alt writeMode = managed
+    alt writeMode = managed-zerobus
+        S->>WH: schema-sync (DESCRIBE / ALTER), ONCE at bootstrap
+        S->>ZB: open JSON stream + client_id/secret
+        loop per batch
+            S->>ZB: ingestRecordsOffset(JSON rows)
+            ZB->>FS: native ingest writes parquet + Delta
+            ZB-->>S: offset acked
+        end
+    else writeMode = managed-sql
         S->>WH: submit INSERT / ALTER / DESCRIBE + bearer
         WH->>FS: warehouse storage credential writes parquet
         WH-->>S: SUCCEEDED
@@ -327,7 +366,13 @@ sequenceDiagram
 
 The module exchanges `databricksClientId` + `databricksClientSecret` for a short-lived bearer token via `POST /oidc/v1/token` (`client_credentials` grant). That bearer is cached and re-issued automatically when less than 5 minutes remain. What changes between modes is **what the bearer authorizes**:
 
-**`managed`** — bearer authenticates every call to Databricks compute:
+**`managed-zerobus`** — the SDK uses `client_id`/`client_secret` for its own gRPC auth (no module-managed bearer for the hot path); the module-managed bearer authenticates the warehouse bootstrap only:
+
+- Module bearer (only at bootstrap): one `DESCRIBE` + optional `ALTER` on the SQL warehouse, plus (if initial-export runs) the staging-table UC-vend and final `MERGE INTO target USING staging`.
+- Zerobus SDK auth: `client_id`/`client_secret` passed to `createJsonStream(...)` for the gRPC channel. The SDK refreshes its own credentials internally.
+- The module never touches your bucket directly in this mode — Zerobus' native ingest writes the Delta files.
+
+**`managed-sql`** — bearer authenticates every call to Databricks compute:
 
 - The module never touches your bucket directly.
 - The module submits SQL to the warehouse; the warehouse's storage credential talks to storage.
@@ -352,10 +397,11 @@ The module exchanges `databricksClientId` + `databricksClientSecret` for a short
 
 ### Side-by-side
 
-| Mode                | UC REST calls                                | SQL Statement API calls               | Who talks to S3         |
-| ------------------- | -------------------------------------------- | ------------------------------------- | ----------------------- |
-| `managed` (default) | only during initial-export (staging vending) | every batch (INSERT, ALTER, DESCRIBE) | SQL warehouse compute   |
-| `external-direct`   | every cred-refresh (~45 min)                 | none                                  | sender process          |
+| Mode                       | UC REST calls                                | SQL Statement API calls               | Other transport            | Who talks to S3                 |
+| -------------------------- | -------------------------------------------- | ------------------------------------- | -------------------------- | ------------------------------- |
+| `managed-zerobus` (default)| only during initial-export (staging vending) | bootstrap + initial-export only       | Zerobus gRPC (every batch) | Zerobus native ingest (Databricks-side) |
+| `managed-sql`              | only during initial-export (staging vending) | every batch (INSERT, ALTER, DESCRIBE) | —                          | SQL warehouse compute           |
+| `external-direct`          | every cred-refresh (~45 min)                 | none                                  | —                          | sender process                  |
 
 The concrete steps to create the service principal, grant privileges, and (optionally) wire up vault-backed secrets are part of [Usage Example: Patient Data Export](#usage-example-patient-data-export) — that walkthrough sets up everything end-to-end without duplicating the GRANT SQL or the Databricks UI clicks across sections.
 
@@ -364,11 +410,47 @@ The concrete steps to create the service principal, grant privileges, and (optio
 All requests in this tutorial use `Content-Type: application/json`.
 
 {% tabs %}
-{% tab title="managed mode" %}
+{% tab title="managed-zerobus mode (default)" %}
 **Required:**
 
 | Parameter                | Type        | Description                                                              |
 | ------------------------ | ----------- | ------------------------------------------------------------------------ |
+| `viewDefinition`         | string      | The `name` field of the ViewDefinition resource (not `id`)               |
+| `batchSize`              | unsignedInt | Rows per worker tick / batch commit                                      |
+| `sendIntervalMs`         | unsignedInt | Max time between batched commits, in ms                                  |
+| `databricksWorkspaceUrl` | string      | `https://<workspace>.cloud.databricks.com`                               |
+| `databricksWorkspaceId`  | string      | Numeric workspace ID (e.g. `1234567890123456`). Composes the Zerobus gRPC endpoint host |
+| `databricksRegion`       | string      | Workspace AWS region (e.g. `us-east-1`). Composes the Zerobus gRPC endpoint host |
+| `databricksClientId`     | string      | Service principal `client_id` for OAuth M2M                              |
+| `databricksClientSecret` | string      | Service principal `client_secret`; supports vault refs                   |
+| `tableName`              | string      | Managed table full name: `catalog.schema.table`                          |
+| `databricksWarehouseId`  | string      | SQL warehouse ID — used at bootstrap for schema sync + (if initial-export runs) the final `MERGE INTO`. No warm-warehouse traffic on the hot path. |
+| `awsRegion`              | string      | AWS region of the staging bucket                                         |
+| `stagingTablePath`       | string      | `s3://bucket/path/` for the staging Delta table created during initial export. Required when `skipInitialExport` is not `true` |
+
+<details>
+
+<summary>Advanced parameters</summary>
+
+| Parameter           | Type        | Description                                                                                |
+| ------------------- | ----------- | ------------------------------------------------------------------------------------------ |
+| `writeMode`         | string      | `managed-zerobus` (default), `managed-sql`, or `external-direct`. Omit to get `managed-zerobus` |
+| `skipInitialExport` | boolean     | Skip initial export of existing data (default: `false`)                                    |
+| `targetFileSizeMb`  | unsignedInt | Parquet target size during initial export (default: `128`)                                 |
+
+</details>
+
+{% hint style="info" %}
+Where do `databricksWorkspaceId` and `databricksRegion` come from? Open your workspace in a browser — the URL is `https://dbc-XXXXXXXX-YYYY.cloud.databricks.com`. The numeric workspace ID is shown in **Settings → Workspace → ID** (also visible at the bottom-left of the SQL Editor). The region is shown in **Workspace admin → Region** and matches the bucket region the workspace runs in (e.g. `us-east-1`). Both together compose the Zerobus gRPC endpoint URL the SDK uses internally: `https://<workspace-id>.zerobus.<region>.cloud.databricks.com`. You don't need to pass that URL to Aidbox — the module composes it from the workspace ID and region you set on the destination.
+{% endhint %}
+{% endtab %}
+
+{% tab title="managed-sql mode" %}
+**Required:**
+
+| Parameter                | Type        | Description                                                              |
+| ------------------------ | ----------- | ------------------------------------------------------------------------ |
+| `writeMode`              | string      | Must be `managed-sql` (otherwise the default `managed-zerobus` path is used) |
 | `viewDefinition`         | string      | The `name` field of the ViewDefinition resource (not `id`)               |
 | `batchSize`              | unsignedInt | Rows per worker tick / batch commit                                      |
 | `sendIntervalMs`         | unsignedInt | Max time between batched commits, in ms                                  |
@@ -384,11 +466,10 @@ All requests in this tutorial use `Content-Type: application/json`.
 
 <summary>Advanced parameters</summary>
 
-| Parameter           | Type        | Description                                                                         |
-| ------------------- | ----------- | ----------------------------------------------------------------------------------- |
-| `writeMode`         | string      | `managed` (default) or `external-direct`. Omit to get `managed`                     |
-| `skipInitialExport` | boolean     | Skip initial export of existing data (default: `false`)                             |
-| `targetFileSizeMb`  | unsignedInt | Parquet target size during initial export (default: `128`)                          |
+| Parameter           | Type        | Description                                                                                |
+| ------------------- | ----------- | ------------------------------------------------------------------------------------------ |
+| `skipInitialExport` | boolean     | Skip initial export of existing data (default: `false`)                                    |
+| `targetFileSizeMb`  | unsignedInt | Parquet target size during initial export (default: `128`)                                 |
 
 </details>
 {% endtab %}
@@ -438,7 +519,7 @@ Pick **one** of: UC credential vending, static AWS keys, or default AWS provider
 
 ## Usage Example: Patient Data Export
 
-The example below uses `managed` mode (the default). See "[Alternative: external-direct configuration](#alternative-external-direct-configuration)" for the non-managed path.
+The example below uses `managed-zerobus` mode (the default). See "[Alternative: `managed-sql` configuration](#alternative-managed-sql-configuration)" if Zerobus isn't available on your SKU, or "[Alternative: `external-direct` configuration](#alternative-external-direct-configuration)" for the direct-to-bucket path.
 
 {% stepper %}
 {% step %}
@@ -644,7 +725,7 @@ In production you'll want to avoid embedding `databricksClientSecret` inline in 
 {% endstep %}
 
 {% step %}
-### Step 5: Configure the destination (`managed`)
+### Step 5: Configure the destination (`managed-zerobus`)
 
 **With inline SP secret:**
 
@@ -662,8 +743,10 @@ POST /fhir/AidboxTopicDestination
     ]
   },
   "parameter": [
-    {"name": "writeMode", "valueString": "managed"},
+    {"name": "writeMode", "valueString": "managed-zerobus"},
     {"name": "databricksWorkspaceUrl", "valueString": "https://dbc-XXXXXXXX-XXXX.cloud.databricks.com"},
+    {"name": "databricksWorkspaceId", "valueString": "1234567890123456"},
+    {"name": "databricksRegion", "valueString": "us-east-1"},
     {"name": "databricksClientId", "valueString": "<sp-client-id>"},
     {"name": "databricksClientSecret", "valueString": "<sp-client-secret>"},
     {"name": "tableName", "valueString": "aidbox_export.healthcare.patients"},
@@ -693,8 +776,10 @@ POST /fhir/AidboxTopicDestination
     ]
   },
   "parameter": [
-    {"name": "writeMode", "valueString": "managed"},
+    {"name": "writeMode", "valueString": "managed-zerobus"},
     {"name": "databricksWorkspaceUrl", "valueString": "https://dbc-XXXXXXXX-XXXX.cloud.databricks.com"},
+    {"name": "databricksWorkspaceId", "valueString": "1234567890123456"},
+    {"name": "databricksRegion", "valueString": "us-east-1"},
     {"name": "databricksClientId", "valueString": "<sp-client-id>"},
     {"name": "databricksClientSecret", "_valueString": {"extension": [
       {"url": "http://hl7.org/fhir/StructureDefinition/data-absent-reason", "valueCode": "masked"},
@@ -748,11 +833,48 @@ DELETE /fhir/AidboxTopicDestination/patient-databricks
 
 This stops the export and cleans up the internal message queue. Data already written to Databricks is not affected.
 
+## Alternative: `managed-sql` configuration
+
+If Zerobus isn't available on your Databricks SKU (older paid plans, some regions), set `writeMode=managed-sql`. Same managed UC target, same staging-MERGE initial-export, but the hot path goes through a Databricks SQL warehouse instead of Zerobus gRPC.
+
+The destination payload differs from the `managed-zerobus` example in three rows: drop `databricksWorkspaceId` + `databricksRegion`, change `writeMode` to `managed-sql`:
+
+```http
+POST /fhir/AidboxTopicDestination
+
+{
+  "resourceType": "AidboxTopicDestination",
+  "id": "patient-databricks-sql",
+  "topic": "http://example.org/subscriptions/patient-updates",
+  "kind": "data-lakehouse-at-least-once",
+  "meta": {
+    "profile": [
+      "http://health-samurai.io/fhir/core/StructureDefinition/aidboxtopicdestination-dataLakehouseAtLeastOnceProfile"
+    ]
+  },
+  "parameter": [
+    {"name": "writeMode", "valueString": "managed-sql"},
+    {"name": "databricksWorkspaceUrl", "valueString": "https://dbc-XXXXXXXX-XXXX.cloud.databricks.com"},
+    {"name": "databricksClientId", "valueString": "<sp-client-id>"},
+    {"name": "databricksClientSecret", "valueString": "<sp-client-secret>"},
+    {"name": "tableName", "valueString": "aidbox_export.healthcare.patients"},
+    {"name": "databricksWarehouseId", "valueString": "<warehouse-id>"},
+    {"name": "awsRegion", "valueString": "us-east-1"},
+    {"name": "stagingTablePath", "valueString": "s3://my-aidbox-staging/patient_flat_staging/"},
+    {"name": "viewDefinition", "valueString": "patient_flat"},
+    {"name": "batchSize", "valueUnsignedInt": 50},
+    {"name": "sendIntervalMs", "valueUnsignedInt": 5000}
+  ]
+}
+```
+
+The Databricks setup in Step 4 is identical for `managed-sql` — same table, same warehouse, same SP, same grants. The warehouse simply ends up servicing every batch instead of only the bootstrap.
+
 ## Alternative: `external-direct` configuration
 
 If you don't need UC managed-table governance and want the highest throughput (direct-to-storage Parquet writes, zero Databricks compute cost), use `writeMode=external-direct`. The module commits Parquet + Delta transaction-log entries straight to your bucket via UC credential vending.
 
-### Setup differences from `managed`
+### Setup differences from the managed modes
 
 1. **Create the table with `LOCATION`** so it's external:
 
@@ -846,9 +968,11 @@ To skip the initial export (e.g., the table is already populated or you only nee
 { "name": "skipInitialExport", "valueBoolean": true }
 ```
 
-### How it works — `managed` mode
+### How it works — managed modes
 
-Managed tables can't accept direct writes from outside Databricks compute, so initial bulk export uses a **temporary staging table** as a relay: the module writes the bulk Parquet to an external Delta table at `stagingTablePath` (which it can write to directly via Unity Catalog credential vending), then asks the SQL warehouse to merge from staging into the managed target on the resource `id`, then drops the staging table.
+Managed tables can't accept direct writes from outside Databricks compute (and Zerobus is append-only stream-ingest, not a bulk-load API), so initial bulk export uses a **temporary staging table** as a relay: the module writes the bulk Parquet to an external Delta table at `stagingTablePath` (which it can write to directly via Unity Catalog credential vending), then asks the SQL warehouse to merge from staging into the managed target on the resource `id`, then drops the staging table.
+
+This path is identical for `managed-zerobus` and `managed-sql` — both modes reuse the same staging + MERGE flow during initial export. The difference between the two modes only shows up on the post-initial-export **hot path**: `managed-zerobus` switches to Zerobus gRPC, `managed-sql` continues to use the warehouse.
 
 ```mermaid
 graph LR
@@ -945,16 +1069,15 @@ See [Output semantics](#output-semantics) for append-only behaviour, at-least-on
 
 ## Compaction and maintenance
 
-**`managed` mode** — Databricks runs maintenance for you:
+**Managed modes (`managed-zerobus` and `managed-sql`)** — Databricks runs maintenance for you:
 
-- [Predictive Optimization](https://docs.databricks.com/aws/en/optimizations/predictive-optimization) is automatic.
-- It runs `OPTIMIZE`, `VACUUM`, and `ANALYZE` in the background.
-- No manual maintenance required.
-- This is the main value-prop of managed mode beyond governance.
+- [Predictive Optimization](https://docs.databricks.com/aws/en/optimizations/predictive-optimization) is enabled by default for Databricks accounts created on or after **2024-11-11**. Older accounts can enable it manually at the catalog / schema level.
+- When enabled, it runs `OPTIMIZE`, `VACUUM`, and `ANALYZE` in the background.
+- Predictive Optimization runs against managed tables **only** and is billed under the **Jobs Serverless** SKU.
 
 **`external-direct` mode** — you own the table and the maintenance:
 
-- Predictive Optimization does **not** apply to external tables.
+- Predictive Optimization does **not** apply to external tables (Databricks restricts it to managed tables).
 - Recommended pattern: schedule a [Databricks SQL Job](https://docs.databricks.com/aws/en/jobs/) running
 
   ```sql
@@ -964,9 +1087,9 @@ See [Output semantics](#output-semantics) for append-only behaviour, at-least-on
 
 ## Schema Evolution
 
-### `managed` mode (auto-heal)
+### Managed modes (auto-heal)
 
-If you add a column to the ViewDefinition and re-materialize, the module will automatically detect the diff at the next sender start and issue `ALTER TABLE ADD COLUMNS (...)` against the managed target. Additionally, if a write fails mid-batch with `DELTA_INSERT_COLUMN_ARITY_MISMATCH` (e.g., schema drifted between the bootstrap describe and the actual write), the module re-describes the target, ALTERs the missing columns, and retries the batch once.
+Both `managed-zerobus` and `managed-sql` auto-heal schema drift. If you add a column to the ViewDefinition and re-materialize, the module will automatically detect the diff at the next sender start and issue `ALTER TABLE ADD COLUMNS (...)` against the managed target. Additionally, if a write fails mid-batch with `DELTA_INSERT_COLUMN_ARITY_MISMATCH` (`managed-sql`) or a schema-mismatch from the Zerobus stream (`managed-zerobus`), the module re-describes the target via the SQL warehouse, ALTERs the missing columns, and retries the batch once.
 
 To add a column:
 
@@ -995,15 +1118,24 @@ To add a column:
 
 This module doesn't add any billing surface of its own — it just changes **which Databricks / cloud services see your write traffic**. Refer to Databricks and your cloud provider's published pricing for actual numbers; what follows is a map of the cost surfaces:
 
-**`managed` mode** runs writes through a Databricks SQL warehouse:
+**`managed-zerobus` mode** uses the Zerobus push-based ingest API:
+
+- Hot-path writes are billed by Databricks against the **Jobs Serverless** SKU per Databricks' [Zerobus Ingest documentation](https://docs.databricks.com/aws/en/ingestion/zerobus-overview). There is no continuously-warm SQL warehouse running for the write path.
+- Bootstrap and initial-export still hit a SQL warehouse (one-shot schema sync + final `MERGE INTO`) — both are scoped operations, not continuous compute.
+- Managed-table data files live in Databricks-managed cloud storage; cloud-storage bills apply to your cloud account, you just don't pick the path.
+- Predictive Optimization, if enabled (default for accounts created 2024-11-11 onward), bills its compute under the Jobs Serverless SKU as well.
+
+**`managed-sql` mode** runs every batch through a Databricks SQL warehouse:
 
 - Warehouse uptime is billed by Databricks (see [Databricks SQL pricing](https://www.databricks.com/product/pricing/databricks-sql)). Because the destination's write path needs the warehouse to be running, plan for warehouse uptime that matches your topic activity.
-- Managed-table data files live in Databricks-managed cloud storage; cloud storage bills still apply to your cloud account, you just don't pick the path.
+- Managed-table data files live in Databricks-managed cloud storage; cloud-storage bills apply to your cloud account, you just don't pick the path.
+- Predictive Optimization billing is the same as above (Jobs Serverless SKU when enabled).
 
 **`external-direct` mode** writes Delta files straight to your bucket:
 
-- No Databricks warehouse runs for the write path — no compute charge for it.
+- No Databricks warehouse runs for the write path — no Databricks compute charge for it.
 - Cloud-storage charges apply normally to your bucket.
+- Predictive Optimization does not run on external tables, so any `OPTIMIZE`/`VACUUM` you schedule yourself bills under whichever compute (warehouse or jobs) you run it on.
 
 ## Multiple Destinations
 
