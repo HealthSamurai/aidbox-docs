@@ -20,7 +20,7 @@ If you're already comfortable with Databricks, Unity Catalog, and Delta Lake, sk
 
 1. **[Unity Catalog (UC)](https://docs.databricks.com/aws/en/data-governance/unity-catalog/)** — the metadata + governance layer. UC knows about every catalog, schema, table, column, and grant in your workspace. It also issues short-lived cloud-storage credentials on demand ("vending") so external clients can write data without being given long-lived bucket keys.
 2. **[SQL warehouse](https://docs.databricks.com/aws/en/compute/sql-warehouse/)** — a compute cluster that runs SQL queries against tables in your Unity Catalog. Usually you query it from the Databricks UI's SQL Editor; the module can drive it programmatically over an API.
-3. **[Zerobus Ingest](https://docs.databricks.com/aws/en/ingestion/zerobus-overview)** — a push-based ingestion API that writes data directly into Unity Catalog Delta tables. Designed for high-throughput, low-overhead row ingestion: clients open a stream, push records, and Zerobus durably commits them with per-stream ordering guarantees.
+3. **[Zerobus Ingest](https://docs.databricks.com/aws/en/ingestion/zerobus-overview)** — a push-based ingestion service that writes data directly into Unity Catalog Delta tables. Databricks exposes Zerobus via two transports — gRPC and REST. The Aidbox module uses the [REST endpoint](https://docs.databricks.com/aws/en/ingestion/zerobus-ingest): batches are POSTed as JSON arrays and Zerobus durably commits them to the managed Delta table on the Databricks side.
 
 ### Data lakehouse, and Delta Lake as its implementation
 
@@ -54,7 +54,7 @@ Unity Catalog tables come in two flavours:
 | Storage location               | Databricks-managed cloud storage (path picked by UC)                 | Your bucket — declared with `LOCATION 's3://...' / 'gs://...' / 'abfss://...'` at `CREATE TABLE` |
 | Who owns the files             | Unity Catalog — manages read, write, storage, and optimization       | You — UC manages metadata only                                        |
 | `DROP TABLE`                   | Deletes the data                                                     | Drops metadata only — files stay in your bucket                       |
-| Sanctioned write paths from Aidbox | **Zerobus gRPC ingest** (Aidbox `managed-zerobus`), or **SQL warehouse INSERT** (Aidbox `managed-sql`) | **Direct Parquet + Delta commit** via STS-vended UC creds (Aidbox `external-direct`) |
+| Sanctioned write paths from Aidbox | **Zerobus REST ingest** (Aidbox `managed-zerobus`), or **SQL warehouse INSERT** (Aidbox `managed-sql`) | **Direct Parquet + Delta commit** via STS-vended UC creds (Aidbox `external-direct`) |
 | External STS credential vending| Not available for managed targets (`EXTERNAL USE SCHEMA` is only grantable on external schemas) | Allowed if the principal has `EXTERNAL USE SCHEMA` on the schema      |
 | Predictive Optimization        | Enabled by default for accounts created on or after **2024-11-11**; runs `OPTIMIZE` / `VACUUM` / `ANALYZE` automatically. Billed under the **Jobs Serverless** SKU. | **Not supported** — Predictive Optimization runs only on managed tables |
 | Liquid Clustering              | Opt-in per table (automatic liquid clustering requires Predictive Optimization and is also opt-in) | Opt-in per table                                                      |
@@ -77,7 +77,7 @@ graph LR
     Client -- FHIR POST / PUT / DELETE --> Aidbox
     Aidbox -- write resource +<br/>enqueue topic event --> PG
     Mod -- poll batch --> PG
-    Mod -- gRPC ingest<br/>(managed-zerobus) --> DBX
+    Mod -- REST ingest<br/>(managed-zerobus) --> DBX
     Mod -- SQL INSERT<br/>(managed-sql) --> DBX
     Mod -- Delta write<br/>(external-direct) --> FS
     DBX -- read / write Delta files --> FS
@@ -88,7 +88,7 @@ The flow:
 1. A FHIR API client (a user, an integration, a backfill script) sends a `POST` / `PUT` / `DELETE` to Aidbox.
 2. Aidbox persists the resource and enqueues a topic event for the destination in PostgreSQL.
 3. The Data Lakehouse module polls the destination's batch from the same PostgreSQL queue.
-4. For `managed-zerobus` mode (default): the module pushes each batch into the managed table over Zerobus, Databricks' streaming-ingest API. No SQL parsing / planning per write.
+4. For `managed-zerobus` mode (default): the module POSTs each batch as a JSON array to Databricks' Zerobus REST ingest endpoint, which writes directly to the managed table. No SQL parsing / planning per write.
 5. For `managed-sql` mode: the module sends `INSERT` (and `ALTER` / `DESCRIBE` when needed) to the Databricks SQL warehouse; the warehouse writes the Delta files to storage.
 6. For `external-direct` mode: the module gets short-lived storage credentials from Unity Catalog and writes Delta files directly to your bucket.
 
@@ -100,7 +100,7 @@ The module supports three **write modes**, picked per-destination via the `write
 
 ### managed-zerobus mode (default)
 
-`writeMode=managed-zerobus` targets a **Databricks Unity Catalog managed table** via the Zerobus gRPC streaming-ingest service.
+`writeMode=managed-zerobus` targets a **Databricks Unity Catalog managed table** via the [Zerobus REST ingest endpoint](https://docs.databricks.com/aws/en/ingestion/zerobus-ingest).
 
 ```mermaid
 graph LR
@@ -108,14 +108,14 @@ graph LR
     B(Aidbox Topics API):::blue2
     C(PostgreSQL queue):::neutral2
     D(ViewDefinition flatten):::yellow2
-    Z(Zerobus gRPC ingest):::green2
+    Z(Zerobus REST ingest):::green2
     T0(UC managed Delta table):::violet2
 
     A --> B --> C --> D --> Z --> T0
 ```
 
-- Each batch is JSON-encoded and pushed into the managed table via the `zerobus-ingest-sdk` (`ingestRecordsOffset` → `waitForOffset` → `flush`). Zerobus is a purpose-built ingest pipe: no SQL parsing / planning / scheduling per batch, server-side offset tracking with per-stream ordering, and a long-lived stream that doesn't cold-start per write.
-- Initial bulk export still uses a one-shot staging Delta table under `stagingTablePath` (Zerobus is append-only stream ingest, designed for incremental row writes, not bulk loads). The bulk merge is the same `MERGE INTO managed USING staging` pattern as `managed-sql`. This staging table is a plain external Delta table the module drops after the merge — not a Databricks [temporary table](https://docs.databricks.com/aws/en/tables/temporary-tables).
+- Each batch is JSON-encoded as an array and POSTed to `https://<workspace-id>.zerobus.<region>.cloud.databricks.com/zerobus/v1/tables/<catalog>.<schema>.<table>/insert` with an OAuth M2M bearer. Zerobus is a purpose-built ingest pipe — no SQL parsing / planning / scheduling per batch, and no warehouse cold-start.
+- Initial bulk export still uses a one-shot staging Delta table under `stagingTablePath` (Zerobus is append-only ingest, designed for incremental row writes, not bulk loads). The bulk merge is the same `MERGE INTO managed USING staging` pattern as `managed-sql`. This staging table is a plain external Delta table the module drops after the merge — not a Databricks [temporary table](https://docs.databricks.com/aws/en/tables/temporary-tables).
 - Schema sync at sender bootstrap still uses a SQL warehouse (one-shot `INFORMATION_SCHEMA.COLUMNS` describe + optional `ALTER TABLE`) — the warehouse is required but only used at boot, not on every batch.
 
 ### managed-sql mode
@@ -214,7 +214,7 @@ This is one example, not the only approach — wrap it in a Databricks SQL view 
 |                                | `managed-zerobus` (default)                                              | `managed-sql`                                                            | `external-direct`                                            |
 | ------------------------------ | ------------------------------------------------------------------------ | ------------------------------------------------------------------------ | ------------------------------------------------------------ |
 | Table type                     | UC **managed** (Databricks owns the files)                               | UC **managed** (Databricks owns the files)                               | **External** (the User's bucket owns the files)              |
-| Hot-path transport             | Zerobus gRPC streaming-ingest SDK                                        | Databricks SQL warehouse (Statement Execution API)                       | Direct Delta commits via Hadoop FS                            |
+| Hot-path transport             | Zerobus REST ingest API                                                  | Databricks SQL warehouse (Statement Execution API)                       | Direct Delta commits via Hadoop FS                            |
 | Who runs maintenance           | Databricks (Predictive Optimization handles `OPTIMIZE` / `VACUUM`)       | Databricks (Predictive Optimization handles `OPTIMIZE` / `VACUUM`)       | The User schedules `OPTIMIZE` / `VACUUM`                     |
 | Databricks compute cost surface| **No warm warehouse** — pay-per-row Zerobus + storage only               | SQL warehouse must be running to accept INSERTs — Databricks bills uptime | No warehouse — no Databricks compute charge for write path   |
 | Schema drift handling          | Auto-`ALTER` on mismatch                                                 | Auto-`ALTER` on mismatch                                                 | User runs `ALTER TABLE` and recreates the destination        |
@@ -229,7 +229,7 @@ The bearer is sent on every Databricks call. What differs between modes is which
 
 | Mode                        | UC REST                                       | SQL warehouse                              | Other transport            | Who talks to storage                 |
 |-----------------------------|-----------------------------------------------|--------------------------------------------|----------------------------|--------------------------------------|
-| `managed-zerobus` (default) | only during initial-export (staging vending)  | bootstrap + initial-export only            | Zerobus gRPC (every batch) | Zerobus native ingest, Databricks-side |
+| `managed-zerobus` (default) | only during initial-export (staging vending)  | bootstrap + initial-export only            | Zerobus REST (every batch) | Zerobus ingest service, Databricks-side |
 | `managed-sql`               | only during initial-export (staging vending)  | every batch (`INSERT` / `ALTER` / `DESCRIBE`) | —                          | SQL warehouse compute                 |
 | `external-direct`           | every cred-refresh (~45 min)                  | none                                       | —                          | sender process, with UC-vended STS    |
 
@@ -345,8 +345,8 @@ All requests in this tutorial use `Content-Type: application/json`.
 <tr><td><code>batchSize</code></td><td>unsignedInt</td><td>Rows per worker tick / batch commit</td></tr>
 <tr><td><code>sendIntervalMs</code></td><td>unsignedInt</td><td>Max time between batched commits, in ms</td></tr>
 <tr><td><code>databricksWorkspaceUrl</code></td><td>string</td><td><code>https://&lt;workspace&gt;.cloud.databricks.com</code></td></tr>
-<tr><td><code>databricksWorkspaceId</code></td><td>string</td><td>Numeric workspace ID (e.g. <code>1234567890123456</code>). Composes the Zerobus gRPC endpoint host</td></tr>
-<tr><td><code>databricksRegion</code></td><td>string</td><td>Workspace AWS region (e.g. <code>us-east-1</code>). Composes the Zerobus gRPC endpoint host</td></tr>
+<tr><td><code>databricksWorkspaceId</code></td><td>string</td><td>Numeric workspace ID (e.g. <code>1234567890123456</code>). Composes the Zerobus REST endpoint host</td></tr>
+<tr><td><code>databricksRegion</code></td><td>string</td><td>Workspace AWS region (e.g. <code>us-east-1</code>). Composes the Zerobus REST endpoint host</td></tr>
 <tr><td><code>databricksClientId</code></td><td>string</td><td>Service principal <code>client_id</code> for OAuth M2M</td></tr>
 <tr><td><code>databricksClientSecret</code></td><td>string</td><td>Service principal <code>client_secret</code>; supports vault refs</td></tr>
 <tr><td><code>tableName</code></td><td>string</td><td>Managed table full name: <code>catalog.schema.table</code></td></tr>
@@ -360,11 +360,16 @@ All requests in this tutorial use `Content-Type: application/json`.
 
 <summary>Advanced parameters</summary>
 
-| Parameter           | Type        | Description                                                                                |
-| ------------------- | ----------- | ------------------------------------------------------------------------------------------ |
-| `writeMode`         | string      | `managed-zerobus` (default), `managed-sql`, or `external-direct`. Omit to get `managed-zerobus` |
-| `skipInitialExport` | boolean     | Skip initial export of existing data (default: `false`)                                    |
-| `targetFileSizeMb`  | unsignedInt | Parquet target size during initial export (default: `128`)                                 |
+<table>
+<thead>
+<tr><th width="230">Parameter</th><th width="110">Type</th><th>Description</th></tr>
+</thead>
+<tbody>
+<tr><td><code>writeMode</code></td><td>string</td><td><code>managed-zerobus</code> (default), <code>managed-sql</code>, or <code>external-direct</code>. Omit to get <code>managed-zerobus</code></td></tr>
+<tr><td><code>skipInitialExport</code></td><td>boolean</td><td>Skip initial export of existing data (default: <code>false</code>)</td></tr>
+<tr><td><code>targetFileSizeMb</code></td><td>unsignedInt</td><td>Parquet target size during initial export (default: <code>128</code>)</td></tr>
+</tbody>
+</table>
 
 </details>
 
@@ -396,10 +401,15 @@ All requests in this tutorial use `Content-Type: application/json`.
 
 <summary>Advanced parameters</summary>
 
-| Parameter           | Type        | Description                                                                                |
-| ------------------- | ----------- | ------------------------------------------------------------------------------------------ |
-| `skipInitialExport` | boolean     | Skip initial export of existing data (default: `false`)                                    |
-| `targetFileSizeMb`  | unsignedInt | Parquet target size during initial export (default: `128`)                                 |
+<table>
+<thead>
+<tr><th width="230">Parameter</th><th width="110">Type</th><th>Description</th></tr>
+</thead>
+<tbody>
+<tr><td><code>skipInitialExport</code></td><td>boolean</td><td>Skip initial export of existing data (default: <code>false</code>)</td></tr>
+<tr><td><code>targetFileSizeMb</code></td><td>unsignedInt</td><td>Parquet target size during initial export (default: <code>128</code>)</td></tr>
+</tbody>
+</table>
 
 </details>
 {% endtab %}
@@ -427,14 +437,19 @@ All requests in this tutorial use `Content-Type: application/json`.
 
 Pick **one** of: UC credential vending, static AWS keys, or default AWS provider chain.
 
-| Parameter                | Type   | Description                                                                                                  |
-| ------------------------ | ------ | ------------------------------------------------------------------------------------------------------------ |
-| `databricksWorkspaceUrl` | string | If set: UC credential vending; `databricksClientId` + `databricksClientSecret` + `tableName` must also be set |
-| `databricksClientId`     | string | SP `client_id` (required iff `databricksWorkspaceUrl` set)                                                   |
-| `databricksClientSecret` | string | SP `client_secret`; supports vault refs (required iff `databricksWorkspaceUrl` set)                          |
-| `tableName`              | string | UC `catalog.schema.table` (when using UC vending)                                                            |
-| `awsAccessKeyId`         | string | Static IAM key (falls back to default provider chain when absent). Supports vault refs                       |
-| `awsSecretAccessKey`     | string | Static IAM secret. Supports vault refs                                                                       |
+<table>
+<thead>
+<tr><th width="230">Parameter</th><th width="80">Type</th><th>Description</th></tr>
+</thead>
+<tbody>
+<tr><td><code>databricksWorkspaceUrl</code></td><td>string</td><td>If set: UC credential vending; <code>databricksClientId</code> + <code>databricksClientSecret</code> + <code>tableName</code> must also be set</td></tr>
+<tr><td><code>databricksClientId</code></td><td>string</td><td>SP <code>client_id</code> (required iff <code>databricksWorkspaceUrl</code> set)</td></tr>
+<tr><td><code>databricksClientSecret</code></td><td>string</td><td>SP <code>client_secret</code>; supports vault refs (required iff <code>databricksWorkspaceUrl</code> set)</td></tr>
+<tr><td><code>tableName</code></td><td>string</td><td>UC <code>catalog.schema.table</code> (when using UC vending)</td></tr>
+<tr><td><code>awsAccessKeyId</code></td><td>string</td><td>Static IAM key (falls back to default provider chain when absent). Supports vault refs</td></tr>
+<tr><td><code>awsSecretAccessKey</code></td><td>string</td><td>Static IAM secret. Supports vault refs</td></tr>
+</tbody>
+</table>
 
 </details>
 
@@ -442,11 +457,16 @@ Pick **one** of: UC credential vending, static AWS keys, or default AWS provider
 
 <summary>Advanced parameters</summary>
 
-| Parameter           | Type        | Description                                                              |
-| ------------------- | ----------- | ------------------------------------------------------------------------ |
-| `skipInitialExport` | boolean     | Skip initial export of existing data (default: `false`)                  |
-| `targetFileSizeMb`  | unsignedInt | Parquet target size during initial export (default: `128`)               |
-| `s3Endpoint`        | string      | MinIO / LocalStack endpoint (forces path-style URLs)                     |
+<table>
+<thead>
+<tr><th width="230">Parameter</th><th width="110">Type</th><th>Description</th></tr>
+</thead>
+<tbody>
+<tr><td><code>skipInitialExport</code></td><td>boolean</td><td>Skip initial export of existing data (default: <code>false</code>)</td></tr>
+<tr><td><code>targetFileSizeMb</code></td><td>unsignedInt</td><td>Parquet target size during initial export (default: <code>128</code>)</td></tr>
+<tr><td><code>s3Endpoint</code></td><td>string</td><td>MinIO / LocalStack endpoint (forces path-style URLs)</td></tr>
+</tbody>
+</table>
 
 </details>
 {% endtab %}
@@ -780,7 +800,7 @@ This stops the export and cleans up the internal message queue. Data already wri
 
 ## Alternative: `managed-sql` configuration
 
-If Zerobus isn't available on your Databricks SKU (older paid plans, some regions), set `writeMode=managed-sql`. Same managed UC target, same staging-MERGE initial-export, but live per-batch writes go through a Databricks SQL warehouse instead of Zerobus gRPC.
+If Zerobus isn't available on your Databricks SKU (older paid plans, some regions), set `writeMode=managed-sql`. Same managed UC target, same staging-MERGE initial-export, but live per-batch writes go through a Databricks SQL warehouse instead of Zerobus REST.
 
 The destination payload differs from the `managed-zerobus` example in three rows: drop `databricksWorkspaceId` + `databricksRegion`, change `writeMode` to `managed-sql`:
 
@@ -920,7 +940,7 @@ To skip the initial export (e.g., the table is already populated or you only nee
 
 Managed tables can't accept direct writes from outside Databricks compute (and Zerobus is append-only stream-ingest, not a bulk-load API), so initial bulk export uses a **temporary staging table** as a relay: the module writes the bulk Parquet to an external Delta table at `stagingTablePath` (which it can write to directly via Unity Catalog credential vending), then asks the SQL warehouse to merge from staging into the managed target on the resource `id`, then drops the staging table.
 
-This path is identical for `managed-zerobus` and `managed-sql` — both modes reuse the same staging + MERGE flow during initial export. The difference between the two modes only shows up after initial export, on live per-batch writes: `managed-zerobus` switches to Zerobus gRPC, `managed-sql` continues to use the warehouse.
+This path is identical for `managed-zerobus` and `managed-sql` — both modes reuse the same staging + MERGE flow during initial export. The difference between the two modes only shows up after initial export, on live per-batch writes: `managed-zerobus` switches to Zerobus REST, `managed-sql` continues to use the warehouse.
 
 ```mermaid
 graph LR
