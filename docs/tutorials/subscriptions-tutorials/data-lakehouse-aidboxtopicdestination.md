@@ -676,14 +676,47 @@ CREATE EXTERNAL LOCATION aidbox_staging_loc
 
 </details>
 
-**Create the staging schema.** By convention the module writes initial-export staging tables to `<target-catalog>.<target-schema>_staging.<target-table>_<…>` — a sibling schema to the target's, not the target's own schema. For target `aidbox_export.fhir.patients` that's `aidbox_export.fhir_staging`. Provision it with its own storage root pointing at the staging bucket prefix you just registered as the External Location:
+**Create the staging schema.** By convention the module writes initial-export staging tables to `<target-catalog>.<target-schema>_staging.<target-table>_<…>` — a sibling schema to the target's, not the target's own schema. For target `aidbox_export.fhir.patients` that's `aidbox_export.fhir_staging`.
+
+The schema must be created as **external** (with its own `storage_root` pointing at the External Location, and `managed_location` unset). Databricks SQL can't express this shape — `CREATE SCHEMA … LOCATION 's3://…'` is rejected with `UC_SCHEMA_REQUIRES_MANAGED_LOCATION`, and `CREATE SCHEMA … MANAGED LOCATION 's3://…'` produces a managed-storage schema that Databricks refuses to grant `EXTERNAL USE SCHEMA` on (`SCHEMA_DB_STORAGE` error). The only path is the Unity Catalog REST API — through the [`databricks` CLI](https://docs.databricks.com/aws/en/dev-tools/cli/install) or a raw `curl`:
+
+{% tabs %}
+{% tab title="Databricks CLI" %}
+```sh
+databricks schemas create \
+  --catalog-name aidbox_export \
+  --name fhir_staging \
+  --storage-root s3://<your-bucket-name>/staging/
+```
+{% endtab %}
+{% tab title="curl" %}
+```sh
+WS=https://<your-workspace>.cloud.databricks.com
+TOKEN=$(curl -sf -u "$DATABRICKS_CLIENT_ID:$DATABRICKS_CLIENT_SECRET" \
+  -d 'grant_type=client_credentials&scope=all-apis' \
+  "$WS/oidc/v1/token" | jq -r .access_token)
+
+curl -sf -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" \
+  -X POST "$WS/api/2.1/unity-catalog/schemas" \
+  -d '{
+    "name": "fhir_staging",
+    "catalog_name": "aidbox_export",
+    "storage_root": "s3://<your-bucket-name>/staging/"
+  }'
+```
+{% endtab %}
+{% endtabs %}
+
+For either form, the principal calling the API needs `CREATE SCHEMA` on the catalog and `CREATE MANAGED STORAGE` on the External Location backing the bucket. If you're calling it as a service principal that doesn't have those, grant them once from a metastore-admin SQL session:
 
 ```sql
-CREATE SCHEMA aidbox_export.fhir_staging
-  LOCATION 's3://<your-bucket-name>/staging/';
+GRANT CREATE SCHEMA ON CATALOG aidbox_export
+  TO `<your-principal>`;
+GRANT CREATE MANAGED STORAGE ON EXTERNAL LOCATION `aidbox_staging_loc`
+  TO `<your-principal>`;
 ```
 
-Note `LOCATION` (not `MANAGED LOCATION`): the difference matters. `LOCATION` makes the schema external — Databricks treats it as bring-your-own-storage and `EXTERNAL USE SCHEMA` becomes grantable. `MANAGED LOCATION` (or no location clause at all, which inherits from the catalog) makes the schema managed-storage, and Databricks refuses `EXTERNAL USE SCHEMA` on it with `SCHEMA_DB_STORAGE`. `EXTERNAL USE SCHEMA` is what lets the module's Kernel writer pull STS creds for direct-to-bucket Parquet writes during initial export, so without an external sibling schema initial-export can't run.
+Why an external schema specifically: Unity Catalog refuses `EXTERNAL USE SCHEMA` on managed-storage schemas, and `EXTERNAL USE SCHEMA` is what lets the module's Kernel writer pull STS creds for direct-to-bucket Parquet writes during initial export. Without an external sibling schema the initial-bulk staging step can't run.
 
 #### 1f. Grant the service principal
 
