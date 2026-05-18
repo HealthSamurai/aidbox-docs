@@ -8,6 +8,15 @@ description: Export FHIR resources to a Data Lakehouse — Databricks Unity Cata
 This functionality is available starting from Aidbox version **2605**.
 {% endhint %}
 
+The **Data Lakehouse `AidboxTopicDestination`** streams resource changes from Aidbox into [Delta Lake](https://delta.io/) tables — the open table format powering Databricks, Microsoft Fabric, Snowflake's Iceberg-compatibility layer, and most "lakehouse" stacks. Rows are flattened by a [ViewDefinition](../../modules/sql-on-fhir/defining-flat-views-with-view-definitions.md) on the way out, so what lands in the lakehouse is analytics-ready columnar data, not nested JSON.
+
+It can write to:
+
+- **Databricks Unity Catalog managed tables** — Databricks owns the files and runs maintenance (Predictive Optimization, `OPTIMIZE`, `VACUUM`). Two transports: [Zerobus REST ingest](https://docs.databricks.com/aws/en/ingestion/zerobus-ingest) (no warm warehouse on the hot path) or [SQL warehouse INSERT](https://docs.databricks.com/api/workspace/statementexecution) (use when Zerobus isn't on your SKU).
+- **External Delta tables on cloud object storage you own** — S3 / GCS / Azure ADLS. The module writes Parquet + Delta transaction-log commits directly via short-lived storage credentials vended by Unity Catalog, with static AWS keys, or the default AWS credentials provider chain. No Databricks compute on the write path; you own schema, `OPTIMIZE`, `VACUUM`.
+
+You pick the path per-destination with one parameter (`writeMode`); auth, schema sync, and at-least-once delivery semantics are otherwise the same. The first half of this page is conceptual background; if you already know Databricks + Unity Catalog + Delta, jump to [Overview](#overview) for the mode comparison and to [Step 1](#step-1-set-up-databricks-side) for the configuration walkthrough.
+
 ## Background
 
 "Data Lakehouse" is the generic name for the destination category — a hybrid of object-storage data lake and warehouse, implemented here on top of the Delta Lake table format. Concretely the module writes Delta-formatted tables that can live on plain cloud object storage you own, or in Databricks Unity Catalog managed storage; either way the destination kind is the same (`data-lakehouse-at-least-once`).
@@ -556,10 +565,12 @@ Otherwise, in your cloud account first:
    1. **Create the bucket** in the same region as your Databricks workspace (cross-region works but adds latency and egress cost).
 
       ```sh
-      aws s3api create-bucket --bucket your-aidbox-staging --region us-east-1
+      aws s3api create-bucket --bucket <your-bucket-name> --region us-east-1
       ```
 
-   2. **Create the IAM role.** Trust policy below — replace `<DATABRICKS_AWS_ACCOUNT_ID>` with the value from Databricks docs ([AWS commercial regions](https://docs.databricks.com/aws/en/connect/unity-catalog/cloud-storage/storage-credentials#create-an-iam-role)) and `<EXTERNAL_ID>` with any unique string (you'll paste the same value into the Databricks Storage Credential below). After Databricks creates the credential it will hand you a "Self-Assuming Role" ARN — re-edit the role and add that ARN as a second `Principal` so Databricks can assume itself through the role.
+   2. **Create the IAM role.** Replace `<DATABRICKS_AWS_ACCOUNT_ID>` with the value from Databricks docs ([AWS commercial regions](https://docs.databricks.com/aws/en/connect/unity-catalog/cloud-storage/storage-credentials#create-an-iam-role)) and `<EXTERNAL_ID>` with any unique string — you'll paste the same value into the Databricks Storage Credential in step 3. After step 3 Databricks shows a **Self-Assuming Role** ARN — re-edit the role then and add that ARN as a second entry under `Principal.AWS` so Databricks can assume the role through itself.
+
+      Trust policy:
 
       ```json
       {
@@ -575,7 +586,7 @@ Otherwise, in your cloud account first:
       }
       ```
 
-      Attach an inline permissions policy that scopes access to the bucket prefix:
+      Inline permissions policy scoping access to the bucket prefix:
 
       ```json
       {
@@ -589,21 +600,38 @@ Otherwise, in your cloud account first:
               "s3:GetLifecycleConfiguration", "s3:PutLifecycleConfiguration"
             ],
             "Resource": [
-              "arn:aws:s3:::your-aidbox-staging",
-              "arn:aws:s3:::your-aidbox-staging/*"
+              "arn:aws:s3:::<your-bucket-name>",
+              "arn:aws:s3:::<your-bucket-name>/*"
             ]
           }
         ]
       }
       ```
 
+      Apply both via the AWS Console (IAM → Roles → Create role) or the AWS CLI (save the two JSON blocks above to `trust-policy.json` and `s3-access.json`):
+
+      ```sh
+      aws iam create-role \
+        --role-name aidbox-staging-role \
+        --assume-role-policy-document file://trust-policy.json
+
+      aws iam put-role-policy \
+        --role-name aidbox-staging-role \
+        --policy-name s3-access \
+        --policy-document file://s3-access.json
+
+      # Note the ARN — step 3 pastes it into the Databricks Storage Credential.
+      aws iam get-role --role-name aidbox-staging-role \
+        --query 'Role.Arn' --output text
+      ```
+
    3. **Register the Storage Credential in Databricks.** **Catalog → External Data → Credentials → Create → AWS IAM role**. Paste the IAM role ARN and the external ID from step 2. Databricks shows the Self-Assuming Role ARN — copy it back into the IAM role's trust policy `Principal.AWS` list, save, wait for IAM eventual consistency (\~30 seconds).
 
-   4. **Register the External Location.** **Catalog → External Data → External Locations → Create** → pick the Storage Credential from step 3, set the URL to your bucket prefix (`s3://your-aidbox-staging/staging/`). The name you give it is what step 1f references as `<staging-external-location>`.
+   4. **Register the External Location.** **Catalog → External Data → External Locations → Create** → pick the Storage Credential from step 3, set the URL to your bucket prefix (`s3://<your-bucket-name>/staging/`). The name you give it is what step 1f references as `<staging-external-location>`.
 
       ```sql
       CREATE EXTERNAL LOCATION aidbox_staging_loc
-        URL 's3://your-aidbox-staging/staging/'
+        URL 's3://<your-bucket-name>/staging/'
         WITH (STORAGE CREDENTIAL your_storage_credential_name);
       ```
 
@@ -618,7 +646,7 @@ Otherwise, in your cloud account first:
 ```sql
 -- Equivalent SQL (the UI is usually friendlier for the credential step):
 CREATE EXTERNAL LOCATION aidbox_staging_loc
-  URL 's3://<your-aidbox-bucket>/staging/'
+  URL 's3://<your-bucket-name>/staging/'
   WITH (STORAGE CREDENTIAL <your-storage-credential-name>);
 ```
 
