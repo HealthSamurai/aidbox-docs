@@ -678,7 +678,14 @@ CREATE EXTERNAL LOCATION aidbox_staging_loc
 
 #### 1f. Grant the service principal
 
-Grant only the set that matches the `writeMode` you'll use.
+Grant only the set that matches the `writeMode` you'll use. The blocks below use shell-style variables (`${SP_CLIENT_ID}`, `${WAREHOUSE_ID}`, `${STAGING_EXTERNAL_LOCATION}`, `${TARGET_EXTERNAL_LOCATION}`) — set them once in your shell and pipe through `envsubst`, or substitute by hand in the SQL editor:
+
+```sh
+export SP_CLIENT_ID=94c5cd0b-e269-4121-8ccc-51aa96b61611       # from step 1a
+export WAREHOUSE_ID=9bb83da291e22d2d                            # from step 1c
+export STAGING_EXTERNAL_LOCATION=aidbox_staging_loc             # from step 1e
+export TARGET_EXTERNAL_LOCATION=aidbox_patients_loc             # external-direct only
+```
 
 {% tabs %}
 {% tab title="managed-zerobus" %}
@@ -687,22 +694,21 @@ Grant only the set that matches the `writeMode` you'll use.
 | `USE CATALOG` | `aidbox_export` | navigate the catalog |
 | `USE SCHEMA` | `aidbox_export.fhir` | resolve the target table |
 | `SELECT`, `MODIFY` | target table | `DESCRIBE` + initial-bulk `MERGE INTO` |
-| `USAGE` (UI: "Can use") | the SQL warehouse | submit bootstrap schema-sync statements + initial-bulk `MERGE` (no warehouse traffic during live writes) |
+| `Can use` (UI only) | the SQL warehouse | submit bootstrap schema-sync statements + initial-bulk `MERGE` (no warehouse traffic during live writes) |
 | `EXTERNAL USE SCHEMA` | the staging schema | Unity Catalog vends STS for the staging table (initial-export only) |
 | `READ FILES`, `WRITE FILES`, `CREATE EXTERNAL TABLE` | staging External Location | write the bulk Parquet via Unity-Catalog-vended STS (initial-export only) |
 
 ```sql
-GRANT USE CATALOG ON CATALOG aidbox_export                TO `<sp-client-id>`;
-GRANT USE SCHEMA  ON SCHEMA  aidbox_export.fhir           TO `<sp-client-id>`;
-GRANT SELECT, MODIFY ON TABLE aidbox_export.fhir.patients TO `<sp-client-id>`;
-GRANT USAGE ON WAREHOUSE `<warehouse-id>`                 TO `<sp-client-id>`;
+GRANT USE CATALOG ON CATALOG aidbox_export                TO `${SP_CLIENT_ID}`;
+GRANT USE SCHEMA  ON SCHEMA  aidbox_export.fhir           TO `${SP_CLIENT_ID}`;
+GRANT SELECT, MODIFY ON TABLE aidbox_export.fhir.patients TO `${SP_CLIENT_ID}`;
 -- initial-export only:
-GRANT EXTERNAL USE SCHEMA ON SCHEMA aidbox_export.fhir    TO `<sp-client-id>`;
+GRANT EXTERNAL USE SCHEMA ON SCHEMA aidbox_export.fhir    TO `${SP_CLIENT_ID}`;
 GRANT READ FILES, WRITE FILES, CREATE EXTERNAL TABLE
-  ON EXTERNAL LOCATION `<staging-external-location>`      TO `<sp-client-id>`;
+  ON EXTERNAL LOCATION `${STAGING_EXTERNAL_LOCATION}`     TO `${SP_CLIENT_ID}`;
 ```
 
-The warehouse "Can use" also has to be granted via UI: **SQL Warehouses → your warehouse → Permissions → Add → service principal → Can use**.
+Warehouse permissions are **not grantable in SQL** — there's no `GRANT … ON WAREHOUSE` syntax. Do it through the UI: **SQL Warehouses → your warehouse → Permissions (top right) → Add principal → pick the service principal → Can use**.
 {% endtab %}
 
 {% tab title="managed-sql" %}
@@ -711,22 +717,21 @@ The warehouse "Can use" also has to be granted via UI: **SQL Warehouses → your
 | `USE CATALOG` | `aidbox_export` | navigate the catalog |
 | `USE SCHEMA` | `aidbox_export.fhir` | resolve the target table |
 | `SELECT`, `MODIFY` | target table | every `INSERT` + bootstrap `DESCRIBE` + initial-bulk `MERGE` |
-| `USAGE` (UI: "Can use") | the SQL warehouse | submit every statement |
+| `Can use` (UI only) | the SQL warehouse | submit every statement |
 | `EXTERNAL USE SCHEMA` | the staging schema | Unity Catalog vends STS for the staging table (initial-export only) |
 | `READ FILES`, `WRITE FILES`, `CREATE EXTERNAL TABLE` | staging External Location | write the bulk Parquet via Unity-Catalog-vended STS (initial-export only) |
 
 ```sql
-GRANT USE CATALOG ON CATALOG aidbox_export                TO `<sp-client-id>`;
-GRANT USE SCHEMA  ON SCHEMA  aidbox_export.fhir           TO `<sp-client-id>`;
-GRANT SELECT, MODIFY ON TABLE aidbox_export.fhir.patients TO `<sp-client-id>`;
-GRANT USAGE ON WAREHOUSE `<warehouse-id>`                 TO `<sp-client-id>`;
+GRANT USE CATALOG ON CATALOG aidbox_export                TO `${SP_CLIENT_ID}`;
+GRANT USE SCHEMA  ON SCHEMA  aidbox_export.fhir           TO `${SP_CLIENT_ID}`;
+GRANT SELECT, MODIFY ON TABLE aidbox_export.fhir.patients TO `${SP_CLIENT_ID}`;
 -- initial-export only:
-GRANT EXTERNAL USE SCHEMA ON SCHEMA aidbox_export.fhir    TO `<sp-client-id>`;
+GRANT EXTERNAL USE SCHEMA ON SCHEMA aidbox_export.fhir    TO `${SP_CLIENT_ID}`;
 GRANT READ FILES, WRITE FILES, CREATE EXTERNAL TABLE
-  ON EXTERNAL LOCATION `<staging-external-location>`      TO `<sp-client-id>`;
+  ON EXTERNAL LOCATION `${STAGING_EXTERNAL_LOCATION}`     TO `${SP_CLIENT_ID}`;
 ```
 
-The warehouse "Can use" also has to be granted via UI: **SQL Warehouses → your warehouse → Permissions → Add → service principal → Can use**.
+Warehouse permissions are **not grantable in SQL** — there's no `GRANT … ON WAREHOUSE` syntax. Do it through the UI: **SQL Warehouses → your warehouse → Permissions (top right) → Add principal → pick the service principal → Can use**.
 {% endtab %}
 
 {% tab title="external-direct" %}
@@ -739,12 +744,12 @@ The warehouse "Can use" also has to be granted via UI: **SQL Warehouses → your
 | `READ FILES`, `WRITE FILES`, `CREATE EXTERNAL TABLE` | target's External Location | write Parquet + Delta commits directly to the bucket |
 
 ```sql
-GRANT USE CATALOG ON CATALOG aidbox_export                TO `<sp-client-id>`;
-GRANT USE SCHEMA  ON SCHEMA  aidbox_export.fhir           TO `<sp-client-id>`;
-GRANT SELECT, MODIFY ON TABLE aidbox_export.fhir.patients TO `<sp-client-id>`;
-GRANT EXTERNAL USE SCHEMA ON SCHEMA aidbox_export.fhir    TO `<sp-client-id>`;
+GRANT USE CATALOG ON CATALOG aidbox_export                TO `${SP_CLIENT_ID}`;
+GRANT USE SCHEMA  ON SCHEMA  aidbox_export.fhir           TO `${SP_CLIENT_ID}`;
+GRANT SELECT, MODIFY ON TABLE aidbox_export.fhir.patients TO `${SP_CLIENT_ID}`;
+GRANT EXTERNAL USE SCHEMA ON SCHEMA aidbox_export.fhir    TO `${SP_CLIENT_ID}`;
 GRANT READ FILES, WRITE FILES, CREATE EXTERNAL TABLE
-  ON EXTERNAL LOCATION `<target-external-location>`       TO `<sp-client-id>`;
+  ON EXTERNAL LOCATION `${TARGET_EXTERNAL_LOCATION}`      TO `${SP_CLIENT_ID}`;
 ```
 
 {% hint style="warning" %}
