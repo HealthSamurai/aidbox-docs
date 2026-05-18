@@ -18,7 +18,7 @@ If you're already comfortable with Databricks, Unity Catalog, and Delta Lake, sk
 
 [Databricks](https://www.databricks.com/) is a managed analytics platform. For this tutorial you only need to think of it as **three things bundled together**:
 
-1. **[Unity Catalog (UC)](https://docs.databricks.com/aws/en/data-governance/unity-catalog/)** — the metadata + governance layer. UC knows about every catalog, schema, table, column, and grant in your workspace. It also issues short-lived cloud-storage credentials on demand ("vending") so external clients can write data without being given long-lived bucket keys.
+1. **[Unity Catalog](https://docs.databricks.com/aws/en/data-governance/unity-catalog/)** — the metadata + governance layer. Unity Catalog knows about every catalog, schema, table, column, and grant in your workspace. It also issues short-lived cloud-storage credentials on demand ("vending") so external clients can write data without being given long-lived bucket keys.
 2. **[SQL warehouse](https://docs.databricks.com/aws/en/compute/sql-warehouse/)** — a compute cluster that runs SQL queries against tables in your Unity Catalog. Usually you query it from the Databricks UI's SQL Editor; the module can drive it programmatically over an API.
 3. **[Zerobus Ingest](https://docs.databricks.com/aws/en/ingestion/zerobus-overview)** — a push-based ingestion service that writes data directly into Unity Catalog Delta tables. Databricks exposes Zerobus via two transports — gRPC and REST. The Aidbox module uses the [REST endpoint](https://docs.databricks.com/aws/en/ingestion/zerobus-ingest): batches are POSTed as JSON arrays and Zerobus durably commits them to the managed Delta table on the Databricks side.
 
@@ -51,10 +51,10 @@ Unity Catalog tables come in two flavours:
 |                                | **Managed**                                                          | **External**                                                          |
 | ------------------------------ | -------------------------------------------------------------------- | --------------------------------------------------------------------- |
 | Status                         | Databricks' **default and recommended** table type                   | Use when you need files in your own bucket                            |
-| Storage location               | Databricks-managed cloud storage (path picked by UC)                 | Your bucket — declared with `LOCATION 's3://...' / 'gs://...' / 'abfss://...'` at `CREATE TABLE` |
-| Who owns the files             | Unity Catalog — manages read, write, storage, and optimization       | You — UC manages metadata only                                        |
+| Storage location               | Databricks-managed cloud storage (path picked by Unity Catalog)      | Your bucket — declared with `LOCATION 's3://...' / 'gs://...' / 'abfss://...'` at `CREATE TABLE` |
+| Who owns the files             | Unity Catalog — manages read, write, storage, and optimization       | You — Unity Catalog manages metadata only                                        |
 | `DROP TABLE`                   | Deletes the data                                                     | Drops metadata only — files stay in your bucket                       |
-| Supported write paths from Aidbox | **Zerobus REST ingest** (Aidbox `managed-zerobus`), or **SQL warehouse INSERT** (Aidbox `managed-sql`) | **Direct Parquet + Delta commit** via STS-vended UC creds (Aidbox `external-direct`) |
+| Supported write paths from Aidbox | **Zerobus REST ingest** (Aidbox `managed-zerobus`), or **SQL warehouse INSERT** (Aidbox `managed-sql`) | **Direct Parquet + Delta commit** via STS-vended Unity Catalog creds (Aidbox `external-direct`) |
 | External STS credential vending| Not available for managed targets (`EXTERNAL USE SCHEMA` is only grantable on external schemas) | Allowed if the principal has `EXTERNAL USE SCHEMA` on the schema      |
 | Predictive Optimization        | Enabled by default for accounts created on or after **2024-11-11**; runs `OPTIMIZE` / `VACUUM` / `ANALYZE` automatically. Billed under the **Jobs Serverless** SKU. | **Not supported** — Predictive Optimization runs only on managed tables |
 | Liquid Clustering              | Opt-in per table (automatic liquid clustering requires Predictive Optimization and is also opt-in) | Opt-in per table                                                      |
@@ -109,7 +109,7 @@ graph LR
     C(PostgreSQL queue):::neutral2
     D(ViewDefinition flatten):::yellow2
     Z(Zerobus REST ingest):::green2
-    T0(UC managed Delta table):::violet2
+    T0(Unity Catalog managed Delta table):::violet2
 
     A --> B --> C --> D --> Z --> T0
 ```
@@ -120,7 +120,7 @@ graph LR
 
 ### managed-sql mode
 
-`writeMode=managed-sql` — same target as `managed-zerobus` (UC **managed** table), but routes incoming batches through a Databricks SQL warehouse. Use this when Zerobus isn't available on your Databricks SKU.
+`writeMode=managed-sql` — same target as `managed-zerobus` (Unity Catalog **managed** table), but routes incoming batches through a Databricks SQL warehouse. Use this when Zerobus isn't available on your Databricks SKU.
 
 ```mermaid
 graph LR
@@ -129,7 +129,7 @@ graph LR
     C(PostgreSQL queue):::neutral2
     D(ViewDefinition flatten):::yellow2
     M(Databricks SQL warehouse):::green2
-    T1(UC managed Delta table):::violet2
+    T1(Unity Catalog managed Delta table):::violet2
 
     A --> B --> C --> D --> M --> T1
 ```
@@ -161,12 +161,12 @@ graph LR
 
 **Default to `managed-zerobus`.** Pick a different mode only when one of these applies:
 
-- **Zerobus isn't available on your Databricks SKU** → `managed-sql`. Same managed UC target, same initial-bulk path, but every batch goes through a SQL warehouse (which has to stay warm).
+- **Zerobus isn't available on your Databricks SKU** → `managed-sql`. Same managed Unity Catalog target, same initial-bulk path, but every batch goes through a SQL warehouse (which has to stay warm).
 - **You want the files in your own bucket, not Databricks-managed storage**, and you accept owning schema + `OPTIMIZE` / `VACUUM` yourself → `external-direct`. No Databricks compute on the write path; no Predictive Optimization either (Databricks restricts PO to managed tables).
 
 |                                | `managed-zerobus` (default)                                              | `managed-sql`                                                            | `external-direct`                                            |
 | ------------------------------ | ------------------------------------------------------------------------ | ------------------------------------------------------------------------ | ------------------------------------------------------------ |
-| Table type                     | UC **managed** (Databricks owns the files)                               | UC **managed** (Databricks owns the files)                               | **External** (the User's bucket owns the files)              |
+| Table type                     | Unity Catalog **managed** (Databricks owns the files)                               | Unity Catalog **managed** (Databricks owns the files)                               | **External** (the User's bucket owns the files)              |
 | Hot-path transport             | Zerobus REST ingest API                                                  | Databricks SQL warehouse (Statement Execution API)                       | Direct Delta commits via Hadoop FS                            |
 | Who runs maintenance           | Databricks (Predictive Optimization handles `OPTIMIZE` / `VACUUM`)       | Databricks (Predictive Optimization handles `OPTIMIZE` / `VACUUM`)       | The User schedules `OPTIMIZE` / `VACUUM`                     |
 | Databricks compute cost surface| **No warm warehouse** — pay-per-row Zerobus + storage only               | SQL warehouse must be running to accept INSERTs — Databricks bills uptime | No warehouse — no Databricks compute charge for write path   |
@@ -180,11 +180,11 @@ All three modes authenticate to Databricks via [**OAuth Machine-to-Machine (M2M)
 
 The bearer is sent on every Databricks call. What differs between modes is which Databricks surfaces see it:
 
-| Mode                        | UC REST                                       | SQL warehouse                              | Other transport            | Who talks to storage                 |
+| Mode                        | Unity Catalog REST                                       | SQL warehouse                              | Other transport            | Who talks to storage                 |
 |-----------------------------|-----------------------------------------------|--------------------------------------------|----------------------------|--------------------------------------|
 | `managed-zerobus` (default) | only during initial-export (staging vending)  | bootstrap + initial-export only            | Zerobus REST (every batch) | Zerobus ingest service, Databricks-side |
 | `managed-sql`               | only during initial-export (staging vending)  | every batch (`INSERT` / `ALTER` / `DESCRIBE`) | —                          | SQL warehouse compute                 |
-| `external-direct`           | every cred-refresh (~45 min)                  | none                                       | —                          | sender process, with UC-vended STS    |
+| `external-direct`           | every cred-refresh (~45 min)                  | none                                       | —                          | sender process, with Unity-Catalog-vended STS    |
 
 In `external-direct` you can also skip Databricks entirely and authenticate against the bucket with static AWS keys (`awsAccessKeyId` + `awsSecretAccessKey`) or the [AWS default provider chain](https://docs.aws.amazon.com/sdk-for-java/latest/developer-guide/credentials-chain.html). The service principal and the grants it needs are created in [Step 1](#step-1-set-up-databricks-side).
 
@@ -197,7 +197,7 @@ In `external-direct` you can also skip Databricks entirely and authenticate agai
 - A managed (or external, for `external-direct`) Delta table you intend to write into
 - A SQL warehouse (skip only for `external-direct`)
 - For `managed-zerobus`: Zerobus enabled on your SKU (Databricks Free Edition supports it; for paid plans confirm with Databricks support)
-- For initial-export in the `managed-*` modes: an S3/GCS/ADLS bucket you control with a UC External Location for staging
+- For initial-export in the `managed-*` modes: an S3/GCS/ADLS bucket you control with a Unity Catalog External Location for staging
 
 The service principal that authenticates the module is created in [Step 1](#step-1-set-up-databricks-side) — you don't need it before you start.
 
@@ -388,17 +388,17 @@ All requests in this tutorial use `Content-Type: application/json`.
 
 <summary>Authentication parameters</summary>
 
-Pick **one** of: UC credential vending, static AWS keys, or default AWS provider chain.
+Pick **one** of: Unity Catalog credential vending, static AWS keys, or default AWS provider chain.
 
 <table>
 <thead>
 <tr><th width="230">Parameter</th><th width="80">Type</th><th>Description</th></tr>
 </thead>
 <tbody>
-<tr><td><code>databricksWorkspaceUrl</code></td><td>string</td><td>If set: UC credential vending; <code>databricksClientId</code> + <code>databricksClientSecret</code> + <code>tableName</code> must also be set</td></tr>
+<tr><td><code>databricksWorkspaceUrl</code></td><td>string</td><td>If set: Unity Catalog credential vending; <code>databricksClientId</code> + <code>databricksClientSecret</code> + <code>tableName</code> must also be set</td></tr>
 <tr><td><code>databricksClientId</code></td><td>string</td><td>SP <code>client_id</code> (required iff <code>databricksWorkspaceUrl</code> set)</td></tr>
 <tr><td><code>databricksClientSecret</code></td><td>string</td><td>SP <code>client_secret</code>; supports vault refs (required iff <code>databricksWorkspaceUrl</code> set)</td></tr>
-<tr><td><code>tableName</code></td><td>string</td><td>UC <code>catalog.schema.table</code> (when using UC vending)</td></tr>
+<tr><td><code>tableName</code></td><td>string</td><td>Unity Catalog <code>catalog.schema.table</code> (when using Unity Catalog credential vending)</td></tr>
 <tr><td><code>awsAccessKeyId</code></td><td>string</td><td>Static IAM key (falls back to default provider chain when absent). Supports vault refs</td></tr>
 <tr><td><code>awsSecretAccessKey</code></td><td>string</td><td>Static IAM secret. Supports vault refs</td></tr>
 </tbody>
@@ -507,7 +507,7 @@ CREATE TABLE aidbox_export.fhir.patients (
 {% hint style="warning" %}
 The table **must** include an `is_deleted` column (`INT`). The module sets this to `0` for create/update operations and `1` for delete operations.
 
-**No `LOCATION` clause** — that's what makes this a managed table. UC owns the physical layout, runs Predictive Optimization automatically, and refuses external STS-vended writes — which is why both `managed-*` modes go through Databricks compute (Zerobus or SQL warehouse).
+**No `LOCATION` clause** — that's what makes this a managed table. Unity Catalog owns the physical layout, runs Predictive Optimization automatically, and refuses external STS-vended writes — which is why both `managed-*` modes go through Databricks compute (Zerobus or SQL warehouse).
 {% endhint %}
 
 **Type mapping:**
@@ -527,7 +527,7 @@ In both `managed-*` modes the module **automatically issues `ALTER TABLE ADD COL
 
 #### 1c. SQL warehouse
 
-Compute → SQL Warehouses → use an existing warehouse or create a new one. Serverless 2X-Small is the cheapest option that supports the Statement Execution API. Copy the **Warehouse ID** — you'll use it as `databricksWarehouseId`.
+Compute → SQL Warehouses → use an existing warehouse or create a new one. Copy the **Warehouse ID** — you'll use it as `databricksWarehouseId`.
 
 #### 1d. Service principal
 
@@ -536,7 +536,26 @@ Compute → SQL Warehouses → use an existing warehouse or create a new one. Se
 3. Click the new SP, open the **Secrets** tab, click **Generate secret**.
 4. Copy the **Client ID** and **Secret** — you'll use these as `databricksClientId` / `databricksClientSecret`.
 
-#### 1e. Grant the service principal
+#### 1e. (Skip if you set `skipInitialExport: true`) Staging location for initial export
+
+When the destination starts, by default the module copies everything that's already in Aidbox into the target table before turning on live writes. That bulk copy needs a place to stage Parquet files — a cloud bucket prefix that Databricks is allowed to write to through Unity Catalog. Both `managed-zerobus` and `managed-sql` use the same staging path; `external-direct` writes the bulk straight to the target and skips this step.
+
+If you set `skipInitialExport: true` on the destination, you can skip this whole section — no staging is needed and the grants in step 1f that reference `<staging-external-location>` aren't required either.
+
+Otherwise, in your cloud account first:
+
+1. **Pick a bucket prefix** you control — e.g. an S3 path like `s3://<your-aidbox-bucket>/staging/` (substitute your bucket name; S3 names are globally unique so you'll need your own). GCS / ADLS paths work the same way.
+2. **Set up a Storage Credential** in Databricks — an IAM role (S3) / service account (GCS) / access connector (ADLS) that Databricks is permitted to assume to reach that prefix. In the Databricks UI: **Catalog → External Data → Credentials → Create credential**. The full setup (trust policies, IAM JSON, etc.) is bucket-specific and covered in [Databricks: storage credentials](https://docs.databricks.com/en/connect/unity-catalog/storage-credentials.html).
+3. **Create the External Location** that combines the prefix and the credential: **Catalog → External Data → External Locations → Create external location**. Give it a name (e.g. `aidbox-staging-loc`) — that name is what you'll reference as `<staging-external-location>` in the next step.
+
+```sql
+-- Equivalent SQL (the UI is usually friendlier for the credential step):
+CREATE EXTERNAL LOCATION aidbox_staging_loc
+  URL 's3://<your-aidbox-bucket>/staging/'
+  WITH (STORAGE CREDENTIAL <your-storage-credential-name>);
+```
+
+#### 1f. Grant the service principal
 
 Grant only the set that matches the `writeMode` you'll use.
 
@@ -548,8 +567,8 @@ Grant only the set that matches the `writeMode` you'll use.
 | `USE SCHEMA` | `aidbox_export.fhir` | resolve the target table |
 | `SELECT`, `MODIFY` | target table | `DESCRIBE` + initial-bulk `MERGE INTO` |
 | `USAGE` (UI: "Can use") | the SQL warehouse | submit bootstrap schema-sync statements + initial-bulk `MERGE` (no warehouse traffic during live writes) |
-| `EXTERNAL USE SCHEMA` | the staging schema | UC vends STS for the staging table (initial-export only) |
-| `READ FILES`, `WRITE FILES`, `CREATE EXTERNAL TABLE` | staging External Location | write the bulk Parquet via UC-vended STS (initial-export only) |
+| `EXTERNAL USE SCHEMA` | the staging schema | Unity Catalog vends STS for the staging table (initial-export only) |
+| `READ FILES`, `WRITE FILES`, `CREATE EXTERNAL TABLE` | staging External Location | write the bulk Parquet via Unity-Catalog-vended STS (initial-export only) |
 
 ```sql
 GRANT USE CATALOG ON CATALOG aidbox_export                TO `<sp-client-id>`;
@@ -572,8 +591,8 @@ The warehouse "Can use" also has to be granted via UI: **SQL Warehouses → your
 | `USE SCHEMA` | `aidbox_export.fhir` | resolve the target table |
 | `SELECT`, `MODIFY` | target table | every `INSERT` + bootstrap `DESCRIBE` + initial-bulk `MERGE` |
 | `USAGE` (UI: "Can use") | the SQL warehouse | submit every statement |
-| `EXTERNAL USE SCHEMA` | the staging schema | UC vends STS for the staging table (initial-export only) |
-| `READ FILES`, `WRITE FILES`, `CREATE EXTERNAL TABLE` | staging External Location | write the bulk Parquet via UC-vended STS (initial-export only) |
+| `EXTERNAL USE SCHEMA` | the staging schema | Unity Catalog vends STS for the staging table (initial-export only) |
+| `READ FILES`, `WRITE FILES`, `CREATE EXTERNAL TABLE` | staging External Location | write the bulk Parquet via Unity-Catalog-vended STS (initial-export only) |
 
 ```sql
 GRANT USE CATALOG ON CATALOG aidbox_export                TO `<sp-client-id>`;
@@ -594,8 +613,8 @@ The warehouse "Can use" also has to be granted via UI: **SQL Warehouses → your
 |---|---|---|
 | `USE CATALOG` | `aidbox_export` | navigate the catalog |
 | `USE SCHEMA` | `aidbox_export.fhir` | resolve the target table |
-| `SELECT`, `MODIFY` | target table | UC checks before vending creds |
-| `EXTERNAL USE SCHEMA` | the target's schema | UC vends STS creds for direct-to-bucket writes |
+| `SELECT`, `MODIFY` | target table | Unity Catalog checks before vending creds |
+| `EXTERNAL USE SCHEMA` | the target's schema | Unity Catalog vends STS creds for direct-to-bucket writes |
 | `READ FILES`, `WRITE FILES`, `CREATE EXTERNAL TABLE` | target's External Location | write Parquet + Delta commits directly to the bucket |
 
 ```sql
@@ -608,40 +627,10 @@ GRANT READ FILES, WRITE FILES, CREATE EXTERNAL TABLE
 ```
 
 {% hint style="warning" %}
-`EXTERNAL USE SCHEMA` is **only grantable on external schemas** (where the schema's tables sit at an external location). UC managed schemas refuse this grant by design — managed tables can't be vended.
+`EXTERNAL USE SCHEMA` is **only grantable on external schemas** (where the schema's tables sit at an external location). Unity Catalog managed schemas refuse this grant by design — managed tables can't be vended.
 {% endhint %}
 {% endtab %}
 {% endtabs %}
-
-External-Location provisioning + Storage Credential setup live in step 1f below.
-
-#### 1f. (Optional, `managed-zerobus` / `managed-sql` only) Staging location for initial export
-
-If you plan to use `skipInitialExport=false` (the default), you also need a UC **External Location** for the staging Delta table the module writes to during bulk export. Both `managed-zerobus` and `managed-sql` go through the same staging path during initial bulk; `external-direct` writes the bulk straight to the target instead and skips this step.
-
-1. Provision an S3 bucket (or GCS / ADLS prefix) you control. Example: `s3://my-aidbox-staging/`.
-2. Configure a **Storage Credential** in Databricks (Data → External Data → Credentials). For S3 this is an IAM role with trust policy granting Databricks AWS account access; follow [Databricks docs on storage credentials](https://docs.databricks.com/en/connect/unity-catalog/storage-credentials.html).
-3. Create the **External Location** in Databricks (Data → External Data → External Locations) pointing at the bucket path with the Storage Credential. The location's name is what you reference as `<staging-external-location>` in the grants in step 1e.
-
-The SP grants for the staging External Location are already covered in the `managed-zerobus` / `managed-sql` tabs of step 1e.
-
-#### 1g. (Optional) Store the SP secret in vault
-
-`databricksClientSecret` (and any other parameter) can be passed either inline on the destination resource or as a vault-backed reference. The module supports Aidbox's [External Secrets](../../configuration/secret-files.md) integration — store the secret in a file (Kubernetes Secrets, Docker Secrets, CSI driver, …) and reference it from the destination parameter via the FHIR primitive-extension pattern:
-
-```json
-{
-  "name": "databricksClientSecret",
-  "_valueString": {
-    "extension": [
-      {"url": "http://hl7.org/fhir/StructureDefinition/data-absent-reason", "valueCode": "masked"},
-      {"url": "http://health-samurai.io/fhir/secret-reference", "valueString": "dbx-sp-secret"}
-    ]
-  }
-}
-```
-
-The string `dbx-sp-secret` is a secret name from your `BOX_VAULT_CONFIG` mapping; the actual secret value is read from the file at request time, never stored in the resource. Configuration details live in [External Secrets](../../configuration/secret-files.md).
 
 {% endstep %}
 
@@ -761,7 +750,21 @@ POST /fhir/AidboxTopicDestination
 }
 ```
 
-To pass `databricksClientSecret` (or any other parameter) as a vault-backed reference instead of inline, use the FHIR primitive-extension pattern described in [External Secrets](../../configuration/secret-files.md).
+**Externalising the SP secret.** The example above passes `databricksClientSecret` inline. In production you'll typically keep it out of the destination resource and resolve it from a file at request time via Aidbox's [External Secrets](../../configuration/secret-files.md) integration — store the secret in a file (Kubernetes Secrets, Docker Secrets, CSI driver, …) and reference it from the destination parameter via the FHIR primitive-extension pattern:
+
+```json
+{
+  "name": "databricksClientSecret",
+  "_valueString": {
+    "extension": [
+      {"url": "http://hl7.org/fhir/StructureDefinition/data-absent-reason", "valueCode": "masked"},
+      {"url": "http://health-samurai.io/fhir/secret-reference", "valueString": "dbx-sp-secret"}
+    ]
+  }
+}
+```
+
+The string `dbx-sp-secret` is a secret name from your `BOX_VAULT_CONFIG` mapping; the actual secret value is read from the file at request time, never stored in the resource. The same pattern works for any other parameter that holds a credential.
 
 {% endstep %}
 
@@ -800,7 +803,7 @@ This stops the export and cleans up the internal message queue. Data already wri
 
 ## Alternative: `managed-sql` configuration
 
-If Zerobus isn't available on your Databricks SKU (older paid plans, some regions), set `writeMode=managed-sql`. Same managed UC target, same staging-MERGE initial-export, but live per-batch writes go through a Databricks SQL warehouse instead of Zerobus REST.
+If Zerobus isn't available on your Databricks SKU (older paid plans, some regions), set `writeMode=managed-sql`. Same managed Unity Catalog target, same staging-MERGE initial-export, but live per-batch writes go through a Databricks SQL warehouse instead of Zerobus REST.
 
 The destination payload differs from the `managed-zerobus` example in three rows: drop `databricksWorkspaceId` + `databricksRegion`, change `writeMode` to `managed-sql`:
 
@@ -837,7 +840,7 @@ The Databricks setup in Step 4 is identical for `managed-sql` — same table, sa
 
 ## Alternative: `external-direct` configuration
 
-If you don't need UC managed-table governance and want the highest throughput (direct-to-storage Parquet writes, zero Databricks compute cost), use `writeMode=external-direct`. The module commits Parquet + Delta transaction-log entries straight to your bucket via UC credential vending.
+If you don't need Unity Catalog managed-table governance and want the highest throughput (direct-to-storage Parquet writes, zero Databricks compute cost), use `writeMode=external-direct`. The module commits Parquet + Delta transaction-log entries straight to your bucket via Unity Catalog credential vending.
 
 ### Setup differences from the managed modes
 
@@ -891,7 +894,7 @@ POST /fhir/AidboxTopicDestination
 }
 ```
 
-### Static AWS keys (no UC vending)
+### Static AWS keys (no Unity Catalog vending)
 
 `external-direct` can also write to a Delta table that isn't governed by Unity Catalog — for example, a bucket your own AWS account owns directly, or a MinIO / non-Databricks S3 deployment. Omit `databricksWorkspaceUrl` entirely and provide static AWS keys + `tablePath`:
 
@@ -948,10 +951,10 @@ graph LR
     M[Aidbox sender]:::blue2
     Staging[Staging external Delta table<br/>on stagingTablePath]:::yellow2
     WH[Databricks SQL warehouse]:::green2
-    Target[(UC managed Delta target)]:::violet2
+    Target[(Unity Catalog managed Delta target)]:::violet2
 
     M -- 1. read rows --> PG
-    M -- 2. write Parquet + Delta commit<br/>via UC-vended STS --> Staging
+    M -- 2. write Parquet + Delta commit<br/>via Unity-Catalog-vended STS --> Staging
     M -- 3. MERGE INTO target USING staging ON id<br/>WHEN NOT MATCHED THEN INSERT * --> WH
     WH -- 4. read --> Staging
     WH -- 5. write --> Target
@@ -987,10 +990,10 @@ graph LR
     Target[(External Delta target<br/>on S3 / GCS / ADLS)]:::violet2
 
     M -- 1. read rows --> PG
-    M -- 2. write Parquet + Delta commit<br/>via UC-vended STS --> Target
+    M -- 2. write Parquet + Delta commit<br/>via Unity-Catalog-vended STS --> Target
 ```
 
-No staging — the module writes `sof.<view>` rows straight to the external target table. All rows land in one Delta commit at the end, so consumers see either zero rows or the full historical batch (all-or-nothing visibility). Requires `EXTERNAL USE SCHEMA` so UC will vend write credentials for the target.
+No staging — the module writes `sof.<view>` rows straight to the external target table. All rows land in one Delta commit at the end, so consumers see either zero rows or the full historical batch (all-or-nothing visibility). Requires `EXTERNAL USE SCHEMA` so Unity Catalog will vend write credentials for the target.
 
 ## Monitoring
 
@@ -1097,7 +1100,7 @@ You can create multiple destinations for the same topic — for example, to mirr
 
 ### Common issues
 
-1. **`EXTERNAL_WRITE_NOT_ALLOWED_FOR_TABLE`** (writeMode=external-direct against a managed table) — UC vending refuses managed tables by design. Either recreate the table as external (with explicit `LOCATION '...'`), or switch the destination to `writeMode=managed`.
+1. **`EXTERNAL_WRITE_NOT_ALLOWED_FOR_TABLE`** (writeMode=external-direct against a managed table) — Unity Catalog vending refuses managed tables by design. Either recreate the table as external (with explicit `LOCATION '...'`), or switch the destination to `writeMode=managed`.
 2. **`EXTERNAL_ACCESS_DISABLED_ON_METASTORE`** — your Unity Catalog metastore has external data access disabled (the Databricks Free Edition default). In Catalog Explorer → Metastore → enable **External data access**.
 3. **`Privilege EXTERNAL USE SCHEMA is not applicable to this entity`** — you're trying to grant `EXTERNAL USE SCHEMA` on a managed schema. Either recreate the schema as external, or switch to `writeMode=managed`.
 4. **`INSUFFICIENT_PRIVILEGES` on table or warehouse** — verify all grants in [Step 1e](#1e-grant-the-service-principal). Don't forget the **Can use** permission on the warehouse via UI.
