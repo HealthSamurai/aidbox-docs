@@ -529,14 +529,22 @@ In both `managed-*` modes the module **automatically issues `ALTER TABLE ADD COL
 
 #### 1c. SQL warehouse
 
-Compute → SQL Warehouses → use an existing warehouse or create a new one. Copy the **Warehouse ID** — you'll use it as `databricksWarehouseId`.
+Compute → SQL Warehouses → use an existing warehouse or create a new one. Copy the **Warehouse ID** — you'll use it as `databricksWarehouseId`. Stash it in your shell for the grants in 1f:
+
+```sh
+export WAREHOUSE_ID=<paste-the-warehouse-id>
+```
 
 #### 1d. Service principal
 
 1. In your Databricks workspace, go to **Settings → Identity and access → Service principals → Add service principal**.
 2. Give it a name (e.g. `aidbox-topic-destination`) and create.
 3. Click the new SP, open the **Secrets** tab, click **Generate secret**.
-4. Copy the **Client ID** and **Secret** — you'll use these as `databricksClientId` / `databricksClientSecret`.
+4. Copy the **Client ID** and **Secret** — you'll use these as `databricksClientId` / `databricksClientSecret`. Stash the Client ID in your shell:
+
+```sh
+export SP_CLIENT_ID=<paste-the-client-id>
+```
 
 #### 1e. (Skip if you don't need an initial bulk copy of existing data) Staging location
 
@@ -664,7 +672,7 @@ aws iam update-assume-role-policy \
   --policy-document file://trust-policy.json
 ```
 
-**Register the External Location** combining the credential with the bucket prefix. Pick a name (e.g. `aidbox-staging-loc`); that's what step 1f references as `<staging-external-location>`.
+**Register the External Location** combining the credential with the bucket prefix. Pick a name (e.g. `aidbox_staging_loc`):
 
 ```sql
 CREATE EXTERNAL LOCATION aidbox_staging_loc
@@ -674,18 +682,17 @@ CREATE EXTERNAL LOCATION aidbox_staging_loc
 
 `CREATE EXTERNAL LOCATION` itself runs a list + put + delete probe against the bucket as part of the command. If it returned without an error, the IAM trust + permission policies are correct. If it fails with `PERMISSION_DENIED` / 403, the External ID round-trip above almost certainly hasn't propagated yet — wait \~10 s and retry, or confirm the External ID in `trust-policy.json` matches the one shown on the credential's detail page.
 
+Stash the location name in your shell:
+
+```sh
+export STAGING_EXTERNAL_LOCATION=aidbox_staging_loc
+```
+
 </details>
 
 #### 1f. Grant the service principal
 
-Grant only the set that matches the `writeMode` you'll use. The blocks below use shell-style variables (`${SP_CLIENT_ID}`, `${WAREHOUSE_ID}`, `${STAGING_EXTERNAL_LOCATION}`, `${TARGET_EXTERNAL_LOCATION}`) — set them once in your shell and pipe through `envsubst`, or substitute by hand in the SQL editor:
-
-```sh
-export SP_CLIENT_ID=94c5cd0b-e269-4121-8ccc-51aa96b61611       # from step 1a
-export WAREHOUSE_ID=9bb83da291e22d2d                            # from step 1c
-export STAGING_EXTERNAL_LOCATION=aidbox_staging_loc             # from step 1e
-export TARGET_EXTERNAL_LOCATION=aidbox_patients_loc             # external-direct only
-```
+Grant only the set that matches the `writeMode` you'll use. The blocks below reference `${SP_CLIENT_ID}`, `${WAREHOUSE_ID}`, `${STAGING_EXTERNAL_LOCATION}` and (for `external-direct`) `${TARGET_EXTERNAL_LOCATION}` — these are the shell variables you exported in steps 1c–1e. Pipe the SQL through `envsubst` to substitute them, or paste the literal values into the Databricks SQL editor. For `external-direct`, the target External Location is the one you registered around your target table's bucket prefix — give it a name like `aidbox_patients_loc` and export it now: `export TARGET_EXTERNAL_LOCATION=aidbox_patients_loc`.
 
 {% tabs %}
 {% tab title="managed-zerobus" %}
