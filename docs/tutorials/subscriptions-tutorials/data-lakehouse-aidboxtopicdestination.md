@@ -92,7 +92,7 @@ The flow:
 5. For `managed-sql` mode: the module sends `INSERT` (and `ALTER` / `DESCRIBE` when needed) to the Databricks SQL warehouse; the warehouse writes the Delta files to storage.
 6. For `external-direct` mode: the module gets short-lived storage credentials from Unity Catalog and writes Delta files directly to your bucket.
 
-The module may also perform an initial export of pre-existing resources at first start — see [Initial Export](#initial-export) for when this runs and how to skip it.
+The module may also perform an initial export of pre-existing resources at first start — see [Initial export](#initial-export) for when this runs and how to skip it.
 
 ### Write modes
 
@@ -472,7 +472,7 @@ Pick **one** of: UC credential vending, static AWS keys, or default AWS provider
 {% endtab %}
 {% endtabs %}
 
-## Usage Example: Patient Data Export
+## Usage example: patient data export
 
 The example below uses `managed-zerobus` (the default). For non-default modes see [`managed-sql`](#alternative-managed-sql-configuration) or [`external-direct`](#alternative-external-direct-configuration).
 
@@ -522,7 +522,7 @@ The table **must** include an `is_deleted` column (`INT`). The module sets this 
 | `boolean`                  | `BOOLEAN`           |
 
 {% hint style="info" %}
-In both `managed-*` modes the module **automatically issues `ALTER TABLE ADD COLUMNS`** when the ViewDefinition has columns the managed target is missing — you don't have to keep them in sync manually. See [Schema Evolution](#schema-evolution).
+In both `managed-*` modes the module **automatically issues `ALTER TABLE ADD COLUMNS`** when the ViewDefinition has columns the managed target is missing — you don't have to keep them in sync manually. See [Schema evolution](#schema-evolution).
 {% endhint %}
 
 #### 1c. SQL warehouse
@@ -646,7 +646,7 @@ The string `dbx-sp-secret` is a secret name from your `BOX_VAULT_CONFIG` mapping
 {% endstep %}
 
 {% step %}
-### Step 2: Create Subscription Topic
+### Step 2: Create subscription topic
 
 ```http
 POST /fhir/AidboxSubscriptionTopic
@@ -923,7 +923,7 @@ POST /fhir/AidboxTopicDestination
 
 You can also omit `awsAccessKeyId` / `awsSecretAccessKey` to fall back to the [AWS SDK default credentials provider chain](https://docs.aws.amazon.com/sdk-for-java/latest/developer-guide/credentials-chain.html) — env vars, EC2 instance profile / ECS task role, EKS IRSA, or shared profile from `~/.aws/credentials`.
 
-## Initial Export
+## Initial export
 
 When a new destination is created and `skipInitialExport` is not `true`, the module automatically exports all existing resources that match the subscription topic — one row per resource — so the Delta table has the **current state** of every matching resource as of destination-creation time. Subsequent updates (and the resource's pre-existing history) behave differently:
 
@@ -994,7 +994,7 @@ No staging — the module writes `sof.<view>` rows straight to the external targ
 
 ## Monitoring
 
-### Status Endpoint
+### Status endpoint
 
 ```http
 GET /fhir/AidboxTopicDestination/patient-databricks/$status
@@ -1024,7 +1024,7 @@ Returns a FHIR [Parameters](https://www.hl7.org/fhir/parameters.html) resource:
 - `initialExportStatus` — `not_started`, `export-in-progress`, `completed`, `skipped`, or `failed`
 - `initialExportProgress_rowsSent` — number of rows sent during initial export
 
-## Data Transformation
+## Data transformation
 
 The module automatically:
 
@@ -1053,7 +1053,7 @@ See [Output semantics](#output-semantics) for append-only behaviour, at-least-on
   VACUUM   aidbox_export.fhir.patients RETAIN 168 HOURS;
   ```
 
-## Schema Evolution
+## Schema evolution
 
 ### Managed modes (auto-heal)
 
@@ -1082,7 +1082,7 @@ To add a column:
 3. Re-materialize: `POST /fhir/ViewDefinition/{id}/$materialize`.
 4. Delete and recreate the destination.
 
-## Multiple Destinations
+## Multiple destinations
 
 You can create multiple destinations for the same topic — for example, to mirror the same data into both a managed analytics table and an external archive table, or to use different ViewDefinitions for different downstream consumers. Each destination operates independently with its own queue, writer, and status.
 
@@ -1095,7 +1095,7 @@ You can create multiple destinations for the same topic — for example, to mirr
 
 ## Troubleshooting
 
-### Common Issues
+### Common issues
 
 1. **`EXTERNAL_WRITE_NOT_ALLOWED_FOR_TABLE`** (writeMode=external-direct against a managed table) — UC vending refuses managed tables by design. Either recreate the table as external (with explicit `LOCATION '...'`), or switch the destination to `writeMode=managed`.
 2. **`EXTERNAL_ACCESS_DISABLED_ON_METASTORE`** — your Unity Catalog metastore has external data access disabled (the Databricks Free Edition default). In Catalog Explorer → Metastore → enable **External data access**.
@@ -1106,7 +1106,7 @@ You can create multiple destinations for the same topic — for example, to mirr
 7. **Slow first write** — Serverless warehouses cold-start in 30-90s on first use after idle. The module's HTTP timeout is 120s for SQL Statement Execution and uses `wait_timeout=50s` polling, so cold starts succeed transparently but the first batch's latency is high. Keep the warehouse warm with a periodic ping if first-batch latency matters.
 8. **Duplicate rows after recreating destination** — deleting and recreating a destination triggers initial export again. Set `skipInitialExport: true` when recreating a destination that already has its data exported.
 
-### Debug Tips
+### Debug tips
 
 - Check the `$status` endpoint for error details
 - Verify ViewDefinition works correctly: `GET /fhir/ViewDefinition/patient_flat`
@@ -1114,7 +1114,7 @@ You can create multiple destinations for the same topic — for example, to mirr
 - Test warehouse access: `POST https://<workspace>/api/2.0/sql/statements` with `{"statement":"SELECT 1","warehouse_id":"<id>"}`
 - Check Aidbox logs for detailed error messages — the module emits structured `klog` events under `io.healthsamurai.topic-destination.data-lakehouse.*`
 
-## Related Documentation
+## Related documentation
 
 - [ViewDefinitions](../../modules/sql-on-fhir/defining-flat-views-with-view-definitions.md)
 - [`$materialize` operation](../../modules/sql-on-fhir/operation-materialize.md)
