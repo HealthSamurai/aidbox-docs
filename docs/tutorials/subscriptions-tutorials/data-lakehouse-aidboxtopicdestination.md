@@ -676,6 +676,15 @@ CREATE EXTERNAL LOCATION aidbox_staging_loc
 
 </details>
 
+**Create the staging schema.** By convention the module writes initial-export staging tables to `<target-catalog>.<target-schema>_staging.<target-table>_<…>` — a sibling schema to the target's, not the target's own schema. For target `aidbox_export.fhir.patients` that's `aidbox_export.fhir_staging`. Provision it with its own storage root pointing at the staging bucket prefix you just registered as the External Location:
+
+```sql
+CREATE SCHEMA aidbox_export.fhir_staging
+  LOCATION 's3://<your-bucket-name>/staging/';
+```
+
+Note `LOCATION` (not `MANAGED LOCATION`): the difference matters. `LOCATION` makes the schema external — Databricks treats it as bring-your-own-storage and `EXTERNAL USE SCHEMA` becomes grantable. `MANAGED LOCATION` (or no location clause at all, which inherits from the catalog) makes the schema managed-storage, and Databricks refuses `EXTERNAL USE SCHEMA` on it with `SCHEMA_DB_STORAGE`. `EXTERNAL USE SCHEMA` is what lets the module's Kernel writer pull STS creds for direct-to-bucket Parquet writes during initial export, so without an external sibling schema initial-export can't run.
+
 #### 1f. Grant the service principal
 
 Grant only the set that matches the `writeMode` you'll use. Substitute `<sp-client-id>` with the service principal Client ID from step 1d, and the External Location name with whatever you picked in step 1e (or registered around the target bucket for `external-direct`).
@@ -696,7 +705,7 @@ GRANT USE CATALOG ON CATALOG aidbox_export                TO `<sp-client-id>`;
 GRANT USE SCHEMA  ON SCHEMA  aidbox_export.fhir           TO `<sp-client-id>`;
 GRANT SELECT, MODIFY ON TABLE aidbox_export.fhir.patients TO `<sp-client-id>`;
 -- initial-export only:
-GRANT EXTERNAL USE SCHEMA ON SCHEMA aidbox_export.fhir    TO `<sp-client-id>`;
+GRANT EXTERNAL USE SCHEMA ON SCHEMA aidbox_export.fhir_staging TO `<sp-client-id>`;
 GRANT READ FILES, WRITE FILES, CREATE EXTERNAL TABLE
   ON EXTERNAL LOCATION `aidbox_staging_loc`               TO `<sp-client-id>`;
 ```
@@ -719,7 +728,7 @@ GRANT USE CATALOG ON CATALOG aidbox_export                TO `<sp-client-id>`;
 GRANT USE SCHEMA  ON SCHEMA  aidbox_export.fhir           TO `<sp-client-id>`;
 GRANT SELECT, MODIFY ON TABLE aidbox_export.fhir.patients TO `<sp-client-id>`;
 -- initial-export only:
-GRANT EXTERNAL USE SCHEMA ON SCHEMA aidbox_export.fhir    TO `<sp-client-id>`;
+GRANT EXTERNAL USE SCHEMA ON SCHEMA aidbox_export.fhir_staging TO `<sp-client-id>`;
 GRANT READ FILES, WRITE FILES, CREATE EXTERNAL TABLE
   ON EXTERNAL LOCATION `aidbox_staging_loc`               TO `<sp-client-id>`;
 ```
