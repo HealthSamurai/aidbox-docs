@@ -561,12 +561,13 @@ Otherwise, in your cloud account first:
       aws s3api create-bucket --bucket <your-bucket-name> --region us-east-1
       ```
 
-   2. **Create the IAM role.** Two placeholders:
+   2. **Create the IAM role.** Three things to fill in:
 
       - `<DATABRICKS_AWS_ACCOUNT_ID>` is **Databricks' own AWS account**, not yours. For all AWS commercial regions it's `414351767826`. For GovCloud / China / other partitions check [Databricks docs](https://docs.databricks.com/aws/en/connect/unity-catalog/cloud-storage/storage-credentials#create-an-iam-role).
-      - `<EXTERNAL_ID>` is a string **you make up** — anything, e.g. `aidbox-staging-2025`. You'll paste the same value into Databricks in step 3 to bind the credential to this exact trust. (AWS uses it as a confused-deputy guard.)
+      - `unity-catalog-prod-UCMasterRole-14S5ZJVKOTYTL` is the **Databricks UC master role** that lives in that Databricks AWS account. Same value for every customer, copy it as-is.
+      - `<EXTERNAL_ID>` is a string **you make up** — anything, e.g. `aidbox-staging-2025`. You'll paste the same string into the Databricks Storage Credential in the next sub-step. (AWS uses it as a confused-deputy guard so a leaked role ARN alone can't be assumed by Databricks for a different customer.)
 
-      Trust policy:
+      Save this as `trust-policy.json`:
 
       ```json
       {
@@ -574,7 +575,7 @@ Otherwise, in your cloud account first:
         "Statement": [
           {
             "Effect": "Allow",
-            "Principal": { "AWS": "arn:aws:iam::414351767826:role/unity-catalog-prod-UCMasterRole-14S5ZJVKOTYTL" },
+            "Principal": { "AWS": "arn:aws:iam::<DATABRICKS_AWS_ACCOUNT_ID>:role/unity-catalog-prod-UCMasterRole-14S5ZJVKOTYTL" },
             "Action": "sts:AssumeRole",
             "Condition": { "StringEquals": { "sts:ExternalId": "<EXTERNAL_ID>" } }
           }
@@ -582,9 +583,7 @@ Otherwise, in your cloud account first:
       }
       ```
 
-      After step 3 Databricks will hand you a **Self-Assuming Role** ARN — come back and add it as a second entry under `Principal.AWS` so the role can assume itself through Databricks.
-
-      Inline permissions policy scoping access to the bucket prefix:
+      Save this as `s3-access.json` (inline permissions policy scoping the role to your bucket prefix):
 
       ```json
       {
@@ -606,7 +605,7 @@ Otherwise, in your cloud account first:
       }
       ```
 
-      Apply both via the AWS Console (IAM → Roles → Create role) or the AWS CLI (save the two JSON blocks above to `trust-policy.json` and `s3-access.json`):
+      Apply them — AWS Console (IAM → Roles → Create role, paste `trust-policy.json` as the trust, then attach `s3-access.json` as an inline permissions policy) or AWS CLI:
 
       ```sh
       aws iam create-role \
@@ -618,10 +617,13 @@ Otherwise, in your cloud account first:
         --policy-name s3-access \
         --policy-document file://s3-access.json
 
-      # Note the ARN — step 3 pastes it into the Databricks Storage Credential.
+      # Note the ARN — you'll paste it into the Databricks Storage Credential
+      # in the next sub-step.
       aws iam get-role --role-name aidbox-staging-role \
         --query 'Role.Arn' --output text
       ```
+
+      Databricks will hand you a **Self-Assuming Role** ARN once you finish the next sub-step (Storage Credential). Come back here then, add that ARN as a second entry under `Principal.AWS` in `trust-policy.json`, and re-run `aws iam update-assume-role-policy` so the role can also assume itself through Databricks.
 
    3. **Register the Storage Credential in Databricks.** **Catalog → External Data → Credentials**, click **Create → AWS IAM role**. Pick a name for the credential (anything you like — e.g. `aidbox-staging-cred`; this is a Databricks-side label for the credential object, unrelated to the service principal name). Paste the IAM role ARN from step 2 and the same `<EXTERNAL_ID>` string you wrote into the trust policy. Save.
 
