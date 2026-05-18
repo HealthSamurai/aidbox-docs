@@ -1106,14 +1106,6 @@ You can create multiple destinations for the same topic — for example, to mirr
 7. **Slow first write** — Serverless warehouses cold-start in 30-90s on first use after idle. The module's HTTP timeout is 120s for SQL Statement Execution and uses `wait_timeout=50s` polling, so cold starts succeed transparently but the first batch's latency is high. Keep the warehouse warm with a periodic ping if first-batch latency matters.
 8. **Duplicate rows after recreating destination** — deleting and recreating a destination triggers initial export again. Set `skipInitialExport: true` when recreating a destination that already has its data exported.
 
-### Debug tips
-
-- Check the `$status` endpoint for error details
-- Verify ViewDefinition works correctly: `GET /fhir/ViewDefinition/patient_flat`
-- Test the SP independently: `curl -X POST https://<workspace>/oidc/v1/token -d 'grant_type=client_credentials&scope=all-apis' -u '<client-id>:<client-secret>'`
-- Test warehouse access: `POST https://<workspace>/api/2.0/sql/statements` with `{"statement":"SELECT 1","warehouse_id":"<id>"}`
-- Check Aidbox logs for detailed error messages — the module emits structured `klog` events under `io.healthsamurai.topic-destination.data-lakehouse.*`
-
 ## Related documentation
 
 - [ViewDefinitions](../../modules/sql-on-fhir/defining-flat-views-with-view-definitions.md)
