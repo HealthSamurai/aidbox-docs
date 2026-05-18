@@ -235,7 +235,9 @@ The bearer is sent on every Databricks call. What differs between modes is which
 
 In `external-direct` you can also skip Databricks entirely and authenticate against the bucket with static AWS keys (`awsAccessKeyId` + `awsSecretAccessKey`) or the [AWS default provider chain](https://docs.aws.amazon.com/sdk-for-java/latest/developer-guide/credentials-chain.html). Set up of the SP and grants is part of [Step 1](#step-1-set-up-databricks-side).
 
-## Prerequisites
+## Installation
+
+### Prerequisites
 
 - Aidbox **2605** or newer ([install guide](../../getting-started/run-aidbox-locally.md))
 - A Databricks workspace (Free Edition works for evaluation, paid for production)
@@ -245,8 +247,6 @@ In `external-direct` you can also skip Databricks entirely and authenticate agai
 - For initial-export in the `managed-*` modes: an S3/GCS/ADLS bucket you control with a UC External Location for staging
 
 The service principal that authenticates the module is created in [Step 1](#step-1-set-up-databricks-side) — you don't need it before you start.
-
-## Installation
 
 ### Docker Compose
 
@@ -474,7 +474,7 @@ Pick **one** of: UC credential vending, static AWS keys, or default AWS provider
 
 ## Usage Example: Patient Data Export
 
-The example below uses `managed-zerobus` mode (the default). See "[Alternative: `managed-sql` configuration](#alternative-managed-sql-configuration)" if Zerobus isn't available on your SKU, or "[Alternative: `external-direct` configuration](#alternative-external-direct-configuration)" for the direct-to-bucket path.
+The example below uses `managed-zerobus` (the default). For non-default modes see [`managed-sql`](#alternative-managed-sql-configuration) or [`external-direct`](#alternative-external-direct-configuration).
 
 {% stepper %}
 {% step %}
