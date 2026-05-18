@@ -226,38 +226,15 @@ All three modes authenticate to Databricks via **OAuth Machine-to-Machine (M2M)*
 
 ```mermaid
 sequenceDiagram
-    autonumber
     participant S as Aidbox sender
     participant T as Databricks token endpoint
-    participant UC as Unity Catalog REST
-    participant WH as SQL warehouse
-    participant ZB as Zerobus gRPC
-    participant FS as Cloud storage (S3 / GCS / ADLS)
 
-    S->>T: client_id + client_secret (HTTP Basic)
-    T-->>S: bearer token (about 1h TTL)
-    Note over S: cached; refreshed when under 5 min remain
-
-    alt writeMode = managed-zerobus
-        S->>WH: schema-sync (DESCRIBE / ALTER), ONCE at bootstrap
-        S->>ZB: open JSON stream + client_id/secret
-        loop per batch
-            S->>ZB: ingestRecordsOffset(JSON rows)
-            ZB->>FS: native ingest writes parquet + Delta
-            ZB-->>S: offset acked
-        end
-    else writeMode = managed-sql
-        S->>WH: submit INSERT / ALTER / DESCRIBE + bearer
-        WH->>FS: warehouse storage credential writes parquet
-        WH-->>S: SUCCEEDED
-    else writeMode = external-direct
-        S->>UC: resolve table_id + bearer
-        UC-->>S: table_id
-        S->>UC: request temporary credentials + bearer
-        UC-->>S: STS access_key + secret + session_token
-        S->>FS: module writes parquet + Delta commit using STS
-    end
+    S->>T: client_id + client_secret
+    T-->>S: bearer token (~1h TTL)
+    Note over S: cached; refreshed when <5 min remain
 ```
+
+The bearer is then sent on every subsequent Databricks call (Unity Catalog REST, SQL Statement Execution, Zerobus stream open). What changes between modes is **which Databricks surfaces the bearer reaches** — see below.
 
 ### How the same token gets used differently in each mode
 
@@ -673,9 +650,9 @@ GRANT EXTERNAL USE SCHEMA ON SCHEMA aidbox_export.fhir TO `<sp-client-id>`;
 `EXTERNAL USE SCHEMA` is **only grantable on external schemas** (where the schema's tables sit at an external location). UC managed schemas refuse this grant by design — managed tables can't be vended.
 {% endhint %}
 
-#### 4f. (Optional, `managed` mode only) Staging location for initial export
+#### 4f. (Optional, `managed-zerobus` / `managed-sql` only) Staging location for initial export
 
-If you plan to use `skipInitialExport=false` (the default), you also need a UC **External Location** for the staging Delta table the module writes to during bulk export.
+If you plan to use `skipInitialExport=false` (the default), you also need a UC **External Location** for the staging Delta table the module writes to during bulk export. Both `managed-zerobus` and `managed-sql` go through the same staging path during initial bulk; `external-direct` writes the bulk straight to the target.
 
 1. Provision an S3 bucket (or GCS / ADLS prefix) you control. Example: `s3://my-aidbox-staging/`.
 2. Configure a **Storage Credential** in Databricks (Data → External Data → Credentials). For S3 this is an IAM role with trust policy granting Databricks AWS account access; follow [Databricks docs on storage credentials](https://docs.databricks.com/en/connect/unity-catalog/storage-credentials.html).
@@ -1045,29 +1022,6 @@ To add a column:
 2. Add the column to your ViewDefinition.
 3. Re-materialize: `POST /fhir/ViewDefinition/{id}/$materialize`.
 4. Delete and recreate the destination.
-
-## Cost considerations
-
-This module doesn't add any billing surface of its own — it just changes **which Databricks / cloud services see your write traffic**. Refer to Databricks and your cloud provider's published pricing for actual numbers; what follows is a map of the cost surfaces:
-
-**`managed-zerobus` mode** uses the Zerobus push-based ingest API:
-
-- Hot-path writes are billed by Databricks against the **Jobs Serverless** SKU per Databricks' [Zerobus Ingest documentation](https://docs.databricks.com/aws/en/ingestion/zerobus-overview). There is no continuously-warm SQL warehouse running for the write path.
-- Bootstrap and initial-export still hit a SQL warehouse (one-shot schema sync + final `MERGE INTO`) — both are scoped operations, not continuous compute.
-- Managed-table data files live in Databricks-managed cloud storage; cloud-storage bills apply to your cloud account, you just don't pick the path.
-- Predictive Optimization, if enabled (default for accounts created 2024-11-11 onward), bills its compute under the Jobs Serverless SKU as well.
-
-**`managed-sql` mode** runs every batch through a Databricks SQL warehouse:
-
-- Warehouse uptime is billed by Databricks (see [Databricks SQL pricing](https://www.databricks.com/product/pricing/databricks-sql)). Because the destination's write path needs the warehouse to be running, plan for warehouse uptime that matches your topic activity.
-- Managed-table data files live in Databricks-managed cloud storage; cloud-storage bills apply to your cloud account, you just don't pick the path.
-- Predictive Optimization billing is the same as above (Jobs Serverless SKU when enabled).
-
-**`external-direct` mode** writes Delta files straight to your bucket:
-
-- No Databricks warehouse runs for the write path — no Databricks compute charge for it.
-- Cloud-storage charges apply normally to your bucket.
-- Predictive Optimization does not run on external tables, so any `OPTIMIZE`/`VACUUM` you schedule yourself bills under whichever compute (warehouse or jobs) you run it on.
 
 ## Multiple Destinations
 
