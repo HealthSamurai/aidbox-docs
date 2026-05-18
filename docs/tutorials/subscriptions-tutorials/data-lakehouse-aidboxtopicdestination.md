@@ -31,7 +31,7 @@ A **data lakehouse** is a hybrid of two older patterns:
 
 A lakehouse is the lake side with the warehouse's guarantees bolted on: ACID, schema, and time travel **on plain Parquet files in your own bucket**. The thing doing that bolting is an **open table format** — and [Delta Lake](https://delta.io/) is the one this module uses. A Delta table is a directory on object storage:
 
-```
+```text
 s3://bucket/prefix/my_table/
 ├── _delta_log/
 │   ├── 00000000000000000000.json       ← transaction log: each commit is one JSON file
@@ -545,8 +545,75 @@ If you only need new data going forward — i.e. you don't want the module to ba
 Otherwise, in your cloud account first:
 
 1. **Pick a bucket prefix** you control — e.g. an S3 path like `s3://<your-aidbox-bucket>/staging/` (substitute your bucket name; S3 names are globally unique so you'll need your own). GCS / ADLS paths work the same way.
-2. **Set up a Storage Credential** in Databricks — an IAM role (S3) / service account (GCS) / access connector (ADLS) that Databricks is permitted to assume to reach that prefix. In the Databricks UI: **Catalog → External Data → Credentials → Create credential**. The full setup (trust policies, IAM JSON, etc.) is bucket-specific and covered in [Databricks: storage credentials](https://docs.databricks.com/en/connect/unity-catalog/storage-credentials.html).
-3. **Create the External Location** that combines the prefix and the credential: **Catalog → External Data → External Locations → Create external location**. Give it a name (e.g. `aidbox-staging-loc`) — that name is what you'll reference as `<staging-external-location>` in the next step.
+2. **Set up a Storage Credential** in Databricks — an IAM role (S3) / service account (GCS) / access connector (ADLS) that Databricks is permitted to assume to reach that prefix. In the Databricks UI: open **Catalog → External Data → Credentials** and click **Create**. The full setup (trust policies, IAM JSON, etc.) is bucket-specific and covered in [Databricks: storage credentials](https://docs.databricks.com/en/connect/unity-catalog/storage-credentials.html).
+
+   <details>
+
+   <summary>Set up an S3 external location end-to-end</summary>
+
+   On AWS the round-trip is: bucket → IAM role that Databricks can assume → Storage Credential pointing at that role → External Location pointing at the bucket prefix via that credential. Numbers and ARNs you'll need are workspace-specific.
+
+   1. **Create the bucket** in the same region as your Databricks workspace (cross-region works but adds latency and egress cost).
+
+      ```sh
+      aws s3api create-bucket --bucket your-aidbox-staging --region us-east-1
+      ```
+
+   2. **Create the IAM role.** Trust policy below — replace `<DATABRICKS_AWS_ACCOUNT_ID>` with the value from Databricks docs ([AWS commercial regions](https://docs.databricks.com/aws/en/connect/unity-catalog/cloud-storage/storage-credentials#create-an-iam-role)) and `<EXTERNAL_ID>` with any unique string (you'll paste the same value into the Databricks Storage Credential below). After Databricks creates the credential it will hand you a "Self-Assuming Role" ARN — re-edit the role and add that ARN as a second `Principal` so Databricks can assume itself through the role.
+
+      ```json
+      {
+        "Version": "2012-10-17",
+        "Statement": [
+          {
+            "Effect": "Allow",
+            "Principal": { "AWS": "arn:aws:iam::<DATABRICKS_AWS_ACCOUNT_ID>:role/unity-catalog-prod-UCMasterRole-14S5ZJVKOTYTL" },
+            "Action": "sts:AssumeRole",
+            "Condition": { "StringEquals": { "sts:ExternalId": "<EXTERNAL_ID>" } }
+          }
+        ]
+      }
+      ```
+
+      Attach an inline permissions policy that scopes access to the bucket prefix:
+
+      ```json
+      {
+        "Version": "2012-10-17",
+        "Statement": [
+          {
+            "Effect": "Allow",
+            "Action": [
+              "s3:GetObject", "s3:PutObject", "s3:DeleteObject",
+              "s3:ListBucket", "s3:GetBucketLocation",
+              "s3:GetLifecycleConfiguration", "s3:PutLifecycleConfiguration"
+            ],
+            "Resource": [
+              "arn:aws:s3:::your-aidbox-staging",
+              "arn:aws:s3:::your-aidbox-staging/*"
+            ]
+          }
+        ]
+      }
+      ```
+
+   3. **Register the Storage Credential in Databricks.** **Catalog → External Data → Credentials → Create → AWS IAM role**. Paste the IAM role ARN and the external ID from step 2. Databricks shows the Self-Assuming Role ARN — copy it back into the IAM role's trust policy `Principal.AWS` list, save, wait for IAM eventual consistency (\~30 seconds).
+
+   4. **Register the External Location.** **Catalog → External Data → External Locations → Create** → pick the Storage Credential from step 3, set the URL to your bucket prefix (`s3://your-aidbox-staging/staging/`). The name you give it is what step 1f references as `<staging-external-location>`.
+
+      ```sql
+      CREATE EXTERNAL LOCATION aidbox_staging_loc
+        URL 's3://your-aidbox-staging/staging/'
+        WITH (STORAGE CREDENTIAL your_storage_credential_name);
+      ```
+
+   5. **Smoke-test it.** In the External Location page click **Test connection** — Databricks attempts a list + put + delete against the prefix. A green check means the IAM trust + permission policies are correct.
+
+   For GCS the role is a service account with `roles/storage.admin` on the bucket; for ADLS it's an Azure Databricks access connector. Same Databricks-side flow: Storage Credential → External Location → grants.
+
+   </details>
+
+3. **Create the External Location** that combines the prefix and the credential: **Catalog → External Data → External Locations**, click **Create**. Give it a name (e.g. `aidbox-staging-loc`) — that name is what you'll reference as `<staging-external-location>` in the next step.
 
 ```sql
 -- Equivalent SQL (the UI is usually friendlier for the credential step):
