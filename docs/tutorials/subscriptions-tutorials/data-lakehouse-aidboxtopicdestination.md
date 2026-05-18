@@ -46,7 +46,7 @@ s3://bucket/prefix/my_table/
 └── ...
 ```
 
-The `_delta_log/` directory is the source of truth. To read the table, replay the log to get a list of active Parquet files and their stats. To write, append a new `.json` commit describing the files added or removed. Multiple writers coordinate via optimistic concurrency on log filenames — that's where Delta's ACID comes from.
+The `_delta_log/` directory is the source of truth: readers replay it; writers append a new commit. Concurrent writers race on the next log filename — that's where Delta's ACID comes from.
 
 ### External vs managed tables
 
@@ -487,7 +487,125 @@ The example below uses `managed-zerobus` mode (the default). See "[Alternative: 
 
 {% stepper %}
 {% step %}
-### Step 1: Create Subscription Topic
+### Step 1: Set up Databricks side
+
+Do the Databricks-side setup first so the values you pass to Aidbox in later steps (workspace URL + ID + region, service principal ID/secret, warehouse ID, table name) already exist.
+
+#### 1a. Catalog and schema
+
+In the Databricks SQL Editor (Catalog Explorer → Create catalog / schema, or via SQL):
+
+```sql
+CREATE CATALOG IF NOT EXISTS aidbox_export;
+CREATE SCHEMA  IF NOT EXISTS aidbox_export.fhir;
+```
+
+#### 1b. Managed Delta table
+
+```sql
+CREATE TABLE aidbox_export.fhir.patients (
+  id          STRING,
+  gender      STRING,
+  birth_date  DATE,
+  family_name STRING,
+  given_name  STRING,
+  is_deleted  INT
+) USING DELTA;
+```
+
+{% hint style="warning" %}
+The table **must** include an `is_deleted` column (`INT`). The module sets this to `0` for create/update operations and `1` for delete operations.
+
+**No `LOCATION` clause** — that's what makes this a managed table. UC owns the physical layout, runs Predictive Optimization automatically, and refuses external STS-vended writes — which is why both `managed-*` modes go through Databricks compute (Zerobus or SQL warehouse).
+{% endhint %}
+
+**Type mapping:**
+
+| FHIR / ViewDefinition type | Databricks SQL type |
+| -------------------------- | ------------------- |
+| `id`, `string`, `code`     | `STRING`            |
+| `date`                     | `DATE`              |
+| `dateTime`, `instant`      | `TIMESTAMP`         |
+| `integer`, `positiveInt`   | `INT`               |
+| `decimal`                  | `DOUBLE`            |
+| `boolean`                  | `BOOLEAN`           |
+
+{% hint style="info" %}
+In both `managed-*` modes the module **automatically issues `ALTER TABLE ADD COLUMNS`** when the ViewDefinition has columns the managed target is missing — you don't have to keep them in sync manually. See [Schema Evolution](#schema-evolution).
+{% endhint %}
+
+#### 1c. SQL warehouse
+
+Compute → SQL Warehouses → use an existing warehouse or create a new one. Serverless 2X-Small is the cheapest option that supports the Statement Execution API. Copy the **Warehouse ID** — you'll use it as `databricksWarehouseId`.
+
+#### 1d. Service principal
+
+1. In your Databricks workspace, go to **Settings → Identity and access → Service principals → Add service principal**.
+2. Give it a name (e.g. `aidbox-topic-destination`) and create.
+3. Click the new SP, open the **Secrets** tab, click **Generate secret**.
+4. Copy the **Client ID** and **Secret** — you'll use these as `databricksClientId` / `databricksClientSecret`.
+
+#### 1e. Grant the service principal
+
+The module needs the following privileges on the SP. Grant the set that matches the `writeMode` you'll use:
+
+| Privilege | Granted on | Needed by | Purpose |
+|---|---|---|---|
+| `USE CATALOG` | `aidbox_export` | all modes | navigate the catalog |
+| `USE SCHEMA` | `aidbox_export.fhir` | all modes | resolve the target table |
+| `SELECT`, `MODIFY` | target table | all modes | DESCRIBE / INSERT / MERGE |
+| `USAGE` (UI: "Can use") | the SQL warehouse | `managed-zerobus`, `managed-sql` | submit statements (schema sync + MERGE for both; every INSERT for `managed-sql`) |
+| `EXTERNAL USE SCHEMA` | the target's schema | `external-direct` | UC vends STS creds for direct-to-bucket writes |
+| `EXTERNAL USE SCHEMA` | the **staging** schema | `managed-zerobus`, `managed-sql` (when initial-export runs) | UC vends STS for the staging table created under it |
+| `READ FILES`, `WRITE FILES`, `CREATE EXTERNAL TABLE` | the External Location backing the staging bucket | `managed-zerobus`, `managed-sql` (when initial-export runs) | write the bulk Parquet via UC-vended STS |
+| `READ FILES`, `WRITE FILES`, `CREATE EXTERNAL TABLE` | the External Location backing the **target's** bucket | `external-direct` | write Parquet + Delta commits directly |
+
+SQL for the common subset (`managed-*` minus initial-export):
+
+```sql
+GRANT USE CATALOG ON CATALOG aidbox_export                    TO `<sp-client-id>`;
+GRANT USE SCHEMA  ON SCHEMA  aidbox_export.fhir               TO `<sp-client-id>`;
+GRANT SELECT, MODIFY ON TABLE aidbox_export.fhir.patients     TO `<sp-client-id>`;
+GRANT USAGE ON WAREHOUSE `<warehouse-id>`                     TO `<sp-client-id>`;
+```
+
+Warehouse "Can use" also has to be granted via UI: **SQL Warehouses → your warehouse → Permissions → Add → service principal → Can use**.
+
+For `external-direct`, also:
+
+```sql
+GRANT EXTERNAL USE SCHEMA ON SCHEMA aidbox_export.fhir TO `<sp-client-id>`;
+```
+
+{% hint style="warning" %}
+`EXTERNAL USE SCHEMA` is **only grantable on external schemas** (where the schema's tables sit at an external location). UC managed schemas refuse this grant by design — managed tables can't be vended.
+{% endhint %}
+
+The External-Location-related grants land in step 1f below alongside the staging-location setup.
+
+#### 1f. (Optional, `managed-zerobus` / `managed-sql` only) Staging location for initial export
+
+If you plan to use `skipInitialExport=false` (the default), you also need a UC **External Location** for the staging Delta table the module writes to during bulk export. Both `managed-zerobus` and `managed-sql` go through the same staging path during initial bulk; `external-direct` writes the bulk straight to the target.
+
+1. Provision an S3 bucket (or GCS / ADLS prefix) you control. Example: `s3://my-aidbox-staging/`.
+2. Configure a **Storage Credential** in Databricks (Data → External Data → Credentials). For S3 this is an IAM role with trust policy granting Databricks AWS account access; follow [Databricks docs on storage credentials](https://docs.databricks.com/en/connect/unity-catalog/storage-credentials.html).
+3. Create the **External Location** in Databricks (Data → External Data → External Locations) pointing at the bucket path with the Storage Credential.
+4. Grant the SP read/write on the External Location plus `EXTERNAL USE SCHEMA` on the target schema (because the staging table is created as an external table under it):
+
+   ```sql
+   GRANT READ FILES, WRITE FILES, CREATE EXTERNAL TABLE
+     ON EXTERNAL LOCATION `<external-location-name>` TO `<sp-client-id>`;
+   GRANT EXTERNAL USE SCHEMA ON SCHEMA aidbox_export.fhir TO `<sp-client-id>`;
+   ```
+
+#### 1g. (Optional) Store the SP secret in vault
+
+`databricksClientSecret` can be passed either inline on the destination resource or as a vault-backed reference. The module fully supports Aidbox's vault integration — see [External Secrets](../../configuration/secret-files.md) for the supported backends and the FHIR primitive-extension pattern that wires a parameter to a vault secret.
+
+{% endstep %}
+
+{% step %}
+### Step 2: Create Subscription Topic
 
 ```http
 POST /fhir/AidboxSubscriptionTopic
@@ -509,7 +627,7 @@ POST /fhir/AidboxSubscriptionTopic
 {% endstep %}
 
 {% step %}
-### Step 2: Create ViewDefinition
+### Step 3: Create ViewDefinition
 
 A [ViewDefinition](../../modules/sql-on-fhir/defining-flat-views-with-view-definitions.md) defines how to transform a complex FHIR resource into a flat table structure suitable for analytics. Each `column` maps a [FHIRPath](https://hl7.org/fhirpath/) expression to a named column.
 
@@ -544,7 +662,7 @@ POST /fhir/ViewDefinition
 {% endstep %}
 
 {% step %}
-### Step 3: Materialize ViewDefinition
+### Step 4: Materialize ViewDefinition
 
 The ViewDefinition must be [materialized](../../modules/sql-on-fhir/operation-materialize.md) as a database view before the module can use it to transform data. Materialization creates a SQL view in the `sof` schema.
 
@@ -565,109 +683,6 @@ POST /fhir/ViewDefinition/patient_flat/$materialize
 {% hint style="info" %}
 The ViewDefinition must be materialized as a **view** (not a table). See the [`$materialize` operation](../../modules/sql-on-fhir/operation-materialize.md) documentation for details.
 {% endhint %}
-
-{% endstep %}
-
-{% step %}
-### Step 4: Set up Databricks side
-
-#### 4a. Catalog and schema
-
-In the Databricks SQL Editor (Catalog Explorer → Create catalog / schema, or via SQL):
-
-```sql
-CREATE CATALOG IF NOT EXISTS aidbox_export;
-CREATE SCHEMA  IF NOT EXISTS aidbox_export.fhir;
-```
-
-#### 4b. Managed Delta table
-
-```sql
-CREATE TABLE aidbox_export.fhir.patients (
-  id          STRING,
-  gender      STRING,
-  birth_date  DATE,
-  family_name STRING,
-  given_name  STRING,
-  is_deleted  INT
-) USING DELTA;
-```
-
-{% hint style="warning" %}
-The table **must** include an `is_deleted` column (`INT`). The module sets this to `0` for create/update operations and `1` for delete operations.
-
-**No `LOCATION` clause** — that's what makes this a managed table. UC owns the physical layout, runs Predictive Optimization automatically, and refuses external STS-vended writes — which is why `managed` mode goes through the SQL warehouse.
-{% endhint %}
-
-**Type mapping:**
-
-| FHIR / ViewDefinition type | Databricks SQL type |
-| -------------------------- | ------------------- |
-| `id`, `string`, `code`     | `STRING`            |
-| `date`                     | `DATE`              |
-| `dateTime`, `instant`      | `TIMESTAMP`         |
-| `integer`, `positiveInt`   | `INT`               |
-| `decimal`                  | `DOUBLE`            |
-| `boolean`                  | `BOOLEAN`           |
-
-{% hint style="info" %}
-The module **automatically issues `ALTER TABLE ADD COLUMNS`** in managed mode when the ViewDefinition has columns the managed target is missing — you don't have to keep them in sync manually. See [Schema Evolution](#schema-evolution).
-{% endhint %}
-
-#### 4c. SQL warehouse
-
-Compute → SQL Warehouses → use an existing warehouse or create a new one. Serverless 2X-Small is the cheapest option that supports the Statement Execution API. Copy the **Warehouse ID** — you'll use it as `databricksWarehouseId`.
-
-#### 4d. Service principal
-
-1. In your Databricks workspace, go to **Settings → Identity and access → Service principals → Add service principal**.
-2. Give it a name (e.g. `aidbox-topic-destination`) and create.
-3. Click the new SP, open the **Secrets** tab, click **Generate secret**.
-4. Copy the **Client ID** and **Secret** — you'll use these as `databricksClientId` / `databricksClientSecret`.
-
-#### 4e. Grant the service principal
-
-```sql
-GRANT USE CATALOG ON CATALOG aidbox_export                          TO `<sp-client-id>`;
-GRANT USE SCHEMA  ON SCHEMA  aidbox_export.fhir               TO `<sp-client-id>`;
-GRANT MODIFY      ON TABLE   aidbox_export.fhir.patients      TO `<sp-client-id>`;
-GRANT SELECT      ON TABLE   aidbox_export.fhir.patients      TO `<sp-client-id>`;
-
--- managed mode only: warehouse access
-GRANT USAGE ON WAREHOUSE `<warehouse-id>` TO `<sp-client-id>`;
-```
-
-And via UI: **SQL Warehouses → your warehouse → Permissions → Add → service principal → Can use**.
-
-For `external-direct` mode, also grant credential vending:
-
-```sql
--- external-direct mode only: lets UC vend STS credentials for the target
-GRANT EXTERNAL USE SCHEMA ON SCHEMA aidbox_export.fhir TO `<sp-client-id>`;
-```
-
-{% hint style="warning" %}
-`EXTERNAL USE SCHEMA` is **only grantable on external schemas** (where the schema's tables sit at an external location). UC managed schemas refuse this grant by design — managed tables can't be vended.
-{% endhint %}
-
-#### 4f. (Optional, `managed-zerobus` / `managed-sql` only) Staging location for initial export
-
-If you plan to use `skipInitialExport=false` (the default), you also need a UC **External Location** for the staging Delta table the module writes to during bulk export. Both `managed-zerobus` and `managed-sql` go through the same staging path during initial bulk; `external-direct` writes the bulk straight to the target.
-
-1. Provision an S3 bucket (or GCS / ADLS prefix) you control. Example: `s3://my-aidbox-staging/`.
-2. Configure a **Storage Credential** in Databricks (Data → External Data → Credentials). For S3 this is an IAM role with trust policy granting Databricks AWS account access; follow [Databricks docs on storage credentials](https://docs.databricks.com/en/connect/unity-catalog/storage-credentials.html).
-3. Create the **External Location** in Databricks (Data → External Data → External Locations) pointing at the bucket path with the Storage Credential.
-4. Grant the SP read/write on the External Location plus the EXTERNAL USE SCHEMA on the target schema (because the staging table is created as an external table under it):
-
-   ```sql
-   GRANT READ FILES, WRITE FILES, CREATE EXTERNAL TABLE
-     ON EXTERNAL LOCATION `<external-location-name>` TO `<sp-client-id>`;
-   GRANT EXTERNAL USE SCHEMA ON SCHEMA aidbox_export.fhir TO `<sp-client-id>`;
-   ```
-
-#### 4g. (Optional) Store the SP secret in vault
-
-`databricksClientSecret` can be passed either inline on the destination resource or as a vault-backed reference. The module fully supports Aidbox's vault integration — see [External Secrets](../../configuration/secret-files.md) for the supported backends and the FHIR primitive-extension pattern that wires a parameter to a vault secret.
 
 {% endstep %}
 
