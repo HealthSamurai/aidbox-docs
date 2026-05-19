@@ -945,7 +945,7 @@ Then query your Databricks table to confirm the data arrived:
 SELECT * FROM aidbox_export.fhir.patients;
 ```
 
-You should see one row for John Smith. If you left `skipInitialExport` at its default (`false`), the table also contains a row for every pre-existing row in `sof.patient_flat` — initial export reads the whole materialized view, **not** the topic's `fhirPathCriteria` filter (that filter applies only to live changes after the destination is created). Set `skipInitialExport: true` on the destination if you only want forward-going data, or narrow the ViewDefinition's `where` clause if you want the initial bulk filtered too.
+You should see one row for John Smith. If you left `skipInitialExport` at its default (`false`), the table also contains a row for every pre-existing row in `sof.patient_flat`. Set `skipInitialExport: true` if you only want forward-going data.
 
 {% endstep %}
 {% endstepper %}
@@ -1095,7 +1095,6 @@ You can also omit `awsAccessKeyId` / `awsSecretAccessKey` to fall back to the [A
 
 When a new destination is created with `skipInitialExport` not set to `true`, the module exports the **current state** of every row in `sof.<view>` — one row per resource the ViewDefinition matches.
 
-- **Topic `fhirPathCriteria` does not narrow initial export.** Initial export reads `sof.<view>` straight (`SELECT *, 0 as is_deleted FROM sof.<view>`); the topic's filter applies only to live changes after the destination is created. If you want the initial bulk filtered too, narrow the ViewDefinition's `where` clause.
 - **Updates after destination creation** append a new row each (`POST` / `PUT` / `DELETE`), accumulating a full audit trail.
 - **Pre-existing history is not exported.** Initial export reads each resource's current row from `sof.<view>`, not Aidbox's `_history` table. Run a one-off ETL from `_history` before destination creation if you need older versions.
 
