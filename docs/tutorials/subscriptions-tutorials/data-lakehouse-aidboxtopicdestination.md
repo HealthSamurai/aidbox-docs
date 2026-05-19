@@ -188,7 +188,7 @@ The bearer is sent on every Databricks call. What differs between modes is which
 | `managed-sql`               | only during initial-export (staging vending)  | every batch (`INSERT` / `ALTER` / `DESCRIBE`) | —                          | SQL warehouse compute                 |
 | `external-direct`           | every cred-refresh (~45 min)                  | none                                       | —                          | sender process, with Unity-Catalog-vended STS    |
 
-In `external-direct` you can also skip Databricks entirely and authenticate against the bucket with static AWS keys (`awsAccessKeyId` + `awsSecretAccessKey`) or the [AWS default provider chain](https://docs.aws.amazon.com/sdk-for-java/latest/developer-guide/credentials-chain.html). The service principal and the grants it needs are created in [Step 1](#step-1-set-up-databricks-side).
+In `external-direct` you can also skip Databricks entirely and authenticate against the bucket with static AWS keys (`awsAccessKeyId` + `awsSecretAccessKey`) or the [AWS default provider chain](https://docs.aws.amazon.com/sdk-for-java/latest/developer-guide/credentials-chain.html). The service principal and the grants it needs are set up in the [Usage example](#usage-example-patient-data-export) below.
 
 ## Installation
 
@@ -946,7 +946,7 @@ This stops the export and cleans up the internal message queue. Data already wri
 
 If Zerobus isn't available on your Databricks SKU (older paid plans, some regions), set `writeMode=managed-sql`. Same managed Unity Catalog target, same staging-MERGE initial-export, but live per-batch writes go through a Databricks SQL warehouse instead of Zerobus REST.
 
-The destination payload differs from the `managed-zerobus` example in three rows: drop `databricksWorkspaceId` + `databricksRegion`, change `writeMode` to `managed-sql`:
+The destination payload differs from the `managed-zerobus` example by dropping `databricksWorkspaceId` + `databricksRegion` and changing `writeMode`:
 
 ```http
 POST /fhir/AidboxTopicDestination
@@ -977,7 +977,7 @@ POST /fhir/AidboxTopicDestination
 }
 ```
 
-The Databricks setup in Step 4 is identical for `managed-sql` — same table, same warehouse, same SP, same grants. The warehouse simply ends up servicing every batch instead of only the bootstrap.
+The Databricks setup is identical to `managed-zerobus` — same catalog, schema, target table, warehouse, staging chain, SP, and grants. The warehouse simply ends up servicing every batch instead of only the bootstrap.
 
 ## Alternative: `external-direct` configuration
 
@@ -985,22 +985,19 @@ If you don't need Unity Catalog managed-table governance and want the highest th
 
 ### Setup differences from the managed modes
 
-1. **Create the table with `LOCATION`** so it's external:
+1. **Create the table with `LOCATION`** so it's external (the table's bucket needs an External Location + Storage Credential just like the staging one, but pointed at the target prefix):
 
-   ```sql
-   CREATE TABLE aidbox_export.fhir.patients (
-     id          STRING,
-     gender      STRING,
-     birth_date  DATE,
-     family_name STRING,
-     given_name  STRING,
-     is_deleted  INT
-   ) USING DELTA LOCATION 's3://my-aidbox-bucket/patients/';
+   ```shell
+   databricks api post /api/2.0/sql/statements --json '{
+     "warehouse_id": "'"$WAREHOUSE_ID"'",
+     "wait_timeout": "30s",
+     "statement": "CREATE TABLE aidbox_export.fhir.patients (id STRING, gender STRING, birth_date DATE, family_name STRING, given_name STRING, is_deleted INT) USING DELTA LOCATION '"'"'s3://my-aidbox-bucket/patients/'"'"'"
+   }'
    ```
 
-2. **No warehouse needed** — writes don't go through SQL compute.
+2. **No warehouse needed at runtime** — writes don't go through SQL compute. (The warehouse is still needed once for the `CREATE TABLE` above.)
 
-3. **Different grants** — `EXTERNAL USE SCHEMA` on the schema, and `READ FILES, WRITE FILES, CREATE EXTERNAL TABLE` on the External Location backing the bucket (see the `external-direct` tab in [Step 1e](#1e-grant-the-service-principal)).
+3. **Different grants** — `EXTERNAL USE SCHEMA` on the **target's** schema (not a staging sibling), and `READ FILES, WRITE FILES, CREATE EXTERNAL TABLE` on the External Location backing the target bucket. See the `external-direct` tab in [Grant the service principal](#grant-the-service-principal).
 
 4. **No `stagingTablePath`** — initial export writes directly to the final external table; no intermediate staging.
 
@@ -1236,7 +1233,7 @@ You can create multiple destinations for the same topic — for example, to mirr
 1. **`EXTERNAL_WRITE_NOT_ALLOWED_FOR_TABLE`** (writeMode=external-direct against a managed table) — Unity Catalog vending refuses managed tables by design. Either recreate the table as external (with explicit `LOCATION '...'`), or switch the destination to `writeMode=managed`.
 2. **`EXTERNAL_ACCESS_DISABLED_ON_METASTORE`** — your Unity Catalog metastore has external data access disabled (the Databricks Free Edition default). In Catalog Explorer → Metastore → enable **External data access**.
 3. **`Privilege EXTERNAL USE SCHEMA is not applicable to this entity`** — you're trying to grant `EXTERNAL USE SCHEMA` on a managed schema. Either recreate the schema as external, or switch to `writeMode=managed`.
-4. **`INSUFFICIENT_PRIVILEGES` on table or warehouse** — verify all grants in [Step 1e](#1e-grant-the-service-principal). Don't forget the **Can use** permission on the warehouse via UI.
+4. **`INSUFFICIENT_PRIVILEGES` on table or warehouse** — verify all grants in [Grant the service principal](#grant-the-service-principal). Don't forget `CAN_USE` on the warehouse.
 5. **`DELTA_INSERT_COLUMN_ARITY_MISMATCH`** in managed mode — the module should auto-heal this once. If it persists, check that the schema diff is column-add only (drops / renames are not auto-applied).
 6. **Schema mismatch in external-direct mode** — the module fails at startup with a clear message naming the missing columns. Run the corresponding `ALTER TABLE` and recreate the destination.
 7. **Slow first write** — Serverless warehouses cold-start in 30-90s on first use after idle. The module's HTTP timeout is 120s for SQL Statement Execution and uses `wait_timeout=50s` polling, so cold starts succeed transparently but the first batch's latency is high. Keep the warehouse warm with a periodic ping if first-batch latency matters.
