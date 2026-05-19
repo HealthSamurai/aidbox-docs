@@ -956,7 +956,7 @@ POST /fhir/Patient
 }
 ```
 
-Then query your Databricks table to confirm the data arrived (substitute your `CATALOG` / `TARGET_SCHEMA` / `TARGET_TABLE` — Databricks SQL doesn't expand shell variables):
+Then query your Databricks table to confirm the data arrived:
 
 ```sql
 SELECT * FROM aidbox_export.fhir.patients;
