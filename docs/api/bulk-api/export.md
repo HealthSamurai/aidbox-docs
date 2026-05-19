@@ -396,6 +396,41 @@ Prefer: respond-async
 
 The status endpoint works the same way as patient-level export. Poll `/fhir/$export-status/<id>` to check progress, and send a DELETE request to cancel.
 
+Group-level export also supports POST with a FHIR Parameters body:
+
+{% tabs %}
+{% tab title="Request" %}
+```http
+POST /fhir/Group/<group-id>/$export
+Content-Type: application/fhir+json
+Accept: application/fhir+json
+Prefer: respond-async
+```
+
+```json
+{
+  "resourceType": "Parameters",
+  "parameter": [
+    { "name": "_type", "valueString": "Patient" },
+    { "name": "_since", "valueInstant": "2024-01-01T00:00:00Z" },
+    { "name": "patient", "valueReference": { "reference": "Patient/pt-1" } },
+    { "name": "patient", "valueReference": { "reference": "Patient/pt-2" } }
+  ]
+}
+```
+{% endtab %}
+
+{% tab title="Response" %}
+**Status**
+
+202 Accepted
+
+**Headers**
+
+* `Content-Location` — URL to check export status (e.g. `/fhir/$export-status/<id>`)
+{% endtab %}
+{% endtabs %}
+
 ## System-level export
 
 System-level export extracts data from the entire FHIR server, whether or not it's associated with a patient. Use the `_type` parameter to restrict which resource types are exported.
@@ -444,3 +479,177 @@ Prefer: respond-async
 {% endtabs %}
 
 The status endpoint works the same way as other export levels. Poll `/fhir/$export-status/<id>` to check progress, and send a DELETE request to cancel.
+
+## Da Vinci Data Export
+
+{% hint style="info" %}
+Available since version 2605.
+{% endhint %}
+
+Aidbox supports the [Da Vinci Data Export](http://hl7.org/fhir/us/davinci-atr/OperationDefinition/davinci-data-export) operation through the standard `$export` endpoint. When enabled, group-level export accepts an `exportType` parameter that activates Da Vinci-specific behavior including consent-based patient filtering and type restrictions.
+
+### Enabling Da Vinci export
+
+Set the `fhir.bulk-export.davinci-data-export` setting to `true`:
+
+```bash
+BOX_FHIR_BULK_EXPORT_DAVINCI_DATA_EXPORT=true
+```
+
+When this setting is disabled (default), requests with the `exportType` parameter return `422 Unprocessable Entity`.
+
+### Export types
+
+The `exportType` parameter specifies the Da Vinci workflow:
+
+| Export type                                    | Model   | Description                              |
+| ---------------------------------------------- | ------- | ---------------------------------------- |
+| `hl7.fhir.us.davinci-atr`                     | ATR     | Member Attribution List. Restricts output to Group, Coverage, and Patient only. |
+| `hl7.fhir.us.davinci-pdex#payertopayer`        | Opt-in  | Payer-to-payer data exchange. Only exports members with active HRex consent.    |
+| `hl7.fhir.us.davinci-pdex#provider-delta`      | Opt-out | Provider access: incremental changes. Excludes members who opted out.           |
+| `hl7.fhir.us.davinci-pdex#provider-download`   | Opt-out | Provider access: full download. Excludes members who opted out.                 |
+| `hl7.fhir.us.davinci-pdex#provider-snapshot`   | Opt-out | Provider access: read-only snapshot. Excludes members who opted out.            |
+
+### Consent-based filtering
+
+Da Vinci export types use consent-based patient filtering:
+
+**Opt-out model** (provider access types): All group members are included by default. Members are excluded only if they have an active [PDex Provider Consent](http://hl7.org/fhir/us/davinci-pdex/StructureDefinition/pdex-provider-consent) with `provision.type = "deny"` and a valid period covering the current date.
+
+**Opt-in model** (payer-to-payer): No members are included by default. Members are included only if they have an active [HRex Consent](http://hl7.org/fhir/us/davinci-hrex/StructureDefinition/hrex-consent) with matching source and recipient actors and a valid period. The source organization is identified from the requesting client's UDAP B2B token, and the recipient organization is resolved from the Group's `managingEntity`.
+
+### Organization identification
+
+For payer-to-payer exports, Aidbox identifies the requesting organization from the [UDAP B2B Authorization Extension](http://hl7.org/fhir/us/udap-security/STU1/) in the JWT access token:
+
+```json
+{
+  "extensions": {
+    "hl7-b2b": {
+      "version": "1",
+      "organization_id": "urn:oid:2.16.840.1.113883.4.4#12-3456789"
+    }
+  }
+}
+```
+
+The `organization_id` is a URI in `system#value` format (e.g. NPI or TIN identifier). To issue tokens with this claim, add the `client-representedOrganization` extension to your Client resource:
+
+```json
+{
+  "resourceType": "Client",
+  "id": "payer-client",
+  "grant_types": ["client_credentials"],
+  "auth": {
+    "client_credentials": {
+      "token_format": "jwt"
+    }
+  },
+  "extension": [
+    {
+      "url": "http://health-samurai.io/fhir/core/StructureDefinition/client-representedOrganization",
+      "valueReference": {
+        "reference": "Organization/my-org"
+      }
+    }
+  ]
+}
+```
+
+The referenced Organization must have an identifier with a recognized B2B system (`http://hl7.org/fhir/sid/us-npi` or `urn:oid:2.16.840.1.113883.4.4`).
+
+The recipient organization is resolved from `Group.managingEntity`, which should reference an Organization with a recognized B2B identifier.
+
+### OAuth scope intersection
+
+When the requesting client has OAuth scopes, the exported resource types are intersected with the scope-permitted types. For ATR exports, this means the client needs at minimum `system/Patient.read`, `system/Coverage.read`, and `system/Group.read` scopes to export all ATR types.
+
+### Examples
+
+{% tabs %}
+{% tab title="GET: Provider delta" %}
+```http
+GET /fhir/Group/grp-1/$export?exportType=hl7.fhir.us.davinci-pdex%23provider-delta&_type=Patient
+```
+{% endtab %}
+
+{% tab title="POST: Payer-to-payer" %}
+```http
+POST /fhir/Group/grp-1/$export
+Content-Type: application/fhir+json
+```
+
+```json
+{
+  "resourceType": "Parameters",
+  "parameter": [
+    { "name": "exportType", "valueCanonical": "hl7.fhir.us.davinci-pdex#payertopayer" },
+    { "name": "_type", "valueString": "Patient" }
+  ]
+}
+```
+{% endtab %}
+
+{% tab title="POST: ATR" %}
+```http
+POST /fhir/Group/grp-1/$export
+Content-Type: application/fhir+json
+```
+
+```json
+{
+  "resourceType": "Parameters",
+  "parameter": [
+    { "name": "exportType", "valueCanonical": "hl7.fhir.us.davinci-atr" }
+  ]
+}
+```
+{% endtab %}
+{% endtabs %}
+
+## Storage override parameters
+
+{% hint style="info" %}
+Available since version 2605.
+{% endhint %}
+
+You can override the system-level cloud storage configuration on a per-request basis using Aidbox-specific parameters. This is useful when different export jobs need to write to different buckets or storage accounts.
+
+Storage override parameters use the `_aidbox.` prefix to distinguish them from standard FHIR parameters:
+
+| Parameter                  | Type        | Description                                                    |
+| -------------------------- | ----------- | -------------------------------------------------------------- |
+| `_aidbox.storageProvider`  | `string`    | Storage provider type: `gcp`, `aws`, or `azure`.               |
+| `_aidbox.storageBucket`    | `string`    | Bucket name (GCP or AWS S3).                                   |
+| `_aidbox.storageAccount`   | `Reference` | Cloud account resource reference (e.g. `AwsAccount/my-acct`).  |
+| `_aidbox.azureStorage`     | `string`    | Azure storage account name.                                    |
+| `_aidbox.azureContainer`   | `string`    | Azure blob container name.                                     |
+
+These parameters can be passed as GET query parameters or in a POST Parameters body. Only the parameters you specify are overridden; unspecified values fall back to the system-level settings.
+
+{% tabs %}
+{% tab title="GET" %}
+```http
+GET /fhir/Group/grp-1/$export?_type=Patient&_aidbox.storageBucket=custom-bucket&_aidbox.storageProvider=gcp
+```
+{% endtab %}
+
+{% tab title="POST" %}
+```http
+POST /fhir/Group/grp-1/$export
+Content-Type: application/fhir+json
+```
+
+```json
+{
+  "resourceType": "Parameters",
+  "parameter": [
+    { "name": "_type", "valueString": "Patient" },
+    { "name": "_aidbox.storageProvider", "valueString": "aws" },
+    { "name": "_aidbox.storageBucket", "valueString": "custom-bucket" },
+    { "name": "_aidbox.storageAccount", "valueReference": { "reference": "AwsAccount/my-acct" } }
+  ]
+}
+```
+{% endtab %}
+{% endtabs %}
