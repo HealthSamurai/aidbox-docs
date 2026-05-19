@@ -544,11 +544,11 @@ When the destination starts, by default the module copies everything that's alre
 
 If you only need new data going forward — i.e. you don't want the module to backfill what's already in Aidbox at the moment the destination is created — you can skip this whole section. The grants in step 1f that reference `<staging-external-location>` aren't required either. (The destination resource has a parameter that turns the backfill off; you'll see it in step 5.)
 
-Otherwise, the setup is: bucket prefix → IAM role that Databricks can assume → Storage Credential in Databricks → External Location combining the prefix and the credential. The collapsible below walks through it end-to-end on S3.
+Otherwise, the setup is: bucket prefix → IAM role that Databricks can assume → Storage Credential in Databricks → External Location combining the prefix and the credential → sibling UC schema where the staging tables live. The collapsible below walks through it end-to-end on S3.
 
 <details>
 
-<summary>Set up an S3 storage credential end-to-end</summary>
+<summary>Set up the staging bucket + UC schema end-to-end (S3)</summary>
 
 **Create the bucket** in the same AWS region as your Databricks workspace (cross-region works but adds latency and egress cost):
 
@@ -674,11 +674,9 @@ CREATE EXTERNAL LOCATION aidbox_staging_loc
 
 `CREATE EXTERNAL LOCATION` itself runs a list + put + delete probe against the bucket as part of the command. If it returned without an error, the IAM trust + permission policies are correct. If it fails with `PERMISSION_DENIED` / 403, the External ID round-trip above almost certainly hasn't propagated yet — wait \~10 s and retry, or confirm the External ID in `trust-policy.json` matches the one shown on the credential's detail page.
 
-</details>
-
 **Create the staging schema.** By convention the module writes initial-export staging tables to `<target-catalog>.<target-schema>_staging.<target-table>_<…>` — a sibling schema to the target's, not the target's own schema. For target `aidbox_export.fhir.patients` that's `aidbox_export.fhir_staging`.
 
-The schema must be created as **external** (with its own `storage_root` pointing at the External Location, and `managed_location` unset). Databricks SQL can't express this shape — `CREATE SCHEMA … LOCATION 's3://…'` is rejected with `UC_SCHEMA_REQUIRES_MANAGED_LOCATION`, and `CREATE SCHEMA … MANAGED LOCATION 's3://…'` produces a managed-storage schema that Databricks refuses to grant `EXTERNAL USE SCHEMA` on (`SCHEMA_DB_STORAGE` error). The only path is the Unity Catalog REST API — through the [`databricks` CLI](https://docs.databricks.com/aws/en/dev-tools/cli/install) or a raw `curl`:
+The schema must be **external** (its own `storage_root` pointing at the External Location, `managed_location` unset). Databricks SQL can't express this shape — `CREATE SCHEMA … LOCATION 's3://…'` is rejected with `UC_SCHEMA_REQUIRES_MANAGED_LOCATION`, and `CREATE SCHEMA … MANAGED LOCATION 's3://…'` produces a managed-storage schema that Databricks refuses to grant `EXTERNAL USE SCHEMA` on (`SCHEMA_DB_STORAGE` error). The only path is the Unity Catalog REST API — via the [`databricks` CLI](https://docs.databricks.com/aws/en/dev-tools/cli/install) or `curl`:
 
 {% tabs %}
 {% tab title="Databricks CLI" %}
@@ -707,7 +705,7 @@ curl -sf -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" \
 {% endtab %}
 {% endtabs %}
 
-For either form, the principal calling the API needs `CREATE SCHEMA` on the catalog and `CREATE MANAGED STORAGE` on the External Location backing the bucket. If you're calling it as a service principal that doesn't have those, grant them once from a metastore-admin SQL session:
+For either form, the principal calling the API needs `CREATE SCHEMA` on the catalog and `CREATE MANAGED STORAGE` on the External Location. If you're calling as a service principal without those grants, run this once from a metastore-admin SQL session:
 
 ```sql
 GRANT CREATE SCHEMA ON CATALOG aidbox_export
@@ -717,6 +715,8 @@ GRANT CREATE MANAGED STORAGE ON EXTERNAL LOCATION `aidbox_staging_loc`
 ```
 
 Why an external schema specifically: Unity Catalog refuses `EXTERNAL USE SCHEMA` on managed-storage schemas, and `EXTERNAL USE SCHEMA` is what lets the module's Kernel writer pull STS creds for direct-to-bucket Parquet writes during initial export. Without an external sibling schema the initial-bulk staging step can't run.
+
+</details>
 
 #### 1f. Grant the service principal
 
