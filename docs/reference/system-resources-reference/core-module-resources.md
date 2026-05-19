@@ -5774,21 +5774,21 @@ Profile for FHIR Bulk Data $export operation POST parameters. Based on https://b
   "type" : "string",
   "desc" : "DaVinci export type canonical (e.g. hl7.fhir.us.davinci-pdex#provider-delta)."
 }, {
-  "path" : "params.source-org-id",
-  "name" : "source-org-id",
+  "path" : "params.source-org-uri",
+  "name" : "source-org-uri",
   "lvl" : 1,
   "min" : 0,
   "max" : 1,
   "type" : "string",
-  "desc" : "Source (old payer) Organization ID for payer-to-payer consent actor matching."
+  "desc" : "Source organization identifier URI (system#value) from B2B token for payer-to-payer consent actor matching."
 }, {
-  "path" : "params.recipient-org-id",
-  "name" : "recipient-org-id",
+  "path" : "params.recipient-org-uri",
+  "name" : "recipient-org-uri",
   "lvl" : 1,
   "min" : 0,
   "max" : 1,
   "type" : "string",
-  "desc" : "Recipient (new payer) Organization ID for payer-to-payer consent actor matching."
+  "desc" : "Recipient organization identifier URI (system#value) from Group.managingEntity for payer-to-payer consent actor matching."
 }, {
   "path" : "params.storage",
   "name" : "storage",
@@ -8405,7 +8405,7 @@ Profile for $davinci-data-export operation input parameters. Based on http://hl7
 
 ## DataLakehouseAtLeastOnceProfile
 
-Data Lakehouse at-least-once delivery profile for AidboxTopicDestination. Default writeMode 'managed' routes writes into a Databricks Unity Catalog managed table through a SQL warehouse (single INSERT INTO managed VALUES (...) for ongoing events — at-least-once, customer dedups on read; staging external Delta + INSERT INTO target SELECT * FROM staging for initial export). Setting writeMode='external-direct' falls back to writing Parquet directly to an external Delta table on S3/GCS/ADLS via the Delta Kernel writer (no SQL warehouse involvement, restart-safe-idempotent via Delta txn action).
+Data Lakehouse at-least-once delivery profile for AidboxTopicDestination. Default writeMode 'managed-zerobus' streams writes directly into a Databricks Unity Catalog managed Delta table via the Zerobus gRPC streaming-ingest SDK (no SQL warehouse on the hot path; pay-per-row ingest). Initial bulk export uses a temporary staging external Delta table on the customer's bucket and merges via the SQL warehouse on the resource id. 'managed-sql' targets the same managed table but routes every batch through the Databricks SQL warehouse (Statement Execution API) — same staging+MERGE for initial bulk; use this when Zerobus isn't available on the customer's SKU. 'external-direct' falls back to writing Parquet directly to an external Delta table on S3/GCS/ADLS via the Delta Kernel writer (no SQL warehouse, restart-safe-idempotent via Delta txn action).
 
 ```fhir-structure
 [ {
@@ -8666,12 +8666,92 @@ Data Lakehouse at-least-once delivery profile for AidboxTopicDestination. Defaul
   "desc" : ""
 }, {
   "path" : "parameter",
+  "name" : "parameter:databricksRegion",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : "AWS region of the Databricks workspace, e.g. us-east-1. Required when writeMode=managed-zerobus; used together with databricksWorkspaceId to compose the Zerobus gRPC server endpoint host."
+}, {
+  "path" : "parameter.name",
+  "name" : "name",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 1,
+  "max" : 1,
+  "type" : "string",
+  "desc" : ""
+}, {
+  "path" : "parameter.resource",
+  "name" : "resource",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part",
+  "name" : "part",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter",
   "name" : "parameter:databricksWarehouseId",
   "lvl" : 0,
   "min" : 0,
   "max" : 1,
   "type" : "",
-  "desc" : "Databricks SQL warehouse ID. Required when writeMode=managed; the warehouse executes INSERT / COPY INTO / ALTER on behalf of this destination."
+  "desc" : "Databricks SQL warehouse ID. Required when writeMode=managed-sql; the warehouse executes INSERT / COPY INTO / ALTER on behalf of this destination. Also required for managed-zerobus when initial-export is enabled (the staging-table schema sync still uses INFORMATION_SCHEMA via the warehouse)."
+}, {
+  "path" : "parameter.name",
+  "name" : "name",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 1,
+  "max" : 1,
+  "type" : "string",
+  "desc" : ""
+}, {
+  "path" : "parameter.resource",
+  "name" : "resource",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part",
+  "name" : "part",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter:databricksWorkspaceId",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : "Numeric Databricks workspace ID (e.g. 1234567890123456). Required when writeMode=managed-zerobus; used together with databricksRegion to compose the Zerobus gRPC server endpoint host."
 }, {
   "path" : "parameter.name",
   "name" : "name",
@@ -8871,7 +8951,7 @@ Data Lakehouse at-least-once delivery profile for AidboxTopicDestination. Defaul
   "min" : 0,
   "max" : 1,
   "type" : "",
-  "desc" : "S3/GCS/ADLS URI for an external Delta table used as staging during managed mode's initial-export phase. Required when writeMode=managed AND skipInitialExport is not true. The customer must pre-configure a UC external location at this path."
+  "desc" : "S3/GCS/ADLS URI for an external Delta table used as staging during managed-sql or managed-zerobus mode's initial-export phase. Required when writeMode is managed-sql or managed-zerobus AND skipInitialExport is not true. The customer must pre-configure a UC external location at this path."
 }, {
   "path" : "parameter.name",
   "name" : "name",
@@ -9071,7 +9151,7 @@ Data Lakehouse at-least-once delivery profile for AidboxTopicDestination. Defaul
   "min" : 0,
   "max" : 1,
   "type" : "",
-  "desc" : "Write path strategy. Default managed (SQL warehouse routes writes into a Databricks Unity Catalog managed table). Set external-direct to write directly into a non-managed external Delta table (S3 / MinIO / GCS / ADLS) via Kernel."
+  "desc" : "Write path strategy. Default managed-zerobus (gRPC streaming-ingest direct into a Unity Catalog managed Delta table; no warehouse hours). Set managed-sql to route inserts through a Databricks SQL warehouse (same target, requires warm warehouse). Set external-direct to write directly into a non-managed external Delta table (S3 / MinIO / GCS / ADLS) via Kernel."
 }, {
   "path" : "parameter.name",
   "name" : "name",
@@ -17750,6 +17830,31 @@ The versionId of the resource at the time the notification was triggered.
   "max" : 1,
   "type" : "http://hl7.org/fhirpath/System.String",
   "desc" : "Primitive value for password"
+} ]
+```
+
+
+## representedOrganization
+
+Organization this client represents in B2B flows. Used as source organization in DaVinci bulk export consent filtering.
+
+```fhir-structure
+[ {
+  "path" : "url",
+  "name" : "url",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "value[x]",
+  "name" : "value[x]",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "Reference",
+  "desc" : "\n\n**Allowed references**: hrex-organization"
 } ]
 ```
 
