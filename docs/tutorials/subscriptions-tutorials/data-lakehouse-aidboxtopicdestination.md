@@ -479,7 +479,7 @@ This is one example, not the only approach — wrap it in a Databricks SQL view 
 
 The example below uses `managed-zerobus` (the default). For non-default modes see [`managed-sql`](#alternative-managed-sql-configuration) or [`external-direct`](#alternative-external-direct-configuration).
 
-Authenticate the [Databricks CLI](https://docs.databricks.com/aws/en/dev-tools/cli/install) once — **as your own user** (PAT or `databricks auth login`), not as the service principal. The setup steps below create the catalog/schema/table and assign grants, which need the catalog-owner privileges your user has. The runtime SP receives only the grants explicitly listed in the "Grant the service principal" step. The destination resource you'll POST to Aidbox later carries the SP's `databricksClientId` / `databricksClientSecret` separately.
+Authenticate the [Databricks CLI](https://docs.databricks.com/aws/en/dev-tools/cli/install) once — **as your own user** (PAT or `databricks auth login`), not as the service principal. Every step below — `databricks catalogs / schemas / grants / storage-credentials / external-locations` and the SQL DDL — runs as your user. The service principal is only created so Aidbox can authenticate at runtime; it never logs into the CLI in this tutorial, and the only privileges it ever gets are the ones explicitly listed in the "Grant the service principal" step (never `CREATE_SCHEMA` / `CREATE_MANAGED_STORAGE` / `MANAGE`). The destination resource you'll POST to Aidbox later carries the SP's `databricksClientId` / `databricksClientSecret` separately.
 
 ```shell
 export DATABRICKS_HOST=https://<your-workspace>.cloud.databricks.com
@@ -659,6 +659,10 @@ export STAGING_BUCKET=<your-bucket-name>
 aws s3api create-bucket --bucket "$STAGING_BUCKET" --region us-east-1
 ```
 
+{% hint style="info" %}
+For regions other than `us-east-1` you must also pass `--create-bucket-configuration LocationConstraint=<region>` — that's how the AWS API distinguishes the legacy `us-east-1` path from regional ones.
+{% endhint %}
+
 {% endstep %}
 
 {% step %}
@@ -781,9 +785,9 @@ Grant only the set matching your `writeMode`. The SP runs the module at request 
 | `USE_CATALOG` | `aidbox_export` | navigate the catalog |
 | `USE_SCHEMA` | `aidbox_export.fhir` | resolve the target table |
 | `SELECT`, `MODIFY` | target table | `DESCRIBE` + initial-bulk `MERGE INTO` |
-| `EXTERNAL_USE_SCHEMA` | staging schema | UC vends STS for the staging table (initial-export only) |
+| `USE_SCHEMA`, `EXTERNAL_USE_SCHEMA`, `CREATE_TABLE` | staging schema | resolve the sibling schema, vend STS for the staging table, and let the sender register it (initial-export only) |
 | `READ_FILES`, `WRITE_FILES`, `CREATE_EXTERNAL_TABLE` | staging External Location | write bulk Parquet via vended STS (initial-export only) |
-| `CAN_USE` | the SQL warehouse | bootstrap schema-sync statements + initial-bulk `MERGE` (no warehouse traffic during live writes) |
+| `CAN_USE` | the SQL warehouse | bootstrap schema-sync statements + initial-bulk `MERGE` (no warehouse traffic during live writes) — already granted in the SP/warehouse step |
 
 ```sh
 databricks grants update catalog aidbox_export --json '{
@@ -802,12 +806,19 @@ databricks grants update schema aidbox_export.fhir_staging --json '{
 databricks grants update external-location aidbox_staging_loc --json '{
   "changes":[{"principal":"'"$SP_CLIENT_ID"'","add":["READ_FILES","WRITE_FILES","CREATE_EXTERNAL_TABLE"]}]}'
 ```
-
-Warehouse `CAN_USE` was already granted in the SP/warehouse step.
 {% endtab %}
 
 {% tab title="managed-sql" %}
-Same as `managed-zerobus` — the SQL warehouse is hit on every batch instead of only at bootstrap + initial-bulk, but the privilege set is identical:
+Identical privilege set to `managed-zerobus` — the SQL warehouse is hit on every batch instead of only at bootstrap + initial-bulk:
+
+| Privilege | Granted on | Purpose |
+|---|---|---|
+| `USE_CATALOG` | `aidbox_export` | navigate the catalog |
+| `USE_SCHEMA` | `aidbox_export.fhir` | resolve the target table |
+| `SELECT`, `MODIFY` | target table | `DESCRIBE` + every-batch `INSERT` + initial-bulk `MERGE INTO` |
+| `USE_SCHEMA`, `EXTERNAL_USE_SCHEMA`, `CREATE_TABLE` | staging schema | resolve the sibling schema, vend STS for the staging table, and let the sender register it (initial-export only) |
+| `READ_FILES`, `WRITE_FILES`, `CREATE_EXTERNAL_TABLE` | staging External Location | write bulk Parquet via vended STS (initial-export only) |
+| `CAN_USE` | the SQL warehouse | every-batch INSERT + bootstrap + initial-bulk — already granted in the SP/warehouse step |
 
 ```sh
 databricks grants update catalog aidbox_export --json '{
@@ -851,10 +862,6 @@ databricks grants update external-location <target-external-location> --json '{
 {% endtab %}
 {% endtabs %}
 
-{% hint style="info" %}
-Run bootstrap (catalog/schema/table creation, Storage Credential registration) as your own user. The runtime SP only needs the grants above — never `CREATE_SCHEMA` / `CREATE_MANAGED_STORAGE` / `MANAGE`.
-{% endhint %}
-
 {% endstep %}
 
 {% step %}
@@ -883,13 +890,21 @@ POST /fhir/AidboxTopicDestination
     {"name": "tableName", "valueString": "aidbox_export.fhir.patients"},
     {"name": "databricksWarehouseId", "valueString": "<warehouse-id>"},
     {"name": "awsRegion", "valueString": "us-east-1"},
-    {"name": "stagingTablePath", "valueString": "s3://my-aidbox-staging/patient_flat_staging/"},
+    {"name": "stagingTablePath", "valueString": "s3://<your-bucket>/staging/patient_flat/"},
     {"name": "viewDefinition", "valueString": "patient_flat"},
     {"name": "batchSize", "valueUnsignedInt": 50},
     {"name": "sendIntervalMs", "valueUnsignedInt": 5000}
   ]
 }
 ```
+
+{% hint style="info" %}
+`databricksWorkspaceId` is the numeric ID of your workspace — find it in **Settings → Workspace → Workspace ID**, or read it from the `o=…` query parameter in the workspace URL: `https://<dbc-id>.cloud.databricks.com/?o=<workspace-id>`.
+{% endhint %}
+
+{% hint style="warning" %}
+`stagingTablePath` must be a **sub-prefix** of the External Location you registered (here `s3://$STAGING_BUCKET/staging/`), not the root itself. Setting it equal to the External Location root or to the staging schema's `storage_root` makes Databricks refuse with `LOCATION_OVERLAP`. The sender writes the staging Delta directly at this path, so reserve a per-destination subdirectory like `staging/patient_flat/` or `staging/<destination-id>/`.
+{% endhint %}
 
 In production, resolve `databricksClientSecret` from Aidbox's [External Secrets](../../configuration/secret-files.md) instead of inlining it:
 
@@ -929,6 +944,9 @@ Then query your Databricks table to confirm the data arrived:
 ```sql
 SELECT * FROM aidbox_export.fhir.patients;
 ```
+
+You should see one row for John Smith. If you left `skipInitialExport` at its default (`false`), the table also contains a row for every pre-existing row in `sof.patient_flat` — initial export reads the whole materialized view, **not** the topic's `fhirPathCriteria` filter (that filter applies only to live changes after the destination is created). Set `skipInitialExport: true` on the destination if you only want forward-going data, or narrow the ViewDefinition's `where` clause if you want the initial bulk filtered too.
+
 {% endstep %}
 {% endstepper %}
 
@@ -969,7 +987,7 @@ POST /fhir/AidboxTopicDestination
     {"name": "tableName", "valueString": "aidbox_export.fhir.patients"},
     {"name": "databricksWarehouseId", "valueString": "<warehouse-id>"},
     {"name": "awsRegion", "valueString": "us-east-1"},
-    {"name": "stagingTablePath", "valueString": "s3://my-aidbox-staging/patient_flat_staging/"},
+    {"name": "stagingTablePath", "valueString": "s3://<your-bucket>/staging/patient_flat/"},
     {"name": "viewDefinition", "valueString": "patient_flat"},
     {"name": "batchSize", "valueUnsignedInt": 50},
     {"name": "sendIntervalMs", "valueUnsignedInt": 5000}
@@ -985,7 +1003,16 @@ If you don't need Unity Catalog managed-table governance and want the highest th
 
 ### Setup differences from the managed modes
 
-1. **Create the table with `LOCATION`** so it's external (the table's bucket needs an External Location + Storage Credential just like the staging one, but pointed at the target prefix):
+1. **Create the target schema as external**, not managed. `EXTERNAL USE SCHEMA` is grantable only on external schemas (their own `storage_root` set, no inherited managed location). On most Free Edition and recent paid workspaces (Default Storage enabled), a plain `CREATE SCHEMA aidbox_export.fhir` produces a managed schema that silently refuses the grant later. Create it with an explicit storage root pointed at an External Location you own:
+
+   ```sh
+   databricks schemas create fhir aidbox_export \
+     --storage-root "s3://<your-bucket>/target/"
+   ```
+
+   This replaces the plain `CREATE SCHEMA aidbox_export.fhir` from the catalog/schema step above. The bucket prefix must be registered as an External Location with `READ_FILES, WRITE_FILES, CREATE_EXTERNAL_TABLE` granted to the SP — the same chain you'd set up for the staging bucket in the managed modes, but pointed at the target prefix instead.
+
+2. **Create the table with `LOCATION`** so it's external (the table's bucket needs an External Location + Storage Credential just like the staging one, but pointed at the target prefix):
 
    ```shell
    databricks api post /api/2.0/sql/statements --json '{
@@ -995,13 +1022,13 @@ If you don't need Unity Catalog managed-table governance and want the highest th
    }'
    ```
 
-2. **No warehouse needed at runtime** — writes don't go through SQL compute. (The warehouse is still needed once for the `CREATE TABLE` above.)
+3. **No warehouse needed at runtime** — writes don't go through SQL compute. (The warehouse is still needed once for the `CREATE TABLE` above.)
 
-3. **Different grants** — `EXTERNAL USE SCHEMA` on the **target's** schema (not a staging sibling), and `READ FILES, WRITE FILES, CREATE EXTERNAL TABLE` on the External Location backing the target bucket. See the `external-direct` tab in [Grant the service principal](#grant-the-service-principal).
+4. **Different grants** — `EXTERNAL USE SCHEMA` on the **target's** schema (now external thanks to step 1), and `READ FILES, WRITE FILES, CREATE EXTERNAL TABLE` on the External Location backing the target bucket. See the `external-direct` tab in [Grant the service principal](#grant-the-service-principal).
 
-4. **No `stagingTablePath`** — initial export writes directly to the final external table; no intermediate staging.
+5. **No `stagingTablePath`** — initial export writes directly to the final external table; no intermediate staging.
 
-5. **The User owns the schema** — there's no auto-`ALTER` in this mode. If you add a column to the ViewDefinition, you must `ALTER TABLE` yourself before recreating the destination, or initial validation will fail.
+6. **The User owns the schema** — there's no auto-`ALTER` in this mode. If you add a column to the ViewDefinition, you must `ALTER TABLE` yourself before recreating the destination, or initial validation will fail.
 
 ### Destination configuration
 
@@ -1066,8 +1093,9 @@ You can also omit `awsAccessKeyId` / `awsSecretAccessKey` to fall back to the [A
 
 ## Initial export
 
-When a new destination is created with `skipInitialExport` not set to `true`, the module exports the **current state** of every matching resource — one row per resource.
+When a new destination is created with `skipInitialExport` not set to `true`, the module exports the **current state** of every row in `sof.<view>` — one row per resource the ViewDefinition matches.
 
+- **Topic `fhirPathCriteria` does not narrow initial export.** Initial export reads `sof.<view>` straight (`SELECT *, 0 as is_deleted FROM sof.<view>`); the topic's filter applies only to live changes after the destination is created. If you want the initial bulk filtered too, narrow the ViewDefinition's `where` clause.
 - **Updates after destination creation** append a new row each (`POST` / `PUT` / `DELETE`), accumulating a full audit trail.
 - **Pre-existing history is not exported.** Initial export reads each resource's current row from `sof.<view>`, not Aidbox's `_history` table. Run a one-off ETL from `_history` before destination creation if you need older versions.
 
@@ -1164,7 +1192,9 @@ The module automatically:
 1. **Applies ViewDefinition**: Transforms each FHIR resource using the specified ViewDefinition SQL
 2. **Adds deletion flag**: Sets `is_deleted = 0` for create/update, `is_deleted = 1` for delete operations
 3. **Batches messages**: Groups messages according to `batchSize` and `sendIntervalMs` parameters
-4. **Coerces types**: Java SQL dates / timestamps from PostgreSQL are converted to ISO-8601 strings; the warehouse parses them into `DATE` / `TIMESTAMP` columns
+4. **Coerces types per write path**:
+   - `managed-sql` / `external-direct` — Java SQL dates / timestamps are converted to ISO-8601 strings; the SQL warehouse (or the Delta-Kernel writer) parses them into `DATE` / `TIMESTAMP` columns.
+   - `managed-zerobus` — dates are encoded as `int32` epoch-days, timestamps as `int64` epoch-microseconds, as required by the Zerobus REST wire format. ISO strings would be rejected with a `400` from the endpoint.
 
 See [Output semantics](#output-semantics) for append-only behaviour, at-least-once delivery, and the recommended read-time dedup query.
 
@@ -1238,6 +1268,7 @@ You can create multiple destinations for the same topic — for example, to mirr
 6. **Schema mismatch in external-direct mode** — the module fails at startup with a clear message naming the missing columns. Run the corresponding `ALTER TABLE` and recreate the destination.
 7. **Slow first write** — Serverless warehouses cold-start in 30-90s on first use after idle. The module's HTTP timeout is 120s for SQL Statement Execution and uses `wait_timeout=50s` polling, so cold starts succeed transparently but the first batch's latency is high. Keep the warehouse warm with a periodic ping if first-batch latency matters.
 8. **Duplicate rows after recreating destination** — deleting and recreating a destination triggers initial export again. Set `skipInitialExport: true` when recreating a destination that already has its data exported.
+9. **`LOCATION_OVERLAP` during initial export** — `stagingTablePath` either equals the staging schema's `storage_root` (which UC treats as the schema's own managed location) or doesn't sit under your External Location. Set it to a sub-prefix of the External Location, e.g. `s3://<bucket>/staging/patient_flat/`, not the External Location root itself.
 
 ## Related documentation
 
