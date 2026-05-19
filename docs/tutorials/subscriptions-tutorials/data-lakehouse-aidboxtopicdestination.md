@@ -597,12 +597,18 @@ databricks warehouses update-permissions "$WAREHOUSE_ID" --json '{
 databricks api post /api/2.0/sql/statements --json '{
   "warehouse_id": "'"$WAREHOUSE_ID"'",
   "wait_timeout": "30s",
-  "statement": "CREATE CATALOG aidbox_export; CREATE SCHEMA aidbox_export.fhir"
+  "statement": "CREATE CATALOG aidbox_export"
+}'
+
+databricks api post /api/2.0/sql/statements --json '{
+  "warehouse_id": "'"$WAREHOUSE_ID"'",
+  "wait_timeout": "30s",
+  "statement": "CREATE SCHEMA aidbox_export.fhir"
 }'
 ```
 
 {% hint style="info" %}
-On workspaces with Default Storage enabled (most Free Edition and recent paid accounts), `databricks catalogs create <name>` will fail with `Metastore storage root URL does not exist` — go through SQL DDL like above, or pass an explicit `storage_root` to the CLI.
+On workspaces with Default Storage enabled (most Free Edition and recent paid accounts), `databricks catalogs create <name>` will fail with `Metastore storage root URL does not exist` — go through SQL DDL like above, or pass an explicit `storage_root` to the CLI. The Statements API accepts only one statement per call, so catalog and schema go in two requests.
 {% endhint %}
 
 {% endstep %}
