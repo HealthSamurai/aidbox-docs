@@ -196,18 +196,19 @@ In `external-direct` you can also skip Databricks entirely and authenticate agai
 
 - Aidbox **2605** or newer ([install guide](../../getting-started/run-aidbox-locally.md))
 - A Databricks workspace (Free Edition works for evaluation, paid for production)
-- A managed (or external, for `external-direct`) Delta table you intend to write into
+- The [Databricks CLI](https://docs.databricks.com/aws/en/dev-tools/cli/install) installed locally (`brew install databricks/tap/databricks` on macOS) — every Databricks-side operation in the tutorial uses it
+- AWS CLI (only for `managed-*` modes that do initial-export — for the staging bucket + IAM role)
 - A SQL warehouse (skip only for `external-direct`)
 - For `managed-zerobus`: Zerobus enabled on your SKU (Databricks Free Edition supports it; for paid plans confirm with Databricks support)
-- For initial-export in the `managed-*` modes: an S3/GCS/ADLS bucket you control with a Unity Catalog External Location for staging
+- For initial-export in the `managed-*` modes: an S3/GCS/ADLS bucket you control
 
-The service principal that authenticates the module is created in [Step 1](#step-1-set-up-databricks-side) — you don't need it before you start.
+The service principal that authenticates the module is created in step 3 of the usage example — you don't need it before you start.
 
 ### Docker Compose
 
 1. Download the Databricks module JAR file and place it next to your **docker-compose.yaml**:
 
-   ```sh
+   ```shell
    curl -O https://storage.googleapis.com/aidbox-modules/topic-destination-deltalake/topic-destination-deltalake-2605.0.jar
    ```
 
@@ -227,7 +228,7 @@ The service principal that authenticates the module is created in [Step 1](#step
 
 3. Start Aidbox:
 
-   ```sh
+   ```shell
    docker compose up
    ```
 
@@ -478,11 +479,11 @@ This is one example, not the only approach — wrap it in a Databricks SQL view 
 
 The example below uses `managed-zerobus` (the default). For non-default modes see [`managed-sql`](#alternative-managed-sql-configuration) or [`external-direct`](#alternative-external-direct-configuration).
 
-Steps 1–3 set up the FHIR side (subscription topic, the ViewDefinition that decides your table column shape, materialization). Step 4 sets up the Databricks side using the column shape from step 2. Step 5 wires the two together. We use the [Databricks CLI](https://docs.databricks.com/aws/en/dev-tools/cli/install) for every Databricks-side operation — it covers everything (including SQL DDL via the generic `databricks api post /api/2.0/sql/statements` wrapper), so you don't switch between the SQL editor, the Catalog Explorer UI, and ad-hoc curl. AWS-side bucket + IAM setup uses the AWS CLI.
+The FHIR side comes first (subscription topic, the ViewDefinition that decides your table column shape, materialization). Then the Databricks side gets created knowing the column shape. Then the two are wired together by the destination resource. Every Databricks-side operation uses the [Databricks CLI](https://docs.databricks.com/aws/en/dev-tools/cli/install) — including SQL DDL via the generic `databricks api post /api/2.0/sql/statements` wrapper — so you don't switch between the SQL editor, the Catalog Explorer UI, and ad-hoc curl. AWS-side bucket + IAM setup uses the AWS CLI.
 
-Authenticate the Databricks CLI once (the rest of the tutorial assumes these env vars are set):
+Authenticate the Databricks CLI once (the rest of the steps assume these env vars are set):
 
-```sh
+```shell
 export DATABRICKS_HOST=https://<your-workspace>.cloud.databricks.com
 # Either OAuth M2M:
 export DATABRICKS_CLIENT_ID=<sp-client-id>
@@ -491,16 +492,15 @@ export DATABRICKS_CLIENT_SECRET=<sp-client-secret>
 # export DATABRICKS_TOKEN=<your-pat>
 ```
 
-If you're bootstrapping from scratch you'll likely start with a PAT for your own user (which has the workspace-admin privileges needed to create catalogs, register storage credentials, etc.) — then later switch the CLI's env vars to the service principal for the day-to-day grants you hand out to it.
-
 {% stepper %}
 {% step %}
-### Step 1: Create the subscription topic
+### Create the subscription topic
 
-Declares which FHIR resource changes trigger the export. The destination resource (step 5) references this topic by URL.
+Declares which FHIR resource changes trigger the export. The destination resource (later step) references this topic by URL.
 
-{% code title="POST /fhir/AidboxSubscriptionTopic" %}
-```json
+```http
+POST /fhir/AidboxSubscriptionTopic
+
 {
   "resourceType": "AidboxSubscriptionTopic",
   "url": "http://example.org/subscriptions/patient-updates",
@@ -514,17 +514,17 @@ Declares which FHIR resource changes trigger the export. The destination resourc
   ]
 }
 ```
-{% endcode %}
 
 {% endstep %}
 
 {% step %}
-### Step 2: Create + materialize the ViewDefinition
+### Create + materialize the ViewDefinition
 
-A [ViewDefinition](../../modules/sql-on-fhir/defining-flat-views-with-view-definitions.md) flattens each FHIR resource into a row using [FHIRPath](https://hl7.org/fhirpath/) expressions. **Decide the column shape here first** — step 4 creates the Databricks target table to match exactly.
+A [ViewDefinition](../../modules/sql-on-fhir/defining-flat-views-with-view-definitions.md) flattens each FHIR resource into a row using [FHIRPath](https://hl7.org/fhirpath/) expressions. **Decide the column shape here first** — the Databricks target table will be created to match exactly.
 
-{% code title="POST /fhir/ViewDefinition" %}
-```json
+```http
+POST /fhir/ViewDefinition
+
 {
   "resourceType": "ViewDefinition",
   "id": "patient_flat",
@@ -549,12 +549,12 @@ A [ViewDefinition](../../modules/sql-on-fhir/defining-flat-views-with-view-defin
   ]
 }
 ```
-{% endcode %}
 
 Then [materialize](../../modules/sql-on-fhir/operation-materialize.md) it as a database view in the `sof` schema — the module reads rows from `sof.patient_flat`:
 
-{% code title="POST /fhir/ViewDefinition/patient_flat/$materialize" %}
-```json
+```http
+POST /fhir/ViewDefinition/patient_flat/$materialize
+
 {
   "resourceType": "Parameters",
   "parameter": [
@@ -562,7 +562,6 @@ Then [materialize](../../modules/sql-on-fhir/operation-materialize.md) it as a d
   ]
 }
 ```
-{% endcode %}
 
 {% hint style="info" %}
 Must be materialized as a **view**, not a table. Details in the [`$materialize` operation](../../modules/sql-on-fhir/operation-materialize.md) docs.
@@ -571,28 +570,27 @@ Must be materialized as a **view**, not a table. Details in the [`$materialize` 
 {% endstep %}
 
 {% step %}
-### Step 3: Service principal + SQL warehouse
+### Create the service principal and SQL warehouse
 
 These are the only two Databricks-side resources easier to create via the web UI than the CLI (one-time human ops; both have CLI equivalents if you want them).
 
 **Service principal.** **Settings → Identity and access → Service principals → Add service principal**. Name it (e.g. `aidbox-topic-destination`), open the SP, **Secrets → Generate secret**. Copy the Client ID + Secret — these go into the destination as `databricksClientId` / `databricksClientSecret`. Stash them:
 
-```sh
+```shell
 export SP_CLIENT_ID=<sp-client-id>
 export SP_CLIENT_SECRET=<sp-client-secret>
 ```
 
 **SQL warehouse.** Compute → SQL Warehouses → use an existing one or create a small Serverless. Copy the Warehouse ID:
 
-```sh
+```shell
 export WAREHOUSE_ID=<warehouse-id>
 ```
 
-The warehouse needs `Can use` for the SP. SQL doesn't have `GRANT ON WAREHOUSE` syntax, but the CLI does:
+Grant the SP `Can use` on the warehouse — SQL doesn't have a `GRANT … ON WAREHOUSE` form, so this is a CLI-only step:
 
-```sh
-databricks warehouses set-workspace-warehouse-config --json '{
-  "id": "'"$WAREHOUSE_ID"'",
+```shell
+databricks warehouses update-permissions "$WAREHOUSE_ID" --json '{
   "access_control_list": [
     {"service_principal_name": "'"$SP_CLIENT_ID"'", "permission_level": "CAN_USE"}
   ]
@@ -604,18 +602,21 @@ databricks warehouses set-workspace-warehouse-config --json '{
 {% endstep %}
 
 {% step %}
-### Step 4: Set up the Databricks side
+### Create the catalog and schema
 
-**4a. Catalog + schema** to hold the target table:
-
-```sh
+```shell
 databricks catalogs create aidbox_export
 databricks schemas create fhir aidbox_export
 ```
 
-**4b. The managed Delta target table** with columns matching the ViewDefinition from step 2 (plus the mandatory `is_deleted INT`):
+{% endstep %}
 
-```sh
+{% step %}
+### Create the managed Delta target table
+
+Columns must match the ViewDefinition you created above, plus a mandatory `is_deleted INT`:
+
+```shell
 databricks api post /api/2.0/sql/statements --json '{
   "warehouse_id": "'"$WAREHOUSE_ID"'",
   "wait_timeout": "30s",
@@ -624,7 +625,7 @@ databricks api post /api/2.0/sql/statements --json '{
 ```
 
 {% hint style="warning" %}
-`is_deleted INT` is mandatory — module sets it to `0` for create/update, `1` for delete.
+`is_deleted INT` is mandatory — the module sets it to `0` for create/update, `1` for delete.
 
 No `LOCATION` clause → managed table. Unity Catalog owns the physical layout, runs Predictive Optimization automatically, and refuses external STS-vended writes — which is why both `managed-*` modes go through Databricks compute (Zerobus or SQL warehouse).
 {% endhint %}
@@ -644,22 +645,30 @@ No `LOCATION` clause → managed table. Unity Catalog owns the physical layout, 
 In both `managed-*` modes the module **automatically issues `ALTER TABLE ADD COLUMNS`** when the ViewDefinition has columns the managed target is missing. See [Schema evolution](#schema-evolution). (Note: with `managed-zerobus`, ALTER on the Delta table doesn't propagate to Zerobus's REST endpoint schema view — if you add columns to a long-lived destination, you'll need to drop and recreate the target table.)
 {% endhint %}
 
-#### 4c. (Skip if you don't need an initial bulk copy of existing data) Staging location
+{% endstep %}
 
-When the destination starts, by default the module copies everything that's already in Aidbox into the target table before turning on live writes. That bulk copy needs a place to stage Parquet files — a cloud bucket prefix that Databricks is allowed to write to through Unity Catalog. Both `managed-zerobus` and `managed-sql` use the same staging path; `external-direct` writes the bulk straight to the target and skips this step.
+{% hint style="info" %}
+**The next five steps set up the initial-bulk staging location**, used only when the destination backfills what's already in Aidbox. If you only need new data going forward, skip all five — and skip the staging-related grants in the "Grant the service principal" step. The destination resource has a parameter that turns the backfill off; you'll see it later. `external-direct` writes the bulk straight to the target and doesn't use this path either.
 
-If you only need new data going forward — i.e. you don't want the module to backfill what's already in Aidbox at the moment the destination is created — skip this whole subsection. The grants in 4d that reference the staging External Location aren't needed either. (The destination resource has a parameter that turns the backfill off; you'll see it in step 5.)
+The setup chain: S3 bucket → IAM role Databricks can assume → Storage Credential in UC → External Location combining the prefix and the credential → sibling UC schema where staging tables live.
+{% endhint %}
 
-The setup chain is: S3 bucket → IAM role Databricks can assume → Storage Credential in UC → External Location combining the prefix and the credential → sibling UC schema where staging tables live. End-to-end on AWS:
+{% step %}
+### Create the staging S3 bucket
 
-**Create the bucket** (same AWS region as your Databricks workspace — cross-region works but adds latency and egress cost):
+Same AWS region as your Databricks workspace — cross-region works but adds latency and egress cost.
 
-```sh
+```shell
 export STAGING_BUCKET=<your-bucket-name>
 aws s3api create-bucket --bucket "$STAGING_BUCKET" --region us-east-1
 ```
 
-**Create the IAM role.** Two `Principal.AWS` entries from the start — Databricks' UC master role and the role itself self-assuming (so UC can do downstream STS chains). Substitutions:
+{% endstep %}
+
+{% step %}
+### Create the IAM role Databricks will assume
+
+Two `Principal.AWS` entries from the start — Databricks' UC master role and the role itself self-assuming (so UC can do downstream STS chains). Substitutions:
 
 - `<DATABRICKS_AWS_ACCOUNT_ID>` is **Databricks' own AWS account**, not yours — `414351767826` for AWS commercial regions. For GovCloud / China / other partitions check [Databricks docs](https://docs.databricks.com/aws/en/connect/unity-catalog/cloud-storage/storage-credentials#create-an-iam-role).
 - `unity-catalog-prod-UCMasterRole-14S5ZJVKOTYTL` is the **UC master role** in that account — same value for every customer, copy as-is.
@@ -715,7 +724,7 @@ Save as `s3-access.json` (inline permission policy scoping the role to your buck
 
 Apply both:
 
-```sh
+```shell
 aws iam create-role \
   --role-name aidbox-staging-role \
   --assume-role-policy-document file://trust-policy.json
@@ -731,9 +740,14 @@ export STAGING_ROLE_ARN=$(aws iam get-role --role-name aidbox-staging-role \
 
 (Re-run after a typo: swap `create-role` for `aws iam update-assume-role-policy --role-name aidbox-staging-role --policy-document file://trust-policy.json`. `put-role-policy` is already idempotent.)
 
-**Register the Storage Credential.** The CLI accepts the IAM role inline and returns the auto-generated `external_id` in its response — no UI round-trip needed:
+{% endstep %}
 
-```sh
+{% step %}
+### Register the Storage Credential in Unity Catalog
+
+The CLI accepts the IAM role inline and returns the auto-generated `external_id` in its response — no UI round-trip needed:
+
+```shell
 export EXTERNAL_ID=$(databricks storage-credentials create aidbox_staging_cred \
   --json '{"aws_iam_role": {"role_arn": "'"$STAGING_ROLE_ARN"'"}}' \
   --skip-validation \
@@ -743,9 +757,9 @@ echo "External ID: $EXTERNAL_ID"
 
 (`--skip-validation` because UC validates by assuming the role — and assumption fails until we replace `<EXTERNAL_ID>` in the trust policy with the value Databricks just generated. We do that next.)
 
-**Patch the trust policy with the real External ID** and re-push, then validate the credential:
+Patch the trust policy with the real External ID and re-push, then validate the credential:
 
-```sh
+```shell
 # Substitute the placeholder with the real value.
 sed -i.bak "s/<EXTERNAL_ID>/$EXTERNAL_ID/" trust-policy.json
 
@@ -760,16 +774,26 @@ databricks storage-credentials validate --storage-credential-name aidbox_staging
 
 The validation does a list + put + delete probe against the bucket. Empty `results` means success.
 
-**Register the External Location** combining the credential with the bucket prefix:
+{% endstep %}
 
-```sh
+{% step %}
+### Register the External Location
+
+Combines the Storage Credential with the bucket prefix Databricks is allowed to write into:
+
+```shell
 databricks external-locations create aidbox_staging_loc \
   "s3://$STAGING_BUCKET/staging/" aidbox_staging_cred
 ```
 
-**Create the staging schema.** Module convention places initial-export staging tables in `<target-catalog>.<target-schema>_staging.<…>` — a sibling schema next to the target. For target `aidbox_export.fhir.patients` that's `aidbox_export.fhir_staging`:
+{% endstep %}
 
-```sh
+{% step %}
+### Create the sibling staging schema
+
+Module convention places initial-export staging tables in `<target-catalog>.<target-schema>_staging.<…>` — a sibling schema next to the target. For target `aidbox_export.fhir.patients` that's `aidbox_export.fhir_staging`:
+
+```shell
 databricks schemas create fhir_staging aidbox_export \
   --storage-root "s3://$STAGING_BUCKET/staging/"
 ```
@@ -778,9 +802,12 @@ databricks schemas create fhir_staging aidbox_export \
 **Why a sibling schema with explicit storage root**: the module's Kernel writer needs `EXTERNAL USE SCHEMA` on the staging schema to obtain STS creds for direct-to-bucket writes during initial export. Unity Catalog refuses that grant on schemas that inherit a managed location from their catalog (`SCHEMA_DB_STORAGE` error class) — managed Delta target catalogs always have inherited storage in standard workspaces. Also note: UC SQL can't create such a schema — `CREATE SCHEMA … LOCATION '…'` is rejected with `UC_SCHEMA_REQUIRES_MANAGED_LOCATION`; the CLI / REST API form is the only path.
 {% endhint %}
 
-This creation needs `CREATE_SCHEMA` on the catalog and `CREATE_MANAGED_STORAGE` on the External Location — both default to the catalog owner. If you're hitting `PERMISSION_DENIED` here, run as the catalog owner instead of the service principal. Don't grant these to the runtime SP — see 4d.
+This creation needs `CREATE_SCHEMA` on the catalog and `CREATE_MANAGED_STORAGE` on the External Location — both default to the catalog owner. If you're hitting `PERMISSION_DENIED` here, run as the catalog owner instead of the service principal. Don't grant these to the runtime SP — see the next step.
 
-#### 4d. Grant the service principal
+{% endstep %}
+
+{% step %}
+### Grant the service principal
 
 Grant only the set matching your `writeMode`. The SP runs the module at request time; nothing in this set lets it create or destroy catalog-level resources.
 
@@ -795,7 +822,7 @@ Grant only the set matching your `writeMode`. The SP runs the module at request 
 | `READ_FILES`, `WRITE_FILES`, `CREATE_EXTERNAL_TABLE` | staging External Location | write bulk Parquet via vended STS (initial-export only) |
 | `CAN_USE` | the SQL warehouse | bootstrap schema-sync statements + initial-bulk `MERGE` (no warehouse traffic during live writes) |
 
-```sh
+```shell
 databricks grants update catalog aidbox_export --json '{
   "changes":[{"principal":"'"$SP_CLIENT_ID"'","add":["USE_CATALOG"]}]}'
 
@@ -813,13 +840,13 @@ databricks grants update external-location aidbox_staging_loc --json '{
   "changes":[{"principal":"'"$SP_CLIENT_ID"'","add":["READ_FILES","WRITE_FILES","CREATE_EXTERNAL_TABLE"]}]}'
 ```
 
-Warehouse `CAN_USE` doesn't go through `grants update` — see Step 3 for the `databricks warehouses set-workspace-warehouse-config` form.
+Warehouse `CAN_USE` doesn't go through `grants update` — use the `databricks warehouses update-permissions "$WAREHOUSE_ID"` form shown in the "Create the service principal and SQL warehouse" step above.
 {% endtab %}
 
 {% tab title="managed-sql" %}
 Same as `managed-zerobus` — the SQL warehouse is hit on every batch instead of only at bootstrap + initial-bulk, but the privilege set is identical:
 
-```sh
+```shell
 databricks grants update catalog aidbox_export --json '{
   "changes":[{"principal":"'"$SP_CLIENT_ID"'","add":["USE_CATALOG"]}]}'
 
@@ -841,7 +868,7 @@ databricks grants update external-location aidbox_staging_loc --json '{
 {% tab title="external-direct" %}
 Different — `EXTERNAL_USE_SCHEMA` is on the **target's** schema (writes go directly), and you grant against the target External Location (the one wrapping the target table's bucket, not the staging one):
 
-```sh
+```shell
 databricks grants update catalog aidbox_export --json '{
   "changes":[{"principal":"'"$SP_CLIENT_ID"'","add":["USE_CATALOG"]}]}'
 
@@ -868,7 +895,7 @@ databricks grants update external-location <target-external-location> --json '{
 {% endstep %}
 
 {% step %}
-### Step 5: Configure the destination (`managed-zerobus`)
+### Configure the destination (`managed-zerobus`)
 
 {% code title="POST /fhir/AidboxTopicDestination" %}
 ```json
@@ -920,7 +947,7 @@ The string `dbx-sp-secret` is a secret name from your `BOX_VAULT_CONFIG` mapping
 {% endstep %}
 
 {% step %}
-### Step 6: Verify
+### Verify
 
 Create a test patient:
 
