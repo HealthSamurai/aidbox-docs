@@ -670,40 +670,14 @@ CREATE EXTERNAL LOCATION aidbox_staging_loc
   WITH (STORAGE CREDENTIAL aidbox_staging_cred);
 ```
 
-`CREATE EXTERNAL LOCATION` itself runs a list + put + delete probe against the bucket as part of the command. If it returned without an error, the IAM trust + permission policies are correct. If it fails with `PERMISSION_DENIED` / 403, the External ID round-trip above almost certainly hasn't propagated yet — wait \~10 s and retry, or confirm the External ID in `trust-policy.json` matches the one shown on the credential's detail page.
+**Create the staging schema.** The module places initial-export staging tables in a sibling schema next to the target — for target `aidbox_export.fhir.patients` that's `aidbox_export.fhir_staging`. The schema must be **external** (its own `storage_root` pointing at the External Location, no managed location). UC SQL can't create that shape — `CREATE SCHEMA … LOCATION '…'` is rejected with `UC_SCHEMA_REQUIRES_MANAGED_LOCATION`, and a `MANAGED LOCATION` schema refuses `EXTERNAL USE SCHEMA` with `SCHEMA_DB_STORAGE`. Use the [Databricks CLI](https://docs.databricks.com/aws/en/dev-tools/cli/install) instead:
 
-**Create the staging schema.** By convention the module writes initial-export staging tables to `<target-catalog>.<target-schema>_staging.<target-table>_<…>` — a sibling schema to the target's, not the target's own schema. For target `aidbox_export.fhir.patients` that's `aidbox_export.fhir_staging`.
-
-The schema must be **external** (its own `storage_root` pointing at the External Location, `managed_location` unset). Databricks SQL can't express this shape — `CREATE SCHEMA … LOCATION 's3://…'` is rejected with `UC_SCHEMA_REQUIRES_MANAGED_LOCATION`, and `CREATE SCHEMA … MANAGED LOCATION 's3://…'` produces a managed-storage schema that Databricks refuses to grant `EXTERNAL USE SCHEMA` on (`SCHEMA_DB_STORAGE` error). The only path is the Unity Catalog REST API — via the [`databricks` CLI](https://docs.databricks.com/aws/en/dev-tools/cli/install) or `curl`:
-
-{% tabs %}
-{% tab title="Databricks CLI" %}
 ```sh
-databricks schemas create \
-  --catalog-name aidbox_export \
-  --name fhir_staging \
+databricks schemas create fhir_staging aidbox_export \
   --storage-root s3://<your-bucket-name>/staging/
 ```
-{% endtab %}
-{% tab title="curl" %}
-```sh
-WS=https://<your-workspace>.cloud.databricks.com
-TOKEN=$(curl -sf -u "$DATABRICKS_CLIENT_ID:$DATABRICKS_CLIENT_SECRET" \
-  -d 'grant_type=client_credentials&scope=all-apis' \
-  "$WS/oidc/v1/token" | jq -r .access_token)
 
-curl -sf -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" \
-  -X POST "$WS/api/2.1/unity-catalog/schemas" \
-  -d '{
-    "name": "fhir_staging",
-    "catalog_name": "aidbox_export",
-    "storage_root": "s3://<your-bucket-name>/staging/"
-  }'
-```
-{% endtab %}
-{% endtabs %}
-
-For either form, the principal calling the API needs `CREATE SCHEMA` on the catalog and `CREATE MANAGED STORAGE` on the External Location. If you're calling as a service principal without those grants, run this once from a metastore-admin SQL session:
+The caller needs `CREATE SCHEMA` on the catalog and `CREATE MANAGED STORAGE` on the External Location. If you're authenticating as a service principal without those, run this once from a metastore-admin SQL session:
 
 ```sql
 GRANT CREATE SCHEMA ON CATALOG aidbox_export
@@ -712,7 +686,7 @@ GRANT CREATE MANAGED STORAGE ON EXTERNAL LOCATION `aidbox_staging_loc`
   TO `<your-principal>`;
 ```
 
-Why an external schema specifically: Unity Catalog refuses `EXTERNAL USE SCHEMA` on managed-storage schemas, and `EXTERNAL USE SCHEMA` is what lets the module's Kernel writer pull STS creds for direct-to-bucket Parquet writes during initial export. Without an external sibling schema the initial-bulk staging step can't run.
+Why an external schema: Unity Catalog refuses `EXTERNAL USE SCHEMA` on managed-storage schemas, and that grant is what lets the module's Kernel writer pull STS creds for direct-to-bucket Parquet writes during initial export. Without an external sibling schema the initial-bulk staging step can't run.
 
 #### 1f. Grant the service principal
 
