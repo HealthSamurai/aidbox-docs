@@ -620,10 +620,6 @@ Use the same region as your Databricks workspace. The same bucket holds both the
 aws s3api create-bucket --bucket "$STAGING_BUCKET" --region "$AWS_REGION"
 ```
 
-{% hint style="info" %}
-For regions other than `us-east-1` you must also pass `--create-bucket-configuration LocationConstraint=<region>` — that's how the AWS API distinguishes the legacy `us-east-1` path from regional ones.
-{% endhint %}
-
 {% endstep %}
 
 {% step %}
@@ -633,12 +629,11 @@ Substitutions:
 
 - `<DATABRICKS_AWS_ACCOUNT_ID>`: Databricks' own AWS account — `414351767826` for commercial regions. For GovCloud see [Databricks docs](https://docs.databricks.com/aws/en/connect/unity-catalog/cloud-storage/storage-credentials#create-an-iam-role).
 - `<YOUR_AWS_ACCOUNT_ID>`: `aws sts get-caller-identity --query Account --output text`.
-- `<EXTERNAL_ID>` is a placeholder — Databricks will hand us the real value when we register the Storage Credential in the next step.
-
-Write the trust policy to a file (we'll patch `<EXTERNAL_ID>` later):
+- `<EXTERNAL_ID>` is a placeholder — Databricks will hand us the real value when we register the Storage Credential in the next step. We create the role with a placeholder first, then patch the trust policy after the Storage Credential gives us the real value.
 
 ```sh
-cat > trust-policy.json <<EOF
+aws iam create-role --role-name "$IAM_ROLE_NAME" \
+  --assume-role-policy-document "$(cat <<EOF
 {
   "Version": "2012-10-17",
   "Statement": [{
@@ -648,26 +643,24 @@ cat > trust-policy.json <<EOF
       "arn:aws:iam::<YOUR_AWS_ACCOUNT_ID>:role/${IAM_ROLE_NAME}"
     ]},
     "Action": "sts:AssumeRole",
-    "Condition": { "StringEquals": { "sts:ExternalId": "<EXTERNAL_ID>" } }
+    "Condition": { "StringEquals": { "sts:ExternalId": "PLACEHOLDER" } }
   }]
 }
 EOF
+)"
 
-aws iam create-role \
-  --role-name "$IAM_ROLE_NAME" \
-  --assume-role-policy-document file://trust-policy.json
-
-aws iam put-role-policy \
-  --role-name "$IAM_ROLE_NAME" \
-  --policy-name s3-access \
-  --policy-document '{
-    "Version": "2012-10-17",
-    "Statement": [{
-      "Effect": "Allow",
-      "Action": ["s3:GetObject","s3:PutObject","s3:DeleteObject","s3:ListBucket","s3:GetBucketLocation","s3:GetLifecycleConfiguration","s3:PutLifecycleConfiguration"],
-      "Resource": ["arn:aws:s3:::'"$STAGING_BUCKET"'","arn:aws:s3:::'"$STAGING_BUCKET"'/*"]
-    }]
-  }'
+aws iam put-role-policy --role-name "$IAM_ROLE_NAME" --policy-name s3-access \
+  --policy-document "$(cat <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [{
+    "Effect": "Allow",
+    "Action": ["s3:GetObject","s3:PutObject","s3:DeleteObject","s3:ListBucket","s3:GetBucketLocation","s3:GetLifecycleConfiguration","s3:PutLifecycleConfiguration"],
+    "Resource": ["arn:aws:s3:::${STAGING_BUCKET}","arn:aws:s3:::${STAGING_BUCKET}/*"]
+  }]
+}
+EOF
+)"
 
 export STAGING_ROLE_ARN=$(aws iam get-role --role-name "$IAM_ROLE_NAME" \
   --query 'Role.Arn' --output text)
@@ -687,14 +680,25 @@ export EXTERNAL_ID=$(databricks storage-credentials create "$STORAGE_CRED_NAME" 
   | jq -r .aws_iam_role.external_id)
 ```
 
-Patch it into the trust policy and validate:
+Patch the role's trust policy with the real External ID and validate:
 
 ```shell
-sed -i.bak "s/<EXTERNAL_ID>/$EXTERNAL_ID/" trust-policy.json
-
-aws iam update-assume-role-policy \
-  --role-name "$IAM_ROLE_NAME" \
-  --policy-document file://trust-policy.json
+aws iam update-assume-role-policy --role-name "$IAM_ROLE_NAME" \
+  --policy-document "$(cat <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [{
+    "Effect": "Allow",
+    "Principal": { "AWS": [
+      "arn:aws:iam::<DATABRICKS_AWS_ACCOUNT_ID>:role/unity-catalog-prod-UCMasterRole-14S5ZJVKOTYTL",
+      "arn:aws:iam::<YOUR_AWS_ACCOUNT_ID>:role/${IAM_ROLE_NAME}"
+    ]},
+    "Action": "sts:AssumeRole",
+    "Condition": { "StringEquals": { "sts:ExternalId": "${EXTERNAL_ID}" } }
+  }]
+}
+EOF
+)"
 
 sleep 10  # IAM propagation
 databricks storage-credentials validate --storage-credential-name "$STORAGE_CRED_NAME"
