@@ -116,9 +116,9 @@ graph LR
     A --> B --> C --> D --> Z --> T0
 ```
 
-- Each batch is JSON-encoded as an array and POSTed to `https://<workspace-id>.zerobus.<region>.cloud.databricks.com/zerobus/v1/tables/<catalog>.<schema>.<table>/insert` with an OAuth M2M bearer. Zerobus is a purpose-built ingest pipe — no SQL parsing / planning / scheduling per batch, and no warehouse cold-start.
-- Initial bulk export still uses a one-shot staging Delta table at a cloud-storage prefix you configure (Zerobus is append-only ingest, designed for incremental row writes, not bulk loads). The bulk merge is the same `MERGE INTO managed USING staging` pattern as `managed-sql`. This staging table is a plain external Delta table the module drops after the merge — not a Databricks [temporary table](https://docs.databricks.com/aws/en/tables/temporary-tables).
-- Schema sync at sender bootstrap still uses a SQL warehouse (one-shot `INFORMATION_SCHEMA.COLUMNS` describe + optional `ALTER TABLE`) — the warehouse is required but only used at boot, not on every batch.
+- Each batch is JSON-encoded as an array and POSTed to the Zerobus REST endpoint with an OAuth M2M bearer. No SQL parsing, no warehouse cold-start.
+- Initial bulk export uses a one-shot staging Delta table + `MERGE INTO` — same path as `managed-sql`.
+- Schema sync at sender bootstrap hits the SQL warehouse once (`INFORMATION_SCHEMA.COLUMNS` + optional `ALTER TABLE`); live writes don't.
 
 ### managed-sql mode
 
@@ -136,8 +136,8 @@ graph LR
     A --> B --> C --> D --> M --> T1
 ```
 
-- Each batch becomes a single `INSERT INTO managed (cols) VALUES (...)` statement sent to a Databricks SQL warehouse. The warehouse writes the Delta files (Parquet + a transaction-log commit) under the managed table.
-- Initial bulk export uses a one-shot staging Delta table at a cloud-storage prefix you configure, because Databricks-managed tables refuse direct writes from outside Databricks compute. See [Initial export](#how-it-works-managed-modes) for the staging diagram.
+- Each batch becomes a single `INSERT INTO managed (cols) VALUES (...)` against the SQL warehouse.
+- Initial bulk export uses a one-shot staging Delta table + `MERGE INTO`. See [Initial export](#how-it-works-managed-modes).
 
 ### external-direct mode
 
@@ -155,16 +155,16 @@ graph LR
     A --> B --> C --> D --> K --> T2
 ```
 
-- The module writes Delta files straight to your bucket from the Aidbox process. No SQL warehouse involved.
-- Storage backends supported: AWS S3, Google Cloud Storage, Azure ADLS Gen2.
-- No Databricks compute is involved in the write path — you pay only for the bucket. Because Databricks doesn't own the files, you're responsible for the maintenance Databricks would otherwise run automatically: schedule `OPTIMIZE` (file compaction) and `VACUUM` (cleanup of stale Parquet referenced by no commit) yourself. See [Compaction and maintenance](#compaction-and-maintenance).
+- The module writes Delta files straight to your bucket from the Aidbox process. No SQL warehouse, no Databricks compute on the write path.
+- Storage backends: AWS S3, Google Cloud Storage, Azure ADLS Gen2.
+- You own table maintenance — schedule `OPTIMIZE` and `VACUUM` yourself. See [Compaction and maintenance](#compaction-and-maintenance).
 
 ## Choosing between the three modes
 
 **Default to `managed-zerobus`.** Pick a different mode only when one of these applies:
 
-- **Zerobus isn't available on your Databricks SKU** → `managed-sql`. Same managed Unity Catalog target, same initial-bulk path, but every batch goes through a SQL warehouse (which has to stay warm).
-- **You want the files in your own bucket, not Databricks-managed storage**, and you accept owning schema + `OPTIMIZE` / `VACUUM` yourself → `external-direct`. No Databricks compute on the write path; no Predictive Optimization either (Databricks restricts PO to managed tables).
+- **Zerobus isn't available on your Databricks SKU** → `managed-sql`. Same managed target, but every batch hits a warm SQL warehouse.
+- **You want the files in your own bucket and own table maintenance yourself** → `external-direct`. No Databricks compute on the write path.
 
 |                                | `managed-zerobus` (default)                                              | `managed-sql`                                                            | `external-direct`                                            |
 | ------------------------------ | ------------------------------------------------------------------------ | ------------------------------------------------------------------------ | ------------------------------------------------------------ |
@@ -453,11 +453,11 @@ Use [the read-time projection below](#querying-the-table) to collapse history to
 
 ### At-least-once delivery
 
-Messages are persisted in a PostgreSQL queue before being sent. If delivery fails, the message stays in the queue and is retried on the next batch cycle. The three modes differ in what happens during a crash-between-commit-and-ack — the narrow window where the write landed in storage but the sender died before marking the queue entry as delivered:
+Messages are persisted in a PostgreSQL queue and retried on failure. The three modes differ on the crash-between-commit-and-ack window:
 
-- **`managed-zerobus`** — initial export is idempotent (`MERGE INTO managed USING staging ON id` no-ops on replay). Live per-batch writes are at-least-once: the REST insert endpoint has no offset/transaction-id concept, so a replayed POST after a sender crash re-inserts the same rows.
-- **`managed-sql`** — initial export is idempotent (same MERGE pattern as `managed-zerobus`). Live per-batch writes can produce duplicates. The per-batch INSERT route to the SQL warehouse can't carry a transaction id, so a replayed batch becomes a second INSERT and a duplicate row.
-- **`external-direct`** — restart-safe-idempotent for both live writes and initial export. Every Delta commit carries a stable transaction id; a replay lands on the same id and Delta silently skips it.
+- **`managed-zerobus`** — initial export is idempotent; live writes are at-least-once (REST has no offset / transaction id, so a replay re-inserts).
+- **`managed-sql`** — initial export is idempotent; live writes are at-least-once (SQL `INSERT` has the same constraint).
+- **`external-direct`** — idempotent for both. Each Delta commit carries a transaction id; replays are silently deduped.
 
 ### Querying the table
 
@@ -702,34 +702,29 @@ export STAGING_ROLE_ARN=$(aws iam get-role --role-name aidbox-staging-role \
 {% step %}
 ### Register the Storage Credential in Unity Catalog
 
-The CLI accepts the IAM role inline and returns the auto-generated `external_id` in its response — no UI round-trip needed:
+Create the credential first; Databricks generates the External ID we need for the trust policy:
 
-```sh
+```shell
 export EXTERNAL_ID=$(databricks storage-credentials create aidbox_staging_cred \
   --json '{"aws_iam_role": {"role_arn": "'"$STAGING_ROLE_ARN"'"}}' \
   --skip-validation \
   | jq -r .aws_iam_role.external_id)
-echo "External ID: $EXTERNAL_ID"
 ```
 
-(`--skip-validation` because UC validates by assuming the role — and assumption fails until we replace `<EXTERNAL_ID>` in the trust policy with the value Databricks just generated. We do that next.)
+Patch it into the trust policy and validate:
 
-Patch the trust policy with the real External ID and re-push, then validate the credential:
-
-```sh
-# Substitute the placeholder with the real value.
+```shell
 sed -i.bak "s/<EXTERNAL_ID>/$EXTERNAL_ID/" trust-policy.json
 
 aws iam update-assume-role-policy \
   --role-name aidbox-staging-role \
   --policy-document file://trust-policy.json
 
-# Wait for IAM propagation (a few seconds), then validate the credential.
-sleep 10
+sleep 10  # IAM propagation
 databricks storage-credentials validate --storage-credential-name aidbox_staging_cred
 ```
 
-The validation does a list + put + delete probe against the bucket. Empty `results` means success.
+Empty `results` means success.
 
 {% endstep %}
 
@@ -1061,10 +1056,10 @@ You can also omit `awsAccessKeyId` / `awsSecretAccessKey` to fall back to the [A
 
 ## Initial export
 
-When a new destination is created and `skipInitialExport` is not `true`, the module automatically exports all existing resources that match the subscription topic — one row per resource — so the Delta table has the **current state** of every matching resource as of destination-creation time. Subsequent updates (and the resource's pre-existing history) behave differently:
+When a new destination is created with `skipInitialExport` not set to `true`, the module exports the **current state** of every matching resource — one row per resource.
 
-- **Updates after destination creation** — every `PUT` / `POST` / `DELETE` on a tracked resource appends a new row, so the Delta table accumulates a full audit trail going forward.
-- **History that existed before destination creation** — **not exported**. Initial export reads each resource's _current_ row from the materialized SQL-on-FHIR view (`sof.<view>`), not Aidbox's `_history` table. If you need historical versions in Delta, query Aidbox's `_history` for the resource type yourself and load them with a one-off ETL before creating the destination, or accept that only forward-going history will be present.
+- **Updates after destination creation** append a new row each (`POST` / `PUT` / `DELETE`), accumulating a full audit trail.
+- **Pre-existing history is not exported.** Initial export reads each resource's current row from `sof.<view>`, not Aidbox's `_history` table. Run a one-off ETL from `_history` before destination creation if you need older versions.
 
 To skip the initial export (e.g., the table is already populated or you only need forward-going data), add `skipInitialExport` to the destination's `parameter` array:
 
@@ -1074,9 +1069,7 @@ To skip the initial export (e.g., the table is already populated or you only nee
 
 ### How it works — managed modes
 
-Managed tables can't accept direct writes from outside Databricks compute (and Zerobus is append-only stream-ingest, not a bulk-load API), so initial bulk export uses a **temporary staging table** as a relay: the module writes the bulk Parquet to an external Delta table at `stagingTablePath` (which it can write to directly via Unity Catalog credential vending), then asks the SQL warehouse to merge from staging into the managed target on the resource `id`, then drops the staging table.
-
-This path is identical for `managed-zerobus` and `managed-sql` — both modes reuse the same staging + MERGE flow during initial export. The difference between the two modes only shows up after initial export, on live per-batch writes: `managed-zerobus` switches to Zerobus REST, `managed-sql` continues to use the warehouse.
+Initial bulk export uses a **staging table** as a relay: the module writes Parquet to an external Delta table at `stagingTablePath` (via UC credential vending), then `MERGE INTO` the managed target on `id`, then drops the staging table. Identical for `managed-zerobus` and `managed-sql`.
 
 ```mermaid
 graph LR
@@ -1104,14 +1097,8 @@ Steps in detail:
 
 The whole sequence runs as one atomic operation from the destination's lifecycle perspective. On failure: best-effort drop of the staging table, retry up to 3 times with exponential backoff (1s → 2s → 4s).
 
-{% hint style="success" %}
-**Why MERGE INTO and not plain INSERT SELECT?** Initial export is a one-shot operation that imports the current state of every existing resource. If the MERGE commits successfully but the network response is lost — and the sender retries — the second MERGE finds the same `id`s already in the target and inserts nothing. A plain `INSERT INTO target SELECT * FROM staging` would have re-inserted every row, doubling the initial dataset. The MERGE has no `WHEN MATCHED` clause, so it never overwrites existing rows — the append-only contract is preserved.
-
-This idempotency relies on your ViewDefinition having an `id` column, which is the standard pattern (the resource id). If it's missing, the SQL planner will fail with a clear column-resolution error before any data moves.
-{% endhint %}
-
 {% hint style="info" %}
-The staging table lives only for the duration of initial export — typically minutes. Once `DROP TABLE staging` succeeds, `stagingTablePath` is left as an empty bucket prefix; you can reuse the same path for future destinations or other purposes.
+The MERGE is idempotent on `id` — a retried export after a lost response inserts nothing instead of duplicating. Your ViewDefinition must have an `id` column.
 {% endhint %}
 
 ### How it works — `external-direct` mode
@@ -1193,7 +1180,7 @@ See [Output semantics](#output-semantics) for append-only behaviour, at-least-on
 
 ### Managed modes (auto-heal)
 
-Both `managed-zerobus` and `managed-sql` auto-heal schema drift. If you add a column to the ViewDefinition and re-materialize, the module will automatically detect the diff at the next sender start and issue `ALTER TABLE ADD COLUMNS (...)` against the managed target. Additionally, if a write fails mid-batch with `DELTA_INSERT_COLUMN_ARITY_MISMATCH` (`managed-sql`) or a schema-mismatch from the Zerobus stream (`managed-zerobus`), the module re-describes the target via the SQL warehouse, ALTERs the missing columns, and retries the batch once.
+Both `managed-zerobus` and `managed-sql` auto-`ALTER TABLE ADD COLUMNS` when the ViewDefinition has new columns. Triggered at sender start and on per-batch schema-mismatch (retried once).
 
 To add a column:
 
