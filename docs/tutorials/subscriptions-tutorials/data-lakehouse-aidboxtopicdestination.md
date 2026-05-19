@@ -479,7 +479,7 @@ This is one example, not the only approach — wrap it in a Databricks SQL view 
 
 The example below uses `managed-zerobus` (the default). For non-default modes see [`managed-sql`](#alternative-managed-sql-configuration) or [`external-direct`](#alternative-external-direct-configuration).
 
-Authenticate the [Databricks CLI](https://docs.databricks.com/aws/en/dev-tools/cli/install) once — **as your own user** (PAT or `databricks auth login`), not as the service principal. Every step below — `databricks catalogs / schemas / grants / storage-credentials / external-locations` and the SQL DDL — runs as your user. The service principal is only created so Aidbox can authenticate at runtime; it never logs into the CLI in this tutorial, and the only privileges it ever gets are the ones explicitly listed in the "Grant the service principal" step (never `CREATE_SCHEMA` / `CREATE_MANAGED_STORAGE` / `MANAGE`). The destination resource you'll POST to Aidbox later carries the SP's `databricksClientId` / `databricksClientSecret` separately.
+Authenticate the [Databricks CLI](https://docs.databricks.com/aws/en/dev-tools/cli/install) once — **as your own user** (PAT or `databricks auth login`).
 
 ```shell
 export DATABRICKS_HOST=https://<your-workspace>.cloud.databricks.com
