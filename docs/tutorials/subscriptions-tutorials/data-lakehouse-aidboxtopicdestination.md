@@ -488,6 +488,25 @@ export DATABRICKS_HOST=https://<your-workspace>.cloud.databricks.com
 export DATABRICKS_TOKEN=<your-pat>
 ```
 
+The rest of the example references the names below via environment variables — override any of them before sourcing, and the commands stay copy-pasteable:
+
+```shell
+# Identifiers the example creates — pick your own.
+export CATALOG=aidbox_export
+export TARGET_SCHEMA=fhir
+export STAGING_SCHEMA=fhir_staging
+export TARGET_TABLE=patients
+
+# AWS / staging bucket. STAGING_BUCKET is created in a later step.
+export STAGING_BUCKET=<your-bucket-name>
+export AWS_REGION=us-east-1
+
+# Unity Catalog resource names created in later steps.
+export STORAGE_CRED_NAME=aidbox_staging_cred
+export EXTERNAL_LOCATION_NAME=aidbox_staging_loc
+export IAM_ROLE_NAME=aidbox-staging-role
+```
+
 {% stepper %}
 {% step %}
 ### Create the subscription topic
@@ -588,26 +607,130 @@ databricks warehouses update-permissions "$WAREHOUSE_ID" --json '{
 
 {% endstep %}
 
+{% hint style="info" %}
+**Heads up on ordering.** The next four steps register an S3 bucket as an External Location in Unity Catalog. The catalog you create for the target table after that has to point its managed-storage root at a sub-prefix of that External Location — otherwise on Default-Storage workspaces (most Free Edition and recent paid accounts) `managed-zerobus` rejects writes with `Unsupported table kind. Tables created in default storage are not supported`. So infra-first, target-table-second.
+{% endhint %}
+
 {% step %}
-### Create the catalog and schema
+### Create the S3 bucket
 
-```shell
-databricks api post /api/2.0/sql/statements --json '{
-  "warehouse_id": "'"$WAREHOUSE_ID"'",
-  "wait_timeout": "30s",
-  "statement": "CREATE CATALOG aidbox_export"
-}'
+Use the same region as your Databricks workspace. The same bucket holds both the managed target's storage root and the initial-export staging area, under separate prefixes.
 
-databricks api post /api/2.0/sql/statements --json '{
-  "warehouse_id": "'"$WAREHOUSE_ID"'",
-  "wait_timeout": "30s",
-  "statement": "CREATE SCHEMA aidbox_export.fhir"
-}'
+```sh
+aws s3api create-bucket --bucket "$STAGING_BUCKET" --region "$AWS_REGION"
 ```
 
 {% hint style="info" %}
-On workspaces with Default Storage enabled (most Free Edition and recent paid accounts), `databricks catalogs create <name>` will fail with `Metastore storage root URL does not exist` — go through SQL DDL like above, or pass an explicit `storage_root` to the CLI. The Statements API accepts only one statement per call, so catalog and schema go in two requests.
+For regions other than `us-east-1` you must also pass `--create-bucket-configuration LocationConstraint=<region>` — that's how the AWS API distinguishes the legacy `us-east-1` path from regional ones.
 {% endhint %}
+
+{% endstep %}
+
+{% step %}
+### Create the IAM role Databricks will assume
+
+Substitutions:
+
+- `<DATABRICKS_AWS_ACCOUNT_ID>`: Databricks' own AWS account — `414351767826` for commercial regions. For GovCloud / China see [Databricks docs](https://docs.databricks.com/aws/en/connect/unity-catalog/cloud-storage/storage-credentials#create-an-iam-role).
+- `<YOUR_AWS_ACCOUNT_ID>`: `aws sts get-caller-identity --query Account --output text`.
+- `<EXTERNAL_ID>` is a placeholder — Databricks will hand us the real value when we register the Storage Credential in the next step.
+
+Write the trust policy to a file (we'll patch `<EXTERNAL_ID>` later):
+
+```sh
+cat > trust-policy.json <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [{
+    "Effect": "Allow",
+    "Principal": { "AWS": [
+      "arn:aws:iam::<DATABRICKS_AWS_ACCOUNT_ID>:role/unity-catalog-prod-UCMasterRole-14S5ZJVKOTYTL",
+      "arn:aws:iam::<YOUR_AWS_ACCOUNT_ID>:role/${IAM_ROLE_NAME}"
+    ]},
+    "Action": "sts:AssumeRole",
+    "Condition": { "StringEquals": { "sts:ExternalId": "<EXTERNAL_ID>" } }
+  }]
+}
+EOF
+
+aws iam create-role \
+  --role-name "$IAM_ROLE_NAME" \
+  --assume-role-policy-document file://trust-policy.json
+
+aws iam put-role-policy \
+  --role-name "$IAM_ROLE_NAME" \
+  --policy-name s3-access \
+  --policy-document '{
+    "Version": "2012-10-17",
+    "Statement": [{
+      "Effect": "Allow",
+      "Action": ["s3:GetObject","s3:PutObject","s3:DeleteObject","s3:ListBucket","s3:GetBucketLocation","s3:GetLifecycleConfiguration","s3:PutLifecycleConfiguration"],
+      "Resource": ["arn:aws:s3:::'"$STAGING_BUCKET"'","arn:aws:s3:::'"$STAGING_BUCKET"'/*"]
+    }]
+  }'
+
+export STAGING_ROLE_ARN=$(aws iam get-role --role-name "$IAM_ROLE_NAME" \
+  --query 'Role.Arn' --output text)
+```
+
+{% endstep %}
+
+{% step %}
+### Register the Storage Credential in Unity Catalog
+
+Create the credential first; Databricks generates the External ID we need for the trust policy:
+
+```shell
+export EXTERNAL_ID=$(databricks storage-credentials create "$STORAGE_CRED_NAME" \
+  --json '{"aws_iam_role": {"role_arn": "'"$STAGING_ROLE_ARN"'"}}' \
+  --skip-validation \
+  | jq -r .aws_iam_role.external_id)
+```
+
+Patch it into the trust policy and validate:
+
+```shell
+sed -i.bak "s/<EXTERNAL_ID>/$EXTERNAL_ID/" trust-policy.json
+
+aws iam update-assume-role-policy \
+  --role-name "$IAM_ROLE_NAME" \
+  --policy-document file://trust-policy.json
+
+sleep 10  # IAM propagation
+databricks storage-credentials validate --storage-credential-name "$STORAGE_CRED_NAME"
+```
+
+Empty `results` means success.
+
+{% endstep %}
+
+{% step %}
+### Register the External Location
+
+Combines the Storage Credential with the bucket prefix Databricks is allowed to write into. We register the bucket **root** so the same External Location backs both the managed-catalog storage root and the staging-schema prefix:
+
+```sh
+databricks external-locations create "$EXTERNAL_LOCATION_NAME" \
+  "s3://$STAGING_BUCKET/" "$STORAGE_CRED_NAME"
+```
+
+{% endstep %}
+
+{% step %}
+### Create the catalog and target schema
+
+The catalog's `--storage-root` must sit inside the External Location you just registered. A managed catalog created without `--storage-root` falls back to the workspace's default-storage prefix on most modern workspaces, and `managed-zerobus` refuses to write into default storage with `Unsupported table kind` (error code 4024).
+
+```sh
+databricks catalogs create "$CATALOG" \
+  --storage-root "s3://$STAGING_BUCKET/managed/"
+
+databricks api post /api/2.0/sql/statements --json '{
+  "warehouse_id": "'"$WAREHOUSE_ID"'",
+  "wait_timeout": "30s",
+  "statement": "CREATE SCHEMA '"$CATALOG.$TARGET_SCHEMA"'"
+}'
+```
 
 {% endstep %}
 
@@ -620,7 +743,7 @@ Columns must match the ViewDefinition you created above, plus a mandatory `is_de
 databricks api post /api/2.0/sql/statements --json '{
   "warehouse_id": "'"$WAREHOUSE_ID"'",
   "wait_timeout": "30s",
-  "statement": "CREATE TABLE aidbox_export.fhir.patients (id STRING, gender STRING, birth_date DATE, family_name STRING, given_name STRING, is_deleted INT) USING DELTA"
+  "statement": "CREATE TABLE '"$CATALOG.$TARGET_SCHEMA.$TARGET_TABLE"' (id STRING, gender STRING, birth_date DATE, family_name STRING, given_name STRING, is_deleted INT) USING DELTA"
 }'
 ```
 
@@ -646,122 +769,16 @@ In both `managed-*` modes the module issues `ALTER TABLE ADD COLUMNS` automatica
 {% endstep %}
 
 {% hint style="info" %}
-**The next five steps set up initial-bulk staging.** Skip them all (and the staging grants below) if you only need new data going forward — the destination has a parameter that turns the backfill off. `external-direct` doesn't use staging either.
+**The next step sets up initial-bulk staging.** Skip it (and the staging-specific grants in the next-but-one step) if you only need new data going forward — the destination has a parameter that turns the backfill off. `external-direct` doesn't use staging either.
 {% endhint %}
-
-{% step %}
-### Create the staging S3 bucket
-
-Use the same region as your Databricks workspace.
-
-```sh
-export STAGING_BUCKET=<your-bucket-name>
-aws s3api create-bucket --bucket "$STAGING_BUCKET" --region us-east-1
-```
-
-{% hint style="info" %}
-For regions other than `us-east-1` you must also pass `--create-bucket-configuration LocationConstraint=<region>` — that's how the AWS API distinguishes the legacy `us-east-1` path from regional ones.
-{% endhint %}
-
-{% endstep %}
-
-{% step %}
-### Create the IAM role Databricks will assume
-
-Substitutions:
-
-- `<DATABRICKS_AWS_ACCOUNT_ID>`: Databricks' own AWS account — `414351767826` for commercial regions. For GovCloud / China see [Databricks docs](https://docs.databricks.com/aws/en/connect/unity-catalog/cloud-storage/storage-credentials#create-an-iam-role).
-- `<YOUR_AWS_ACCOUNT_ID>`: `aws sts get-caller-identity --query Account --output text`.
-- `<EXTERNAL_ID>` is a placeholder — Databricks will hand us the real value when we register the Storage Credential in the next step.
-
-Write the trust policy to a file (we'll patch `<EXTERNAL_ID>` later):
-
-```sh
-cat > trust-policy.json <<'EOF'
-{
-  "Version": "2012-10-17",
-  "Statement": [{
-    "Effect": "Allow",
-    "Principal": { "AWS": [
-      "arn:aws:iam::<DATABRICKS_AWS_ACCOUNT_ID>:role/unity-catalog-prod-UCMasterRole-14S5ZJVKOTYTL",
-      "arn:aws:iam::<YOUR_AWS_ACCOUNT_ID>:role/aidbox-staging-role"
-    ]},
-    "Action": "sts:AssumeRole",
-    "Condition": { "StringEquals": { "sts:ExternalId": "<EXTERNAL_ID>" } }
-  }]
-}
-EOF
-
-aws iam create-role \
-  --role-name aidbox-staging-role \
-  --assume-role-policy-document file://trust-policy.json
-
-aws iam put-role-policy \
-  --role-name aidbox-staging-role \
-  --policy-name s3-access \
-  --policy-document '{
-    "Version": "2012-10-17",
-    "Statement": [{
-      "Effect": "Allow",
-      "Action": ["s3:GetObject","s3:PutObject","s3:DeleteObject","s3:ListBucket","s3:GetBucketLocation","s3:GetLifecycleConfiguration","s3:PutLifecycleConfiguration"],
-      "Resource": ["arn:aws:s3:::'"$STAGING_BUCKET"'","arn:aws:s3:::'"$STAGING_BUCKET"'/*"]
-    }]
-  }'
-
-export STAGING_ROLE_ARN=$(aws iam get-role --role-name aidbox-staging-role \
-  --query 'Role.Arn' --output text)
-```
-
-{% endstep %}
-
-{% step %}
-### Register the Storage Credential in Unity Catalog
-
-Create the credential first; Databricks generates the External ID we need for the trust policy:
-
-```shell
-export EXTERNAL_ID=$(databricks storage-credentials create aidbox_staging_cred \
-  --json '{"aws_iam_role": {"role_arn": "'"$STAGING_ROLE_ARN"'"}}' \
-  --skip-validation \
-  | jq -r .aws_iam_role.external_id)
-```
-
-Patch it into the trust policy and validate:
-
-```shell
-sed -i.bak "s/<EXTERNAL_ID>/$EXTERNAL_ID/" trust-policy.json
-
-aws iam update-assume-role-policy \
-  --role-name aidbox-staging-role \
-  --policy-document file://trust-policy.json
-
-sleep 10  # IAM propagation
-databricks storage-credentials validate --storage-credential-name aidbox_staging_cred
-```
-
-Empty `results` means success.
-
-{% endstep %}
-
-{% step %}
-### Register the External Location
-
-Combines the Storage Credential with the bucket prefix Databricks is allowed to write into:
-
-```sh
-databricks external-locations create aidbox_staging_loc \
-  "s3://$STAGING_BUCKET/staging/" aidbox_staging_cred
-```
-
-{% endstep %}
 
 {% step %}
 ### Create the sibling staging schema
 
-Module convention places initial-export staging tables in `<target-catalog>.<target-schema>_staging.<…>` — a sibling schema next to the target. For target `aidbox_export.fhir.patients` that's `aidbox_export.fhir_staging`:
+Module convention places initial-export staging tables in `<catalog>.<target-schema>_staging.<…>` — a sibling schema next to the target. For target `$CATALOG.$TARGET_SCHEMA.$TARGET_TABLE` that's `$CATALOG.$STAGING_SCHEMA`:
 
-```shell
-databricks schemas create fhir_staging aidbox_export \
+```sh
+databricks schemas create "$STAGING_SCHEMA" "$CATALOG" \
   --storage-root "s3://$STAGING_BUCKET/staging/"
 ```
 
@@ -782,28 +799,28 @@ Grant only the set matching your `writeMode`. The SP runs the module at request 
 {% tab title="managed-zerobus" %}
 | Privilege | Granted on | Purpose |
 |---|---|---|
-| `USE_CATALOG` | `aidbox_export` | navigate the catalog |
-| `USE_SCHEMA` | `aidbox_export.fhir` | resolve the target table |
-| `SELECT`, `MODIFY` | target table | `DESCRIBE` + initial-bulk `MERGE INTO` |
-| `USE_SCHEMA`, `EXTERNAL_USE_SCHEMA`, `CREATE_TABLE` | staging schema | resolve the sibling schema, vend STS for the staging table, and let the sender register it (initial-export only) |
-| `READ_FILES`, `WRITE_FILES`, `CREATE_EXTERNAL_TABLE` | staging External Location | write bulk Parquet via vended STS (initial-export only) |
+| `USE_CATALOG` | the catalog | navigate the catalog |
+| `USE_SCHEMA` | the target schema | resolve the target table |
+| `SELECT`, `MODIFY` | the target table | `DESCRIBE` + initial-bulk `MERGE INTO` |
+| `USE_SCHEMA`, `EXTERNAL_USE_SCHEMA`, `CREATE_TABLE` | the staging schema | resolve the sibling schema, vend STS for the staging table, and let the sender register it (initial-export only) |
+| `READ_FILES`, `WRITE_FILES`, `CREATE_EXTERNAL_TABLE` | the External Location | write bulk Parquet via vended STS (initial-export only) |
 | `CAN_USE` | the SQL warehouse | bootstrap schema-sync statements + initial-bulk `MERGE` (no warehouse traffic during live writes) — already granted in the SP/warehouse step |
 
 ```sh
-databricks grants update catalog aidbox_export --json '{
+databricks grants update catalog "$CATALOG" --json '{
   "changes":[{"principal":"'"$SP_CLIENT_ID"'","add":["USE_CATALOG"]}]}'
 
-databricks grants update schema aidbox_export.fhir --json '{
+databricks grants update schema "$CATALOG.$TARGET_SCHEMA" --json '{
   "changes":[{"principal":"'"$SP_CLIENT_ID"'","add":["USE_SCHEMA"]}]}'
 
-databricks grants update table aidbox_export.fhir.patients --json '{
+databricks grants update table "$CATALOG.$TARGET_SCHEMA.$TARGET_TABLE" --json '{
   "changes":[{"principal":"'"$SP_CLIENT_ID"'","add":["SELECT","MODIFY"]}]}'
 
 # initial-export only:
-databricks grants update schema aidbox_export.fhir_staging --json '{
+databricks grants update schema "$CATALOG.$STAGING_SCHEMA" --json '{
   "changes":[{"principal":"'"$SP_CLIENT_ID"'","add":["EXTERNAL_USE_SCHEMA","USE_SCHEMA","CREATE_TABLE"]}]}'
 
-databricks grants update external-location aidbox_staging_loc --json '{
+databricks grants update external-location "$EXTERNAL_LOCATION_NAME" --json '{
   "changes":[{"principal":"'"$SP_CLIENT_ID"'","add":["READ_FILES","WRITE_FILES","CREATE_EXTERNAL_TABLE"]}]}'
 ```
 {% endtab %}
@@ -813,46 +830,46 @@ Identical privilege set to `managed-zerobus` — the SQL warehouse is hit on eve
 
 | Privilege | Granted on | Purpose |
 |---|---|---|
-| `USE_CATALOG` | `aidbox_export` | navigate the catalog |
-| `USE_SCHEMA` | `aidbox_export.fhir` | resolve the target table |
-| `SELECT`, `MODIFY` | target table | `DESCRIBE` + every-batch `INSERT` + initial-bulk `MERGE INTO` |
-| `USE_SCHEMA`, `EXTERNAL_USE_SCHEMA`, `CREATE_TABLE` | staging schema | resolve the sibling schema, vend STS for the staging table, and let the sender register it (initial-export only) |
-| `READ_FILES`, `WRITE_FILES`, `CREATE_EXTERNAL_TABLE` | staging External Location | write bulk Parquet via vended STS (initial-export only) |
+| `USE_CATALOG` | the catalog | navigate the catalog |
+| `USE_SCHEMA` | the target schema | resolve the target table |
+| `SELECT`, `MODIFY` | the target table | `DESCRIBE` + every-batch `INSERT` + initial-bulk `MERGE INTO` |
+| `USE_SCHEMA`, `EXTERNAL_USE_SCHEMA`, `CREATE_TABLE` | the staging schema | resolve the sibling schema, vend STS for the staging table, and let the sender register it (initial-export only) |
+| `READ_FILES`, `WRITE_FILES`, `CREATE_EXTERNAL_TABLE` | the External Location | write bulk Parquet via vended STS (initial-export only) |
 | `CAN_USE` | the SQL warehouse | every-batch INSERT + bootstrap + initial-bulk — already granted in the SP/warehouse step |
 
 ```sh
-databricks grants update catalog aidbox_export --json '{
+databricks grants update catalog "$CATALOG" --json '{
   "changes":[{"principal":"'"$SP_CLIENT_ID"'","add":["USE_CATALOG"]}]}'
 
-databricks grants update schema aidbox_export.fhir --json '{
+databricks grants update schema "$CATALOG.$TARGET_SCHEMA" --json '{
   "changes":[{"principal":"'"$SP_CLIENT_ID"'","add":["USE_SCHEMA"]}]}'
 
-databricks grants update table aidbox_export.fhir.patients --json '{
+databricks grants update table "$CATALOG.$TARGET_SCHEMA.$TARGET_TABLE" --json '{
   "changes":[{"principal":"'"$SP_CLIENT_ID"'","add":["SELECT","MODIFY"]}]}'
 
 # initial-export only:
-databricks grants update schema aidbox_export.fhir_staging --json '{
+databricks grants update schema "$CATALOG.$STAGING_SCHEMA" --json '{
   "changes":[{"principal":"'"$SP_CLIENT_ID"'","add":["EXTERNAL_USE_SCHEMA","USE_SCHEMA","CREATE_TABLE"]}]}'
 
-databricks grants update external-location aidbox_staging_loc --json '{
+databricks grants update external-location "$EXTERNAL_LOCATION_NAME" --json '{
   "changes":[{"principal":"'"$SP_CLIENT_ID"'","add":["READ_FILES","WRITE_FILES","CREATE_EXTERNAL_TABLE"]}]}'
 ```
 {% endtab %}
 
 {% tab title="external-direct" %}
-Different — `EXTERNAL_USE_SCHEMA` is on the **target's** schema (writes go directly), and you grant against the target External Location (the one wrapping the target table's bucket, not the staging one):
+Different — `EXTERNAL_USE_SCHEMA` is on the **target's** schema (writes go directly), and you grant against the External Location backing the target's bucket prefix (which can be the same one you registered above if both target and staging live under the same bucket):
 
 ```sh
-databricks grants update catalog aidbox_export --json '{
+databricks grants update catalog "$CATALOG" --json '{
   "changes":[{"principal":"'"$SP_CLIENT_ID"'","add":["USE_CATALOG"]}]}'
 
-databricks grants update schema aidbox_export.fhir --json '{
+databricks grants update schema "$CATALOG.$TARGET_SCHEMA" --json '{
   "changes":[{"principal":"'"$SP_CLIENT_ID"'","add":["USE_SCHEMA","EXTERNAL_USE_SCHEMA"]}]}'
 
-databricks grants update table aidbox_export.fhir.patients --json '{
+databricks grants update table "$CATALOG.$TARGET_SCHEMA.$TARGET_TABLE" --json '{
   "changes":[{"principal":"'"$SP_CLIENT_ID"'","add":["SELECT","MODIFY"]}]}'
 
-databricks grants update external-location <target-external-location> --json '{
+databricks grants update external-location "$EXTERNAL_LOCATION_NAME" --json '{
   "changes":[{"principal":"'"$SP_CLIENT_ID"'","add":["READ_FILES","WRITE_FILES","CREATE_EXTERNAL_TABLE"]}]}'
 ```
 
@@ -882,15 +899,15 @@ POST /fhir/AidboxTopicDestination
   },
   "parameter": [
     {"name": "writeMode", "valueString": "managed-zerobus"},
-    {"name": "databricksWorkspaceUrl", "valueString": "https://dbc-XXXXXXXX-XXXX.cloud.databricks.com"},
-    {"name": "databricksWorkspaceId", "valueString": "1234567890123456"},
-    {"name": "databricksRegion", "valueString": "us-east-1"},
-    {"name": "databricksClientId", "valueString": "<sp-client-id>"},
-    {"name": "databricksClientSecret", "valueString": "<sp-client-secret>"},
-    {"name": "tableName", "valueString": "aidbox_export.fhir.patients"},
-    {"name": "databricksWarehouseId", "valueString": "<warehouse-id>"},
-    {"name": "awsRegion", "valueString": "us-east-1"},
-    {"name": "stagingTablePath", "valueString": "s3://<your-bucket>/staging/patient_flat/"},
+    {"name": "databricksWorkspaceUrl", "valueString": "$DATABRICKS_HOST"},
+    {"name": "databricksWorkspaceId", "valueString": "<workspace-id>"},
+    {"name": "databricksRegion", "valueString": "$AWS_REGION"},
+    {"name": "databricksClientId", "valueString": "$SP_CLIENT_ID"},
+    {"name": "databricksClientSecret", "valueString": "$SP_CLIENT_SECRET"},
+    {"name": "tableName", "valueString": "$CATALOG.$TARGET_SCHEMA.$TARGET_TABLE"},
+    {"name": "databricksWarehouseId", "valueString": "$WAREHOUSE_ID"},
+    {"name": "awsRegion", "valueString": "$AWS_REGION"},
+    {"name": "stagingTablePath", "valueString": "s3://$STAGING_BUCKET/staging/$TARGET_TABLE/"},
     {"name": "viewDefinition", "valueString": "patient_flat"},
     {"name": "batchSize", "valueUnsignedInt": 50},
     {"name": "sendIntervalMs", "valueUnsignedInt": 5000}
@@ -899,7 +916,7 @@ POST /fhir/AidboxTopicDestination
 ```
 
 {% hint style="info" %}
-`databricksWorkspaceId` is the numeric ID of your workspace — find it in **Settings → Workspace → Workspace ID**, or read it from the `o=…` query parameter in the workspace URL: `https://<dbc-id>.cloud.databricks.com/?o=<workspace-id>`.
+Aidbox does **not** interpolate the `$…` placeholders for you — substitute the real values (either inline, or by `envsubst`-ing the payload through `curl --data-binary` before POSTing). The workspace ID is the numeric one — find it in **Settings → Workspace → Workspace ID**, or in the `o=…` query parameter of the workspace URL: `https://<dbc-id>.cloud.databricks.com/?o=<workspace-id>`.
 {% endhint %}
 
 {% hint style="warning" %}
@@ -942,7 +959,7 @@ POST /fhir/Patient
 Then query your Databricks table to confirm the data arrived:
 
 ```sql
-SELECT * FROM aidbox_export.fhir.patients;
+SELECT * FROM $CATALOG.$TARGET_SCHEMA.$TARGET_TABLE;
 ```
 
 You should see one row for John Smith. If you left `skipInitialExport` at its default (`false`), the table also contains a row for every pre-existing row in `sof.patient_flat`. Set `skipInitialExport: true` if you only want forward-going data.
@@ -981,13 +998,13 @@ POST /fhir/AidboxTopicDestination
   },
   "parameter": [
     {"name": "writeMode", "valueString": "managed-sql"},
-    {"name": "databricksWorkspaceUrl", "valueString": "https://dbc-XXXXXXXX-XXXX.cloud.databricks.com"},
-    {"name": "databricksClientId", "valueString": "<sp-client-id>"},
-    {"name": "databricksClientSecret", "valueString": "<sp-client-secret>"},
-    {"name": "tableName", "valueString": "aidbox_export.fhir.patients"},
-    {"name": "databricksWarehouseId", "valueString": "<warehouse-id>"},
-    {"name": "awsRegion", "valueString": "us-east-1"},
-    {"name": "stagingTablePath", "valueString": "s3://<your-bucket>/staging/patient_flat/"},
+    {"name": "databricksWorkspaceUrl", "valueString": "$DATABRICKS_HOST"},
+    {"name": "databricksClientId", "valueString": "$SP_CLIENT_ID"},
+    {"name": "databricksClientSecret", "valueString": "$SP_CLIENT_SECRET"},
+    {"name": "tableName", "valueString": "$CATALOG.$TARGET_SCHEMA.$TARGET_TABLE"},
+    {"name": "databricksWarehouseId", "valueString": "$WAREHOUSE_ID"},
+    {"name": "awsRegion", "valueString": "$AWS_REGION"},
+    {"name": "stagingTablePath", "valueString": "s3://$STAGING_BUCKET/staging/$TARGET_TABLE/"},
     {"name": "viewDefinition", "valueString": "patient_flat"},
     {"name": "batchSize", "valueUnsignedInt": 50},
     {"name": "sendIntervalMs", "valueUnsignedInt": 5000}
@@ -1003,22 +1020,22 @@ If you don't need Unity Catalog managed-table governance and want the highest th
 
 ### Setup differences from the managed modes
 
-1. **Create the target schema as external**, not managed. `EXTERNAL USE SCHEMA` is grantable only on external schemas (their own `storage_root` set, no inherited managed location). On most Free Edition and recent paid workspaces (Default Storage enabled), a plain `CREATE SCHEMA aidbox_export.fhir` produces a managed schema that silently refuses the grant later. Create it with an explicit storage root pointed at an External Location you own:
+1. **Create the target schema as external**, not managed. `EXTERNAL USE SCHEMA` is grantable only on external schemas (their own `storage_root` set, no inherited managed location). On most Free Edition and recent paid workspaces (Default Storage enabled), a plain `CREATE SCHEMA $CATALOG.$TARGET_SCHEMA` produces a managed schema that silently refuses the grant later. Create it with an explicit storage root pointed at an External Location you own:
 
    ```sh
-   databricks schemas create fhir aidbox_export \
-     --storage-root "s3://<your-bucket>/target/"
+   databricks schemas create "$TARGET_SCHEMA" "$CATALOG" \
+     --storage-root "s3://$STAGING_BUCKET/target/"
    ```
 
-   This replaces the plain `CREATE SCHEMA aidbox_export.fhir` from the catalog/schema step above. The bucket prefix must be registered as an External Location with `READ_FILES, WRITE_FILES, CREATE_EXTERNAL_TABLE` granted to the SP — the same chain you'd set up for the staging bucket in the managed modes, but pointed at the target prefix instead.
+   This replaces the plain `CREATE SCHEMA` from the catalog/schema step above. The bucket prefix must be covered by an External Location with `READ_FILES, WRITE_FILES, CREATE_EXTERNAL_TABLE` granted to the SP — the same `$EXTERNAL_LOCATION_NAME` you registered for the managed modes is fine if both target and staging live under the same bucket.
 
-2. **Create the table with `LOCATION`** so it's external (the table's bucket needs an External Location + Storage Credential just like the staging one, but pointed at the target prefix):
+2. **Create the table with `LOCATION`** so it's external:
 
-   ```shell
+   ```sh
    databricks api post /api/2.0/sql/statements --json '{
      "warehouse_id": "'"$WAREHOUSE_ID"'",
      "wait_timeout": "30s",
-     "statement": "CREATE TABLE aidbox_export.fhir.patients (id STRING, gender STRING, birth_date DATE, family_name STRING, given_name STRING, is_deleted INT) USING DELTA LOCATION '"'"'s3://my-aidbox-bucket/patients/'"'"'"
+     "statement": "CREATE TABLE '"$CATALOG.$TARGET_SCHEMA.$TARGET_TABLE"' (id STRING, gender STRING, birth_date DATE, family_name STRING, given_name STRING, is_deleted INT) USING DELTA LOCATION '"'"'s3://'"$STAGING_BUCKET"'/target/'"$TARGET_TABLE"'/'"'"'"
    }'
    ```
 
@@ -1047,11 +1064,11 @@ POST /fhir/AidboxTopicDestination
   },
   "parameter": [
     {"name": "writeMode", "valueString": "external-direct"},
-    {"name": "databricksWorkspaceUrl", "valueString": "https://dbc-XXXXXXXX-XXXX.cloud.databricks.com"},
-    {"name": "databricksClientId", "valueString": "<sp-client-id>"},
-    {"name": "databricksClientSecret", "valueString": "<sp-client-secret>"},
-    {"name": "tableName", "valueString": "aidbox_export.fhir.patients"},
-    {"name": "awsRegion", "valueString": "us-east-1"},
+    {"name": "databricksWorkspaceUrl", "valueString": "$DATABRICKS_HOST"},
+    {"name": "databricksClientId", "valueString": "$SP_CLIENT_ID"},
+    {"name": "databricksClientSecret", "valueString": "$SP_CLIENT_SECRET"},
+    {"name": "tableName", "valueString": "$CATALOG.$TARGET_SCHEMA.$TARGET_TABLE"},
+    {"name": "awsRegion", "valueString": "$AWS_REGION"},
     {"name": "viewDefinition", "valueString": "patient_flat"},
     {"name": "batchSize", "valueUnsignedInt": 50},
     {"name": "sendIntervalMs", "valueUnsignedInt": 5000}
