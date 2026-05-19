@@ -208,7 +208,7 @@ The service principal that authenticates the module is created in step 3 of the 
 
 1. Download the Databricks module JAR file and place it next to your **docker-compose.yaml**:
 
-   ```shell
+   ```sh
    curl -O https://storage.googleapis.com/aidbox-modules/topic-destination-deltalake/topic-destination-deltalake-2605.0.jar
    ```
 
@@ -228,7 +228,7 @@ The service principal that authenticates the module is created in step 3 of the 
 
 3. Start Aidbox:
 
-   ```shell
+   ```sh
    docker compose up
    ```
 
@@ -481,7 +481,7 @@ The example below uses `managed-zerobus` (the default). For non-default modes se
 
 Authenticate the [Databricks CLI](https://docs.databricks.com/aws/en/dev-tools/cli/install) once (the rest of the steps assume these env vars are set):
 
-```shell
+```sh
 export DATABRICKS_HOST=https://<your-workspace>.cloud.databricks.com
 # Either OAuth M2M:
 export DATABRICKS_CLIENT_ID=<sp-client-id>
@@ -572,7 +572,7 @@ Must be materialized as a **view**, not a table. Details in the [`$materialize` 
 
 In the Databricks UI: **Settings → Identity and access → Service principals → Add**, then under that SP **Secrets → Generate secret**. Under **Compute → SQL Warehouses**, pick or create a Serverless warehouse.
 
-```shell
+```sh
 export SP_CLIENT_ID=<sp-client-id>
 export SP_CLIENT_SECRET=<sp-client-secret>
 export WAREHOUSE_ID=<warehouse-id>
@@ -580,7 +580,7 @@ export WAREHOUSE_ID=<warehouse-id>
 
 Grant the SP `Can use` on the warehouse:
 
-```shell
+```sh
 databricks warehouses update-permissions "$WAREHOUSE_ID" --json '{
   "access_control_list": [
     {"service_principal_name": "'"$SP_CLIENT_ID"'", "permission_level": "CAN_USE"}
@@ -593,7 +593,7 @@ databricks warehouses update-permissions "$WAREHOUSE_ID" --json '{
 {% step %}
 ### Create the catalog and schema
 
-```shell
+```sh
 databricks catalogs create aidbox_export
 databricks schemas create fhir aidbox_export
 ```
@@ -605,7 +605,7 @@ databricks schemas create fhir aidbox_export
 
 Columns must match the ViewDefinition you created above, plus a mandatory `is_deleted INT`:
 
-```shell
+```sh
 databricks api post /api/2.0/sql/statements --json '{
   "warehouse_id": "'"$WAREHOUSE_ID"'",
   "wait_timeout": "30s",
@@ -643,7 +643,7 @@ In both `managed-*` modes the module issues `ALTER TABLE ADD COLUMNS` automatica
 
 Use the same region as your Databricks workspace.
 
-```shell
+```sh
 export STAGING_BUCKET=<your-bucket-name>
 aws s3api create-bucket --bucket "$STAGING_BUCKET" --region us-east-1
 ```
@@ -661,7 +661,7 @@ Substitutions:
 
 Write the trust policy to a file (we'll patch `<EXTERNAL_ID>` later):
 
-```shell
+```sh
 cat > trust-policy.json <<'EOF'
 {
   "Version": "2012-10-17",
@@ -704,7 +704,7 @@ export STAGING_ROLE_ARN=$(aws iam get-role --role-name aidbox-staging-role \
 
 The CLI accepts the IAM role inline and returns the auto-generated `external_id` in its response — no UI round-trip needed:
 
-```shell
+```sh
 export EXTERNAL_ID=$(databricks storage-credentials create aidbox_staging_cred \
   --json '{"aws_iam_role": {"role_arn": "'"$STAGING_ROLE_ARN"'"}}' \
   --skip-validation \
@@ -716,7 +716,7 @@ echo "External ID: $EXTERNAL_ID"
 
 Patch the trust policy with the real External ID and re-push, then validate the credential:
 
-```shell
+```sh
 # Substitute the placeholder with the real value.
 sed -i.bak "s/<EXTERNAL_ID>/$EXTERNAL_ID/" trust-policy.json
 
@@ -738,7 +738,7 @@ The validation does a list + put + delete probe against the bucket. Empty `resul
 
 Combines the Storage Credential with the bucket prefix Databricks is allowed to write into:
 
-```shell
+```sh
 databricks external-locations create aidbox_staging_loc \
   "s3://$STAGING_BUCKET/staging/" aidbox_staging_cred
 ```
@@ -750,7 +750,7 @@ databricks external-locations create aidbox_staging_loc \
 
 Module convention places initial-export staging tables in `<target-catalog>.<target-schema>_staging.<…>` — a sibling schema next to the target. For target `aidbox_export.fhir.patients` that's `aidbox_export.fhir_staging`:
 
-```shell
+```sh
 databricks schemas create fhir_staging aidbox_export \
   --storage-root "s3://$STAGING_BUCKET/staging/"
 ```
@@ -777,7 +777,7 @@ Grant only the set matching your `writeMode`. The SP runs the module at request 
 | `READ_FILES`, `WRITE_FILES`, `CREATE_EXTERNAL_TABLE` | staging External Location | write bulk Parquet via vended STS (initial-export only) |
 | `CAN_USE` | the SQL warehouse | bootstrap schema-sync statements + initial-bulk `MERGE` (no warehouse traffic during live writes) |
 
-```shell
+```sh
 databricks grants update catalog aidbox_export --json '{
   "changes":[{"principal":"'"$SP_CLIENT_ID"'","add":["USE_CATALOG"]}]}'
 
@@ -801,7 +801,7 @@ Warehouse `CAN_USE` was already granted in the SP/warehouse step.
 {% tab title="managed-sql" %}
 Same as `managed-zerobus` — the SQL warehouse is hit on every batch instead of only at bootstrap + initial-bulk, but the privilege set is identical:
 
-```shell
+```sh
 databricks grants update catalog aidbox_export --json '{
   "changes":[{"principal":"'"$SP_CLIENT_ID"'","add":["USE_CATALOG"]}]}'
 
@@ -823,7 +823,7 @@ databricks grants update external-location aidbox_staging_loc --json '{
 {% tab title="external-direct" %}
 Different — `EXTERNAL_USE_SCHEMA` is on the **target's** schema (writes go directly), and you grant against the target External Location (the one wrapping the target table's bucket, not the staging one):
 
-```shell
+```sh
 databricks grants update catalog aidbox_export --json '{
   "changes":[{"principal":"'"$SP_CLIENT_ID"'","add":["USE_CATALOG"]}]}'
 
