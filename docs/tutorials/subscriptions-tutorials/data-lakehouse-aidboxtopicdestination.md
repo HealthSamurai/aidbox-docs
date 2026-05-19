@@ -593,10 +593,17 @@ databricks warehouses update-permissions "$WAREHOUSE_ID" --json '{
 {% step %}
 ### Create the catalog and schema
 
-```sh
-databricks catalogs create aidbox_export
-databricks schemas create fhir aidbox_export
+```shell
+databricks api post /api/2.0/sql/statements --json '{
+  "warehouse_id": "'"$WAREHOUSE_ID"'",
+  "wait_timeout": "30s",
+  "statement": "CREATE CATALOG aidbox_export; CREATE SCHEMA aidbox_export.fhir"
+}'
 ```
+
+{% hint style="info" %}
+On workspaces with Default Storage enabled (most Free Edition and recent paid accounts), `databricks catalogs create <name>` will fail with `Metastore storage root URL does not exist` — go through SQL DDL like above, or pass an explicit `storage_root` to the CLI.
+{% endhint %}
 
 {% endstep %}
 
@@ -745,12 +752,14 @@ databricks external-locations create aidbox_staging_loc \
 
 Module convention places initial-export staging tables in `<target-catalog>.<target-schema>_staging.<…>` — a sibling schema next to the target. For target `aidbox_export.fhir.patients` that's `aidbox_export.fhir_staging`:
 
-```sh
+```shell
 databricks schemas create fhir_staging aidbox_export \
   --storage-root "s3://$STAGING_BUCKET/staging/"
 ```
 
-The staging schema must be external (its own `storage_root`); a managed schema inside the target's catalog won't accept the privileges the module needs at initial-export time. The CLI form is the only one that works — `CREATE SCHEMA … LOCATION '…'` via SQL is rejected.
+{% hint style="warning" %}
+`--storage-root` is **not optional**. Omitting it creates a managed schema that later silently rejects the `EXTERNAL_USE_SCHEMA` grant the module needs. The CLI form is the only one that works — `CREATE SCHEMA … LOCATION '…'` via SQL is rejected.
+{% endhint %}
 
 Run this as the catalog owner — needs `CREATE_SCHEMA` on the catalog and `CREATE_MANAGED_STORAGE` on the External Location. Don't grant either to the runtime SP.
 
