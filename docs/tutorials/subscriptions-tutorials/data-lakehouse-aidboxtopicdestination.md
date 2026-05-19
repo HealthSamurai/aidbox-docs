@@ -544,11 +544,9 @@ When the destination starts, by default the module copies everything that's alre
 
 If you only need new data going forward — i.e. you don't want the module to backfill what's already in Aidbox at the moment the destination is created — you can skip this whole section. The grants in step 1f that reference `<staging-external-location>` aren't required either. (The destination resource has a parameter that turns the backfill off; you'll see it in step 5.)
 
-Otherwise, the setup is: bucket prefix → IAM role that Databricks can assume → Storage Credential in Databricks → External Location combining the prefix and the credential → sibling UC schema where the staging tables live. The collapsible below walks through it end-to-end on S3.
+Otherwise, the setup is: bucket prefix → IAM role that Databricks can assume → Storage Credential in Databricks → External Location combining the prefix and the credential → sibling UC schema where the staging tables live. The rest of this section walks through it end-to-end on S3.
 
-<details>
-
-<summary>Set up the staging bucket + UC schema end-to-end (S3)</summary>
+##### Set up the staging bucket + UC schema end-to-end (S3)
 
 **Create the bucket** in the same AWS region as your Databricks workspace (cross-region works but adds latency and egress cost):
 
@@ -715,8 +713,6 @@ GRANT CREATE MANAGED STORAGE ON EXTERNAL LOCATION `aidbox_staging_loc`
 ```
 
 Why an external schema specifically: Unity Catalog refuses `EXTERNAL USE SCHEMA` on managed-storage schemas, and `EXTERNAL USE SCHEMA` is what lets the module's Kernel writer pull STS creds for direct-to-bucket Parquet writes during initial export. Without an external sibling schema the initial-bulk staging step can't run.
-
-</details>
 
 #### 1f. Grant the service principal
 
