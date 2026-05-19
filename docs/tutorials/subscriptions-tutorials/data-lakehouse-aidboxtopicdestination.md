@@ -956,10 +956,10 @@ POST /fhir/Patient
 }
 ```
 
-Then query your Databricks table to confirm the data arrived:
+Then query your Databricks table to confirm the data arrived (substitute your `CATALOG` / `TARGET_SCHEMA` / `TARGET_TABLE` — Databricks SQL doesn't expand shell variables):
 
 ```sql
-SELECT * FROM $CATALOG.$TARGET_SCHEMA.$TARGET_TABLE;
+SELECT * FROM aidbox_export.fhir.patients;
 ```
 
 You should see one row for John Smith. If you left `skipInitialExport` at its default (`false`), the table also contains a row for every pre-existing row in `sof.patient_flat`. Set `skipInitialExport: true` if you only want forward-going data.
@@ -1285,6 +1285,7 @@ You can create multiple destinations for the same topic — for example, to mirr
 7. **Slow first write** — Serverless warehouses cold-start in 30-90s on first use after idle. The module's HTTP timeout is 120s for SQL Statement Execution and uses `wait_timeout=50s` polling, so cold starts succeed transparently but the first batch's latency is high. Keep the warehouse warm with a periodic ping if first-batch latency matters.
 8. **Duplicate rows after recreating destination** — deleting and recreating a destination triggers initial export again. Set `skipInitialExport: true` when recreating a destination that already has its data exported.
 9. **`LOCATION_OVERLAP` during initial export** — `stagingTablePath` either equals the staging schema's `storage_root` (which UC treats as the schema's own managed location) or doesn't sit under your External Location. Set it to a sub-prefix of the External Location, e.g. `s3://<bucket>/staging/patient_flat/`, not the External Location root itself.
+10. **`Unsupported table kind. Tables created in default storage are not supported` (Zerobus error 4024)** — the catalog backing your target table was created without `--storage-root`, so Unity Catalog placed it in the workspace's default-storage prefix. `managed-zerobus` refuses to write into default storage. Recreate the catalog with `databricks catalogs create <name> --storage-root s3://<bucket>/managed/` pointing inside a registered External Location (see [Create the catalog and target schema](#create-the-catalog-and-target-schema) in the usage example).
 
 ## Related documentation
 
