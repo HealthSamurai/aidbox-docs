@@ -479,15 +479,13 @@ This is one example, not the only approach — wrap it in a Databricks SQL view 
 
 The example below uses `managed-zerobus` (the default). For non-default modes see [`managed-sql`](#alternative-managed-sql-configuration) or [`external-direct`](#alternative-external-direct-configuration).
 
-Authenticate the [Databricks CLI](https://docs.databricks.com/aws/en/dev-tools/cli/install) once (the rest of the steps assume these env vars are set):
+Authenticate the [Databricks CLI](https://docs.databricks.com/aws/en/dev-tools/cli/install) once — **as your own user** (PAT or `databricks auth login`), not as the service principal. The setup steps below create the catalog/schema/table and assign grants, which need the catalog-owner privileges your user has. The runtime SP receives only the grants explicitly listed in the "Grant the service principal" step. The destination resource you'll POST to Aidbox later carries the SP's `databricksClientId` / `databricksClientSecret` separately.
 
-```sh
+```shell
 export DATABRICKS_HOST=https://<your-workspace>.cloud.databricks.com
-# Either OAuth M2M:
-export DATABRICKS_CLIENT_ID=<sp-client-id>
-export DATABRICKS_CLIENT_SECRET=<sp-client-secret>
-# OR a personal access token (PAT):
-# export DATABRICKS_TOKEN=<your-pat>
+# Use either a PAT for your own user, or run `databricks auth login`
+# for browser-based SSO.
+export DATABRICKS_TOKEN=<your-pat>
 ```
 
 {% stepper %}
