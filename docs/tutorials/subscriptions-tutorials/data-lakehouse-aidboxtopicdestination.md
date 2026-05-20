@@ -895,7 +895,7 @@ databricks grants update external-location "$EXTERNAL_LOCATION_NAME" --json '{
 ### Configure the destination (`managed-zerobus`)
 
 ```sh
-curl -X POST "$AIDBOX_URL/fhir/AidboxTopicDestination" \
+curl -u root:secret -X POST "$AIDBOX_URL/fhir/AidboxTopicDestination" \
   -H 'Content-Type: application/json' \
   --data-binary @- <<EOF
 {
