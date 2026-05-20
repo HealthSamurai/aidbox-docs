@@ -324,6 +324,7 @@ All requests in this tutorial use `Content-Type: application/json`.
 <tr><td><code>writeMode</code></td><td>string</td><td><code>managed-zerobus</code> (default), <code>managed-sql</code>, or <code>external-direct</code>. Omit to get <code>managed-zerobus</code></td></tr>
 <tr><td><code>skipInitialExport</code></td><td>boolean</td><td>Skip initial export of existing data (default: <code>false</code>)</td></tr>
 <tr><td><code>targetFileSizeMb</code></td><td>unsignedInt</td><td>Parquet target size during initial export (default: <code>128</code>)</td></tr>
+<tr><td><code>initialExportParallelism</code></td><td>unsignedInt</td><td>Total number of parallel chunks for hash-partitioned initial export (default <code>1</code> — sequential). Recommended 4-8 for ≥1M-row datasets; 16-32 for multi-Aidbox setups. See <a href="#large-scale-initial-export">Large-scale initial export</a></td></tr>
 </tbody>
 </table>
 
@@ -364,6 +365,7 @@ All requests in this tutorial use `Content-Type: application/json`.
 <tbody>
 <tr><td><code>skipInitialExport</code></td><td>boolean</td><td>Skip initial export of existing data (default: <code>false</code>)</td></tr>
 <tr><td><code>targetFileSizeMb</code></td><td>unsignedInt</td><td>Parquet target size during initial export (default: <code>128</code>)</td></tr>
+<tr><td><code>initialExportParallelism</code></td><td>unsignedInt</td><td>Total number of parallel chunks for hash-partitioned initial export (default <code>1</code> — sequential). Recommended 4-8 for ≥1M-row datasets; 16-32 for multi-Aidbox setups. See <a href="#large-scale-initial-export">Large-scale initial export</a></td></tr>
 </tbody>
 </table>
 
@@ -420,6 +422,7 @@ Pick **one** of: Unity Catalog credential vending, static AWS keys, or default A
 <tbody>
 <tr><td><code>skipInitialExport</code></td><td>boolean</td><td>Skip initial export of existing data (default: <code>false</code>)</td></tr>
 <tr><td><code>targetFileSizeMb</code></td><td>unsignedInt</td><td>Parquet target size during initial export (default: <code>128</code>)</td></tr>
+<tr><td><code>initialExportParallelism</code></td><td>unsignedInt</td><td>Total number of parallel chunks for hash-partitioned initial export (default <code>1</code> — sequential). Recommended 4-8 for ≥1M-row datasets; 16-32 for multi-Aidbox setups. See <a href="#large-scale-initial-export">Large-scale initial export</a></td></tr>
 <tr><td><code>s3Endpoint</code></td><td>string</td><td>MinIO / LocalStack endpoint (forces path-style URLs)</td></tr>
 </tbody>
 </table>
@@ -1174,6 +1177,23 @@ The whole sequence runs as one atomic operation from the destination's lifecycle
 {% hint style="info" %}
 The MERGE is idempotent on `id` — a retried export after a lost response inserts nothing instead of duplicating. Your ViewDefinition must have an `id` column.
 {% endhint %}
+
+### Large-scale initial export
+
+For >=1M-row datasets the single-cursor + single-Kernel-writer default is the wall-clock bottleneck. The `initialExportParallelism` parameter (default `1`) fans the staging write out across N hash-partitioned workers. They write into the **same** staging Delta table — Delta supports concurrent append-only writers natively (INSERT × INSERT does not conflict). The final `MERGE INTO target` runs as a single SQL statement after all chunks land.
+
+Coordination across one or many Aidbox nodes uses **PostgreSQL advisory locks** (`pg_try_advisory_lock`). All Aidbox nodes share the same metastore by definition, so no external dependency is needed — each worker thread on each node tries to claim chunk ids `0..N-1`, runs the partition, marks the chunk completed in the destination resource extension, releases the lock, and moves to the next available chunk. PG drops advisory locks on connection disconnect, so a crashed worker frees its chunk for re-claim automatically.
+
+Recommended values:
+
+| N | Use case |
+|---|---|
+| `1` (default) | Backward-compatible, single-cursor sequential. |
+| `4` | Single Aidbox node, ≥1M rows. ~3-4× speedup. |
+| `8` | Larger Aidbox (≥8 cores) + plenty of PG read capacity. |
+| `16-32` | Multi-Aidbox HA deployment, ≥100M-row scale. Chunks distribute across all nodes; total cap by your PG `max_connections` budget. |
+
+Independent of `initialExportParallelism`, the SQL warehouse running the final MERGE remains a separate axis — for ≥100M-row exports temporarily scale it to `M` or `L` while initial-export is running, then back down once `initialExportStatus=completed`.
 
 ### How it works — `external-direct` mode
 
