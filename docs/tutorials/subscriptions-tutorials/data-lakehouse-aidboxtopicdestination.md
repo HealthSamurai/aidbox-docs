@@ -519,8 +519,11 @@ export AWS_REGION=us-east-1
 export STAGING_BUCKET=<your-bucket-name>
 export AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
 
-# Databricks' own AWS account for commercial regions; see Databricks docs
-# for GovCloud.
+# Databricks' own AWS account. Hardcoded for commercial AWS regions —
+# Databricks publishes this account ID and uses it for every commercial
+# workspace. **GovCloud customers use a different ID**: see Databricks'
+# AWS GovCloud setup docs for the value to substitute here. Innovacer
+# (and other commercial-region customers) keep the value below as-is.
 export DATABRICKS_AWS_ACCOUNT_ID=414351767826
 
 # Unity Catalog resource names created in later steps.
@@ -696,7 +699,26 @@ Create the credential first; Databricks generates the External ID we need for th
 export EXTERNAL_ID=$(databricks storage-credentials create \
   --json '{"name":"'"$STORAGE_CRED_NAME"'","aws_iam_role":{"role_arn":"'"$STAGING_ROLE_ARN"'"}}' \
   --skip-validation \
-  | jq -r .aws_iam_role.external_id)
+  | jq -r '.aws_iam_role.external_id // empty')
+
+# Some CLI versions don't surface external_id in the create response —
+# re-fetch via `get` as a fallback. Both calls hit the same UC resource;
+# the second call is safe if the first already populated EXTERNAL_ID.
+if [ -z "$EXTERNAL_ID" ]; then
+  export EXTERNAL_ID=$(databricks storage-credentials get "$STORAGE_CRED_NAME" \
+    | jq -r '.aws_iam_role.external_id // empty')
+fi
+
+# Fail loud if both attempts came back empty — the trust policy patch
+# below would silently bake in an empty ExternalId and break STS
+# assume-role with a confusing 403 later.
+if [ -z "$EXTERNAL_ID" ]; then
+  echo "ERROR: storage-credentials returned no aws_iam_role.external_id." >&2
+  echo "  Inspect manually:" >&2
+  echo "  databricks storage-credentials get $STORAGE_CRED_NAME" >&2
+  exit 1
+fi
+echo "EXTERNAL_ID=$EXTERNAL_ID"
 ```
 
 Patch the role's trust policy with the real External ID and validate:
@@ -943,7 +965,9 @@ EOF
 ```
 
 {% hint style="warning" %}
-`stagingTablePath` must be a **sub-prefix** of the External Location you registered (here `s3://$STAGING_BUCKET/staging/`), not the root itself. Setting it equal to the External Location root or to the staging schema's `storage_root` makes Databricks refuse with `LOCATION_OVERLAP`. The sender writes the staging Delta directly at this path, so reserve a per-destination subdirectory like `staging/patient_flat/` or `staging/<destination-id>/`.
+`stagingTablePath` must be a **sub-prefix** of the External Location you registered (here `s3://$STAGING_BUCKET/staging/`), not the root itself. Setting it equal to the External Location root or to the staging schema's `storage_root` makes Databricks refuse with `LOCATION_OVERLAP`. Use a per-destination subdirectory like `staging/patient_flat/` or `staging/<destination-id>/`.
+
+With `initialExportParallelism > 1` the module treats this value as a **base prefix** and writes each chunk into a subfolder `<prefix>/chunk-<K>/` — registering `chunk-0/` … `chunk-{N-1}/` as separate per-chunk staging Delta tables, then dropping them all after the final MERGE. No customer-side setup change: the `CREATE_TABLE` grant on the staging schema (granted below) covers any number of per-chunk tables, and the chunk subfolders inherit the same External Location and storage credential.
 {% endhint %}
 
 In production, resolve `databricksClientSecret` from Aidbox's [External Secrets](../../configuration/secret-files.md) instead of inlining it:
