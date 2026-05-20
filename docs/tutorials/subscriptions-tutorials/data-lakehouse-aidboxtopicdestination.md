@@ -966,10 +966,10 @@ POST /fhir/Patient
 }
 ```
 
-Then query your Databricks table to confirm the data arrived:
+Then query your Databricks table to confirm the data arrived (replace with your catalog/schema/table):
 
 ```sql
-SELECT * FROM aidbox_export.fhir.patients;
+SELECT * FROM <catalog>.<schema>.<table>;
 ```
 
 You should see one row for John Smith. If you left `skipInitialExport` at its default (`false`), the table also contains a row for every pre-existing row in `sof.patient_flat`. Set `skipInitialExport: true` if you only want forward-going data.
