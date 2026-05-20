@@ -563,6 +563,8 @@ POST /fhir/ViewDefinition
     {
       "column": [
         {"name": "id", "path": "id"},
+        {"name": "ts", "path": "getAidboxTs()"},
+        {"name": "cts", "path": "getAidboxCts()"},
         {"name": "gender", "path": "gender"},
         {"name": "birth_date", "path": "birthDate"}
       ]
@@ -577,6 +579,8 @@ POST /fhir/ViewDefinition
   ]
 }
 ```
+
+`getAidboxTs()` exposes `meta.lastUpdated` (the FHIR resource version timestamp), `getAidboxCts()` exposes the row's row-creation timestamp in Aidbox's storage. Both are Aidbox FHIRPath extensions and are useful for read-time dedup of the append-only history (see [Querying the table](#querying-the-table)).
 
 Then [materialize](../../modules/sql-on-fhir/operation-materialize.md) it as a database view in the `sof` schema — the module reads rows from `sof.patient_flat`:
 
@@ -753,7 +757,7 @@ Columns must match the ViewDefinition you created above, plus a mandatory `is_de
 databricks api post /api/2.0/sql/statements --json '{
   "warehouse_id": "'"$WAREHOUSE_ID"'",
   "wait_timeout": "30s",
-  "statement": "CREATE TABLE '"$CATALOG.$TARGET_SCHEMA.$TARGET_TABLE"' (id STRING, gender STRING, birth_date DATE, family_name STRING, given_name STRING, is_deleted INT) USING DELTA"
+  "statement": "CREATE TABLE '"$CATALOG.$TARGET_SCHEMA.$TARGET_TABLE"' (id STRING, ts TIMESTAMP, cts TIMESTAMP, gender STRING, birth_date DATE, family_name STRING, given_name STRING, is_deleted INT) USING DELTA"
 }'
 ```
 
@@ -1045,7 +1049,7 @@ If you don't need Unity Catalog managed-table governance and want the highest th
    databricks api post /api/2.0/sql/statements --json '{
      "warehouse_id": "'"$WAREHOUSE_ID"'",
      "wait_timeout": "30s",
-     "statement": "CREATE TABLE '"$CATALOG.$TARGET_SCHEMA.$TARGET_TABLE"' (id STRING, gender STRING, birth_date DATE, family_name STRING, given_name STRING, is_deleted INT) USING DELTA LOCATION '"'"'s3://'"$STAGING_BUCKET"'/target/'"$TARGET_TABLE"'/'"'"'"
+     "statement": "CREATE TABLE '"$CATALOG.$TARGET_SCHEMA.$TARGET_TABLE"' (id STRING, ts TIMESTAMP, cts TIMESTAMP, gender STRING, birth_date DATE, family_name STRING, given_name STRING, is_deleted INT) USING DELTA LOCATION '"'"'s3://'"$STAGING_BUCKET"'/target/'"$TARGET_TABLE"'/'"'"'"
    }'
    ```
 
