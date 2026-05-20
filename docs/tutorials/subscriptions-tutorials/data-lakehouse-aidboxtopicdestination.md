@@ -587,7 +587,7 @@ Must be materialized as a **view**, not a table. Details in the [`$materialize` 
 {% step %}
 ### Create the service principal and SQL warehouse
 
-In the Databricks UI: **Settings → Identity and access → Service principals → Add**, then under that SP **Secrets → Generate secret**. Under **Compute → SQL Warehouses**, pick or create a Serverless warehouse.
+In the Databricks UI: **Settings → Identity and access → Service principals → Add**, then under that SP **Secrets → Generate secret**. Under **SQL Warehouses**, pick or create a Serverless warehouse, get its ID.
 
 ```sh
 export SP_CLIENT_ID=<sp-client-id>
