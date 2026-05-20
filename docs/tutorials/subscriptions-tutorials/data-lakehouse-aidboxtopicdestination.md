@@ -505,9 +505,15 @@ export TARGET_SCHEMA=fhir
 export STAGING_SCHEMA=fhir_staging
 export TARGET_TABLE=patients
 
-# AWS / staging bucket. STAGING_BUCKET is created in a later step.
-export STAGING_BUCKET=<your-bucket-name>
+# Region where the Databricks workspace lives — used to compose the
+# Zerobus REST endpoint hostname.
+export DATABRICKS_REGION=us-east-1
+
+# Region of your S3 bucket. Usually the same as DATABRICKS_REGION
+# (workspace and bucket created in the same region), but they're
+# separate concepts — keep them distinct if your bucket is elsewhere.
 export AWS_REGION=us-east-1
+export STAGING_BUCKET=<your-bucket-name>
 export AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
 
 # Databricks' own AWS account for commercial regions; see Databricks docs
@@ -918,7 +924,7 @@ curl -u root:secret -X POST "$AIDBOX_URL/fhir/AidboxTopicDestination" \
     {"name": "writeMode", "valueString": "managed-zerobus"},
     {"name": "databricksWorkspaceUrl", "valueString": "${DATABRICKS_HOST}"},
     {"name": "databricksWorkspaceId", "valueString": "${WORKSPACE_ID}"},
-    {"name": "databricksRegion", "valueString": "${AWS_REGION}"},
+    {"name": "databricksRegion", "valueString": "${DATABRICKS_REGION}"},
     {"name": "databricksClientId", "valueString": "${SP_CLIENT_ID}"},
     {"name": "databricksClientSecret", "valueString": "${SP_CLIENT_SECRET}"},
     {"name": "tableName", "valueString": "${CATALOG}.${TARGET_SCHEMA}.${TARGET_TABLE}"},
