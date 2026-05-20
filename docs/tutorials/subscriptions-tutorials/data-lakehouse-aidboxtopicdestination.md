@@ -500,6 +500,11 @@ export TARGET_TABLE=patients
 # AWS / staging bucket. STAGING_BUCKET is created in a later step.
 export STAGING_BUCKET=<your-bucket-name>
 export AWS_REGION=us-east-1
+export AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
+
+# Databricks' own AWS account for commercial regions; see Databricks docs
+# for GovCloud.
+export DATABRICKS_AWS_ACCOUNT_ID=414351767826
 
 # Unity Catalog resource names created in later steps.
 export STORAGE_CRED_NAME=aidbox_staging_cred
@@ -625,11 +630,7 @@ aws s3api create-bucket --bucket "$STAGING_BUCKET" --region "$AWS_REGION"
 {% step %}
 ### Create the IAM role Databricks will assume
 
-Substitutions:
-
-- `<DATABRICKS_AWS_ACCOUNT_ID>`: Databricks' own AWS account — `414351767826` for commercial regions. For GovCloud see [Databricks docs](https://docs.databricks.com/aws/en/connect/unity-catalog/cloud-storage/storage-credentials#create-an-iam-role).
-- `<YOUR_AWS_ACCOUNT_ID>`: `aws sts get-caller-identity --query Account --output text`.
-- `<EXTERNAL_ID>` is a placeholder — Databricks will hand us the real value when we register the Storage Credential in the next step. We create the role with a placeholder first, then patch the trust policy after the Storage Credential gives us the real value.
+The External ID under `sts:ExternalId` is a placeholder for now — Databricks will hand us the real value when we register the Storage Credential in the next step. We create the role with a placeholder first, then patch the trust policy after the Storage Credential gives us the real value.
 
 ```sh
 aws iam create-role --role-name "$IAM_ROLE_NAME" \
@@ -639,8 +640,8 @@ aws iam create-role --role-name "$IAM_ROLE_NAME" \
   "Statement": [{
     "Effect": "Allow",
     "Principal": { "AWS": [
-      "arn:aws:iam::<DATABRICKS_AWS_ACCOUNT_ID>:role/unity-catalog-prod-UCMasterRole-14S5ZJVKOTYTL",
-      "arn:aws:iam::<YOUR_AWS_ACCOUNT_ID>:role/${IAM_ROLE_NAME}"
+      "arn:aws:iam::${DATABRICKS_AWS_ACCOUNT_ID}:role/unity-catalog-prod-UCMasterRole-14S5ZJVKOTYTL",
+      "arn:aws:iam::${AWS_ACCOUNT_ID}:role/${IAM_ROLE_NAME}"
     ]},
     "Action": "sts:AssumeRole",
     "Condition": { "StringEquals": { "sts:ExternalId": "PLACEHOLDER" } }
@@ -690,8 +691,8 @@ aws iam update-assume-role-policy --role-name "$IAM_ROLE_NAME" \
   "Statement": [{
     "Effect": "Allow",
     "Principal": { "AWS": [
-      "arn:aws:iam::<DATABRICKS_AWS_ACCOUNT_ID>:role/unity-catalog-prod-UCMasterRole-14S5ZJVKOTYTL",
-      "arn:aws:iam::<YOUR_AWS_ACCOUNT_ID>:role/${IAM_ROLE_NAME}"
+      "arn:aws:iam::${DATABRICKS_AWS_ACCOUNT_ID}:role/unity-catalog-prod-UCMasterRole-14S5ZJVKOTYTL",
+      "arn:aws:iam::${AWS_ACCOUNT_ID}:role/${IAM_ROLE_NAME}"
     ]},
     "Action": "sts:AssumeRole",
     "Condition": { "StringEquals": { "sts:ExternalId": "${EXTERNAL_ID}" } }
