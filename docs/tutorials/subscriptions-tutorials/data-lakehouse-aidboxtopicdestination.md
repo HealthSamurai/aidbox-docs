@@ -894,10 +894,12 @@ databricks grants update external-location "$EXTERNAL_LOCATION_NAME" --json '{
 {% step %}
 ### Configure the destination (`managed-zerobus`)
 
+The request may take **one or two minutes** — Aidbox runs schema sync against the warehouse (potentially waking it from idle) and, if `skipInitialExport` is not set, kicks off the initial bulk export before returning.
+
 ```sh
 curl -u root:secret -X POST "$AIDBOX_URL/fhir/AidboxTopicDestination" \
   -H 'Content-Type: application/json' \
-  --data-binary @- <<EOF
+  --data-binary @- <<EOF | jq
 {
   "resourceType": "AidboxTopicDestination",
   "id": "patient-databricks",
