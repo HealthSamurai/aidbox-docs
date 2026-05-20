@@ -672,8 +672,8 @@ export STAGING_ROLE_ARN=$(aws iam get-role --role-name "$IAM_ROLE_NAME" \
 Create the credential first; Databricks generates the External ID we need for the trust policy:
 
 ```shell
-export EXTERNAL_ID=$(databricks storage-credentials create "$STORAGE_CRED_NAME" \
-  --json '{"aws_iam_role": {"role_arn": "'"$STAGING_ROLE_ARN"'"}}' \
+export EXTERNAL_ID=$(databricks storage-credentials create \
+  --json '{"name":"'"$STORAGE_CRED_NAME"'","aws_iam_role":{"role_arn":"'"$STAGING_ROLE_ARN"'"}}' \
   --skip-validation \
   | jq -r .aws_iam_role.external_id)
 ```
