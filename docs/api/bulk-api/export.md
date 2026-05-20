@@ -278,6 +278,48 @@ Prefer: respond-async
 }
 ```
 
+## Storage override parameters
+
+{% hint style="info" %}
+Available since version 2605.
+{% endhint %}
+
+You can override the system-level cloud storage configuration on a per-request basis using Aidbox-specific parameters. This is useful when different export jobs need to write to different buckets or storage accounts.
+
+Storage override parameters use the `_aidbox.` prefix to distinguish them from standard FHIR parameters:
+
+| Parameter                  | Type        | Description                                                    |
+| -------------------------- | ----------- | -------------------------------------------------------------- |
+| `_aidbox.storageProvider`  | `string`    | Storage provider type: `gcp`, `aws`, or `azure`.               |
+| `_aidbox.storageBucket`    | `string`    | Bucket name (GCP or AWS S3).                                   |
+| `_aidbox.storageAccount`   | `Reference` | Cloud account resource reference (e.g. `AwsAccount/my-acct`).  |
+| `_aidbox.azureStorage`     | `string`    | Azure storage account name.                                    |
+| `_aidbox.azureContainer`   | `string`    | Azure blob container name.                                     |
+
+These parameters can be passed as GET query parameters or in a POST Parameters body. Only the parameters you specify are overridden; unspecified values fall back to the system-level settings.
+
+{% tabs %}
+{% tab title="GET" %}
+```http
+GET /fhir/Group/grp-1/$export?_type=Patient&_aidbox.storageBucket=custom-bucket&_aidbox.storageProvider=gcp
+```
+{% endtab %}
+
+{% tab title="POST" %}
+```json
+{
+  "resourceType": "Parameters",
+  "parameter": [
+    { "name": "_type", "valueString": "Patient" },
+    { "name": "_aidbox.storageProvider", "valueString": "aws" },
+    { "name": "_aidbox.storageBucket", "valueString": "custom-bucket" },
+    { "name": "_aidbox.storageAccount", "valueReference": { "reference": "AwsAccount/my-acct" } }
+  ]
+}
+```
+{% endtab %}
+{% endtabs %}
+
 ## Patient-level export
 
 Patient-level export extracts all Patient resources and resources associated with them. The association is defined by [FHIR Patient Compartment](http://hl7.org/fhir/r4/compartmentdefinition-patient.html), which specifies which resource types reference patients and through which fields.
@@ -444,3 +486,148 @@ Prefer: respond-async
 {% endtabs %}
 
 The status endpoint works the same way as other export levels. Poll `/fhir/$export-status/<id>` to check progress, and send a DELETE request to cancel.
+
+## Consent-based patient filtering
+
+{% hint style="info" %}
+Available since version 2605.
+{% endhint %}
+
+Group-level export can filter patients based on FHIR [Consent](https://hl7.org/fhir/r4/consent.html) resources. This enables workflows where patient data sharing requires explicit agreement (opt-in) or where patients can refuse sharing (opt-out) — for example, [Da Vinci PDex](https://hl7.org/fhir/us/davinci-pdex/STU2.1/) payer-to-payer exchange and provider access.
+
+| Parameter                        | Type   | Cardinality | Description                                                                            |
+| -------------------------------- | ------ | ----------- | -------------------------------------------------------------------------------------- |
+| `consentStrategy`                | `code` | 0..1        | `opt-in` or `opt-out`. Determines how consents affect patient inclusion.                |
+| `consentProfile`                 | `uri`  | 0..1        | StructureDefinition URL to filter consents by `meta.profile`. Omit to match any Consent.|
+| `organizationIdentifierSystem`   | `uri`  | 0..1        | Which `Organization.identifier.system` to use for actor matching (opt-in only).          |
+
+{% hint style="warning" %}
+For `opt-in`, both `organizationIdentifierSystem` and a JWT token with `extensions.hl7-b2b.organization_id` are required. Missing either returns **422**.
+{% endhint %}
+
+### Consent resource requirements
+
+Consent resources must have:
+
+- `status` = `active`
+- `provision.type` = `permit` (for opt-in) or `deny` (for opt-out)
+- `provision.period` with `start` and `end` covering the current date
+- `meta.profile` matching `consentProfile` (if specified)
+
+For **opt-in**, the Consent must also have `provision.actor` entries with:
+
+- An actor with `role.coding[0].code` = `performer` referencing the **source** Organization (the requesting payer)
+- An actor with `role.coding[0].code` = `IRCP` referencing the **recipient** Organization (resolved from `Group.managingEntity`)
+
+Both organizations are matched by their `identifier` where `system` equals `organizationIdentifierSystem`.
+
+### Opt-out strategy
+
+All group members are included by default. Members are excluded only if they have an active Consent with `provision.type = "deny"` matching the specified profile and a valid period covering the current date.
+
+{% tabs %}
+{% tab title="GET" %}
+```http
+GET /fhir/Group/grp-1/$export?_type=Patient&consentStrategy=opt-out&consentProfile=http://hl7.org/fhir/us/davinci-pdex/StructureDefinition/pdex-provider-consent
+```
+{% endtab %}
+
+{% tab title="POST" %}
+```json
+{
+  "resourceType": "Parameters",
+  "parameter": [
+    { "name": "_type", "valueString": "Patient" },
+    { "name": "consentStrategy", "valueCode": "opt-out" },
+    { "name": "consentProfile", "valueUri": "http://hl7.org/fhir/us/davinci-pdex/StructureDefinition/pdex-provider-consent" }
+  ]
+}
+```
+{% endtab %}
+{% endtabs %}
+
+### Opt-in strategy
+
+No members are included by default. Members are included only if they have an active Consent with `provision.type = "permit"`, matching source and recipient organization actors, and a valid period.
+
+The **source organization** is identified from the JWT access token's [UDAP B2B Authorization Extension](https://build.fhir.org/ig/HL7/fhir-udap-security-ig/branches/master/b2b.html) (`extensions.hl7-b2b.organization_id`). The **recipient organization** is resolved from `Group.managingEntity`, using the `organizationIdentifierSystem` to select the correct identifier.
+
+{% tabs %}
+{% tab title="GET" %}
+```http
+GET /fhir/Group/grp-1/$export?_type=Patient&consentStrategy=opt-in&consentProfile=http://hl7.org/fhir/us/davinci-hrex/StructureDefinition/hrex-consent&organizationIdentifierSystem=urn:oid:2.16.840.1.113883.4.4
+```
+{% endtab %}
+
+{% tab title="POST" %}
+```json
+{
+  "resourceType": "Parameters",
+  "parameter": [
+    { "name": "_type", "valueString": "Patient" },
+    { "name": "consentStrategy", "valueCode": "opt-in" },
+    { "name": "consentProfile", "valueUri": "http://hl7.org/fhir/us/davinci-hrex/StructureDefinition/hrex-consent" },
+    { "name": "organizationIdentifierSystem", "valueUri": "urn:oid:2.16.840.1.113883.4.4" }
+  ]
+}
+```
+{% endtab %}
+{% endtabs %}
+
+### UDAP B2B token configuration
+
+For opt-in workflows, the requesting client must present a **JWT** access token containing the B2B extension. The Client must be configured with `token_format: "jwt"` in the `client_credentials` auth settings — opaque tokens do not carry B2B claims.
+
+Add the `client-hl7B2b` extension to your Client resource:
+
+```json
+{
+  "resourceType": "Client",
+  "id": "payer-client",
+  "grant_types": ["client_credentials"],
+  "auth": {
+    "client_credentials": {
+      "token_format": "jwt"
+    }
+  },
+  "extension": [
+    {
+      "url": "http://health-samurai.io/fhir/core/StructureDefinition/client-hl7B2b",
+      "extension": [
+        {
+          "url": "organization",
+          "valueReference": { "reference": "Organization/my-org" }
+        },
+        {
+          "url": "organizationIdentifierSystem",
+          "valueUri": "urn:oid:2.16.840.1.113883.4.4"
+        },
+        {
+          "url": "purposeOfUse",
+          "valueCoding": {
+            "system": "http://terminology.hl7.org/CodeSystem/v3-ActReason",
+            "code": "HPAYMT"
+          }
+        }
+      ]
+    }
+  ]
+}
+```
+
+When this extension is present, `/auth/token` includes the [UDAP B2B Authorization Extension](https://build.fhir.org/ig/HL7/fhir-udap-security-ig/branches/master/b2b.html) in the JWT:
+
+```json
+{
+  "extensions": {
+    "hl7-b2b": {
+      "version": "1",
+      "organization_id": "urn:oid:2.16.840.1.113883.4.4#12-3456789",
+      "organization_name": "My Organization",
+      "purpose_of_use": ["http://terminology.hl7.org/CodeSystem/v3-ActReason#HPAYMT"]
+    }
+  }
+}
+```
+
+The `organization_id` is resolved from the referenced Organization's identifier where `system` matches `organizationIdentifierSystem`.
