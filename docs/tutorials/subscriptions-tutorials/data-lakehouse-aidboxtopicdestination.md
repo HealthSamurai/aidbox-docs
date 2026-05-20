@@ -491,6 +491,14 @@ export DATABRICKS_TOKEN=<your-pat>
 The rest of the example references the names below via environment variables — override any of them before sourcing, and the commands stay copy-pasteable:
 
 ```shell
+# Aidbox endpoint that will receive the destination POST.
+export AIDBOX_URL=http://localhost:8080
+
+# Numeric workspace ID — find it in Settings → Workspace → Workspace ID,
+# or in the `o=…` query parameter of the workspace URL:
+# https://<dbc-id>.cloud.databricks.com/?o=<workspace-id>
+export WORKSPACE_ID=<your-workspace-id>
+
 # Identifiers the example creates — pick your own.
 export CATALOG=aidbox_export
 export TARGET_SCHEMA=fhir
@@ -886,9 +894,10 @@ databricks grants update external-location "$EXTERNAL_LOCATION_NAME" --json '{
 {% step %}
 ### Configure the destination (`managed-zerobus`)
 
-```http
-POST /fhir/AidboxTopicDestination
-
+```sh
+curl -X POST "$AIDBOX_URL/fhir/AidboxTopicDestination" \
+  -H 'Content-Type: application/json' \
+  --data-binary @- <<EOF
 {
   "resourceType": "AidboxTopicDestination",
   "id": "patient-databricks",
@@ -901,25 +910,22 @@ POST /fhir/AidboxTopicDestination
   },
   "parameter": [
     {"name": "writeMode", "valueString": "managed-zerobus"},
-    {"name": "databricksWorkspaceUrl", "valueString": "$DATABRICKS_HOST"},
-    {"name": "databricksWorkspaceId", "valueString": "<workspace-id>"},
-    {"name": "databricksRegion", "valueString": "$AWS_REGION"},
-    {"name": "databricksClientId", "valueString": "$SP_CLIENT_ID"},
-    {"name": "databricksClientSecret", "valueString": "$SP_CLIENT_SECRET"},
-    {"name": "tableName", "valueString": "$CATALOG.$TARGET_SCHEMA.$TARGET_TABLE"},
-    {"name": "databricksWarehouseId", "valueString": "$WAREHOUSE_ID"},
-    {"name": "awsRegion", "valueString": "$AWS_REGION"},
-    {"name": "stagingTablePath", "valueString": "s3://$STAGING_BUCKET/staging/$TARGET_TABLE/"},
+    {"name": "databricksWorkspaceUrl", "valueString": "${DATABRICKS_HOST}"},
+    {"name": "databricksWorkspaceId", "valueString": "${WORKSPACE_ID}"},
+    {"name": "databricksRegion", "valueString": "${AWS_REGION}"},
+    {"name": "databricksClientId", "valueString": "${SP_CLIENT_ID}"},
+    {"name": "databricksClientSecret", "valueString": "${SP_CLIENT_SECRET}"},
+    {"name": "tableName", "valueString": "${CATALOG}.${TARGET_SCHEMA}.${TARGET_TABLE}"},
+    {"name": "databricksWarehouseId", "valueString": "${WAREHOUSE_ID}"},
+    {"name": "awsRegion", "valueString": "${AWS_REGION}"},
+    {"name": "stagingTablePath", "valueString": "s3://${STAGING_BUCKET}/staging/${TARGET_TABLE}/"},
     {"name": "viewDefinition", "valueString": "patient_flat"},
     {"name": "batchSize", "valueUnsignedInt": 50},
     {"name": "sendIntervalMs", "valueUnsignedInt": 5000}
   ]
 }
+EOF
 ```
-
-{% hint style="info" %}
-Aidbox does **not** interpolate the `$…` placeholders for you — substitute the real values (either inline, or by `envsubst`-ing the payload through `curl --data-binary` before POSTing). The workspace ID is the numeric one — find it in **Settings → Workspace → Workspace ID**, or in the `o=…` query parameter of the workspace URL: `https://<dbc-id>.cloud.databricks.com/?o=<workspace-id>`.
-{% endhint %}
 
 {% hint style="warning" %}
 `stagingTablePath` must be a **sub-prefix** of the External Location you registered (here `s3://$STAGING_BUCKET/staging/`), not the root itself. Setting it equal to the External Location root or to the staging schema's `storage_root` makes Databricks refuse with `LOCATION_OVERLAP`. The sender writes the staging Delta directly at this path, so reserve a per-destination subdirectory like `staging/patient_flat/` or `staging/<destination-id>/`.
