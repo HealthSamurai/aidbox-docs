@@ -630,12 +630,7 @@ aws s3api create-bucket --bucket "$STAGING_BUCKET" --region "$AWS_REGION"
 {% step %}
 ### Create the IAM role Databricks will assume
 
-The trust policy will eventually pin two things — the **External ID** (issued by Databricks in the next step) and **self-assume** (the role granting itself the ability to refresh its own session). Neither value exists yet at create time:
-
-- AWS refuses to accept the role's own ARN in its trust policy on `CreateRole` because the role doesn't exist yet (chicken-and-egg).
-- The External ID is what Databricks hands back when we register the Storage Credential.
-
-So this is a two-shot: create the role with a minimal trust policy (just the UC master role + a placeholder External ID), then patch both in once Databricks gives us the real External ID.
+Create the role with a minimal trust policy; the next step patches in the real External ID and the self-assume principal.
 
 ```sh
 aws iam create-role --role-name "$IAM_ROLE_NAME" \
