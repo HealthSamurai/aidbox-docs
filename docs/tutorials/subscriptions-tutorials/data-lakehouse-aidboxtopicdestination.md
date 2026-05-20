@@ -770,11 +770,13 @@ The catalog's `--storage-root` must sit inside the External Location you just re
 databricks catalogs create "$CATALOG" \
   --storage-root "s3://$STAGING_BUCKET/managed/"
 
-databricks api post /api/2.0/sql/statements --json '{
-  "warehouse_id": "'"$WAREHOUSE_ID"'",
-  "wait_timeout": "30s",
-  "statement": "CREATE SCHEMA '"$CATALOG.$TARGET_SCHEMA"'"
-}'
+# `jq -n --arg` lets bash variables expand into a JSON string without
+# nested-quote escaping headaches. Same shape used for every
+# `databricks api post /api/2.0/sql/statements` call below.
+databricks api post /api/2.0/sql/statements --json "$(jq -n \
+  --arg wh "$WAREHOUSE_ID" \
+  --arg stmt "CREATE SCHEMA $CATALOG.$TARGET_SCHEMA" \
+  '{warehouse_id: $wh, wait_timeout: "30s", statement: $stmt}')"
 ```
 
 {% endstep %}
@@ -785,11 +787,10 @@ databricks api post /api/2.0/sql/statements --json '{
 Columns must match the ViewDefinition you created above, plus a mandatory `is_deleted INT`:
 
 ```sh
-databricks api post /api/2.0/sql/statements --json '{
-  "warehouse_id": "'"$WAREHOUSE_ID"'",
-  "wait_timeout": "30s",
-  "statement": "CREATE TABLE '"$CATALOG.$TARGET_SCHEMA.$TARGET_TABLE"' (id STRING, ts TIMESTAMP, cts TIMESTAMP, gender STRING, birth_date DATE, family_name STRING, given_name STRING, is_deleted INT) USING DELTA"
-}'
+databricks api post /api/2.0/sql/statements --json "$(jq -n \
+  --arg wh "$WAREHOUSE_ID" \
+  --arg stmt "CREATE TABLE $CATALOG.$TARGET_SCHEMA.$TARGET_TABLE (id STRING, ts TIMESTAMP, cts TIMESTAMP, gender STRING, birth_date DATE, family_name STRING, given_name STRING, is_deleted INT) USING DELTA" \
+  '{warehouse_id: $wh, wait_timeout: "30s", statement: $stmt}')"
 ```
 
 {% hint style="warning" %}
@@ -1079,11 +1080,10 @@ If you don't need Unity Catalog managed-table governance and want the highest th
 2. **Create the table with `LOCATION`** so it's external:
 
    ```sh
-   databricks api post /api/2.0/sql/statements --json '{
-     "warehouse_id": "'"$WAREHOUSE_ID"'",
-     "wait_timeout": "30s",
-     "statement": "CREATE TABLE '"$CATALOG.$TARGET_SCHEMA.$TARGET_TABLE"' (id STRING, ts TIMESTAMP, cts TIMESTAMP, gender STRING, birth_date DATE, family_name STRING, given_name STRING, is_deleted INT) USING DELTA LOCATION '"'"'s3://'"$STAGING_BUCKET"'/target/'"$TARGET_TABLE"'/'"'"'"
-   }'
+   databricks api post /api/2.0/sql/statements --json "$(jq -n \
+     --arg wh "$WAREHOUSE_ID" \
+     --arg stmt "CREATE TABLE $CATALOG.$TARGET_SCHEMA.$TARGET_TABLE (id STRING, ts TIMESTAMP, cts TIMESTAMP, gender STRING, birth_date DATE, family_name STRING, given_name STRING, is_deleted INT) USING DELTA LOCATION 's3://$STAGING_BUCKET/target/$TARGET_TABLE/'" \
+     '{warehouse_id: $wh, wait_timeout: "30s", statement: $stmt}')"
    ```
 
 3. **No warehouse needed at runtime** — writes don't go through SQL compute. (The warehouse is still needed once for the `CREATE TABLE` above.)
