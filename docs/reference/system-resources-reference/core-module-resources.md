@@ -5552,6 +5552,126 @@ Profile for FHIR Bulk Data $export operation POST parameters. Based on https://b
   "desc" : ""
 }, {
   "path" : "parameter",
+  "name" : "parameter:aidboxAzureContainer",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : "Aidbox: override Azure container name."
+}, {
+  "path" : "parameter.name",
+  "name" : "name",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "string",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter:aidboxAzureStorage",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : "Aidbox: override Azure storage account name."
+}, {
+  "path" : "parameter.name",
+  "name" : "name",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "string",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter:aidboxStorageAccount",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : "Aidbox: override cloud account reference (ResourceType/id)."
+}, {
+  "path" : "parameter.name",
+  "name" : "name",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "Reference",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter:aidboxStorageBucket",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : "Aidbox: override cloud storage bucket name."
+}, {
+  "path" : "parameter.name",
+  "name" : "name",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "string",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter:aidboxStorageProvider",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : "Aidbox: override storage provider type (gcp, aws, azure)."
+}, {
+  "path" : "parameter.name",
+  "name" : "name",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "string",
+  "desc" : "\n\n**Allowed values**: `gcp` | `aws` | `azure`"
+}, {
+  "path" : "parameter",
   "name" : "parameter:patient",
   "lvl" : 0,
   "min" : 0,
@@ -5813,6 +5933,22 @@ Profile for FHIR Bulk Data $export operation POST parameters. Based on https://b
   "max" : 1,
   "type" : "string",
   "desc" : "Name of the storage bucket to use."
+}, {
+  "path" : "params.storage.storage",
+  "name" : "storage",
+  "lvl" : 2,
+  "min" : 0,
+  "max" : 1,
+  "type" : "string",
+  "desc" : "Azure storage account name (for workload identity)."
+}, {
+  "path" : "params.storage.container",
+  "name" : "container",
+  "lvl" : 2,
+  "min" : 0,
+  "max" : 1,
+  "type" : "string",
+  "desc" : "Azure container name (for workload identity)."
 }, {
   "path" : "params.storage.account",
   "name" : "account",
@@ -8351,6 +8487,126 @@ Profile for $davinci-data-export operation input parameters. Based on http://hl7
   "max" : 1,
   "type" : "instant",
   "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter:aidboxAzureContainer",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : "Aidbox: override Azure container name."
+}, {
+  "path" : "parameter.name",
+  "name" : "name",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "string",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter:aidboxAzureStorage",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : "Aidbox: override Azure storage account name."
+}, {
+  "path" : "parameter.name",
+  "name" : "name",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "string",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter:aidboxStorageAccount",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : "Aidbox: override cloud account reference (ResourceType/id)."
+}, {
+  "path" : "parameter.name",
+  "name" : "name",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "Reference",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter:aidboxStorageBucket",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : "Aidbox: override cloud storage bucket name."
+}, {
+  "path" : "parameter.name",
+  "name" : "name",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "string",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter:aidboxStorageProvider",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : "Aidbox: override storage provider type (gcp, aws, azure)."
+}, {
+  "path" : "parameter.name",
+  "name" : "name",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "string",
+  "desc" : "\n\n**Allowed values**: `gcp` | `aws` | `azure`"
 }, {
   "path" : "parameter",
   "name" : "parameter:exportType",
