@@ -600,16 +600,6 @@ Storage provider for bulk export
 
 <details><summary>Details</summary><table data-header-hidden="true"><thead><tr><th width="200"></th><th></th></tr></thead><tbody><tr><td>ID</td><td><code>fhir.bulk-storage.provider</code></td></tr><tr><td>Type</td><td>Enum</td></tr><tr><td>Values</td><td><code>gcp</code> — Google Cloud Platform<br /><code>aws</code> — Amazon Web Services<br /><code>azure</code> — Microsoft Azure: Cloud Computing Services</td></tr><tr><td>Default value</td><td>(no default)</td></tr><tr><td>Environment variable</td><td><code>BOX_FHIR_BULK_STORAGE_PROVIDER</code></td></tr><tr><td>Deprecated environment variables</td><td><code>BOX_BULK__STORAGE_BACKEND</code></td></tr><tr><td>Sensitive</td><td><code>false</code> — value will be visible in plaintext in Admin UI</td></tr><tr><td>Set via</td><td>Admin UI → Settings<br />Environment variables</td></tr><tr><td>Hot reload</td><td><code>true</code> — setting can be changed at runtime</td></tr></tbody></table></details>
 
-#### Enable DaVinci $davinci-data-export<a href="#fhir.bulk-export.davinci-data-export" id="fhir.bulk-export.davinci-data-export"></a>
-
-```yaml
-BOX_FHIR_BULK_EXPORT_DAVINCI_DATA_EXPORT: false
-```
-
-When enabled, $export and $davinci-data-export accept the exportType parameter and apply consent-based patient filtering per the DaVinci PDEx/ATR specifications.
-
-<details><summary>Details</summary><table data-header-hidden="true"><thead><tr><th width="200"></th><th></th></tr></thead><tbody><tr><td>ID</td><td><code>fhir.bulk-export.davinci-data-export</code></td></tr><tr><td>Type</td><td>Bool</td></tr><tr><td>Default value</td><td><code>false</code></td></tr><tr><td>Environment variable</td><td><code>BOX_FHIR_BULK_EXPORT_DAVINCI_DATA_EXPORT</code></td></tr><tr><td>Available from</td><td><code>2605</code></td></tr><tr><td>Sensitive</td><td><code>false</code> — value will be visible in plaintext in Admin UI</td></tr><tr><td>Set via</td><td>Admin UI → Settings<br />Environment variables</td></tr><tr><td>Hot reload</td><td><code>true</code> — setting can be changed at runtime</td></tr></tbody></table></details>
-
 #### GCP service account<a href="#fhir.bulk-storage.gcp.service-account" id="fhir.bulk-storage.gcp.service-account"></a>
 
 ```yaml
