@@ -2423,6 +2423,8 @@ AWS SNS best-effort delivery profile for AidboxTopicDestination.
 
 ## AccessPolicy
 
+Authorization rule that grants access to incoming requests matching its conditions.
+
 ```fhir-structure
 [ {
   "path" : "_source",
@@ -3525,6 +3527,8 @@ Defines the data sources and events that clients can subscribe to. Acts as a con
 
 ## AidboxTask
 
+Atomic asynchronous unit of work executed by the Aidbox Workflow Engine.
+
 ```fhir-structure
 [ {
   "path" : "allowedRetryCount",
@@ -3747,6 +3751,8 @@ Defines the data sources and events that clients can subscribe to. Acts as a con
 
 
 ## AidboxTaskLog
+
+Log entry recording an action performed on an AidboxTask.
 
 ```fhir-structure
 [ {
@@ -4034,6 +4040,8 @@ Aidbox trigger resource for executing SQL on resource create, update, or delete 
 
 
 ## AidboxWorkflow
+
+Orchestration of a sequence of AidboxTask executions in the Aidbox Workflow Engine.
 
 ```fhir-structure
 [ {
@@ -4524,6 +4532,8 @@ Attribute definition resource for Aidbox entities.
 
 ## AuthConfig
 
+Global authentication settings for the Aidbox login flow.
+
 ```fhir-structure
 [ {
   "path" : "_source",
@@ -4643,6 +4653,8 @@ Attribute definition resource for Aidbox entities.
 
 ## AwsAccount
 
+AWS account credentials used by Aidbox to access AWS services.
+
 ```fhir-structure
 [ {
   "path" : "_source",
@@ -4706,6 +4718,8 @@ Attribute definition resource for Aidbox entities.
 
 ## AzureAccount
 
+Azure credentials used by Aidbox to access Azure services.
+
 ```fhir-structure
 [ {
   "path" : "_source",
@@ -4760,6 +4774,8 @@ Attribute definition resource for Aidbox entities.
 
 
 ## AzureContainer
+
+Reference to a specific Azure Blob Storage container used by Aidbox.
 
 ```fhir-structure
 [ {
@@ -5672,6 +5688,78 @@ Profile for FHIR Bulk Data $export operation POST parameters. Based on https://b
   "desc" : "\n\n**Allowed values**: `gcp` | `aws` | `azure`"
 }, {
   "path" : "parameter",
+  "name" : "parameter:consentProfile",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : "Consent StructureDefinition URL to filter by meta.profile. Omit to match any Consent."
+}, {
+  "path" : "parameter.name",
+  "name" : "name",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "uri",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter:consentStrategy",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : "Consent-based patient filtering strategy: opt-in or opt-out."
+}, {
+  "path" : "parameter.name",
+  "name" : "name",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "code",
+  "desc" : "\n\n**Allowed values**: `opt-in` | `opt-out`"
+}, {
+  "path" : "parameter",
+  "name" : "parameter:organizationIdentifierSystem",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : "Organization.identifier.system to use for consent actor matching."
+}, {
+  "path" : "parameter.name",
+  "name" : "name",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "uri",
+  "desc" : ""
+}, {
+  "path" : "parameter",
   "name" : "parameter:patient",
   "lvl" : 0,
   "min" : 0,
@@ -5699,6 +5787,8 @@ Profile for FHIR Bulk Data $export operation POST parameters. Based on https://b
 
 
 ## BulkExportStatus
+
+Status and progress of a FHIR Bulk Export operation.
 
 ```fhir-structure
 [ {
@@ -5886,13 +5976,21 @@ Profile for FHIR Bulk Data $export operation POST parameters. Based on https://b
   "type" : "string",
   "desc" : "FHIR search query strings for filtering exported resources in ResourceType?params format."
 }, {
-  "path" : "params.export-type",
-  "name" : "export-type",
+  "path" : "params.consent-strategy",
+  "name" : "consent-strategy",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "code",
+  "desc" : "Consent-based patient filtering strategy: opt-in or opt-out."
+}, {
+  "path" : "params.consent-profile",
+  "name" : "consent-profile",
   "lvl" : 1,
   "min" : 0,
   "max" : 1,
   "type" : "string",
-  "desc" : "DaVinci export type canonical (e.g. hl7.fhir.us.davinci-pdex#provider-delta)."
+  "desc" : "Consent StructureDefinition URL used for profile filtering."
 }, {
   "path" : "params.source-org-uri",
   "name" : "source-org-uri",
@@ -6010,6 +6108,8 @@ Profile for FHIR Bulk Data $export operation POST parameters. Based on https://b
 
 
 ## BulkImportStatus
+
+Status and progress of a FHIR Bulk Import operation.
 
 ```fhir-structure
 [ {
@@ -6795,6 +6895,8 @@ ClickHouse best-effort delivery profile for AidboxTopicDestination.
 
 
 ## Client
+
+OAuth 2.0 client registered to authenticate against Aidbox.
 
 ```fhir-structure
 [ {
@@ -8354,311 +8456,6 @@ A modifier extension for ElementDefinition that indicates the element uses a cus
 ```
 
 
-## DaVinciDataExportProfile
-
-Profile for $davinci-data-export operation input parameters. Based on http://hl7.org/fhir/us/davinci-atr/OperationDefinition/davinci-data-export
-
-```fhir-structure
-[ {
-  "path" : "parameter",
-  "name" : "parameter",
-  "lvl" : 0,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter",
-  "name" : "parameter:_outputFormat",
-  "lvl" : 0,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : "Output format for exported files (default: application/fhir+ndjson)."
-}, {
-  "path" : "parameter.name",
-  "name" : "name",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.value[x]",
-  "name" : "value[x]",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "string",
-  "desc" : ""
-}, {
-  "path" : "parameter",
-  "name" : "parameter:_since",
-  "lvl" : 0,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : "Include resources modified after this timestamp."
-}, {
-  "path" : "parameter.name",
-  "name" : "name",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.value[x]",
-  "name" : "value[x]",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "instant",
-  "desc" : ""
-}, {
-  "path" : "parameter",
-  "name" : "parameter:_type",
-  "lvl" : 0,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : "Comma-delimited FHIR resource types to include in the export."
-}, {
-  "path" : "parameter.name",
-  "name" : "name",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.value[x]",
-  "name" : "value[x]",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "string",
-  "desc" : ""
-}, {
-  "path" : "parameter",
-  "name" : "parameter:_typeFilter",
-  "lvl" : 0,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : "FHIR REST queries to constrain the exported dataset (ResourceType?params)."
-}, {
-  "path" : "parameter.name",
-  "name" : "name",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.value[x]",
-  "name" : "value[x]",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "string",
-  "desc" : ""
-}, {
-  "path" : "parameter",
-  "name" : "parameter:_until",
-  "lvl" : 0,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : "Include resources modified before this timestamp. Defaults to operation start time."
-}, {
-  "path" : "parameter.name",
-  "name" : "name",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.value[x]",
-  "name" : "value[x]",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "instant",
-  "desc" : ""
-}, {
-  "path" : "parameter",
-  "name" : "parameter:aidboxAzureContainer",
-  "lvl" : 0,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : "Aidbox: override Azure container name."
-}, {
-  "path" : "parameter.name",
-  "name" : "name",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.value[x]",
-  "name" : "value[x]",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "string",
-  "desc" : ""
-}, {
-  "path" : "parameter",
-  "name" : "parameter:aidboxAzureStorage",
-  "lvl" : 0,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : "Aidbox: override Azure storage account name."
-}, {
-  "path" : "parameter.name",
-  "name" : "name",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.value[x]",
-  "name" : "value[x]",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "string",
-  "desc" : ""
-}, {
-  "path" : "parameter",
-  "name" : "parameter:aidboxStorageAccount",
-  "lvl" : 0,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : "Aidbox: override cloud account reference (ResourceType/id)."
-}, {
-  "path" : "parameter.name",
-  "name" : "name",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.value[x]",
-  "name" : "value[x]",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "Reference",
-  "desc" : ""
-}, {
-  "path" : "parameter",
-  "name" : "parameter:aidboxStorageBucket",
-  "lvl" : 0,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : "Aidbox: override cloud storage bucket name."
-}, {
-  "path" : "parameter.name",
-  "name" : "name",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.value[x]",
-  "name" : "value[x]",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "string",
-  "desc" : ""
-}, {
-  "path" : "parameter",
-  "name" : "parameter:aidboxStorageProvider",
-  "lvl" : 0,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : "Aidbox: override storage provider type (gcp, aws, azure)."
-}, {
-  "path" : "parameter.name",
-  "name" : "name",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.value[x]",
-  "name" : "value[x]",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "string",
-  "desc" : "\n\n**Allowed values**: `gcp` | `aws` | `azure`"
-}, {
-  "path" : "parameter",
-  "name" : "parameter:exportType",
-  "lvl" : 0,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : "Export type classification (e.g. hl7.fhir.us.davinci-atr, hl7.fhir.us.davinci-pdex#payertopayer)."
-}, {
-  "path" : "parameter.name",
-  "name" : "name",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.value[x]",
-  "name" : "value[x]",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "canonical",
-  "desc" : "\n\n**Allowed values**: `hl7.fhir.us.davinci-atr` | `hl7.fhir.us.davinci-pdex#payertopayer` | `hl7.fhir.us.davinci-pdex#provider-delta` | `hl7.fhir.us.davinci-pdex#provider-download` | `hl7.fhir.us.davinci-pdex#provider-snapshot`"
-}, {
-  "path" : "parameter",
-  "name" : "parameter:patient",
-  "lvl" : 0,
-  "min" : 0,
-  "max" : "*",
-  "type" : "",
-  "desc" : "Specific members to export. Omit to export all Group members."
-}, {
-  "path" : "parameter.name",
-  "name" : "name",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "parameter.value[x]",
-  "name" : "value[x]",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "Reference",
-  "desc" : ""
-} ]
-```
-
-
 ## DataLakehouseAtLeastOnceProfile
 
 Data Lakehouse at-least-once delivery profile for AidboxTopicDestination. Default writeMode 'managed-zerobus' streams writes directly into a Databricks Unity Catalog managed Delta table via the Zerobus gRPC streaming-ingest SDK (no SQL warehouse on the hot path; pay-per-row ingest). Initial bulk export uses a temporary staging external Delta table on the customer's bucket and merges via the SQL warehouse on the resource id. 'managed-sql' targets the same managed table but routes every batch through the Databricks SQL warehouse (Statement Execution API) — same staging+MERGE for initial bulk; use this when Zerobus isn't available on the customer's SKU. 'external-direct' falls back to writing Parquet directly to an external Delta table on S3/GCS/ADLS via the Delta Kernel writer (no SQL warehouse, restart-safe-idempotent via Delta txn action).
@@ -9082,6 +8879,46 @@ Data Lakehouse at-least-once delivery profile for AidboxTopicDestination. Defaul
   "desc" : ""
 }, {
   "path" : "parameter",
+  "name" : "parameter:initialExportParallelism",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : "Total number of parallel chunks for the initial-export hash partition. Default 1 (sequential). Recommended 4-8 for >=1M-row datasets on a single Aidbox node; 16-32 for multi-Aidbox setups. Chunks distribute across all Aidbox nodes via PG advisory locks."
+}, {
+  "path" : "parameter.name",
+  "name" : "name",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 1,
+  "max" : 1,
+  "type" : "unsignedInt",
+  "desc" : ""
+}, {
+  "path" : "parameter.resource",
+  "name" : "resource",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part",
+  "name" : "part",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter",
   "name" : "parameter:s3Endpoint",
   "lvl" : 0,
   "min" : 0,
@@ -9445,6 +9282,8 @@ Data Lakehouse at-least-once delivery profile for AidboxTopicDestination. Defaul
 
 
 ## DisabledIndex
+
+PostgreSQL index that has been disabled in Aidbox.
 
 ```fhir-structure
 [ {
@@ -10300,6 +10139,8 @@ GCP Pub/Sub at-least-once delivery profile for AidboxTopicDestination.
 
 ## GcpServiceAccount
 
+GCP service account credentials used by Aidbox to access Google Cloud services.
+
 ```fhir-structure
 [ {
   "path" : "_source",
@@ -10330,6 +10171,8 @@ GCP Pub/Sub at-least-once delivery profile for AidboxTopicDestination.
 
 
 ## Grant
+
+Record of a user's consent that authorizes a Client to use the requested scopes.
 
 ```fhir-structure
 [ {
@@ -10409,6 +10252,8 @@ GCP Pub/Sub at-least-once delivery profile for AidboxTopicDestination.
 
 
 ## Hl7v2Config
+
+Configuration of an HL7 v2 message processing pipeline.
 
 ```fhir-structure
 [ {
@@ -10545,6 +10390,8 @@ GCP Pub/Sub at-least-once delivery profile for AidboxTopicDestination.
 
 ## Hl7v2Message
 
+Incoming or outgoing HL7 v2 message processed by Aidbox.
+
 ```fhir-structure
 [ {
   "path" : "_source",
@@ -10631,6 +10478,8 @@ GCP Pub/Sub at-least-once delivery profile for AidboxTopicDestination.
 
 
 ## IdentityProvider
+
+External identity provider used for federated login into Aidbox.
 
 ```fhir-structure
 [ {
@@ -13325,6 +13174,8 @@ Lambda function resource for hook-based code execution.
 
 ## LoaderFile
 
+Record of a file loaded into Aidbox from an external bucket.
+
 ```fhir-structure
 [ {
   "path" : "bucket",
@@ -14361,6 +14212,8 @@ Notebook resource for interactive documentation and code execution.
 
 ## Notification
 
+Outbound notification (email or push) dispatched by Aidbox.
+
 ```fhir-structure
 [ {
   "path" : "_source",
@@ -14399,6 +14252,8 @@ Notebook resource for interactive documentation and code execution.
 
 
 ## NotificationTemplate
+
+Template used to render the content of a Notification.
 
 ```fhir-structure
 [ {
@@ -14672,6 +14527,8 @@ PostgreSQL sequence definition resource for Aidbox.
 
 
 ## Registration
+
+Self-service user registration request and its status.
 
 ```fhir-structure
 [ {
@@ -15245,6 +15102,8 @@ Parameters profile for $sqlquery-run at the system and type levels. Exactly one 
 
 ## SchedulerRuleStatus
 
+Execution status of an Aidbox scheduler rule.
+
 ```fhir-structure
 [ {
   "path" : "allowedRetryCount",
@@ -15379,6 +15238,8 @@ Parameters profile for $sqlquery-run at the system and type levels. Exactly one 
 
 
 ## Scope
+
+OAuth scope definition shown on the consent screen.
 
 ```fhir-structure
 [ {
@@ -15756,6 +15617,8 @@ Seed data import resource for initial data loading.
 
 
 ## Session
+
+Authenticated session created after a successful OAuth login.
 
 ```fhir-structure
 [ {
@@ -16192,6 +16055,8 @@ Terminology bundle file tracking resource.
 
 ## TokenIntrospector
 
+Configuration that validates external bearer tokens against a JWKS or introspection endpoint.
+
 ```fhir-structure
 [ {
   "path" : "_source",
@@ -16334,6 +16199,8 @@ Terminology bundle file tracking resource.
 
 
 ## User
+
+Aidbox user account with credentials and identity attributes.
 
 ```fhir-structure
 [ {
@@ -17350,6 +17217,8 @@ Terminology bundle file tracking resource.
 
 ## WebPushSubscription
 
+Browser endpoint subscribed to Aidbox Web Push notifications.
+
 ```fhir-structure
 [ {
   "path" : "app",
@@ -17983,6 +17852,111 @@ The versionId of the resource at the time the notification was triggered.
 ```
 
 
+## hl7B2b
+
+UDAP B2B authorization context for a Client. Used to populate the hl7-b2b extension in JWT access tokens per the UDAP Security IG.
+
+```fhir-structure
+[ {
+  "path" : "extension",
+  "name" : "extension",
+  "lvl" : 0,
+  "min" : 1,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "extension",
+  "name" : "extension:organization",
+  "lvl" : 0,
+  "min" : 1,
+  "max" : 1,
+  "type" : "",
+  "desc" : "Organization this client represents in B2B flows."
+}, {
+  "path" : "extension.url",
+  "name" : "url",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "extension.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "Reference",
+  "desc" : "\n\n**Allowed references**: Organization"
+}, {
+  "path" : "extension",
+  "name" : "extension:organizationIdentifierSystem",
+  "lvl" : 0,
+  "min" : 1,
+  "max" : 1,
+  "type" : "",
+  "desc" : "Identifier system to use for resolving organization_id in the B2B token."
+}, {
+  "path" : "extension.url",
+  "name" : "url",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "extension.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "uri",
+  "desc" : ""
+}, {
+  "path" : "extension",
+  "name" : "extension:purposeOfUse",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : "*",
+  "type" : "",
+  "desc" : "Purpose of use for B2B token (e.g. TREAT, HPAYMT)."
+}, {
+  "path" : "extension.url",
+  "name" : "url",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "extension.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "Coding",
+  "desc" : ""
+}, {
+  "path" : "url",
+  "name" : "url",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "value[x]",
+  "name" : "value[x]",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+} ]
+```
+
+
 ## internalError
 
 ```fhir-structure
@@ -18086,31 +18060,6 @@ The versionId of the resource at the time the notification was triggered.
   "max" : 1,
   "type" : "http://hl7.org/fhirpath/System.String",
   "desc" : "Primitive value for password"
-} ]
-```
-
-
-## representedOrganization
-
-Organization this client represents in B2B flows. Used as source organization in DaVinci bulk export consent filtering.
-
-```fhir-structure
-[ {
-  "path" : "url",
-  "name" : "url",
-  "lvl" : 0,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : ""
-}, {
-  "path" : "value[x]",
-  "name" : "value[x]",
-  "lvl" : 0,
-  "min" : 0,
-  "max" : 1,
-  "type" : "Reference",
-  "desc" : "\n\n**Allowed references**: hrex-organization"
 } ]
 ```
 
