@@ -230,6 +230,7 @@ The `$export` operation accepts several parameters to customize the export: **qu
 | `_until`        | Includes only resources whose **last modification time** is **before** the given instant (`ts < _until`). ISO 8601 format. Together with `_since`, this defines an open window on the modification timestamp. |
 | `_typeFilter`   | Restricts exported rows using FHIR search criteria **per resource type**, in the form `ResourceType?searchParams` (same idea as the [FHIR Bulk Data `_typeFilter`](https://hl7.org/fhir/uv/bulkdata/export.html) parameter). You may repeat `_typeFilter` multiple times. Multiple filters for the **same** resource type are combined with **OR**. If `_type` is present, every type used in `_typeFilter` must also appear in `_type`; types listed in `_type` but without a filter are exported in full. Standard FHIR search parameters such as `_id` are allowed. Not allowed inside the search part: `_sort`, `_count`, `_page`, `_total`, `_summary`, `_elements`, `_include`, `_revinclude`, `_has`, `_assoc`, `_with`. |
 | `patient`       | Restricts the export to specific patients. **GET:** comma-separated patient **ids** (not full references), e.g. `patient=pt-1,pt-2`. Supported only on **patient-level** GET. **POST:** repeat a `parameter` named `patient`, each with `valueReference.reference` set to `Patient/{id}`. Supported on **patient-level** and **group-level** POST; for group export, every listed patient must exist and be a **member** of that group. |
+| `onPatientError` | Controls behavior when `patient` references are invalid or not group members. `fail` (default): abort with **422**. `ignore`: drop invalid refs, proceed with valid ones, report dropped in export status `error[]`. See [Lenient patient handling](#lenient-patient-handling). |
 
 ### POST with a Parameters body (patient and group)
 
@@ -631,3 +632,53 @@ When this extension is present, `/auth/token` includes the [UDAP B2B Authorizati
 ```
 
 The `organization_id` is resolved from the referenced Organization's identifier where `system` matches `organizationIdentifierSystem`.
+
+## Lenient patient handling
+
+{% hint style="info" %}
+Available since version 2605.
+{% endhint %}
+
+By default, `$export` returns **422** when a `patient` reference points to a non-existent Patient or a Patient that is not a member of the specified Group. This follows the base [FHIR Bulk Data Export](https://hl7.org/fhir/uv/bulkdata/export.html) specification.
+
+The [Da Vinci `$davinci-data-export`](http://hl7.org/fhir/us/davinci-atr/OperationDefinition-davinci-data-export.html) specification requires different behavior: invalid patient references should be silently ignored, and the export should proceed with valid ones.
+
+Set `onPatientError=ignore` to enable this behavior:
+
+| `onPatientError` | Behavior |
+| ---------------- | -------- |
+| `fail` (default) | Abort with **422** if any patient reference is invalid or not a group member. |
+| `ignore`         | Drop invalid references. Proceed with valid ones. Report each dropped patient as an OperationOutcome warning in the export status `error[]` array. |
+
+When all requested patients are invalid, the server returns an immediate **200** with an empty `output[]` and warnings in `error[]` — no async export is started.
+
+{% tabs %}
+{% tab title="POST" %}
+```json
+{
+  "resourceType": "Parameters",
+  "parameter": [
+    { "name": "_type", "valueString": "Patient" },
+    { "name": "onPatientError", "valueCode": "ignore" },
+    { "name": "patient", "valueReference": { "reference": "Patient/valid-member" } },
+    { "name": "patient", "valueReference": { "reference": "Patient/non-existent" } }
+  ]
+}
+```
+{% endtab %}
+
+{% tab title="Export status error[]" %}
+```json
+{
+  "status": "completed",
+  "output": [
+    { "type": "Patient", "url": "https://storage/...", "count": 1 }
+  ],
+  "error": [
+    { "type": "OperationOutcome",
+      "url": "urn:warning:Patient/non-existent ignored: not found or not a member of the group" }
+  ]
+}
+```
+{% endtab %}
+{% endtabs %}
