@@ -1135,7 +1135,11 @@ Prefer: respond-async
 
 Returns `202 Accepted` + `Content-Location: /fhir/ViewDefinition/$viewdefinition-export/status/<uuid>`. Poll that URL until you get `200 OK` with the final `Parameters` output.
 
-For large views add `{"name": "initialExportParallelism", "valueUnsignedInt": <N>}` to the Parameters body — same semantics as the AidboxTopicDestination parameter ([Large-scale initial export](#large-scale-initial-export)). Multi-pod Aidbox clusters cooperate automatically on the same export via Postgres advisory locks. Polling the status URL is hostname-sticky: the kick-off pod owns the small per-pod metadata cache needed to answer status requests, so always poll the same hostname you posted to (in a load-balanced cluster, ensure sticky-by-hostname or session affinity for the `/fhir/ViewDefinition/$viewdefinition-export/status/<uuid>` path).
+### Scaling and multi-pod execution
+
+For large views add `{"name": "initialExportParallelism", "valueUnsignedInt": <N>}` to the Parameters body — same semantics, same sizing formula as the continuous-destination flow's [Large-scale initial export](#large-scale-initial-export). One ad-hoc export benefits from every Aidbox pod connected to the same metastore: the kick-off pod inserts a row into `tds.viewdefinition_export_jobs` and broadcasts a `cache_replication_msgs` PG NOTIFY event; every pod's cache listener picks it up and joins the chunk race via `pg_try_advisory_lock`. No leader, no service-discovery, no per-job pod assignment — identical mechanism to the continuous AidboxTopicDestination initial sync.
+
+Status polling is hostname-sticky: the kick-off pod keeps a small per-pod cache of the echo-only spec fields needed to assemble the status response, so always poll the same hostname you posted to. In a load-balanced cluster, configure session affinity on `/fhir/ViewDefinition/$viewdefinition-export/status/` (most LBs can honour the `Content-Location` header the kick-off returned). See the [operation page's Troubleshooting](../../modules/sql-on-fhir/operation-viewdefinition-export.md#troubleshooting) for details.
 
 See the [`$viewdefinition-export` operation page](../../modules/sql-on-fhir/operation-viewdefinition-export.md) for the full parameter list, status response shape, and current limitations.
 

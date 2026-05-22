@@ -153,17 +153,55 @@ On failure the staging table is best-effort dropped, then the export retries up 
 The `MERGE` is idempotent on `id` — a retried export after a lost response inserts nothing instead of duplicating. Your ViewDefinition must have an `id` column.
 {% endhint %}
 
-For large views, set the backend-specific `initialExportParallelism > 1` parameter (default `1`, sequential): the backend hash-partitions `sof.<view>` into `N` chunks, writes them in parallel into per-chunk staging tables (`<base>/chunk-0/`, `<base>/chunk-1/`, …), then materializes the union into the target via one `MERGE INTO target USING (SELECT * FROM staging_0 UNION ALL …)`. In a multi-pod Aidbox cluster the workload is shared across pods — each pod claims chunks via Postgres advisory locks, so a single export benefits from the whole cluster's compute. Sizing guidance lives in the tutorial's [Large-scale initial export](../../tutorials/subscriptions-tutorials/data-lakehouse-aidboxtopicdestination.md#large-scale-initial-export) section.
+For large views, set the backend-specific `initialExportParallelism > 1` parameter (default `1`, sequential): the backend hash-partitions `sof.<view>` into `N` chunks, writes them in parallel into per-chunk staging tables (`<base>/chunk-0/`, `<base>/chunk-1/`, …), then materializes the union into the target via one `MERGE INTO target USING (SELECT * FROM staging_0 UNION ALL …)`. In a multi-pod Aidbox cluster the workload is shared across pods — see [Multi-pod execution](#multi-pod-execution) below. Sizing guidance lives in the tutorial's [Large-scale initial export](../../tutorials/subscriptions-tutorials/data-lakehouse-aidboxtopicdestination.md#large-scale-initial-export) section.
 
 The Databricks-side setup (catalog, schema, target table, staging schema, service principal, grants, warehouse) is documented in the [Data Lakehouse Topic Destination tutorial](../../tutorials/subscriptions-tutorials/data-lakehouse-aidboxtopicdestination.md) — the same setup is reused here.
+
+## Multi-pod execution
+
+Every Aidbox pod sharing the same PostgreSQL metastore participates in any in-flight export automatically — there's no leader election, no service-discovery, no external coordinator.
+
+Canonical state for an export lives in a backend-owned PostgreSQL table (`tds.viewdefinition_export_jobs` for `kind=data-lakehouse`, created lazily on first kick-off, sitting alongside the existing `tds.event_storage` that AidboxTopicDestinations use). The pod that received the `POST` inserts the jobs row and broadcasts a `::vd-export-new-job` event on the `cache_replication_msgs` PG NOTIFY channel — the same fan-out infrastructure Aidbox already uses to replicate `AidboxTopicDestination` create/delete across the cluster. Every pod's cache-listener thread picks the event up and spawns local worker threads.
+
+Workers on every pod then race for chunks via `pg_try_advisory_lock(export-id-hash, chunk-id)`. First worker to claim a given chunk-id runs that chunk; the others see `false` and move on to the next. The lock mechanism is identical to the one `AidboxTopicDestination`'s distributed initial-sync uses; the [tutorial's Large-scale initial export](../../tutorials/subscriptions-tutorials/data-lakehouse-aidboxtopicdestination.md#large-scale-initial-export) section has the sizing formula.
+
+Crash recovery is implicit: PG session-level advisory locks auto-release on connection drop, so when a worker (or its whole pod) dies mid-chunk, a sibling worker on any surviving pod re-claims that chunk on its next loop iteration.
+
+```mermaid
+sequenceDiagram
+    participant C as Client
+    participant P1 as Aidbox pod 1<br/>(kick-off pod)
+    participant PG as PostgreSQL<br/>tds.viewdefinition_export_jobs<br/>+ cache_replication_msgs
+    participant P2 as Aidbox pod 2
+
+    C->>P1: POST $viewdefinition-export
+    P1->>PG: INSERT jobs row
+    P1->>PG: NOTIFY ::vd-export-new-job
+    P1-->>C: 202 + Content-Location
+    PG-->>P1: deliver event
+    PG-->>P2: deliver event
+    par chunk race on pg_try_advisory_lock
+        P1->>PG: claim chunk-0 → write chunk-0 staging
+        P2->>PG: claim chunk-1 → write chunk-1 staging
+    end
+    P1->>PG: claim merge-coordinator lock
+    P1->>P1: MERGE INTO target USING (UNION ALL stagings)
+    P1->>PG: UPDATE jobs SET status=completed
+```
 
 ## Cloud support
 
 The Aidbox-side wiring is cloud-agnostic, but **the first-party backend (`kind=data-lakehouse`, [`topic-destination-deltalake`](../../tutorials/subscriptions-tutorials/data-lakehouse-aidboxtopicdestination.md)) currently supports AWS S3 only** for the staging Delta path. **Google Cloud Storage** (`gs://...`) and **Azure ADLS Gen2** (`abfss://...`) are not yet supported — adding them is tracked as a follow-up. The Databricks Unity Catalog managed target table is unaffected (UC manages target storage internally).
 
+## Troubleshooting
+
+**Status poll returns `404` on a multi-pod cluster.** The canonical jobs row is shared across pods (see [Multi-pod execution](#multi-pod-execution)), but Aidbox additionally keeps a small per-pod in-memory cache of the echo-only spec fields (`clientTrackingId`, `_format`, the registered `kind` needed to route the status dispatch). That cache only lives on the pod that received the original `POST`. A `GET .../status/<export-id>` arriving on any other pod returns `404`.
+
+Configure your load balancer with session affinity on the `/fhir/ViewDefinition/$viewdefinition-export/status/` path so clients keep hitting the same pod for the lifetime of the export. The kick-off response's `Content-Location` header already names the hostname the client should stick to — most LBs can be told to honour it (cookie-based affinity in nginx-ingress, source-IP hash, etc.). A FHIR-resource-backed status (so any pod can answer any poll) is tracked as a follow-up.
+
 ## Limitations (current)
 
 - One `view` per request (spec allows `1..*`).
 - `patient` / `group` / `_since` filters extracted but not yet applied to the SQL.
-- Restart safety: the canonical job state (status, completed chunks, output location) is persisted by the backend — for the first-party `data-lakehouse` backend, in a Postgres `viewdefinition_export_jobs` table shared across all Aidbox pods. **A poll arriving on a different pod than the one that received the kick-off will return 404**: Aidbox keeps a small per-pod cache of the echo-only spec fields (`clientTrackingId`, `_format`) plus the `kind` needed to route the status dispatch, and that cache is in-process. In practice clients hit the same hostname for the life of an export, and Aidbox cluster load balancers commonly use hostname-sticky routing, so this is usually not visible. A FHIR-resource-backed status (so any pod can answer any poll) is a follow-up.
+- Status polling requires LB session affinity on the `Content-Location` hostname — see [Troubleshooting](#troubleshooting).
 - Cancellation (`cancelUrl`) and `estimatedTimeRemaining` are not implemented.
