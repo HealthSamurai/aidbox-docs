@@ -246,8 +246,6 @@ All requests in this tutorial use `Content-Type: application/json`.
 <tr><td><code>databricksWorkspaceUrl</code></td><td>string</td><td><code>https://&lt;workspace&gt;.cloud.databricks.com</code></td></tr>
 <tr><td><code>databricksWorkspaceId</code></td><td>string</td><td>Numeric workspace ID (e.g. <code>1234567890123456</code>). Composes the Zerobus REST endpoint host</td></tr>
 <tr><td><code>databricksRegion</code></td><td>string</td><td>Workspace AWS region (e.g. <code>us-east-1</code>). Composes the Zerobus REST endpoint host</td></tr>
-<tr><td><code>databricksClientId</code></td><td>string</td><td>Service principal <code>client_id</code> for OAuth M2M</td></tr>
-<tr><td><code>databricksClientSecret</code></td><td>string</td><td>Service principal <code>client_secret</code>; supports vault refs</td></tr>
 <tr><td><code>tableName</code></td><td>string</td><td>Managed table full name: <code>catalog.schema.table</code></td></tr>
 <tr><td><code>databricksWarehouseId</code></td><td>string</td><td>SQL warehouse ID — used at bootstrap for schema sync + (if initial-export runs) the final <code>MERGE INTO</code>. No warm-warehouse traffic during live writes.</td></tr>
 <tr><td><code>awsRegion</code></td><td>string</td><td>AWS region of the staging bucket</td></tr>
@@ -288,8 +286,6 @@ All requests in this tutorial use `Content-Type: application/json`.
 <tr><td><code>batchSize</code></td><td>unsignedInt</td><td>Rows per worker tick / batch commit</td></tr>
 <tr><td><code>sendIntervalMs</code></td><td>unsignedInt</td><td>Max time between batched commits, in ms</td></tr>
 <tr><td><code>databricksWorkspaceUrl</code></td><td>string</td><td><code>https://&lt;workspace&gt;.cloud.databricks.com</code></td></tr>
-<tr><td><code>databricksClientId</code></td><td>string</td><td>Service principal <code>client_id</code> for OAuth M2M</td></tr>
-<tr><td><code>databricksClientSecret</code></td><td>string</td><td>Service principal <code>client_secret</code>; supports vault refs</td></tr>
 <tr><td><code>tableName</code></td><td>string</td><td>Managed table full name: <code>catalog.schema.table</code></td></tr>
 <tr><td><code>databricksWarehouseId</code></td><td>string</td><td>SQL warehouse ID</td></tr>
 <tr><td><code>awsRegion</code></td><td>string</td><td>AWS region of the staging bucket</td></tr>
@@ -815,8 +811,6 @@ curl -u root:secret -X POST "$AIDBOX_URL/fhir/AidboxTopicDestination" \
     {"name": "databricksWorkspaceUrl", "valueString": "${DATABRICKS_HOST}"},
     {"name": "databricksWorkspaceId", "valueString": "${WORKSPACE_ID}"},
     {"name": "databricksRegion", "valueString": "${DATABRICKS_REGION}"},
-    {"name": "databricksClientId", "valueString": "${SP_CLIENT_ID}"},
-    {"name": "databricksClientSecret", "valueString": "${SP_CLIENT_SECRET}"},
     {"name": "tableName", "valueString": "${CATALOG}.${TARGET_SCHEMA}.${TARGET_TABLE}"},
     {"name": "databricksWarehouseId", "valueString": "${WAREHOUSE_ID}"},
     {"name": "awsRegion", "valueString": "${AWS_REGION}"},
@@ -835,21 +829,16 @@ EOF
 With `initialExportParallelism > 1` the module treats this value as a **base prefix** and writes each chunk into a subfolder `<prefix>/chunk-<K>/` — registering `chunk-0/` … `chunk-{N-1}/` as separate per-chunk staging Delta tables, then dropping them all after the final MERGE. No customer-side setup change: the `CREATE_TABLE` grant on the staging schema (granted below) covers any number of per-chunk tables, and the chunk subfolders inherit the same External Location and storage credential.
 {% endhint %}
 
-In production, resolve `databricksClientSecret` from Aidbox's [External Secrets](../../configuration/secret-files.md) instead of inlining it:
+Notice the destination does NOT include `databricksClientId` / `databricksClientSecret`. The service-principal credentials live on the Aidbox box itself (env vars `BOX_DATABRICKS_DATA_LAKEHOUSE_CLIENT_ID` and `BOX_DATABRICKS_DATA_LAKEHOUSE_CLIENT_SECRET`, or the corresponding `module.databricks.data-lakehouse.client-id` / `.client-secret` settings) — set them once when you provision the Aidbox cluster:
 
-```json
-{
-  "name": "databricksClientSecret",
-  "_valueString": {
-    "extension": [
-      {"url": "http://hl7.org/fhir/StructureDefinition/data-absent-reason", "valueCode": "masked"},
-      {"url": "http://health-samurai.io/fhir/secret-reference", "valueString": "dbx-sp-secret"}
-    ]
-  }
-}
+```bash
+docker run \
+  -e BOX_DATABRICKS_DATA_LAKEHOUSE_CLIENT_ID="${SP_CLIENT_ID}" \
+  -e BOX_DATABRICKS_DATA_LAKEHOUSE_CLIENT_SECRET="${SP_CLIENT_SECRET}" \
+  ... aidboxone/aidbox:edition-XYZ
 ```
 
-`dbx-sp-secret` is a key from your `BOX_VAULT_CONFIG` mapping. Same pattern works for any other credential parameter.
+Per-destination overrides are intentionally not accepted: a resolved plaintext secret in `AidboxTopicDestination.resource` (or in `db_scheduler.scheduled_tasks.task_data` for `$viewdefinition-export`) is readable by anyone with PG read access. Aidbox settings keep the secret in the boot-config and the encrypted-at-rest `aidbox-settings` table instead.
 
 {% endstep %}
 
@@ -911,8 +900,6 @@ POST /fhir/AidboxTopicDestination
   "parameter": [
     {"name": "writeMode", "valueString": "managed-sql"},
     {"name": "databricksWorkspaceUrl", "valueString": "$DATABRICKS_HOST"},
-    {"name": "databricksClientId", "valueString": "$SP_CLIENT_ID"},
-    {"name": "databricksClientSecret", "valueString": "$SP_CLIENT_SECRET"},
     {"name": "tableName", "valueString": "$CATALOG.$TARGET_SCHEMA.$TARGET_TABLE"},
     {"name": "databricksWarehouseId", "valueString": "$WAREHOUSE_ID"},
     {"name": "awsRegion", "valueString": "$AWS_REGION"},
@@ -1173,7 +1160,6 @@ You can create multiple destinations for the same topic — for example, to mate
 - [`$materialize` operation](../../modules/sql-on-fhir/operation-materialize.md)
 - [`$viewdefinition-export` operation](../../modules/sql-on-fhir/operation-viewdefinition-export.md) — the SQL-on-FHIR ad-hoc export this module backs as `kind=data-lakehouse`
 - [Topic-based Subscriptions](../../modules/topic-based-subscriptions/README.md)
-- [External Secrets (Vault)](../../configuration/secret-files.md) — storing sensitive parameters like `databricksClientSecret` as file-backed secrets
 - [HashiCorp Vault Integration](../../tutorials/other-tutorials/hashicorp-vault-external-secrets.md) — step-by-step tutorial for Kubernetes with Secrets Store CSI Driver
 - [Azure Key Vault Integration](../../tutorials/other-tutorials/azure-key-vault-external-secrets.md) — step-by-step tutorial for AKS with Azure Key Vault
 - [Databricks: Predictive Optimization](https://docs.databricks.com/aws/en/optimizations/predictive-optimization)
