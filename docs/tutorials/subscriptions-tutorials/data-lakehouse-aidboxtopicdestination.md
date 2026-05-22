@@ -1007,7 +1007,24 @@ Effective wall-clock concurrency is therefore `min(N, sum_of_cores_across_all_po
 | 2-4 pods (HA), ≥10M rows | `16` | Distributes evenly across pods; survives a pod restart mid-export. |
 | 4+ pods, ≥100M rows | `32` | Cap by your PG `max_connections` budget — each worker holds at least one connection. |
 
-**Practical sizing rule:** set `N ≈ sum of cores across all Aidbox pods running the destination`. If PG `max_connections` is the bottleneck (each worker holds ~2 connections: one for the cursor, one for the lock), cap `N` at `(max_connections - other_load) / 2`.
+**Picking `N` — formula.** Two ceilings, take the smaller:
+
+```
+N = min( total_cores_across_all_pods,
+         (pg_max_connections - aidbox_baseline) / 2 )
+```
+
+- `total_cores_across_all_pods` — sum of CPU cores allocated to every Aidbox pod that's connected to this metastore. Each pod auto-caps its local worker pool at its own core count (via `Runtime.availableProcessors()`); the cluster-wide sum is the maximum number of workers that will ever run concurrently. Setting `N` higher than that adds nothing — surplus workers spin on `pg_try_advisory_lock` returning `false`.
+- `pg_max_connections` — your PostgreSQL `max_connections` setting (default `100`).
+- `aidbox_baseline` — connections Aidbox uses for normal traffic (HikariCP pool size × pod count). Conservative default: `30 × pod_count`. Check your `pg_stat_activity` under steady-state load if you want a tighter number.
+- `/ 2` — each worker holds at most two PG connections: one for the `sof.<view>` server-side cursor, one short-lived for the lock-and-progress operations.
+
+Floor at `1` (default), don't bother going above `64`.
+
+Example, 4 pods × 8 cores each, PG `max_connections=200`:
+- core ceiling: `32`
+- connection ceiling: `(200 - 30·4) / 2 = (200 - 120) / 2 = 40`
+- → `N = min(32, 40) = 32`
 
 Independent of `initialExportParallelism`, the SQL warehouse running the final MERGE remains a separate axis — for ≥100M-row exports temporarily scale it to `M` or `L` while initial-export is running, then back down once `initialExportStatus=completed`.
 
