@@ -1,5 +1,5 @@
 ---
-description: Export FHIR resources to a Data Lakehouse — Databricks Unity Catalog managed tables or non-managed external Delta tables on S3 / GCS / Azure ADLS — using SQL-on-FHIR ViewDefinitions.
+description: Export FHIR resources to Databricks Unity Catalog managed Delta tables using SQL-on-FHIR ViewDefinitions.
 ---
 
 # Data Lakehouse AidboxTopicDestination
@@ -8,11 +8,15 @@ description: Export FHIR resources to a Data Lakehouse — Databricks Unity Cata
 This functionality is available starting from Aidbox version **2605**.
 {% endhint %}
 
-This page sets up an `AidboxTopicDestination` that streams FHIR resource changes into Delta-Lake tables — Databricks-managed Unity Catalog tables, or external Delta tables on S3 / GCS / Azure ADLS that you own. Rows are flattened by a [ViewDefinition](../../modules/sql-on-fhir/defining-flat-views-with-view-definitions.md) so analytics consumers see columns, not nested FHIR JSON.
+{% hint style="info" %}
+**Cloud support: AWS only (today).** The initial-export staging Delta is written via Unity Catalog credential vending, and the module currently only consumes the `aws_temp_credentials` response (S3 / `s3a://` staging buckets). GCS and Azure ADLS Gen2 staging are not yet wired — adding them is tracked as a follow-up.
+{% endhint %}
+
+This page sets up an `AidboxTopicDestination` that streams FHIR resource changes into a Databricks Unity Catalog managed Delta table. Rows are flattened by a [ViewDefinition](../../modules/sql-on-fhir/defining-flat-views-with-view-definitions.md) so analytics consumers see columns, not nested FHIR JSON.
 
 ## Background
 
-"Data Lakehouse" is the generic name for the destination category — a hybrid of object-storage data lake and warehouse, implemented here on top of the Delta Lake table format. Concretely the module writes Delta-formatted tables that can live on plain cloud object storage you own, or in Databricks Unity Catalog managed storage; either way the destination kind is the same (`data-lakehouse-at-least-once`).
+"Data Lakehouse" is the generic name for the destination category — a hybrid of object-storage data lake and warehouse, implemented here on top of the Delta Lake table format. The module writes a Delta-formatted Unity Catalog managed table; the destination kind is `data-lakehouse-at-least-once`.
 
 If you're already comfortable with Databricks, Unity Catalog, and Delta Lake, skip to [Overview](#overview).
 
