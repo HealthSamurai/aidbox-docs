@@ -16,7 +16,7 @@ This page sets up an `AidboxTopicDestination` that streams FHIR resource changes
 
 ## Background
 
-"Data Lakehouse" is the generic name for the destination category — a hybrid of object-storage data lake and warehouse, implemented here on top of the Delta Lake table format. The module writes a Delta-formatted Unity Catalog managed table; the destination kind is `data-lakehouse-at-least-once`.
+"Data Lakehouse" is the generic name for the destination category — a hybrid of object-storage data lake and warehouse, implemented here on top of the Delta Lake table format. The module writes a Delta-formatted Unity Catalog managed table.
 
 If you're already comfortable with Databricks, Unity Catalog, and Delta Lake, skip to [Overview](#overview).
 
@@ -100,11 +100,7 @@ The module may also perform an initial export of pre-existing resources at first
 
 ### Write modes
 
-The module supports two **write modes**, picked per-destination via the `writeMode` parameter (see the [Configuration](#configuration) section below for the full parameter list).
-
-### managed-zerobus mode (default)
-
-`writeMode=managed-zerobus` targets a **Databricks Unity Catalog managed table** via the [Zerobus REST ingest endpoint](https://docs.databricks.com/aws/en/ingestion/zerobus-ingest).
+The module supports two **write modes**, picked per-destination via the `writeMode` parameter. Both target the same Unity Catalog managed Delta table and share the same initial-bulk staging + `MERGE INTO` flow, the same auto-`ALTER` schema-drift handling, and the same Databricks-side Predictive Optimization. They differ only in **how live batches reach Databricks**:
 
 ```mermaid
 graph LR
@@ -112,48 +108,18 @@ graph LR
     B(Aidbox Topics API):::blue2
     C(PostgreSQL queue):::neutral2
     D(ViewDefinition flatten):::yellow2
-    Z(Zerobus REST ingest):::green2
-    T0(Unity Catalog managed Delta table):::violet2
+    Z(Zerobus REST ingest<br/>managed-zerobus):::green2
+    M(Databricks SQL warehouse<br/>managed-sql):::green2
+    T(Unity Catalog managed Delta table):::violet2
 
-    A --> B --> C --> D --> Z --> T0
+    A --> B --> C --> D
+    D -- managed-zerobus --> Z --> T
+    D -- managed-sql --> M --> T
 ```
 
-- Each batch is JSON-encoded as an array and POSTed to the Zerobus REST endpoint with an OAuth M2M bearer. No SQL parsing, no warehouse cold-start.
-- Initial bulk export uses a one-shot staging Delta table + `MERGE INTO` — same path as `managed-sql`.
-- Schema sync at sender bootstrap hits the SQL warehouse once (`INFORMATION_SCHEMA.COLUMNS` + optional `ALTER TABLE`); live writes don't.
+**Default to `managed-zerobus`.** Each batch is JSON-encoded and POSTed to the [Zerobus REST ingest endpoint](https://docs.databricks.com/aws/en/ingestion/zerobus-ingest) with an OAuth M2M bearer — no SQL parsing, no warm warehouse. The warehouse is hit once at sender bootstrap for `INFORMATION_SCHEMA.COLUMNS` + optional `ALTER TABLE`; live writes don't touch it.
 
-### managed-sql mode
-
-`writeMode=managed-sql` — same target as `managed-zerobus` (Unity Catalog **managed** table), but routes incoming batches through a Databricks SQL warehouse. Use this when Zerobus isn't available on your Databricks SKU.
-
-```mermaid
-graph LR
-    A(FHIR resource POST / PUT / DELETE):::blue2
-    B(Aidbox Topics API):::blue2
-    C(PostgreSQL queue):::neutral2
-    D(ViewDefinition flatten):::yellow2
-    M(Databricks SQL warehouse):::green2
-    T1(Unity Catalog managed Delta table):::violet2
-
-    A --> B --> C --> D --> M --> T1
-```
-
-- Each batch becomes a single `INSERT INTO managed (cols) VALUES (...)` against the SQL warehouse.
-- Initial bulk export uses a one-shot staging Delta table + `MERGE INTO`. See [Initial export](#how-it-works-managed-modes).
-
-## Choosing between the two modes
-
-**Default to `managed-zerobus`.** Pick `managed-sql` when Zerobus isn't available on your Databricks SKU — same managed target, but every batch hits a warm SQL warehouse.
-
-|                                | `managed-zerobus` (default)                                              | `managed-sql`                                                            |
-| ------------------------------ | ------------------------------------------------------------------------ | ------------------------------------------------------------------------ |
-| Table type                     | Unity Catalog **managed** (Databricks owns the files)                    | Unity Catalog **managed** (Databricks owns the files)                    |
-| Hot-path transport             | Zerobus REST ingest API                                                  | Databricks SQL warehouse (Statement Execution API)                       |
-| Who runs maintenance           | Databricks (Predictive Optimization handles `OPTIMIZE` / `VACUUM`)       | Databricks (Predictive Optimization handles `OPTIMIZE` / `VACUUM`)       |
-| Databricks compute cost surface| **No warm warehouse** — pay-per-row Zerobus + storage only               | SQL warehouse must be running to accept INSERTs — Databricks bills uptime |
-| Schema drift handling          | Auto-`ALTER` on mismatch                                                 | Auto-`ALTER` on mismatch                                                 |
-| Initial export path            | Staging Delta on your bucket → `MERGE INTO` target                       | Staging Delta on your bucket → `MERGE INTO` target                       |
-| Storage backends               | Databricks-managed storage                                               | Databricks-managed storage                                               |
+**Use `managed-sql` only when Zerobus isn't available on your Databricks SKU.** Each batch becomes a single `INSERT INTO managed (cols) VALUES (...)` against a SQL warehouse — same target, same idempotent staging-MERGE init, just a warm warehouse on the hot path. The cost difference is the warehouse uptime billing.
 
 ## Authentication
 
@@ -735,7 +701,7 @@ In both `managed-*` modes the module issues `ALTER TABLE ADD COLUMNS` automatica
 {% endstep %}
 
 {% hint style="info" %}
-**The next step sets up initial-bulk staging.** Skip it (and the staging-specific grants in the next-but-one step) if you only need new data going forward — the destination has a parameter that turns the backfill off.
+**Setting up initial-bulk staging next.** Skip this step and the staging grants below if you only need new data going forward — set `skipInitialExport=true` on the destination.
 {% endhint %}
 
 {% step %}
