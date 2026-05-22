@@ -1102,7 +1102,9 @@ Available in Aidbox versions **2605** and later.
 
 Besides the continuous `AidboxTopicDestination` flow above, the module also serves as the `kind="data-lakehouse"` backend for the [SQL-on-FHIR v2 `$viewdefinition-export` operation](../../modules/sql-on-fhir/operation-viewdefinition-export.md) — a one-shot async export of a ViewDefinition's rows into the same Databricks managed UC table. Useful for periodic snapshots / backfills / ad-hoc dumps where standing up a continuous destination is overkill.
 
-The Databricks-side setup (catalog, schema, target table, staging schema, SP, grants, warehouse) is identical to the continuous flow above. Invocation:
+Architecturally this is **the initial export from [Initial export](#initial-export) above, exposed standalone** — same `sof.<view>` → staging Delta → `MERGE INTO target` → drop-staging flow, no continuous-streaming worker afterwards, no `AidboxTopicDestination` row in PG. The Databricks-side setup (catalog, schema, target table, staging schema, SP, grants, warehouse) is therefore identical to the continuous flow's setup above.
+
+Invocation:
 
 ```http
 POST /fhir/ViewDefinition/$viewdefinition-export
