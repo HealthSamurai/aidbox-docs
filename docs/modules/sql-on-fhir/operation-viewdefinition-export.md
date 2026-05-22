@@ -4,6 +4,10 @@ description: Async bulk export of a ViewDefinition's materialized rows to a back
 # `$viewdefinition-export` operation
 
 {% hint style="info" %}
+Available in Aidbox versions **2605** and later.
+{% endhint %}
+
+{% hint style="info" %}
 Implements [SQL-on-FHIR v2 `$viewdefinition-export`](https://build.fhir.org/ig/FHIR/sql-on-fhir-v2/OperationDefinition-ViewDefinitionExport.html). Async pattern follows the FHIR async-request convention (HTTP `202` + `Content-Location` → polling URL).
 {% endhint %}
 

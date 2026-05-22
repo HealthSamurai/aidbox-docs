@@ -1092,6 +1092,10 @@ The module only ADDS columns automatically. Column drops, renames, or narrowing 
 
 ## Ad-hoc one-shot export
 
+{% hint style="info" %}
+Available in Aidbox versions **2605** and later.
+{% endhint %}
+
 Besides the continuous `AidboxTopicDestination` flow above, the module also serves as the `kind="data-lakehouse"` backend for the [SQL-on-FHIR v2 `$viewdefinition-export` operation](../../modules/sql-on-fhir/operation-viewdefinition-export.md) — a one-shot async export of a ViewDefinition's rows into the same Databricks managed UC table. Useful for periodic snapshots / backfills / ad-hoc dumps where standing up a continuous destination is overkill.
 
 The Databricks-side setup (catalog, schema, target table, staging schema, SP, grants, warehouse) is identical to the continuous flow above. Invocation:
