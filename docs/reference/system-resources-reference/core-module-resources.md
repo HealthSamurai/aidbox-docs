@@ -14077,7 +14077,7 @@ Notebook resource for interactive documentation and code execution.
   "min" : 1,
   "max" : 1,
   "type" : "string",
-  "desc" : "Type of cell content. \n\n**Allowed values**: `rpc` | `rest` | `empty` | `markdown` | `sql`"
+  "desc" : "Type of cell content. \n\n**Allowed values**: `rpc` | `rest` | `empty` | `markdown` | `sql` | `view-definition` | `sql-query`"
 }, {
   "path" : "cells.nb-title",
   "name" : "nb-title",
