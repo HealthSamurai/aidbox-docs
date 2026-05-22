@@ -1139,7 +1139,7 @@ See the [`$viewdefinition-export` operation page](../../modules/sql-on-fhir/oper
 
 ## Multiple destinations
 
-You can create multiple destinations for the same topic — for example, to mirror the same data into both a managed analytics table and an external archive table, or to use different ViewDefinitions for different downstream consumers. Each destination operates independently with its own queue, writer, and status.
+You can create multiple destinations for the same topic — for example, to materialize the same source resources into different ViewDefinitions for different downstream consumers, or to mirror writes into separate managed tables (different catalogs / schemas). Each destination operates independently with its own queue, writer, and status.
 
 ## Retry behavior
 
