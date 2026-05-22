@@ -142,7 +142,7 @@ The `output[].location` URI scheme is backend-specific (`databricks-uc:` for the
 
 ## Cloud support
 
-The Aidbox-side wiring is cloud-agnostic, but **the first-party backend (`kind=data-lakehouse`, [`topic-destination-deltalake`](../../tutorials/subscriptions-tutorials/data-lakehouse-aidboxtopicdestination.md)) currently supports AWS only**. The initial-export staging Delta is written via Unity Catalog credential vending and the module only consumes the `aws_temp_credentials` response (S3 / `s3a://` staging buckets). GCS and Azure ADLS Gen2 staging are tracked as follow-ups.
+The Aidbox-side wiring is cloud-agnostic, but **the first-party backend (`kind=data-lakehouse`, [`topic-destination-deltalake`](../../tutorials/subscriptions-tutorials/data-lakehouse-aidboxtopicdestination.md)) currently supports AWS S3 only** for the staging Delta path. **Google Cloud Storage** (`gs://...`) and **Azure ADLS Gen2** (`abfss://...`) are not yet supported — adding them is tracked as a follow-up. The Databricks Unity Catalog managed target table is unaffected (UC manages target storage internally).
 
 ## Limitations (current)
 

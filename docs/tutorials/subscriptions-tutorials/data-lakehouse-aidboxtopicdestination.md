@@ -8,8 +8,8 @@ description: Export FHIR resources to Databricks Unity Catalog managed Delta tab
 This functionality is available starting from Aidbox version **2605**.
 {% endhint %}
 
-{% hint style="info" %}
-**Cloud support: AWS only (today).** The initial-export staging Delta is written via Unity Catalog credential vending, and the module currently only consumes the `aws_temp_credentials` response (S3 / `s3a://` staging buckets). GCS and Azure ADLS Gen2 staging are not yet wired — adding them is tracked as a follow-up.
+{% hint style="warning" %}
+**Cloud support: AWS S3 only (today).** The initial-export staging bucket must be an **AWS S3** bucket (`s3://...`). **Google Cloud Storage** (`gs://...`) and **Azure ADLS Gen2** (`abfss://...`) are not yet supported as staging backends — adding them is tracked as a follow-up. The Databricks Unity Catalog managed target table is unaffected (UC manages target storage internally).
 {% endhint %}
 
 This page sets up an `AidboxTopicDestination` that streams FHIR resource changes into a Databricks Unity Catalog managed Delta table. Rows are flattened by a [ViewDefinition](../../modules/sql-on-fhir/defining-flat-views-with-view-definitions.md) so analytics consumers see columns, not nested FHIR JSON.
@@ -178,7 +178,7 @@ The service principal and the grants it needs are set up in the [Usage example](
 - AWS CLI (for initial-export staging — bucket + IAM role)
 - A SQL warehouse
 - For `managed-zerobus`: Zerobus enabled on your SKU (Databricks Free Edition supports it; for paid plans confirm with Databricks support)
-- For initial-export: an S3/GCS/ADLS bucket you control
+- For initial-export: an **S3 bucket** you control. GCS and Azure ADLS Gen2 are not supported for the staging path today (see the "Cloud support: AWS only" callout above).
 
 The service principal that authenticates the module is created in step 3 of the usage example — you don't need it before you start.
 
@@ -286,7 +286,7 @@ All requests in this tutorial use `Content-Type: application/json`.
 <tr><td><code>tableName</code></td><td>string</td><td>Managed table full name: <code>catalog.schema.table</code></td></tr>
 <tr><td><code>databricksWarehouseId</code></td><td>string</td><td>SQL warehouse ID — used at bootstrap for schema sync + (if initial-export runs) the final <code>MERGE INTO</code>. No warm-warehouse traffic during live writes.</td></tr>
 <tr><td><code>awsRegion</code></td><td>string</td><td>AWS region of the staging bucket</td></tr>
-<tr><td><code>stagingTablePath</code></td><td>string</td><td><code>s3://bucket/path/</code> for the staging Delta table created during initial export. Required when <code>skipInitialExport</code> is not <code>true</code></td></tr>
+<tr><td><code>stagingTablePath</code></td><td>string</td><td><code>s3://bucket/path/</code> for the staging Delta table created during initial export (<strong>S3 only</strong> today). Required when <code>skipInitialExport</code> is not <code>true</code></td></tr>
 </tbody>
 </table>
 
@@ -328,7 +328,7 @@ All requests in this tutorial use `Content-Type: application/json`.
 <tr><td><code>tableName</code></td><td>string</td><td>Managed table full name: <code>catalog.schema.table</code></td></tr>
 <tr><td><code>databricksWarehouseId</code></td><td>string</td><td>SQL warehouse ID</td></tr>
 <tr><td><code>awsRegion</code></td><td>string</td><td>AWS region of the staging bucket</td></tr>
-<tr><td><code>stagingTablePath</code></td><td>string</td><td><code>s3://bucket/path/</code> for the staging Delta table created during initial export. Required when <code>skipInitialExport</code> is not <code>true</code></td></tr>
+<tr><td><code>stagingTablePath</code></td><td>string</td><td><code>s3://bucket/path/</code> for the staging Delta table created during initial export (<strong>S3 only</strong> today). Required when <code>skipInitialExport</code> is not <code>true</code></td></tr>
 </tbody>
 </table>
 
