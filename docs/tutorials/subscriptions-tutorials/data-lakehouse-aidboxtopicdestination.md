@@ -948,6 +948,35 @@ To skip the initial export (e.g., the table is already populated or you only nee
 
 The flow (mermaid diagram + step-by-step, with the staging Delta relay and idempotent `MERGE INTO`) is documented on the [`$viewdefinition-export` operation page → How it works](../../modules/sql-on-fhir/operation-viewdefinition-export.md#how-it-works-kind-data-lakehouse). The destination's initial export and the standalone operation share the same code path.
 
+### Timing & monitoring
+
+The kick-off and the export are **decoupled** — `POST /AidboxTopicDestination` does not hold the HTTP connection open while billions of rows stream into Databricks.
+
+| Phase | Where it runs | Approx. duration |
+|---|---|---|
+| Aidbox writes the resource to PG | sync, inside the POST | <1s |
+| Module bootstrap (validate, OAuth token, schema sync + optional `ALTER TABLE` via SQL warehouse) | sync, inside the POST | 1-2 min on a cold warehouse, <1s when warm |
+| Initial export (cursor → staging Delta → `MERGE INTO` target → drop staging) | **async, in a background `future`** | seconds to hours, depending on row count and `initialExportParallelism` |
+| Continuous worker (PG queue → batch → Zerobus or SQL) | async, runs forever | — |
+
+So `POST /AidboxTopicDestination` returns `201 Created` after **bootstrap** (1-2 minutes worst-case), not after initial-export. There's no HTTP timeout regardless of dataset size.
+
+Poll progress via the destination's `$status` endpoint:
+
+```sh
+curl -u root:secret "$AIDBOX_URL/fhir/AidboxTopicDestination/patient-databricks/\$status" | jq
+```
+
+Relevant fields during initial export:
+
+- `initialExportStatus` — `not_started` / `export-in-progress` / `completed` / `skipped` / `failed`.
+- `initialExportProgress_rowsSent` — running row count (updated every 10k rows).
+- `initialExportError` — error message when `initialExportStatus=failed`.
+
+On failure the module retries up to 3 times with exponential backoff (1s → 2s → 4s). The `MERGE INTO ... ON t.id = s.id WHEN NOT MATCHED THEN INSERT *` is idempotent on `id`, so a retry after a lost ack inserts zero new rows.
+
+The continuous worker starts polling the PG queue **immediately after destination creation**, in parallel with initial export — initial-export and live writes are not serialized. The MERGE keying on `id` means a continuous-stream row inserted before initial-export catches up just gets skipped by the eventual MERGE pass (idempotent).
+
 ### Large-scale initial export
 
 For ≥1M-row datasets the single-cursor + single-Kernel-writer default is the wall-clock bottleneck. The `initialExportParallelism` parameter (default `1`) fans the staging write out across `N` hash-partitioned chunks. The chunks are written by parallel workers into per-chunk staging Delta tables, then a single `MERGE INTO target USING (SELECT * FROM staging_0 UNION ALL ...)` materializes everything into the managed target in one SQL statement.
