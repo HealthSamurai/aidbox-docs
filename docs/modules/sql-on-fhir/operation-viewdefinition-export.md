@@ -159,49 +159,45 @@ The Databricks-side setup (catalog, schema, target table, staging schema, servic
 
 ## Multi-pod execution
 
-Every Aidbox pod sharing the same PostgreSQL metastore participates in any in-flight export automatically — there's no leader election, no service-discovery, no external coordinator.
+Workflow orchestration runs on Aidbox's standard async-task engine — the same one that powers [`$purge`](../../api/bulk-api/purge.md) and other long-running operations. Job state lives in shared PostgreSQL tables (`db_scheduler.scheduled_tasks` + history), so every pod connected to the same metastore can pick up work and answer status polls.
 
-Canonical state for an export lives in a backend-owned PostgreSQL table (`tds.viewdefinition_export_jobs` for `kind=data-lakehouse`, created lazily on first kick-off, sitting alongside the existing `tds.event_storage` that AidboxTopicDestinations use). The pod that received the `POST` inserts the jobs row and broadcasts a `::vd-export-new-job` event on the `cache_replication_msgs` PG NOTIFY channel — the same fan-out infrastructure Aidbox already uses to replicate `AidboxTopicDestination` create/delete across the cluster. Every pod's cache-listener thread picks the event up and spawns local worker threads.
+On kick-off:
 
-Workers on every pod then race for chunks via `pg_try_advisory_lock(export-id-hash, chunk-id)`. First worker to claim a given chunk-id runs that chunk; the others see `false` and move on to the next. The lock mechanism is identical to the one `AidboxTopicDestination`'s distributed initial-sync uses; the [tutorial's Large-scale initial export](../../tutorials/subscriptions-tutorials/data-lakehouse-aidboxtopicdestination.md#large-scale-initial-export) section has the sizing formula.
+1. The receiving pod synchronously validates inputs and calls the backend's `plan-export` (chunk discovery) and `setup-export` (e.g. allocate per-chunk staging tables) hooks. Config errors surface as `400` here, before any task is scheduled.
+2. The pod schedules `N` chunk tasks + 1 supervisor task on the async-task engine and returns `202` to the client.
+3. Chunk tasks run concurrently on any pod with a free async-task worker — chunks naturally spread across the cluster. The supervisor task polls chunk completion and dispatches the backend's `finalize-export` hook (for `kind=data-lakehouse`: the final `MERGE INTO target USING (UNION ALL stagings)` + staging drop).
 
-Crash recovery is implicit: PG session-level advisory locks auto-release on connection drop, so when a worker (or its whole pod) dies mid-chunk, a sibling worker on any surviving pod re-claims that chunk on its next loop iteration.
+Crash recovery is inherited from the async-task engine: tasks heartbeat into PostgreSQL, and a task whose worker dies is re-leased to another pod after the heartbeat timeout. No bespoke advisory-lock juggling, no `NOTIFY` fan-out, no kick-off-pod affinity.
 
 ```mermaid
 sequenceDiagram
     participant C as Client
-    participant P1 as Aidbox pod 1<br/>(kick-off pod)
-    participant PG as PostgreSQL<br/>tds.viewdefinition_export_jobs<br/>+ cache_replication_msgs
+    participant P1 as Aidbox pod 1<br/>(kick-off)
+    participant PG as PostgreSQL<br/>(db_scheduler.scheduled_tasks)
     participant P2 as Aidbox pod 2
 
     C->>P1: POST $viewdefinition-export
-    P1->>PG: INSERT jobs row
-    P1->>PG: NOTIFY ::vd-export-new-job
+    P1->>P1: plan-export + setup-export (sync)
+    P1->>PG: schedule N chunk tasks + 1 supervisor
     P1-->>C: 202 + Content-Location
-    PG-->>P1: deliver event
-    PG-->>P2: deliver event
-    par chunk race on pg_try_advisory_lock
-        P1->>PG: claim chunk-0 → write chunk-0 staging
-        P2->>PG: claim chunk-1 → write chunk-1 staging
+    par chunks lease from PG
+        P1->>PG: lease chunk-0 → write staging-0
+        P2->>PG: lease chunk-1 → write staging-1
     end
-    P1->>PG: claim merge-coordinator lock
-    P1->>P1: MERGE INTO target USING (UNION ALL stagings)
-    P1->>PG: UPDATE jobs SET status=completed
+    P2->>PG: supervisor task wakes → all chunks done
+    P2->>P2: finalize-export (MERGE + drop stagings)
+    P2->>PG: mark export completed
+    C->>P2: GET status/&lt;id&gt; → 200 completed
 ```
+
+Backends plug in by implementing four mandatory multimethods (`plan-export`, `setup-export`, `export-chunk`, `finalize-export`) and one optional one (`cancel-export`) — see `aidbox-api` `io.healthsamurai.topics.api` for the contract.
 
 ## Cloud support
 
 The Aidbox-side wiring is cloud-agnostic, but **the first-party backend (`kind=data-lakehouse`, [`topic-destination-deltalake`](../../tutorials/subscriptions-tutorials/data-lakehouse-aidboxtopicdestination.md)) currently supports AWS S3 only** for the staging Delta path. **Google Cloud Storage** (`gs://...`) and **Azure ADLS Gen2** (`abfss://...`) are not yet supported — adding them is tracked as a follow-up. The Databricks Unity Catalog managed target table is unaffected (UC manages target storage internally).
 
-## Troubleshooting
-
-**Status poll returns `404` on a multi-pod cluster.** The canonical jobs row is shared across pods (see [Multi-pod execution](#multi-pod-execution)), but Aidbox additionally keeps a small per-pod in-memory cache of the echo-only spec fields (`clientTrackingId`, `_format`, the registered `kind` needed to route the status dispatch). That cache only lives on the pod that received the original `POST`. A `GET .../status/<export-id>` arriving on any other pod returns `404`.
-
-Configure your load balancer with session affinity on the `/fhir/ViewDefinition/$viewdefinition-export/status/` path so clients keep hitting the same pod for the lifetime of the export. The kick-off response's `Content-Location` header already names the hostname the client should stick to — most LBs can be told to honour it (cookie-based affinity in nginx-ingress, source-IP hash, etc.). A FHIR-resource-backed status (so any pod can answer any poll) is tracked as a follow-up.
-
 ## Limitations (current)
 
 - One `view` per request (spec allows `1..*`).
 - `patient` / `group` / `_since` filters extracted but not yet applied to the SQL.
-- Status polling requires LB session affinity on the `Content-Location` hostname — see [Troubleshooting](#troubleshooting).
 - Cancellation (`cancelUrl`) and `estimatedTimeRemaining` are not implemented.

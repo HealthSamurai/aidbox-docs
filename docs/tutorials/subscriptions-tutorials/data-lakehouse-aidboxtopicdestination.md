@@ -1137,9 +1137,9 @@ Returns `202 Accepted` + `Content-Location: /fhir/ViewDefinition/$viewdefinition
 
 ### Scaling and multi-pod execution
 
-For large views add `{"name": "initialExportParallelism", "valueUnsignedInt": <N>}` to the Parameters body — same semantics, same sizing formula as the continuous-destination flow's [Large-scale initial export](#large-scale-initial-export). One ad-hoc export benefits from every Aidbox pod connected to the same metastore: the kick-off pod inserts a row into `tds.viewdefinition_export_jobs` and broadcasts a `cache_replication_msgs` PG NOTIFY event; every pod's cache listener picks it up and joins the chunk race via `pg_try_advisory_lock`. No leader, no service-discovery, no per-job pod assignment — identical mechanism to the continuous AidboxTopicDestination initial sync.
+For large views add `{"name": "initialExportParallelism", "valueUnsignedInt": <N>}` to the Parameters body — same chunking semantics and sizing formula as the continuous-destination flow's [Large-scale initial export](#large-scale-initial-export).
 
-Status polling is hostname-sticky: the kick-off pod keeps a small per-pod cache of the echo-only spec fields needed to assemble the status response, so always poll the same hostname you posted to. In a load-balanced cluster, configure session affinity on `/fhir/ViewDefinition/$viewdefinition-export/status/` (most LBs can honour the `Content-Location` header the kick-off returned). See the [operation page's Troubleshooting](../../modules/sql-on-fhir/operation-viewdefinition-export.md#troubleshooting) for details.
+Chunks run on Aidbox's standard async-task engine, so they spread across every pod sharing the metastore and status polls are answered by any pod. No load-balancer affinity is needed. See the [operation page's Multi-pod execution](../../modules/sql-on-fhir/operation-viewdefinition-export.md#multi-pod-execution) for the orchestration details.
 
 See the [`$viewdefinition-export` operation page](../../modules/sql-on-fhir/operation-viewdefinition-export.md) for the full parameter list, status response shape, and current limitations.
 
