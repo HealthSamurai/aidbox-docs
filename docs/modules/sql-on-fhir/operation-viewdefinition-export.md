@@ -4,15 +4,7 @@ description: Async bulk export of a ViewDefinition's materialized rows to a back
 # `$viewdefinition-export` operation
 
 {% hint style="info" %}
-Available in Aidbox versions **2605** and later.
-{% endhint %}
-
-{% hint style="info" %}
-Implements [SQL-on-FHIR v2 `$viewdefinition-export`](https://build.fhir.org/ig/FHIR/sql-on-fhir-v2/OperationDefinition-ViewDefinitionExport.html). Async pattern follows the FHIR async-request convention (HTTP `202` + `Content-Location` → polling URL).
-{% endhint %}
-
-{% hint style="warning" %}
-Requires **fhir-schema mode** (same as the other ViewDefinition operations).
+Available in Aidbox versions **2605** and later. Requires **fhir-schema mode**. Implements [SQL-on-FHIR v2 `$viewdefinition-export`](https://build.fhir.org/ig/FHIR/sql-on-fhir-v2/OperationDefinition-ViewDefinitionExport.html) — the FHIR async-request pattern (HTTP `202` + `Content-Location` → polling URL).
 {% endhint %}
 
 A one-shot ad-hoc export of a ViewDefinition's materialized rows into a backend-provided sink. Aidbox owns the FHIR-side wiring (route, Parameters parsing, async kick-off, status polling); the sink is contributed by an external Aidbox module that registers itself as a **backend** keyed by the `kind` input parameter.
@@ -25,7 +17,7 @@ Use this when you need a periodic snapshot / backfill / ad-hoc dump and don't wa
 |---|---|---|
 | `data-lakehouse` | Databricks Unity Catalog managed Delta table | [`topic-destination-deltalake`](../../tutorials/subscriptions-tutorials/data-lakehouse-aidboxtopicdestination.md) |
 
-Future BigQuery / ClickHouse backends would plug in with their own `kind`. Customers see "no backend registered for kind=X" if they invoke with an unsupported value.
+Future BigQuery / ClickHouse backends would plug in with their own `kind`. An unsupported `kind` is reported as `status=failed` in the poll response with the error `"No backend registered for $viewdefinition-export kind=X"` — see [Failure model](#failure-model) below.
 
 ## Kick-off
 
@@ -122,7 +114,7 @@ The `output[].location` URI scheme is backend-specific (`databricks-uc:` for the
 
 - **Input validation failures** (missing `view`, missing `kind`, multiple views, `source` set, etc.) — synchronous `400 OperationOutcome` returned from the kick-off `POST`. No `export-id` is allocated.
 - **Backend-side failures** — async. The kick-off returns `202` with an `export-id`; status polling later reports `status=failed` with the error in the `error` parameter. Includes:
-  - **No backend registered for `kind`** (e.g., typo, module not deployed) — the defmulti's `:default` method raises a clear `ex-info`, so the polling output's `error` field reads `"No backend registered for $viewdefinition-export kind=..."`.
+  - **No backend registered for `kind`** (e.g., typo, module not deployed) — the polling response's `error` field reads `"No backend registered for $viewdefinition-export kind=..."`.
   - **Databricks auth** (bad `client-id` / `client-secret`).
   - **Missing target table** / **missing required Databricks parameter** (e.g., no `tableName`).
   - **Schema mismatch** the module can't auto-`ALTER`.
@@ -149,7 +141,7 @@ graph LR
 
 Steps in detail:
 
-1. Register a temporary external Delta table at `stagingTablePath` with the same schema as `sof.<view>`.
+1. Register a temporary external Delta table at `stagingTablePath` with the same schema as the SQL-on-FHIR materialized view (`sof.<view>` in Aidbox's PostgreSQL).
 2. Unity Catalog vends short-lived STS credentials for the staging path.
 3. The module writes all `sof.<view>` rows to the staging path as one Delta commit.
 4. The module issues `MERGE INTO {managed_target} USING {staging} ON t.id = s.id WHEN NOT MATCHED THEN INSERT *` against the SQL warehouse. The MERGE reads the staging Delta snapshot through the Delta protocol and inserts any rows whose `id` is not yet present in the target.

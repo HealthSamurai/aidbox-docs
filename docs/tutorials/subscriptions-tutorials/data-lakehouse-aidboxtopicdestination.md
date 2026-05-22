@@ -78,7 +78,7 @@ graph LR
     PG[(Aidbox PostgreSQL)]:::neutral2
     Mod[Data Lakehouse module]:::yellow2
     DBX[Databricks workspace]:::green2
-    FS[(Cloud storage<br/>S3 / GCS / ADLS)]:::violet2
+    FS[(AWS S3 bucket)]:::violet2
 
     Client -- FHIR POST / PUT / DELETE --> Aidbox
     Aidbox -- write resource +<br/>enqueue topic event --> PG
@@ -93,8 +93,7 @@ The flow:
 1. A FHIR API client (a user, an integration, a backfill script) sends a `POST` / `PUT` / `DELETE` to Aidbox.
 2. Aidbox persists the resource and enqueues a topic event for the destination in PostgreSQL.
 3. The Data Lakehouse module polls the destination's batch from the same PostgreSQL queue.
-4. For `managed-zerobus` mode (default): the module POSTs each batch as a JSON array to Databricks' Zerobus REST ingest endpoint, which writes directly to the managed table. No SQL parsing / planning per write.
-5. For `managed-sql` mode: the module sends `INSERT` (and `ALTER` / `DESCRIBE` when needed) to the Databricks SQL warehouse; the warehouse writes the Delta files to storage.
+4. The batch is sent to Databricks via one of the two paths picked by `writeMode` — see [Write modes](#write-modes) below.
 
 The module may also perform an initial export of pre-existing resources at first start — see [Initial export](#initial-export) for when this runs and how to skip it.
 
@@ -268,7 +267,7 @@ All requests in this tutorial use `Content-Type: application/json`.
 <tr><td><code>writeMode</code></td><td>string</td><td><code>managed-zerobus</code> (default) or <code>managed-sql</code>. Omit to get <code>managed-zerobus</code></td></tr>
 <tr><td><code>skipInitialExport</code></td><td>boolean</td><td>Skip initial export of existing data (default: <code>false</code>)</td></tr>
 <tr><td><code>targetFileSizeMb</code></td><td>unsignedInt</td><td>Parquet target size during initial export (default: <code>128</code>)</td></tr>
-<tr><td><code>initialExportParallelism</code></td><td>unsignedInt</td><td>Total number of parallel chunks for hash-partitioned initial export (default <code>1</code> — sequential). Recommended 4-8 for ≥1M-row datasets; 16-32 for multi-Aidbox setups. See <a href="#large-scale-initial-export">Large-scale initial export</a></td></tr>
+<tr><td><code>initialExportParallelism</code></td><td>unsignedInt</td><td>Cluster-wide number of parallel chunks for hash-partitioned initial export (default <code>1</code> — sequential). See <a href="#large-scale-initial-export">Large-scale initial export</a> for the sizing formula.</td></tr>
 </tbody>
 </table>
 
@@ -309,7 +308,7 @@ All requests in this tutorial use `Content-Type: application/json`.
 <tbody>
 <tr><td><code>skipInitialExport</code></td><td>boolean</td><td>Skip initial export of existing data (default: <code>false</code>)</td></tr>
 <tr><td><code>targetFileSizeMb</code></td><td>unsignedInt</td><td>Parquet target size during initial export (default: <code>128</code>)</td></tr>
-<tr><td><code>initialExportParallelism</code></td><td>unsignedInt</td><td>Total number of parallel chunks for hash-partitioned initial export (default <code>1</code> — sequential). Recommended 4-8 for ≥1M-row datasets; 16-32 for multi-Aidbox setups. See <a href="#large-scale-initial-export">Large-scale initial export</a></td></tr>
+<tr><td><code>initialExportParallelism</code></td><td>unsignedInt</td><td>Cluster-wide number of parallel chunks for hash-partitioned initial export (default <code>1</code> — sequential). See <a href="#large-scale-initial-export">Large-scale initial export</a> for the sizing formula.</td></tr>
 </tbody>
 </table>
 
