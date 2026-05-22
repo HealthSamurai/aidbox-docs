@@ -1135,6 +1135,8 @@ Prefer: respond-async
 
 Returns `202 Accepted` + `Content-Location: /fhir/ViewDefinition/$viewdefinition-export/status/<uuid>`. Poll that URL until you get `200 OK` with the final `Parameters` output.
 
+For large views add `{"name": "initialExportParallelism", "valueUnsignedInt": <N>}` to the Parameters body — same semantics as the AidboxTopicDestination parameter ([Large-scale initial export](#large-scale-initial-export)). Multi-pod Aidbox clusters cooperate automatically on the same export via Postgres advisory locks. Polling the status URL is hostname-sticky: the kick-off pod owns the small per-pod metadata cache needed to answer status requests, so always poll the same hostname you posted to (in a load-balanced cluster, ensure sticky-by-hostname or session affinity for the `/fhir/ViewDefinition/$viewdefinition-export/status/<uuid>` path).
+
 See the [`$viewdefinition-export` operation page](../../modules/sql-on-fhir/operation-viewdefinition-export.md) for the full parameter list, status response shape, and current limitations.
 
 ## Multiple destinations

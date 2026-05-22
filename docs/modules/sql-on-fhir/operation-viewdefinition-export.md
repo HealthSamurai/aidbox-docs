@@ -153,6 +153,8 @@ On failure the staging table is best-effort dropped, then the export retries up 
 The `MERGE` is idempotent on `id` — a retried export after a lost response inserts nothing instead of duplicating. Your ViewDefinition must have an `id` column.
 {% endhint %}
 
+For large views, set the backend-specific `initialExportParallelism > 1` parameter (default `1`, sequential): the backend hash-partitions `sof.<view>` into `N` chunks, writes them in parallel into per-chunk staging tables (`<base>/chunk-0/`, `<base>/chunk-1/`, …), then materializes the union into the target via one `MERGE INTO target USING (SELECT * FROM staging_0 UNION ALL …)`. In a multi-pod Aidbox cluster the workload is shared across pods — each pod claims chunks via Postgres advisory locks, so a single export benefits from the whole cluster's compute. Sizing guidance lives in the tutorial's [Large-scale initial export](../../tutorials/subscriptions-tutorials/data-lakehouse-aidboxtopicdestination.md#large-scale-initial-export) section.
+
 The Databricks-side setup (catalog, schema, target table, staging schema, service principal, grants, warehouse) is documented in the [Data Lakehouse Topic Destination tutorial](../../tutorials/subscriptions-tutorials/data-lakehouse-aidboxtopicdestination.md) — the same setup is reused here.
 
 ## Cloud support
@@ -163,5 +165,5 @@ The Aidbox-side wiring is cloud-agnostic, but **the first-party backend (`kind=d
 
 - One `view` per request (spec allows `1..*`).
 - `patient` / `group` / `_since` filters extracted but not yet applied to the SQL.
-- Status registry is in-process — restarting the Aidbox node loses pending export status. Long-running exports across restarts will be tracked via a FHIR custom resource in a follow-up.
+- Restart safety: the canonical job state (status, completed chunks, output location) is persisted by the backend — for the first-party `data-lakehouse` backend, in a Postgres `viewdefinition_export_jobs` table shared across all Aidbox pods. **A poll arriving on a different pod than the one that received the kick-off will return 404**: Aidbox keeps a small per-pod cache of the echo-only spec fields (`clientTrackingId`, `_format`) plus the `kind` needed to route the status dispatch, and that cache is in-process. In practice clients hit the same hostname for the life of an export, and Aidbox cluster load balancers commonly use hostname-sticky routing, so this is usually not visible. A FHIR-resource-backed status (so any pod can answer any poll) is a follow-up.
 - Cancellation (`cancelUrl`) and `estimatedTimeRemaining` are not implemented.
