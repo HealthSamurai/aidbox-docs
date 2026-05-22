@@ -110,6 +110,23 @@ Completed output for `kind=data-lakehouse`:
 
 The `output[].location` URI scheme is backend-specific (`databricks-uc:` for the data-lakehouse backend).
 
+## Cancellation
+
+```http
+DELETE /fhir/ViewDefinition/$viewdefinition-export/status/<export-id>
+```
+
+Stops an in-flight export and triggers backend cleanup (the data-lakehouse backend drops per-chunk staging tables it created). Response codes:
+
+- `202 Accepted` — cancel acknowledged, async cleanup running. Body reports `status=canceling`; poll the same status URL to see when chunks finish dropping out of `db_scheduler.scheduled_tasks` and the operation reaches a terminal state.
+- `200 OK` — operation already terminal (`completed` / `failed`). DELETE is idempotent; the response is the same as a GET on the status URL.
+- `404 Not Found` — unknown `export-id` (no tasks in `db_scheduler.scheduled_tasks{,_history}` for that id).
+
+What cancellation does **not** do:
+
+- It does not roll back rows already merged into the target managed table. The merge is the last step of finalize-export — if cancel arrives before finalize, no rows have landed; if after finalize, the operation is already terminal and cancel is a no-op.
+- It does not delete history rows of chunks that already completed. The audit trail of partial work survives in `db_scheduler.scheduled_tasks_history` (cleaned up by db-scheduler's regular sweep).
+
 ## Failure model
 
 - **Input validation failures** (missing `view`, missing `kind`, multiple views, `source` set, etc.) — synchronous `400 OperationOutcome` returned from the kick-off `POST`. No `export-id` is allocated.
@@ -200,4 +217,5 @@ The Aidbox-side wiring is cloud-agnostic, but **the first-party backend (`kind=d
 
 - One `view` per request (spec allows `1..*`).
 - `patient` / `group` / `_since` filters extracted but not yet applied to the SQL.
-- Cancellation (`cancelUrl`) and `estimatedTimeRemaining` are not implemented.
+- `cancelUrl` (the spec's pointer to a cancel endpoint exposed in the kick-off response) is not yet returned. Cancellation itself works — `DELETE` on the status URL is supported (see [Cancellation](#cancellation) above); clients have to know that convention rather than discover it from the response body.
+- `estimatedTimeRemaining` is not computed.
