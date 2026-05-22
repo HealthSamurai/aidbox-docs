@@ -120,9 +120,16 @@ The `output[].location` URI scheme is backend-specific (`databricks-uc:` for the
 
 ## Failure model
 
-- **Input validation failures** (missing `view`, missing `kind`, multiple views, `source` set, etc.) — synchronous `400 OperationOutcome`.
-- **No backend registered for `kind`** — same shape; `400` with `code=no-backend`.
-- **Backend-side failures** (e.g., Databricks auth, missing target table, schema mismatch) — async. The kick-off returns `202`, then status polling reports `status=failed` with an `error` field carrying the message.
+- **Input validation failures** (missing `view`, missing `kind`, multiple views, `source` set, etc.) — synchronous `400 OperationOutcome` returned from the kick-off `POST`. No `export-id` is allocated.
+- **Backend-side failures** — async. The kick-off returns `202` with an `export-id`; status polling later reports `status=failed` with the error in the `error` parameter. Includes:
+  - **No backend registered for `kind`** (e.g., typo, module not deployed) — the defmulti's `:default` method raises a clear `ex-info`, so the polling output's `error` field reads `"No backend registered for $viewdefinition-export kind=..."`.
+  - **Databricks auth** (bad `client-id` / `client-secret`).
+  - **Missing target table** / **missing required Databricks parameter** (e.g., no `tableName`).
+  - **Schema mismatch** the module can't auto-`ALTER`.
+
+## Cloud support
+
+The Aidbox-side wiring is cloud-agnostic, but **the first-party backend (`kind=data-lakehouse`, [`topic-destination-deltalake`](../../tutorials/subscriptions-tutorials/data-lakehouse-aidboxtopicdestination.md)) currently supports AWS only**. The initial-export staging Delta is written via Unity Catalog credential vending and the module only consumes the `aws_temp_credentials` response (S3 / `s3a://` staging buckets). GCS and Azure ADLS Gen2 staging are tracked as follow-ups.
 
 ## Limitations (current)
 
