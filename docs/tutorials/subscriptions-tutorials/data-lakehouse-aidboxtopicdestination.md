@@ -984,18 +984,30 @@ The flow (mermaid diagram + step-by-step, with the staging Delta relay and idemp
 
 ### Large-scale initial export
 
-For >=1M-row datasets the single-cursor + single-Kernel-writer default is the wall-clock bottleneck. The `initialExportParallelism` parameter (default `1`) fans the staging write out across N hash-partitioned workers. They write into the **same** staging Delta table — Delta supports concurrent append-only writers natively (INSERT × INSERT does not conflict). The final `MERGE INTO target` runs as a single SQL statement after all chunks land.
+For ≥1M-row datasets the single-cursor + single-Kernel-writer default is the wall-clock bottleneck. The `initialExportParallelism` parameter (default `1`) fans the staging write out across `N` hash-partitioned chunks. The chunks are written by parallel workers into per-chunk staging Delta tables, then a single `MERGE INTO target USING (SELECT * FROM staging_0 UNION ALL ...)` materializes everything into the managed target in one SQL statement.
 
-Coordination across one or many Aidbox nodes uses **PostgreSQL advisory locks** (`pg_try_advisory_lock`). All Aidbox nodes share the same metastore by definition, so no external dependency is needed — each worker thread on each node tries to claim chunk ids `0..N-1`, runs the partition, marks the chunk completed in the destination resource extension, releases the lock, and moves to the next available chunk. PG drops advisory locks on connection disconnect, so a crashed worker frees its chunk for re-claim automatically.
+**`N` is the cluster-wide chunk count, not a per-pod thread count.** You set it once on the destination; the module figures out how many workers each Aidbox pod runs.
 
-Recommended values:
+**How a multi-pod cluster cooperates:** every Aidbox pod sharing the same PG metastore participates automatically — there's no leader, no service-discovery, no external coordinator.
 
-| N | Use case |
-|---|---|
-| `1` (default) | Backward-compatible, single-cursor sequential. |
-| `4` | Single Aidbox node, ≥1M rows. ~3-4× speedup. |
-| `8` | Larger Aidbox (≥8 cores) + plenty of PG read capacity. |
-| `16-32` | Multi-Aidbox HA deployment, ≥100M-row scale. Chunks distribute across all nodes; total cap by your PG `max_connections` budget. |
+- Each pod spawns up to `min(N, <pod's cpu cores>)` local worker threads.
+- Every worker loops over chunk-ids `0..N-1` and tries `pg_try_advisory_lock(destination-hash, chunk-id)` on each one. The first pod's worker to claim a given chunk-id runs that chunk; other workers (on the same pod or any other pod) see `false` and move to the next chunk-id.
+- When a chunk finishes the worker marks the chunk-id completed in the destination resource extension (a separate PG advisory lock serializes that read-modify-write across pods) and releases the chunk's lock.
+- A crashed worker's PG connection drops → PG releases all its session-level advisory locks automatically → a sibling worker on any pod picks the chunk up on its next loop iteration.
+
+Effective wall-clock concurrency is therefore `min(N, sum_of_cores_across_all_pods)`. Raising `N` past total cores doesn't make it faster — extra workers spin on lock-claim with nothing to do. Lowering `N` below total cores wastes CPU.
+
+**Picking `N` for a multi-pod cluster:**
+
+| Cluster shape | Suggested `N` | Notes |
+|---|---|---|
+| 1 pod, ≤4 cores | `1` (default) | Single-cursor sequential. Fine for <1M rows. |
+| 1 pod, 4-8 cores, ≥1M rows | `4` | ~3-4× speedup; one Kernel writer per worker, one PG cursor per worker. |
+| 1 pod, ≥8 cores | `8` | Watch PG read capacity — each cursor holds one connection until its chunk finishes. |
+| 2-4 pods (HA), ≥10M rows | `16` | Distributes evenly across pods; survives a pod restart mid-export. |
+| 4+ pods, ≥100M rows | `32` | Cap by your PG `max_connections` budget — each worker holds at least one connection. |
+
+**Practical sizing rule:** set `N ≈ sum of cores across all Aidbox pods running the destination`. If PG `max_connections` is the bottleneck (each worker holds ~2 connections: one for the cursor, one for the lock), cap `N` at `(max_connections - other_load) / 2`.
 
 Independent of `initialExportParallelism`, the SQL warehouse running the final MERGE remains a separate axis — for ≥100M-row exports temporarily scale it to `M` or `L` while initial-export is running, then back down once `initialExportStatus=completed`.
 
