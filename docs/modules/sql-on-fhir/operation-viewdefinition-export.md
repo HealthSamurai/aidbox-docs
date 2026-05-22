@@ -19,19 +19,6 @@ A one-shot ad-hoc export of a ViewDefinition's materialized rows into a backend-
 
 Use this when you need a periodic snapshot / backfill / ad-hoc dump and don't want to stand up an `AidboxTopicDestination` with its continuous-streaming worker.
 
-## Relationship to AidboxTopicDestination's initial export
-
-For `kind=data-lakehouse`, this operation reuses **the exact same flow** that the [Data Lakehouse Topic Destination](../../tutorials/subscriptions-tutorials/data-lakehouse-aidboxtopicdestination.md) runs on its first start as the "initial export": read `sof.<view>` rows → stage Parquet to an external Delta via Unity Catalog credential vending → `MERGE INTO target USING staging ON t.id = s.id WHEN NOT MATCHED THEN INSERT *` → drop staging. The difference is what surrounds that flow:
-
-| | Topic destination initial export | `$viewdefinition-export` |
-|---|---|---|
-| Triggered by | `POST /AidboxTopicDestination` (once, on resource creation) | `POST /fhir/ViewDefinition/\$viewdefinition-export` (any time, repeatable) |
-| Followed by | Continuous streaming worker that ingests new resource changes | Nothing — one-shot |
-| Status surface | `$status` on the destination resource | This op's poll URL |
-| `AidboxTopicDestination` row in PG | Yes — owns the destination's lifecycle | No — purely ad-hoc, no resource created |
-
-So if all you need is a periodic snapshot of a view and not continuous streaming, this operation gives you the same write path without the topic-destination plumbing.
-
 ## Registered backends
 
 | `kind` | Sink | Module |
@@ -174,7 +161,7 @@ On failure the staging table is best-effort dropped, then the export retries up 
 The `MERGE` is idempotent on `id` — a retried export after a lost response inserts nothing instead of duplicating. Your ViewDefinition must have an `id` column.
 {% endhint %}
 
-The Databricks-side setup (catalog, schema, target table, staging schema, SP, grants, warehouse) is documented in the [Data Lakehouse Topic Destination tutorial](../../tutorials/subscriptions-tutorials/data-lakehouse-aidboxtopicdestination.md). Same setup serves both the continuous topic destination and this ad-hoc operation — the operation reuses the topic destination's initial-export code path.
+The Databricks-side setup (catalog, schema, target table, staging schema, service principal, grants, warehouse) is documented in the [Data Lakehouse Topic Destination tutorial](../../tutorials/subscriptions-tutorials/data-lakehouse-aidboxtopicdestination.md) — the same setup is reused here.
 
 ## Cloud support
 
