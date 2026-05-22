@@ -327,6 +327,7 @@
   * [$run operation](modules/sql-on-fhir/operation-run.md)
   * [$sqlquery-run operation](modules/sql-on-fhir/operation-sqlquery-run.md)
   * [$materialize operation](modules/sql-on-fhir/operation-materialize.md)
+  * [$viewdefinition-export operation](modules/sql-on-fhir/operation-viewdefinition-export.md)
   * [Defining flat views with view definitions](modules/sql-on-fhir/defining-flat-views-with-view-definitions.md)
   * [Migrate to the spec-compliant ViewDefinition format](modules/sql-on-fhir/migrate-to-the-spec-compliant-viewdefinition-format.md)
   * [Query data from flat views](modules/sql-on-fhir/query-data-from-flat-views.md)
