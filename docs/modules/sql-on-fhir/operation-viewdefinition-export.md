@@ -138,39 +138,41 @@ What cancellation does **not** do:
 
 ## How it works (`kind=data-lakehouse`)
 
-The first-party backend uses a **staging Delta table** as a relay: it writes the `sof.<view>` rows to an external Delta table at a customer-provided `stagingTablePath` (via Unity Catalog credential vending), then `MERGE INTO`s the managed target, then drops the staging table. Same flow for `writeMode=managed-zerobus` and `writeMode=managed-sql`.
+The first-party backend uses **per-chunk staging Delta tables** as a relay. With `initialExportParallelism = N` (default `N=1`), the backend hash-partitions `sof.<view>` into `N` chunks, writes each chunk into its own external Delta table under `<stagingTablePath>/chunk-K/`, then materializes the union into the managed target with one `MERGE INTO target USING (SELECT * FROM staging_0 UNION ALL …)` against the SQL warehouse and drops every staging. The `N=1` case is just the degenerate path of that flow — one chunk, no `UNION ALL` source — so a single architecture covers both modes. Same flow for `writeMode=managed-zerobus` and `writeMode=managed-sql`.
 
 ```mermaid
 graph LR
     PG[(Aidbox PostgreSQL<br/>sof.&lt;view&gt;)]:::neutral2
-    M[Aidbox sender]:::blue2
-    Staging[Staging external Delta table<br/>on stagingTablePath]:::yellow2
+    M[Aidbox sender N pods]:::blue2
+    S0[Staging chunk-0]:::yellow2
+    SN[Staging chunk-N-1]:::yellow2
     WH[Databricks SQL warehouse]:::green2
     Target[(Unity Catalog managed Delta target)]:::violet2
 
-    M -- 1. read rows --> PG
-    M -- 2. write Parquet + Delta commit<br/>via Unity-Catalog-vended STS --> Staging
-    M -- 3. MERGE INTO target USING staging ON id<br/>WHEN NOT MATCHED THEN INSERT * --> WH
-    WH -- 4. read --> Staging
+    M -- 1. read chunk rows<br/>abs hashtext id mod N = K --> PG
+    M -- 2. write Parquet + Delta commit<br/>via UC-vended STS, per chunk --> S0
+    M -- 2. write Parquet + Delta commit<br/>via UC-vended STS, per chunk --> SN
+    M -- 3. MERGE INTO target USING<br/>UNION ALL stagings ON id<br/>WHEN NOT MATCHED THEN INSERT * --> WH
+    WH -- 4. read all stagings --> S0
+    WH -- 4. read all stagings --> SN
     WH -- 5. write --> Target
-    M -- 6. DROP TABLE staging --> WH
+    M -- 6. DROP TABLE every staging --> WH
 ```
 
 Steps in detail:
 
-1. Register a temporary external Delta table at `stagingTablePath` with the same schema as the SQL-on-FHIR materialized view (`sof.<view>` in Aidbox's PostgreSQL).
-2. Unity Catalog vends short-lived STS credentials for the staging path.
-3. The module writes all `sof.<view>` rows to the staging path as one Delta commit.
-4. The module issues `MERGE INTO {managed_target} USING {staging} ON t.id = s.id WHEN NOT MATCHED THEN INSERT *` against the SQL warehouse. The MERGE reads the staging Delta snapshot through the Delta protocol and inserts any rows whose `id` is not yet present in the target.
-5. The module drops the staging table.
+1. `plan-export` decides the chunk count from `initialExportParallelism`. `setup-export` syncs the target schema against `sof.<view>` (auto-`ALTER ADD COLUMNS` if Aidbox added columns) and pre-computes the staging-column spec so chunks don't re-describe `sof.<view>`.
+2. Each chunk task (one of `N`, possibly on different Aidbox pods) creates its own external Delta table at `<stagingTablePath>/chunk-K/`, vends short-lived STS credentials from Unity Catalog for that prefix, and streams its hash-partition of `sof.<view>` (`abs(hashtext(id::text)) % N = K`) as one Delta commit.
+3. Once all `N` chunks complete, the supervisor task invokes `finalize-export`. The module issues a single `MERGE INTO target USING (SELECT * FROM staging_0 UNION ALL …) ON t.id = s.id WHEN NOT MATCHED THEN INSERT *` to the SQL warehouse — Databricks `UNION ALL` planning is effectively free, so cost scales with row count, not chunk count.
+4. The module drops every staging table.
 
-On failure the staging table is best-effort dropped, then the export retries up to 3 times with exponential backoff (1s → 2s → 4s).
+On failure the per-chunk stagings are best-effort dropped via `cancel-export`, then the chunk's async-task retries up to 2 times with a 30-second backoff. The supervisor task itself doesn't retry — a chunk-failure cascade is surfaced as `failed` status, with the failing task's error message echoed back to the caller.
 
 {% hint style="info" %}
 The `MERGE` is idempotent on `id` — a retried export after a lost response inserts nothing instead of duplicating. Your ViewDefinition must have an `id` column.
 {% endhint %}
 
-For large views, set the backend-specific `initialExportParallelism > 1` parameter (default `1`, sequential): the backend hash-partitions `sof.<view>` into `N` chunks, writes them in parallel into per-chunk staging tables (`<base>/chunk-0/`, `<base>/chunk-1/`, …), then materializes the union into the target via one `MERGE INTO target USING (SELECT * FROM staging_0 UNION ALL …)`. In a multi-pod Aidbox cluster the workload is shared across pods — see [Multi-pod execution](#multi-pod-execution) below. Sizing guidance lives in the tutorial's [Large-scale initial export](../../tutorials/subscriptions-tutorials/data-lakehouse-aidboxtopicdestination.md#large-scale-initial-export) section.
+Why per-chunk staging even at `N=1`? Delta-on-S3 has no atomic put-if-absent on `_delta_log/N.json` without an S3DynamoDBLogStore, so two writers committing to one staging Delta race and lose commits silently ([Delta #1830](https://github.com/delta-io/delta/issues/1830), [#1410](https://github.com/delta-io/delta/issues/1410)). Per-chunk staging = exactly one writer per Delta table = no race. The MERGE source picks up where Delta left off via the standard snapshot read. Sizing guidance lives in the tutorial's [Large-scale initial export](../../tutorials/subscriptions-tutorials/data-lakehouse-aidboxtopicdestination.md#large-scale-initial-export) section. The per-chunk Aidbox PG load scales with `N` — request more than your HikariCP pool can spare and `plan-export` returns a `400` with `parallelism-exceeds-pool` before scheduling any work.
 
 The Databricks-side setup (catalog, schema, target table, staging schema, service principal, grants, warehouse) is documented in the [Data Lakehouse Topic Destination tutorial](../../tutorials/subscriptions-tutorials/data-lakehouse-aidboxtopicdestination.md) — the same setup is reused here.
 
