@@ -978,39 +978,9 @@ To skip the initial export (e.g., the table is already populated or you only nee
 { "name": "skipInitialExport", "valueBoolean": true }
 ```
 
-### How it works — managed modes
+### How it works
 
-Initial bulk export uses a **staging table** as a relay: the module writes Parquet to an external Delta table at `stagingTablePath` (via UC credential vending), then `MERGE INTO` the managed target on `id`, then drops the staging table. Identical for `managed-zerobus` and `managed-sql`.
-
-```mermaid
-graph LR
-    PG[(Aidbox PostgreSQL<br/>sof.&lt;view&gt;)]:::neutral2
-    M[Aidbox sender]:::blue2
-    Staging[Staging external Delta table<br/>on stagingTablePath]:::yellow2
-    WH[Databricks SQL warehouse]:::green2
-    Target[(Unity Catalog managed Delta target)]:::violet2
-
-    M -- 1. read rows --> PG
-    M -- 2. write Parquet + Delta commit<br/>via Unity-Catalog-vended STS --> Staging
-    M -- 3. MERGE INTO target USING staging ON id<br/>WHEN NOT MATCHED THEN INSERT * --> WH
-    WH -- 4. read --> Staging
-    WH -- 5. write --> Target
-    M -- 6. DROP TABLE staging --> WH
-```
-
-Steps in detail:
-
-1. Register a temporary external Delta table at `stagingTablePath` with the same schema as `sof.<view>`.
-2. Unity Catalog vends short-lived STS credentials for the staging path.
-3. The module writes all `sof.<view>` rows to the staging path as one Delta commit.
-4. The module issues `MERGE INTO {managed_target} USING {staging} ON t.id = s.id WHEN NOT MATCHED THEN INSERT *` against the SQL warehouse. The MERGE reads the staging Delta snapshot through the Delta protocol and inserts any rows whose `id` is not yet present in the target.
-5. The module drops the staging table.
-
-The whole sequence runs as one atomic operation from the destination's lifecycle perspective. On failure: best-effort drop of the staging table, retry up to 3 times with exponential backoff (1s → 2s → 4s).
-
-{% hint style="info" %}
-The MERGE is idempotent on `id` — a retried export after a lost response inserts nothing instead of duplicating. Your ViewDefinition must have an `id` column.
-{% endhint %}
+The flow (mermaid diagram + step-by-step, with the staging Delta relay and idempotent `MERGE INTO`) is documented on the [`$viewdefinition-export` operation page → How it works](../../modules/sql-on-fhir/operation-viewdefinition-export.md#how-it-works-kind-data-lakehouse). The destination's initial export and the standalone operation share the same code path.
 
 ### Large-scale initial export
 

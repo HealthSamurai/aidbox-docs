@@ -140,6 +140,42 @@ The `output[].location` URI scheme is backend-specific (`databricks-uc:` for the
   - **Missing target table** / **missing required Databricks parameter** (e.g., no `tableName`).
   - **Schema mismatch** the module can't auto-`ALTER`.
 
+## How it works (`kind=data-lakehouse`)
+
+The first-party backend uses a **staging Delta table** as a relay: it writes the `sof.<view>` rows to an external Delta table at a customer-provided `stagingTablePath` (via Unity Catalog credential vending), then `MERGE INTO`s the managed target, then drops the staging table. Same flow for `writeMode=managed-zerobus` and `writeMode=managed-sql`.
+
+```mermaid
+graph LR
+    PG[(Aidbox PostgreSQL<br/>sof.&lt;view&gt;)]:::neutral2
+    M[Aidbox sender]:::blue2
+    Staging[Staging external Delta table<br/>on stagingTablePath]:::yellow2
+    WH[Databricks SQL warehouse]:::green2
+    Target[(Unity Catalog managed Delta target)]:::violet2
+
+    M -- 1. read rows --> PG
+    M -- 2. write Parquet + Delta commit<br/>via Unity-Catalog-vended STS --> Staging
+    M -- 3. MERGE INTO target USING staging ON id<br/>WHEN NOT MATCHED THEN INSERT * --> WH
+    WH -- 4. read --> Staging
+    WH -- 5. write --> Target
+    M -- 6. DROP TABLE staging --> WH
+```
+
+Steps in detail:
+
+1. Register a temporary external Delta table at `stagingTablePath` with the same schema as `sof.<view>`.
+2. Unity Catalog vends short-lived STS credentials for the staging path.
+3. The module writes all `sof.<view>` rows to the staging path as one Delta commit.
+4. The module issues `MERGE INTO {managed_target} USING {staging} ON t.id = s.id WHEN NOT MATCHED THEN INSERT *` against the SQL warehouse. The MERGE reads the staging Delta snapshot through the Delta protocol and inserts any rows whose `id` is not yet present in the target.
+5. The module drops the staging table.
+
+On failure the staging table is best-effort dropped, then the export retries up to 3 times with exponential backoff (1s → 2s → 4s).
+
+{% hint style="info" %}
+The `MERGE` is idempotent on `id` — a retried export after a lost response inserts nothing instead of duplicating. Your ViewDefinition must have an `id` column.
+{% endhint %}
+
+The Databricks-side setup (catalog, schema, target table, staging schema, SP, grants, warehouse) is documented in the [Data Lakehouse Topic Destination tutorial](../../tutorials/subscriptions-tutorials/data-lakehouse-aidboxtopicdestination.md). Same setup serves both the continuous topic destination and this ad-hoc operation — the operation reuses the topic destination's initial-export code path.
+
 ## Cloud support
 
 The Aidbox-side wiring is cloud-agnostic, but **the first-party backend (`kind=data-lakehouse`, [`topic-destination-deltalake`](../../tutorials/subscriptions-tutorials/data-lakehouse-aidboxtopicdestination.md)) currently supports AWS S3 only** for the staging Delta path. **Google Cloud Storage** (`gs://...`) and **Azure ADLS Gen2** (`abfss://...`) are not yet supported — adding them is tracked as a follow-up. The Databricks Unity Catalog managed target table is unaffected (UC manages target storage internally).
