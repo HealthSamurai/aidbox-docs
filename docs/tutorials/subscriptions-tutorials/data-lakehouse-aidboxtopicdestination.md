@@ -963,6 +963,10 @@ The Databricks setup is identical to `managed-zerobus` — same catalog, schema,
 
 ## Initial export
 
+{% hint style="info" %}
+The same flow described below is also exposed standalone as a FHIR operation: [`$viewdefinition-export`](../../modules/sql-on-fhir/operation-viewdefinition-export.md). Use that operation when you want a one-shot snapshot of a ViewDefinition without standing up a continuous `AidboxTopicDestination` — it reuses this module as the `kind=data-lakehouse` backend, and you get an async kick-off + status-poll URL instead of a destination's `$status`. See the [Ad-hoc one-shot export](#ad-hoc-one-shot-export) section below for a usage example.
+{% endhint %}
+
 When a new destination is created with `skipInitialExport` not set to `true`, the module exports the **current state** of every row in `sof.<view>` — one row per resource the ViewDefinition matches.
 
 - **Updates after destination creation** append a new row each (`POST` / `PUT` / `DELETE`), accumulating a full audit trail.
