@@ -101,7 +101,7 @@ GET /fhir/ViewDefinition/$viewdefinition-export/status/<export-id>
 Response codes:
 
 - `202 Accepted` — still in progress. The same `Content-Location` is returned so the client can keep polling.
-- `200 OK` — terminal. Body is a `Parameters` resource with the final shape (`status=completed` or `status=failed`, plus `output[].location` on success).
+- `200 OK` — terminal. Body is a `Parameters` resource with the final shape (`status=completed`, `status=failed`, or `status=cancelled`, plus `output[].location` on success).
 - `404 Not Found` — unknown `export-id`.
 
 Completed output for `kind=data-lakehouse`:
@@ -132,8 +132,8 @@ DELETE /fhir/ViewDefinition/$viewdefinition-export/status/<export-id>
 
 Stops an in-flight export and triggers backend cleanup (the data-lakehouse backend drops per-chunk staging tables it created). Response codes:
 
-- `202 Accepted` — cancel acknowledged, async cleanup running. Body reports `status=canceling`.
-- `200 OK` — operation already terminal (`completed` / `failed`). DELETE is idempotent.
+- `202 Accepted` — cancel acknowledged, async cleanup running. Body reports `status=canceling`. Subsequent status polls return `200 OK` with `status=cancelled` once cleanup is done.
+- `200 OK` — operation already terminal (`completed` / `failed` / `cancelled`). DELETE is idempotent.
 - `404 Not Found` — unknown `export-id`.
 
 What cancellation does **not** do:
@@ -160,7 +160,7 @@ Steps:
 
 1. `plan-export` decides the chunk count from `chunkCount`. `setup-export` syncs the target schema against `sof.<view>` (auto-`ALTER ADD COLUMNS` if Aidbox added columns) and pre-computes the staging-column spec.
 2. Each chunk task creates its own external Delta table at `<stagingTablePath>/chunk-K/`, vends short-lived STS credentials from Unity Catalog for that prefix, and streams its hash-partition of `sof.<view>` as one Delta commit.
-3. Once all chunks complete, the supervisor task invokes `finalize-export`: `MERGE INTO target USING (SELECT * FROM staging_0 UNION ALL …) ON t.id = s.id WHEN NOT MATCHED THEN INSERT *`.
+3. Once all chunks complete, the coordinator task invokes `finalize-export`: `MERGE INTO target USING (SELECT * FROM staging_0 UNION ALL …) ON t.id = s.id WHEN NOT MATCHED THEN INSERT *`.
 4. The module drops every staging table.
 
 On failure the per-chunk stagings are best-effort dropped via `cancel-export`. Chunks retry up to 2 times with a 30-second backoff; if they exhaust retries the export is reported as `failed`.
