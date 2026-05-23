@@ -90,21 +90,6 @@ The module may also perform an initial export of pre-existing resources at first
 
 The module supports two **write modes**, picked per-destination via the `writeMode` parameter. Both target the same Unity Catalog managed Delta table and share the same initial-bulk staging + `MERGE INTO` flow, the same auto-`ALTER` schema-drift handling, and the same Databricks-side Predictive Optimization. They differ only in **how live batches reach Databricks**:
 
-```mermaid
-graph LR
-    A(FHIR resource POST / PUT / DELETE):::blue2
-    B(Aidbox Topics API):::blue2
-    C(PostgreSQL queue):::neutral2
-    D(ViewDefinition flatten):::yellow2
-    Z(Zerobus REST ingest<br/>managed-zerobus):::green2
-    M(Databricks SQL warehouse<br/>managed-sql):::green2
-    T(Unity Catalog managed Delta table):::violet2
-
-    A --> B --> C --> D
-    D -- managed-zerobus --> Z --> T
-    D -- managed-sql --> M --> T
-```
-
 **Default to `managed-zerobus`.** Each batch is JSON-encoded and POSTed to the [Zerobus REST ingest endpoint](https://docs.databricks.com/aws/en/ingestion/zerobus-ingest) with an OAuth M2M bearer — no SQL parsing, no warm warehouse. The warehouse is hit once at sender bootstrap for `INFORMATION_SCHEMA.COLUMNS` + optional `ALTER TABLE`; live writes don't touch it.
 
 **Use `managed-sql` only when Zerobus isn't available on your Databricks SKU.** Each batch becomes a single `INSERT INTO managed (cols) VALUES (...)` against a SQL warehouse — same target, same idempotent staging-MERGE init, just a warm warehouse on the hot path. The cost difference is the warehouse uptime billing.
