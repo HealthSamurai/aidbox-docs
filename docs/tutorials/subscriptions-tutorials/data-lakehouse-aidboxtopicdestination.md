@@ -9,7 +9,9 @@ This functionality is available starting from Aidbox version **2605**.
 {% endhint %}
 
 {% hint style="warning" %}
-**Cloud support: AWS S3 only (today).** The initial-export staging bucket must be an **AWS S3** bucket (`s3://...`). **Google Cloud Storage** (`gs://...`) and **Azure ADLS Gen2** (`abfss://...`) are not yet supported as staging backends — adding them is tracked as a follow-up. The Databricks Unity Catalog managed target table is unaffected (UC manages target storage internally).
+**Cloud support: AWS S3 only (today)** for the initial-export staging bucket (`s3://...` / `s3a://...`). The Unity Catalog managed target table is unaffected — UC manages its own storage.
+
+Need GCS or Azure ADLS Gen2? [Contact us](../../overview/contact-us.md) — they're not wired through yet and we can prioritise.
 {% endhint %}
 
 This page sets up an `AidboxTopicDestination` that streams FHIR resource changes into a Databricks Unity Catalog managed Delta table. Rows are flattened by a [ViewDefinition](../../modules/sql-on-fhir/defining-flat-views-with-view-definitions.md) so analytics consumers see columns, not nested FHIR JSON.
@@ -71,22 +73,9 @@ The "Supported write paths" row drives the module's `writeMode` values — see [
 
 The module exports FHIR resources from Aidbox to a Delta Lake table in a flattened format using [ViewDefinitions](../../modules/sql-on-fhir/defining-flat-views-with-view-definitions.md) (SQL-on-FHIR).
 
-```mermaid
-graph LR
-    Client[User / FHIR API client]:::blue2
-    Aidbox[Aidbox]:::blue2
-    PG[(Aidbox PostgreSQL)]:::neutral2
-    Mod[Data Lakehouse module]:::yellow2
-    DBX[Databricks workspace]:::green2
-    FS[(AWS S3 bucket)]:::violet2
+**Live (streaming) flow** — every resource change is enqueued in Aidbox's topics PG queue, batched by the sender, and pushed to Databricks via the chosen `writeMode`:
 
-    Client -- FHIR POST / PUT / DELETE --> Aidbox
-    Aidbox -- write resource +<br/>enqueue topic event --> PG
-    Mod -- poll batch --> PG
-    Mod -- REST ingest<br/>(managed-zerobus) --> DBX
-    Mod -- SQL INSERT<br/>(managed-sql) --> DBX
-    DBX -- read / write Delta files --> FS
-```
+![Live streaming flow: FHIR changes from clients → Aidbox topics PG queue → Databricks via REST ingest or SQL INSERT.](../../../assets/aidbox-databricks-live.svg)
 
 The flow:
 
@@ -152,7 +141,7 @@ The service principal that authenticates the module is created in step 3 of the 
 1. Download the Databricks module JAR file and place it next to your **docker-compose.yaml**:
 
    ```sh
-   curl -O https://storage.googleapis.com/aidbox-modules/topic-destination-deltalake/topic-destination-deltalake-2605.0.jar
+   curl -O https://storage.googleapis.com/aidbox-modules/topic-destination-deltalake/databricks-module-2605.0.jar
    ```
 
 2. Edit your **docker-compose.yaml** and add these lines to the Aidbox service:
@@ -160,11 +149,11 @@ The service principal that authenticates the module is created in step 3 of the 
    ```yaml
    aidbox:
      volumes:
-       - ./topic-destination-deltalake-2605.0.jar:/topic-destination-deltalake.jar
+       - ./databricks-module-2605.0.jar:/databricks-module.jar
        # ... other volumes ...
      environment:
-       BOX_MODULE_LOAD: io.healthsamurai.topic-destination.data-lakehouse.core
-       BOX_MODULE_JAR: "/topic-destination-deltalake.jar"
+       BOX_MODULE_LOAD: io.healthsamurai.databricks.core
+       BOX_MODULE_JAR: "/databricks-module.jar"
        BOX_FHIR_SCHEMA_VALIDATION: "true"
        # ... other environment variables ...
    ```
@@ -202,9 +191,9 @@ spec:
             - -c
             - |
               apt-get -y update && apt-get -y install curl
-              curl -L -o /modules/topic-destination-deltalake.jar \
-                https://storage.googleapis.com/aidbox-modules/topic-destination-deltalake/topic-destination-deltalake-2605.0.jar
-              chmod 644 /modules/topic-destination-deltalake.jar
+              curl -L -o /modules/databricks-module.jar \
+                https://storage.googleapis.com/aidbox-modules/topic-destination-deltalake/databricks-module-2605.0.jar
+              chmod 644 /modules/databricks-module.jar
           volumeMounts:
             - mountPath: /modules
               name: modules-volume
@@ -213,9 +202,9 @@ spec:
           image: healthsamurai/aidboxone:edge
           env:
             - name: BOX_MODULE_LOAD
-              value: "io.healthsamurai.topic-destination.data-lakehouse.core"
+              value: "io.healthsamurai.databricks.core"
             - name: BOX_MODULE_JAR
-              value: "/modules/topic-destination-deltalake.jar"
+              value: "/modules/databricks-module.jar"
             - name: BOX_FHIR_SCHEMA_VALIDATION
               value: "true"
             # ... other environment variables ...
@@ -932,7 +921,9 @@ To skip the initial export (e.g., the table is already populated or you only nee
 
 ### How it works
 
-The flow (mermaid diagram + step-by-step, with the staging Delta relay and idempotent `MERGE INTO`) is documented on the [`$viewdefinition-export` operation page → How it works](../../modules/sql-on-fhir/operation-viewdefinition-export.md#how-it-works-kind-data-lakehouse). The destination's initial export and the standalone operation share the same code path.
+![Bulk initial-export flow: Aidbox writes per-chunk Delta stagings on S3, then issues one MERGE INTO target via the Databricks SQL warehouse, then drops the stagings.](../../../assets/aidbox-databricks-bulk.svg)
+
+The same code path powers both the destination's initial export and the standalone [`$viewdefinition-export` operation](../../modules/sql-on-fhir/operation-viewdefinition-export.md#how-it-works-kind-data-lakehouse) — see the operation page for the step-by-step.
 
 ### Timing & monitoring
 
@@ -1124,7 +1115,7 @@ Returns `202 Accepted` + `Content-Location: /fhir/ViewDefinition/$viewdefinition
 
 ### Scaling and multi-pod execution
 
-For large views add `{"name": "initialExportParallelism", "valueUnsignedInt": <N>}` to the Parameters body — same chunking semantics and sizing formula as the continuous-destination flow's [Large-scale initial export](#large-scale-initial-export).
+For large views add `{"name": "chunkCount", "valueUnsignedInt": <N>}` to the Parameters body — same chunking semantics and sizing formula as the continuous-destination flow's [Large-scale initial export](#large-scale-initial-export).
 
 Chunks run on Aidbox's standard async-task engine, so they spread across every pod sharing the metastore and status polls are answered by any pod. No load-balancer affinity is needed. See the [operation page's Multi-pod execution](../../modules/sql-on-fhir/operation-viewdefinition-export.md#multi-pod-execution) for the orchestration details.
 
