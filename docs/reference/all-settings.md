@@ -418,6 +418,18 @@ Enable support for FHIR composite search parameters.
 
 <details><summary>Details</summary><table data-header-hidden="true"><thead><tr><th width="200"></th><th></th></tr></thead><tbody><tr><td>ID</td><td><code>fhir.search.composite-parameters</code></td></tr><tr><td>Type</td><td>Bool</td></tr><tr><td>Default value</td><td><code>false</code></td></tr><tr><td>Environment variable</td><td><code>BOX_FHIR_SEARCH_COMPOSITE_PARAMETERS</code></td></tr><tr><td>Deprecated environment variables</td><td><code>BOX_SEARCH_COMPOSITE__SEARCH</code></td></tr><tr><td>Sensitive</td><td><code>false</code> — value will be visible in plaintext in Admin UI</td></tr><tr><td>Set via</td><td>Admin UI → Settings<br />Environment variables</td></tr><tr><td>Hot reload</td><td><code>false</code> — setting requires system restart</td></tr></tbody></table></details>
 
+#### Use tstzmultirange for date search<a href="#fhir.search.date-multirange" id="fhir.search.date-multirange"></a>
+
+```yaml
+BOX_SEARCH_DATE_MULTIRANGE: false
+```
+
+When enabled, construct tstzmultirange for date search
+and use date multirange operators to filter resources.
+This allows to use GiST indexes.
+
+<details><summary>Details</summary><table data-header-hidden="true"><thead><tr><th width="200"></th><th></th></tr></thead><tbody><tr><td>ID</td><td><code>fhir.search.date-multirange</code></td></tr><tr><td>Type</td><td>Bool</td></tr><tr><td>Default value</td><td><code>false</code></td></tr><tr><td>Environment variable</td><td><code>BOX_SEARCH_DATE_MULTIRANGE</code></td></tr><tr><td>Available from</td><td><code>2605</code></td></tr><tr><td>Sensitive</td><td><code>false</code> — value will be visible in plaintext in Admin UI</td></tr><tr><td>Set via</td><td>Admin UI → Settings<br />Environment variables</td></tr><tr><td>Hot reload</td><td><code>true</code> — setting can be changed at runtime</td></tr></tbody></table></details>
+
 #### Iteration limit for (rev)include:iterate<a href="#fhir.search.include.iterate-max" id="fhir.search.include.iterate-max"></a>
 
 ```yaml
