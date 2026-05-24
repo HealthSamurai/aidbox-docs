@@ -28,6 +28,12 @@ Bundle a SQL query, its ViewDefinition dependencies, and parameters into a SQLQu
 
 See [$sqlquery-run operation](./operation-sqlquery-run.md).
 
+## Export a ViewDefinition's rows
+
+Run a one-shot ad-hoc export of a ViewDefinition's materialized rows to a backend-provided sink (e.g. Databricks Unity Catalog managed Delta) via the SQL-on-FHIR v2 [`$viewdefinition-export`](./operation-viewdefinition-export.md) operation.
+
+See [$viewdefinition-export operation](./operation-viewdefinition-export.md).
+
 ## De-identification
 
 Starting from version **2604**, ViewDefinition columns can be annotated with de-identification methods to transform sensitive data during SQL generation. Supported methods include redact, cryptoHash, dateshift, encrypt, substitute, perturb, and custom PostgreSQL functions.

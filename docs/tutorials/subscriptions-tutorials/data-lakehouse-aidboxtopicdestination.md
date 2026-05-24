@@ -1,5 +1,5 @@
 ---
-description: Export FHIR resources to a Data Lakehouse — Databricks Unity Catalog managed tables or non-managed external Delta tables on S3 / GCS / Azure ADLS — using SQL-on-FHIR ViewDefinitions.
+description: Export FHIR resources to Databricks Unity Catalog managed Delta tables using SQL-on-FHIR ViewDefinitions.
 ---
 
 # Data Lakehouse AidboxTopicDestination
@@ -8,11 +8,17 @@ description: Export FHIR resources to a Data Lakehouse — Databricks Unity Cata
 This functionality is available starting from Aidbox version **2605**.
 {% endhint %}
 
-This page sets up an `AidboxTopicDestination` that streams FHIR resource changes into Delta-Lake tables — Databricks-managed Unity Catalog tables, or external Delta tables on S3 / GCS / Azure ADLS that you own. Rows are flattened by a [ViewDefinition](../../modules/sql-on-fhir/defining-flat-views-with-view-definitions.md) so analytics consumers see columns, not nested FHIR JSON.
+{% hint style="warning" %}
+**Cloud support: AWS S3 only (today)** for the initial-export staging bucket (`s3://...` / `s3a://...`). The Unity Catalog managed target table is unaffected — UC manages its own storage.
+
+Need GCS or Azure ADLS Gen2? [Contact us](../../overview/contact-us.md) — they're not wired through yet and we can prioritise.
+{% endhint %}
+
+This page sets up an `AidboxTopicDestination` that streams FHIR resource changes into a Databricks Unity Catalog managed Delta table. Rows are flattened by a [ViewDefinition](../../modules/sql-on-fhir/defining-flat-views-with-view-definitions.md) so analytics consumers see columns, not nested FHIR JSON.
 
 ## Background
 
-"Data Lakehouse" is the generic name for the destination category — a hybrid of object-storage data lake and warehouse, implemented here on top of the Delta Lake table format. Concretely the module writes Delta-formatted tables that can live on plain cloud object storage you own, or in Databricks Unity Catalog managed storage; either way the destination kind is the same (`data-lakehouse-at-least-once`).
+"Data Lakehouse" is the generic name for the destination category — a hybrid of object-storage data lake and warehouse, implemented here on top of the Delta Lake table format. The module writes a Delta-formatted Unity Catalog managed table.
 
 If you're already comfortable with Databricks, Unity Catalog, and Delta Lake, skip to [Overview](#overview).
 
@@ -56,129 +62,41 @@ Unity Catalog tables come in two flavours:
 | Storage location               | Databricks-managed cloud storage (path picked by Unity Catalog)      | Your bucket — declared with `LOCATION 's3://...' / 'gs://...' / 'abfss://...'` at `CREATE TABLE` |
 | Who owns the files             | Unity Catalog — manages read, write, storage, and optimization       | You — Unity Catalog manages metadata only                                        |
 | `DROP TABLE`                   | Deletes the data                                                     | Drops metadata only — files stay in your bucket                       |
-| Supported write paths from Aidbox | **Zerobus REST ingest** (Aidbox `managed-zerobus`), or **SQL warehouse INSERT** (Aidbox `managed-sql`) | **Direct Parquet + Delta commit** via STS-vended Unity Catalog creds (Aidbox `external-direct`) |
+| Supported write paths from Aidbox | **Zerobus REST ingest** (Aidbox `managed-zerobus`), or **SQL warehouse INSERT** (Aidbox `managed-sql`) | Not supported by this module — use a managed table |
 | External STS credential vending| Not available for managed targets (`EXTERNAL USE SCHEMA` is only grantable on external schemas) | Allowed if the principal has `EXTERNAL USE SCHEMA` on the schema      |
 | Predictive Optimization        | Enabled by default for accounts created on or after **2024-11-11**; runs `OPTIMIZE` / `VACUUM` / `ANALYZE` automatically. Billed under the **Jobs Serverless** SKU. | **Not supported** — Predictive Optimization runs only on managed tables |
 | Liquid Clustering              | Opt-in per table (automatic liquid clustering requires Predictive Optimization and is also opt-in) | Opt-in per table                                                      |
 
-The "Supported write paths" row drives the module's three `writeMode` values — see [Overview](#overview) for the resulting write paths.
+The "Supported write paths" row drives the module's `writeMode` values — see [Overview](#overview) for the resulting write paths.
 
 ## Overview
 
 The module exports FHIR resources from Aidbox to a Delta Lake table in a flattened format using [ViewDefinitions](../../modules/sql-on-fhir/defining-flat-views-with-view-definitions.md) (SQL-on-FHIR).
 
-```mermaid
-graph LR
-    Client[User / FHIR API client]:::blue2
-    Aidbox[Aidbox]:::blue2
-    PG[(Aidbox PostgreSQL)]:::neutral2
-    Mod[Data Lakehouse module]:::yellow2
-    DBX[Databricks workspace]:::green2
-    FS[(Cloud storage<br/>S3 / GCS / ADLS)]:::violet2
+**Live (streaming) flow** — every resource change is enqueued in Aidbox's topics PG queue, batched by the sender, and pushed to Databricks via the chosen `writeMode`:
 
-    Client -- FHIR POST / PUT / DELETE --> Aidbox
-    Aidbox -- write resource +<br/>enqueue topic event --> PG
-    Mod -- poll batch --> PG
-    Mod -- REST ingest<br/>(managed-zerobus) --> DBX
-    Mod -- SQL INSERT<br/>(managed-sql) --> DBX
-    Mod -- Delta write<br/>(external-direct) --> FS
-    DBX -- read / write Delta files --> FS
-```
+![Live streaming flow: FHIR changes from clients → Aidbox topics PG queue → Databricks via REST ingest or SQL INSERT.](../../../assets/aidbox-databricks-live.svg)
 
 The flow:
 
 1. A FHIR API client (a user, an integration, a backfill script) sends a `POST` / `PUT` / `DELETE` to Aidbox.
 2. Aidbox persists the resource and enqueues a topic event for the destination in PostgreSQL.
 3. The Data Lakehouse module polls the destination's batch from the same PostgreSQL queue.
-4. For `managed-zerobus` mode (default): the module POSTs each batch as a JSON array to Databricks' Zerobus REST ingest endpoint, which writes directly to the managed table. No SQL parsing / planning per write.
-5. For `managed-sql` mode: the module sends `INSERT` (and `ALTER` / `DESCRIBE` when needed) to the Databricks SQL warehouse; the warehouse writes the Delta files to storage.
-6. For `external-direct` mode: the module gets short-lived storage credentials from Unity Catalog and writes Delta files directly to your bucket.
+4. The batch is sent to Databricks via one of the two paths picked by `writeMode` — see [Write modes](#write-modes) below.
 
 The module may also perform an initial export of pre-existing resources at first start — see [Initial export](#initial-export) for when this runs and how to skip it.
 
 ### Write modes
 
-The module supports three **write modes**, picked per-destination via the `writeMode` parameter (see the [Configuration](#configuration) section below for the full parameter list).
+The module supports two **write modes**, picked per-destination via the `writeMode` parameter. Both target the same Unity Catalog managed Delta table and share the same initial-bulk staging + `MERGE INTO` flow, the same auto-`ALTER` schema-drift handling, and the same Databricks-side Predictive Optimization. They differ only in **how live batches reach Databricks**:
 
-### managed-zerobus mode (default)
+**Default to `managed-zerobus`.** Each batch is JSON-encoded and POSTed to the [Zerobus REST ingest endpoint](https://docs.databricks.com/aws/en/ingestion/zerobus-ingest) with an OAuth M2M bearer — no SQL parsing, no warm warehouse. The warehouse is hit once at sender bootstrap for `INFORMATION_SCHEMA.COLUMNS` + optional `ALTER TABLE`; live writes don't touch it.
 
-`writeMode=managed-zerobus` targets a **Databricks Unity Catalog managed table** via the [Zerobus REST ingest endpoint](https://docs.databricks.com/aws/en/ingestion/zerobus-ingest).
-
-```mermaid
-graph LR
-    A(FHIR resource POST / PUT / DELETE):::blue2
-    B(Aidbox Topics API):::blue2
-    C(PostgreSQL queue):::neutral2
-    D(ViewDefinition flatten):::yellow2
-    Z(Zerobus REST ingest):::green2
-    T0(Unity Catalog managed Delta table):::violet2
-
-    A --> B --> C --> D --> Z --> T0
-```
-
-- Each batch is JSON-encoded as an array and POSTed to the Zerobus REST endpoint with an OAuth M2M bearer. No SQL parsing, no warehouse cold-start.
-- Initial bulk export uses a one-shot staging Delta table + `MERGE INTO` — same path as `managed-sql`.
-- Schema sync at sender bootstrap hits the SQL warehouse once (`INFORMATION_SCHEMA.COLUMNS` + optional `ALTER TABLE`); live writes don't.
-
-### managed-sql mode
-
-`writeMode=managed-sql` — same target as `managed-zerobus` (Unity Catalog **managed** table), but routes incoming batches through a Databricks SQL warehouse. Use this when Zerobus isn't available on your Databricks SKU.
-
-```mermaid
-graph LR
-    A(FHIR resource POST / PUT / DELETE):::blue2
-    B(Aidbox Topics API):::blue2
-    C(PostgreSQL queue):::neutral2
-    D(ViewDefinition flatten):::yellow2
-    M(Databricks SQL warehouse):::green2
-    T1(Unity Catalog managed Delta table):::violet2
-
-    A --> B --> C --> D --> M --> T1
-```
-
-- Each batch becomes a single `INSERT INTO managed (cols) VALUES (...)` against the SQL warehouse.
-- Initial bulk export uses a one-shot staging Delta table + `MERGE INTO`. See [Initial export](#how-it-works-managed-modes).
-
-### external-direct mode
-
-`writeMode=external-direct` targets a **non-managed external Delta table** that you own.
-
-```mermaid
-graph LR
-    A(FHIR resource POST / PUT / DELETE):::blue2
-    B(Aidbox Topics API):::blue2
-    C(PostgreSQL queue):::neutral2
-    D(ViewDefinition flatten):::yellow2
-    K(Direct Delta writer):::green2
-    T2(External Delta table on S3 / GCS / ADLS):::violet2
-
-    A --> B --> C --> D --> K --> T2
-```
-
-- The module writes Delta files straight to your bucket from the Aidbox process. No SQL warehouse, no Databricks compute on the write path.
-- Storage backends: AWS S3, Google Cloud Storage, Azure ADLS Gen2.
-- You own table maintenance — schedule `OPTIMIZE` and `VACUUM` yourself. See [Compaction and maintenance](#compaction-and-maintenance).
-
-## Choosing between the three modes
-
-**Default to `managed-zerobus`.** Pick a different mode only when one of these applies:
-
-- **Zerobus isn't available on your Databricks SKU** → `managed-sql`. Same managed target, but every batch hits a warm SQL warehouse.
-- **You want the files in your own bucket and own table maintenance yourself** → `external-direct`. No Databricks compute on the write path.
-
-|                                | `managed-zerobus` (default)                                              | `managed-sql`                                                            | `external-direct`                                            |
-| ------------------------------ | ------------------------------------------------------------------------ | ------------------------------------------------------------------------ | ------------------------------------------------------------ |
-| Table type                     | Unity Catalog **managed** (Databricks owns the files)                               | Unity Catalog **managed** (Databricks owns the files)                               | **External** (the User's bucket owns the files)              |
-| Hot-path transport             | Zerobus REST ingest API                                                  | Databricks SQL warehouse (Statement Execution API)                       | Direct Delta commits via Hadoop FS                            |
-| Who runs maintenance           | Databricks (Predictive Optimization handles `OPTIMIZE` / `VACUUM`)       | Databricks (Predictive Optimization handles `OPTIMIZE` / `VACUUM`)       | The User schedules `OPTIMIZE` / `VACUUM`                     |
-| Databricks compute cost surface| **No warm warehouse** — pay-per-row Zerobus + storage only               | SQL warehouse must be running to accept INSERTs — Databricks bills uptime | No warehouse — no Databricks compute charge for write path   |
-| Schema drift handling          | Auto-`ALTER` on mismatch                                                 | Auto-`ALTER` on mismatch                                                 | User runs `ALTER TABLE` and recreates the destination        |
-| Initial export path            | Staging Delta on your bucket → `MERGE INTO` target                       | Staging Delta on your bucket → `MERGE INTO` target                       | Bulk written straight to the target in one Delta commit      |
-| Storage backends               | Databricks-managed storage                                                | Databricks-managed storage                                                | AWS S3, GCS, Azure ADLS Gen2                                  |
+**Use `managed-sql` only when Zerobus isn't available on your Databricks SKU.** Each batch becomes a single `INSERT INTO managed (cols) VALUES (...)` against a SQL warehouse — same target, same idempotent staging-MERGE init, just a warm warehouse on the hot path. The cost difference is the warehouse uptime billing.
 
 ## Authentication
 
-All three modes authenticate to Databricks via [**OAuth Machine-to-Machine (M2M)**](https://docs.databricks.com/aws/en/dev-tools/auth/oauth-m2m) with a service principal: the module exchanges `client_id` + `client_secret` at the workspace token endpoint for a ~1h bearer token, caches it, and re-issues a fresh one when fewer than 5 minutes remain.
+Both modes authenticate to Databricks via [**OAuth Machine-to-Machine (M2M)**](https://docs.databricks.com/aws/en/dev-tools/auth/oauth-m2m) with a service principal: the module exchanges `client_id` + `client_secret` at the workspace token endpoint for a ~1h bearer token, caches it, and re-issues a fresh one when fewer than 5 minutes remain.
 
 The bearer is sent on every Databricks call. What differs between modes is which Databricks surfaces see it:
 
@@ -186,9 +104,8 @@ The bearer is sent on every Databricks call. What differs between modes is which
 |-----------------------------|-----------------------------------------------|--------------------------------------------|----------------------------|--------------------------------------|
 | `managed-zerobus` (default) | only during initial-export (staging vending)  | bootstrap + initial-export only            | Zerobus REST (every batch) | Zerobus ingest service, Databricks-side |
 | `managed-sql`               | only during initial-export (staging vending)  | every batch (`INSERT` / `ALTER` / `DESCRIBE`) | —                          | SQL warehouse compute                 |
-| `external-direct`           | every cred-refresh (~45 min)                  | none                                       | —                          | sender process, with Unity-Catalog-vended STS    |
 
-In `external-direct` you can also skip Databricks entirely and authenticate against the bucket with static AWS keys (`awsAccessKeyId` + `awsSecretAccessKey`) or the [AWS default provider chain](https://docs.aws.amazon.com/sdk-for-java/latest/developer-guide/credentials-chain.html). The service principal and the grants it needs are set up in the [Usage example](#usage-example-patient-data-export) below.
+The service principal and the grants it needs are set up in the [Usage example](#usage-example-patient-data-export) below.
 
 ## Installation
 
@@ -197,10 +114,10 @@ In `external-direct` you can also skip Databricks entirely and authenticate agai
 - Aidbox **2605** or newer ([install guide](../../getting-started/run-aidbox-locally.md))
 - A Databricks workspace (Free Edition works for evaluation, paid for production)
 - The [Databricks CLI](https://docs.databricks.com/aws/en/dev-tools/cli/install) installed locally (`brew install databricks/tap/databricks` on macOS) — every Databricks-side operation in the tutorial uses it
-- AWS CLI (only for `managed-*` modes that do initial-export — for the staging bucket + IAM role)
-- A SQL warehouse (skip only for `external-direct`)
+- AWS CLI (for initial-export staging — bucket + IAM role)
+- A SQL warehouse
 - For `managed-zerobus`: Zerobus enabled on your SKU (Databricks Free Edition supports it; for paid plans confirm with Databricks support)
-- For initial-export in the `managed-*` modes: an S3/GCS/ADLS bucket you control
+- For initial-export: an **S3 bucket** you control. GCS and Azure ADLS Gen2 are not supported for the staging path today (see the "Cloud support: AWS only" callout above).
 
 The service principal that authenticates the module is created in step 3 of the usage example — you don't need it before you start.
 
@@ -209,7 +126,7 @@ The service principal that authenticates the module is created in step 3 of the 
 1. Download the Databricks module JAR file and place it next to your **docker-compose.yaml**:
 
    ```sh
-   curl -O https://storage.googleapis.com/aidbox-modules/topic-destination-deltalake/topic-destination-deltalake-2605.0.jar
+   curl -O https://storage.googleapis.com/aidbox-modules/topic-destination-deltalake/databricks-module-2605.0.jar
    ```
 
 2. Edit your **docker-compose.yaml** and add these lines to the Aidbox service:
@@ -217,11 +134,11 @@ The service principal that authenticates the module is created in step 3 of the 
    ```yaml
    aidbox:
      volumes:
-       - ./topic-destination-deltalake-2605.0.jar:/topic-destination-deltalake.jar
+       - ./databricks-module-2605.0.jar:/databricks-module.jar
        # ... other volumes ...
      environment:
-       BOX_MODULE_LOAD: io.healthsamurai.topic-destination.data-lakehouse.core
-       BOX_MODULE_JAR: "/topic-destination-deltalake.jar"
+       BOX_MODULE_LOAD: io.healthsamurai.databricks.core
+       BOX_MODULE_JAR: "/databricks-module.jar"
        BOX_FHIR_SCHEMA_VALIDATION: "true"
        # ... other environment variables ...
    ```
@@ -259,9 +176,9 @@ spec:
             - -c
             - |
               apt-get -y update && apt-get -y install curl
-              curl -L -o /modules/topic-destination-deltalake.jar \
-                https://storage.googleapis.com/aidbox-modules/topic-destination-deltalake/topic-destination-deltalake-2605.0.jar
-              chmod 644 /modules/topic-destination-deltalake.jar
+              curl -L -o /modules/databricks-module.jar \
+                https://storage.googleapis.com/aidbox-modules/topic-destination-deltalake/databricks-module-2605.0.jar
+              chmod 644 /modules/databricks-module.jar
           volumeMounts:
             - mountPath: /modules
               name: modules-volume
@@ -270,9 +187,9 @@ spec:
           image: healthsamurai/aidboxone:edge
           env:
             - name: BOX_MODULE_LOAD
-              value: "io.healthsamurai.topic-destination.data-lakehouse.core"
+              value: "io.healthsamurai.databricks.core"
             - name: BOX_MODULE_JAR
-              value: "/modules/topic-destination-deltalake.jar"
+              value: "/modules/databricks-module.jar"
             - name: BOX_FHIR_SCHEMA_VALIDATION
               value: "true"
             # ... other environment variables ...
@@ -303,12 +220,10 @@ All requests in this tutorial use `Content-Type: application/json`.
 <tr><td><code>databricksWorkspaceUrl</code></td><td>string</td><td><code>https://&lt;workspace&gt;.cloud.databricks.com</code></td></tr>
 <tr><td><code>databricksWorkspaceId</code></td><td>string</td><td>Numeric workspace ID (e.g. <code>1234567890123456</code>). Composes the Zerobus REST endpoint host</td></tr>
 <tr><td><code>databricksRegion</code></td><td>string</td><td>Workspace AWS region (e.g. <code>us-east-1</code>). Composes the Zerobus REST endpoint host</td></tr>
-<tr><td><code>databricksClientId</code></td><td>string</td><td>Service principal <code>client_id</code> for OAuth M2M</td></tr>
-<tr><td><code>databricksClientSecret</code></td><td>string</td><td>Service principal <code>client_secret</code>; supports vault refs</td></tr>
 <tr><td><code>tableName</code></td><td>string</td><td>Managed table full name: <code>catalog.schema.table</code></td></tr>
 <tr><td><code>databricksWarehouseId</code></td><td>string</td><td>SQL warehouse ID — used at bootstrap for schema sync + (if initial-export runs) the final <code>MERGE INTO</code>. No warm-warehouse traffic during live writes.</td></tr>
 <tr><td><code>awsRegion</code></td><td>string</td><td>AWS region of the staging bucket</td></tr>
-<tr><td><code>stagingTablePath</code></td><td>string</td><td><code>s3://bucket/path/</code> for the staging Delta table created during initial export. Required when <code>skipInitialExport</code> is not <code>true</code></td></tr>
+<tr><td><code>stagingTablePath</code></td><td>string</td><td><code>s3://bucket/path/</code> for the staging Delta table created during initial export (<strong>S3 only</strong> today). Required when <code>skipInitialExport</code> is not <code>true</code></td></tr>
 </tbody>
 </table>
 
@@ -321,10 +236,10 @@ All requests in this tutorial use `Content-Type: application/json`.
 <tr><th width="230">Parameter</th><th width="110">Type</th><th>Description</th></tr>
 </thead>
 <tbody>
-<tr><td><code>writeMode</code></td><td>string</td><td><code>managed-zerobus</code> (default), <code>managed-sql</code>, or <code>external-direct</code>. Omit to get <code>managed-zerobus</code></td></tr>
+<tr><td><code>writeMode</code></td><td>string</td><td><code>managed-zerobus</code> (default) or <code>managed-sql</code>. Omit to get <code>managed-zerobus</code></td></tr>
 <tr><td><code>skipInitialExport</code></td><td>boolean</td><td>Skip initial export of existing data (default: <code>false</code>)</td></tr>
 <tr><td><code>targetFileSizeMb</code></td><td>unsignedInt</td><td>Parquet target size during initial export (default: <code>128</code>)</td></tr>
-<tr><td><code>initialExportParallelism</code></td><td>unsignedInt</td><td>Total number of parallel chunks for hash-partitioned initial export (default <code>1</code> — sequential). Recommended 4-8 for ≥1M-row datasets; 16-32 for multi-Aidbox setups. See <a href="#large-scale-initial-export">Large-scale initial export</a></td></tr>
+<tr><td><code>initialExportParallelism</code></td><td>unsignedInt</td><td>Cluster-wide number of parallel chunks for hash-partitioned initial export (default <code>1</code> — sequential). See <a href="#large-scale-initial-export">Large-scale initial export</a> for the sizing formula.</td></tr>
 </tbody>
 </table>
 
@@ -345,12 +260,10 @@ All requests in this tutorial use `Content-Type: application/json`.
 <tr><td><code>batchSize</code></td><td>unsignedInt</td><td>Rows per worker tick / batch commit</td></tr>
 <tr><td><code>sendIntervalMs</code></td><td>unsignedInt</td><td>Max time between batched commits, in ms</td></tr>
 <tr><td><code>databricksWorkspaceUrl</code></td><td>string</td><td><code>https://&lt;workspace&gt;.cloud.databricks.com</code></td></tr>
-<tr><td><code>databricksClientId</code></td><td>string</td><td>Service principal <code>client_id</code> for OAuth M2M</td></tr>
-<tr><td><code>databricksClientSecret</code></td><td>string</td><td>Service principal <code>client_secret</code>; supports vault refs</td></tr>
 <tr><td><code>tableName</code></td><td>string</td><td>Managed table full name: <code>catalog.schema.table</code></td></tr>
 <tr><td><code>databricksWarehouseId</code></td><td>string</td><td>SQL warehouse ID</td></tr>
 <tr><td><code>awsRegion</code></td><td>string</td><td>AWS region of the staging bucket</td></tr>
-<tr><td><code>stagingTablePath</code></td><td>string</td><td><code>s3://bucket/path/</code> for the staging Delta table created during initial export. Required when <code>skipInitialExport</code> is not <code>true</code></td></tr>
+<tr><td><code>stagingTablePath</code></td><td>string</td><td><code>s3://bucket/path/</code> for the staging Delta table created during initial export (<strong>S3 only</strong> today). Required when <code>skipInitialExport</code> is not <code>true</code></td></tr>
 </tbody>
 </table>
 
@@ -365,70 +278,13 @@ All requests in this tutorial use `Content-Type: application/json`.
 <tbody>
 <tr><td><code>skipInitialExport</code></td><td>boolean</td><td>Skip initial export of existing data (default: <code>false</code>)</td></tr>
 <tr><td><code>targetFileSizeMb</code></td><td>unsignedInt</td><td>Parquet target size during initial export (default: <code>128</code>)</td></tr>
-<tr><td><code>initialExportParallelism</code></td><td>unsignedInt</td><td>Total number of parallel chunks for hash-partitioned initial export (default <code>1</code> — sequential). Recommended 4-8 for ≥1M-row datasets; 16-32 for multi-Aidbox setups. See <a href="#large-scale-initial-export">Large-scale initial export</a></td></tr>
+<tr><td><code>initialExportParallelism</code></td><td>unsignedInt</td><td>Cluster-wide number of parallel chunks for hash-partitioned initial export (default <code>1</code> — sequential). See <a href="#large-scale-initial-export">Large-scale initial export</a> for the sizing formula.</td></tr>
 </tbody>
 </table>
 
 </details>
 {% endtab %}
 
-{% tab title="external-direct mode" %}
-**Required:**
-
-<table>
-<thead>
-<tr><th width="230">Parameter</th><th width="110">Type</th><th>Description</th></tr>
-</thead>
-<tbody>
-<tr><td><code>viewDefinition</code></td><td>string</td><td>The <code>name</code> field of the ViewDefinition resource (not <code>id</code>)</td></tr>
-<tr><td><code>batchSize</code></td><td>unsignedInt</td><td>Rows per worker tick / batch commit</td></tr>
-<tr><td><code>sendIntervalMs</code></td><td>unsignedInt</td><td>Max time between batched commits, in ms</td></tr>
-<tr><td><code>writeMode</code></td><td>string</td><td>Must be <code>external-direct</code> (otherwise the default <code>managed-zerobus</code> path is used)</td></tr>
-<tr><td><code>tablePath</code></td><td>string</td><td><code>s3://...</code> / <code>gs://...</code> / <code>abfss://...</code>. Required unless <code>databricksWorkspaceUrl</code> set (then resolved from Unity Catalog)</td></tr>
-<tr><td><code>awsRegion</code></td><td>string</td><td>Required for real AWS / GovCloud (skip for MinIO / LocalStack)</td></tr>
-</tbody>
-</table>
-
-<details>
-
-<summary>Authentication parameters</summary>
-
-Pick **one** of: Unity Catalog credential vending, static AWS keys, or default AWS provider chain.
-
-<table>
-<thead>
-<tr><th width="230">Parameter</th><th width="80">Type</th><th>Description</th></tr>
-</thead>
-<tbody>
-<tr><td><code>databricksWorkspaceUrl</code></td><td>string</td><td>If set: Unity Catalog credential vending; <code>databricksClientId</code> + <code>databricksClientSecret</code> + <code>tableName</code> must also be set</td></tr>
-<tr><td><code>databricksClientId</code></td><td>string</td><td>SP <code>client_id</code> (required iff <code>databricksWorkspaceUrl</code> set)</td></tr>
-<tr><td><code>databricksClientSecret</code></td><td>string</td><td>SP <code>client_secret</code>; supports vault refs (required iff <code>databricksWorkspaceUrl</code> set)</td></tr>
-<tr><td><code>tableName</code></td><td>string</td><td>Unity Catalog <code>catalog.schema.table</code> (when using Unity Catalog credential vending)</td></tr>
-<tr><td><code>awsAccessKeyId</code></td><td>string</td><td>Static IAM key (falls back to default provider chain when absent). Supports vault refs</td></tr>
-<tr><td><code>awsSecretAccessKey</code></td><td>string</td><td>Static IAM secret. Supports vault refs</td></tr>
-</tbody>
-</table>
-
-</details>
-
-<details>
-
-<summary>Advanced parameters</summary>
-
-<table>
-<thead>
-<tr><th width="230">Parameter</th><th width="110">Type</th><th>Description</th></tr>
-</thead>
-<tbody>
-<tr><td><code>skipInitialExport</code></td><td>boolean</td><td>Skip initial export of existing data (default: <code>false</code>)</td></tr>
-<tr><td><code>targetFileSizeMb</code></td><td>unsignedInt</td><td>Parquet target size during initial export (default: <code>128</code>)</td></tr>
-<tr><td><code>initialExportParallelism</code></td><td>unsignedInt</td><td>Total number of parallel chunks for hash-partitioned initial export (default <code>1</code> — sequential). Recommended 4-8 for ≥1M-row datasets; 16-32 for multi-Aidbox setups. See <a href="#large-scale-initial-export">Large-scale initial export</a></td></tr>
-<tr><td><code>s3Endpoint</code></td><td>string</td><td>MinIO / LocalStack endpoint (forces path-style URLs)</td></tr>
-</tbody>
-</table>
-
-</details>
-{% endtab %}
 {% endtabs %}
 
 ## Output semantics
@@ -456,11 +312,10 @@ Use [the read-time projection below](#querying-the-table) to collapse history to
 
 ### At-least-once delivery
 
-Messages are persisted in a PostgreSQL queue and retried on failure. The three modes differ on the crash-between-commit-and-ack window:
+Messages are persisted in a PostgreSQL queue and retried on failure. Both write modes have the same crash-between-commit-and-ack semantics:
 
-- **`managed-zerobus`** — initial export is idempotent; live writes are at-least-once (REST has no offset / transaction id, so a replay re-inserts).
-- **`managed-sql`** — initial export is idempotent; live writes are at-least-once (SQL `INSERT` has the same constraint).
-- **`external-direct`** — idempotent for both. Each Delta commit carries a transaction id; replays are silently deduped.
+- Initial export is **idempotent** for both: rows are staged in an external Delta, then `MERGE INTO target USING staging ON t.id = s.id WHEN NOT MATCHED THEN INSERT *`. A replay finds the existing rows in the target and inserts zero new ones.
+- Live writes are **at-least-once** for both: the Zerobus REST endpoint has no offset / transaction id; the SQL `INSERT` path has the same constraint. Use the read-time dedup pattern below to collapse duplicates.
 
 ### Querying the table
 
@@ -480,7 +335,7 @@ This is one example, not the only approach — wrap it in a Databricks SQL view 
 
 ## Usage example: patient data export
 
-The example below uses `managed-zerobus` (the default). For non-default modes see [`managed-sql`](#alternative-managed-sql-configuration) or [`external-direct`](#alternative-external-direct-configuration).
+The example below uses `managed-zerobus` (the default). For the alternative SQL-warehouse path, see [`managed-sql` configuration](#alternative-managed-sql-configuration).
 
 Authenticate the [Databricks CLI](https://docs.databricks.com/aws/en/dev-tools/cli/install) once — **as your own user** (PAT or `databricks auth login`).
 
@@ -815,7 +670,7 @@ In both `managed-*` modes the module issues `ALTER TABLE ADD COLUMNS` automatica
 {% endstep %}
 
 {% hint style="info" %}
-**The next step sets up initial-bulk staging.** Skip it (and the staging-specific grants in the next-but-one step) if you only need new data going forward — the destination has a parameter that turns the backfill off. `external-direct` doesn't use staging either.
+**Setting up initial-bulk staging next.** Skip this step and the staging grants below if you only need new data going forward — set `skipInitialExport=true` on the destination.
 {% endhint %}
 
 {% step %}
@@ -902,27 +757,6 @@ databricks grants update external-location "$EXTERNAL_LOCATION_NAME" --json '{
 ```
 {% endtab %}
 
-{% tab title="external-direct" %}
-Different — `EXTERNAL_USE_SCHEMA` is on the **target's** schema (writes go directly), and you grant against the External Location backing the target's bucket prefix (which can be the same one you registered above if both target and staging live under the same bucket):
-
-```sh
-databricks grants update catalog "$CATALOG" --json '{
-  "changes":[{"principal":"'"$SP_CLIENT_ID"'","add":["USE_CATALOG"]}]}'
-
-databricks grants update schema "$CATALOG.$TARGET_SCHEMA" --json '{
-  "changes":[{"principal":"'"$SP_CLIENT_ID"'","add":["USE_SCHEMA","EXTERNAL_USE_SCHEMA"]}]}'
-
-databricks grants update table "$CATALOG.$TARGET_SCHEMA.$TARGET_TABLE" --json '{
-  "changes":[{"principal":"'"$SP_CLIENT_ID"'","add":["SELECT","MODIFY"]}]}'
-
-databricks grants update external-location "$EXTERNAL_LOCATION_NAME" --json '{
-  "changes":[{"principal":"'"$SP_CLIENT_ID"'","add":["READ_FILES","WRITE_FILES","CREATE_EXTERNAL_TABLE"]}]}'
-```
-
-{% hint style="warning" %}
-`EXTERNAL_USE_SCHEMA` is **only grantable on external schemas** (their own `storage_root` set, no inherited managed location). UC managed schemas refuse this grant by design.
-{% endhint %}
-{% endtab %}
 {% endtabs %}
 
 {% endstep %}
@@ -951,8 +785,6 @@ curl -u root:secret -X POST "$AIDBOX_URL/fhir/AidboxTopicDestination" \
     {"name": "databricksWorkspaceUrl", "valueString": "${DATABRICKS_HOST}"},
     {"name": "databricksWorkspaceId", "valueString": "${WORKSPACE_ID}"},
     {"name": "databricksRegion", "valueString": "${DATABRICKS_REGION}"},
-    {"name": "databricksClientId", "valueString": "${SP_CLIENT_ID}"},
-    {"name": "databricksClientSecret", "valueString": "${SP_CLIENT_SECRET}"},
     {"name": "tableName", "valueString": "${CATALOG}.${TARGET_SCHEMA}.${TARGET_TABLE}"},
     {"name": "databricksWarehouseId", "valueString": "${WAREHOUSE_ID}"},
     {"name": "awsRegion", "valueString": "${AWS_REGION}"},
@@ -971,21 +803,16 @@ EOF
 With `initialExportParallelism > 1` the module treats this value as a **base prefix** and writes each chunk into a subfolder `<prefix>/chunk-<K>/` — registering `chunk-0/` … `chunk-{N-1}/` as separate per-chunk staging Delta tables, then dropping them all after the final MERGE. No customer-side setup change: the `CREATE_TABLE` grant on the staging schema (granted below) covers any number of per-chunk tables, and the chunk subfolders inherit the same External Location and storage credential.
 {% endhint %}
 
-In production, resolve `databricksClientSecret` from Aidbox's [External Secrets](../../configuration/secret-files.md) instead of inlining it:
+Notice the destination does NOT include `databricksClientId` / `databricksClientSecret`. The service-principal credentials live on the Aidbox box itself (env vars `BOX_DATABRICKS_DATA_LAKEHOUSE_CLIENT_ID` and `BOX_DATABRICKS_DATA_LAKEHOUSE_CLIENT_SECRET`, or the corresponding `module.databricks.data-lakehouse.client-id` / `.client-secret` settings) — set them once when you provision the Aidbox cluster:
 
-```json
-{
-  "name": "databricksClientSecret",
-  "_valueString": {
-    "extension": [
-      {"url": "http://hl7.org/fhir/StructureDefinition/data-absent-reason", "valueCode": "masked"},
-      {"url": "http://health-samurai.io/fhir/secret-reference", "valueString": "dbx-sp-secret"}
-    ]
-  }
-}
+```bash
+docker run \
+  -e BOX_DATABRICKS_DATA_LAKEHOUSE_CLIENT_ID="${SP_CLIENT_ID}" \
+  -e BOX_DATABRICKS_DATA_LAKEHOUSE_CLIENT_SECRET="${SP_CLIENT_SECRET}" \
+  ... aidboxone/aidbox:edition-XYZ
 ```
 
-`dbx-sp-secret` is a key from your `BOX_VAULT_CONFIG` mapping. Same pattern works for any other credential parameter.
+Per-destination overrides are intentionally not accepted: a resolved plaintext secret in `AidboxTopicDestination.resource` (or in `db_scheduler.scheduled_tasks.task_data` for `$viewdefinition-export`) is readable by anyone with PG read access. Aidbox settings keep the secret in the boot-config and the encrypted-at-rest `aidbox-settings` table instead.
 
 {% endstep %}
 
@@ -1047,8 +874,6 @@ POST /fhir/AidboxTopicDestination
   "parameter": [
     {"name": "writeMode", "valueString": "managed-sql"},
     {"name": "databricksWorkspaceUrl", "valueString": "$DATABRICKS_HOST"},
-    {"name": "databricksClientId", "valueString": "$SP_CLIENT_ID"},
-    {"name": "databricksClientSecret", "valueString": "$SP_CLIENT_SECRET"},
     {"name": "tableName", "valueString": "$CATALOG.$TARGET_SCHEMA.$TARGET_TABLE"},
     {"name": "databricksWarehouseId", "valueString": "$WAREHOUSE_ID"},
     {"name": "awsRegion", "valueString": "$AWS_REGION"},
@@ -1062,100 +887,11 @@ POST /fhir/AidboxTopicDestination
 
 The Databricks setup is identical to `managed-zerobus` — same catalog, schema, target table, warehouse, staging chain, SP, and grants. The warehouse simply ends up servicing every batch instead of only the bootstrap.
 
-## Alternative: `external-direct` configuration
-
-If you don't need Unity Catalog managed-table governance and want the highest throughput (direct-to-storage Parquet writes, zero Databricks compute cost), use `writeMode=external-direct`. The module commits Parquet + Delta transaction-log entries straight to your bucket via Unity Catalog credential vending.
-
-### Setup differences from the managed modes
-
-1. **Create the target schema as external**, not managed. `EXTERNAL USE SCHEMA` is grantable only on external schemas (their own `storage_root` set, no inherited managed location). On most Free Edition and recent paid workspaces (Default Storage enabled), a plain `CREATE SCHEMA $CATALOG.$TARGET_SCHEMA` produces a managed schema that silently refuses the grant later. Create it with an explicit storage root pointed at an External Location you own:
-
-   ```sh
-   databricks schemas create "$TARGET_SCHEMA" "$CATALOG" \
-     --storage-root "s3://$STAGING_BUCKET/target/"
-   ```
-
-   This replaces the plain `CREATE SCHEMA` from the catalog/schema step above. The bucket prefix must be covered by an External Location with `READ_FILES, WRITE_FILES, CREATE_EXTERNAL_TABLE` granted to the SP — the same `$EXTERNAL_LOCATION_NAME` you registered for the managed modes is fine if both target and staging live under the same bucket.
-
-2. **Create the table with `LOCATION`** so it's external:
-
-   ```sh
-   databricks api post /api/2.0/sql/statements --json "$(jq -n \
-     --arg wh "$WAREHOUSE_ID" \
-     --arg stmt "CREATE TABLE $CATALOG.$TARGET_SCHEMA.$TARGET_TABLE (id STRING, ts TIMESTAMP, cts TIMESTAMP, gender STRING, birth_date DATE, family_name STRING, given_name STRING, is_deleted INT) USING DELTA LOCATION 's3://$STAGING_BUCKET/target/$TARGET_TABLE/'" \
-     '{warehouse_id: $wh, wait_timeout: "30s", statement: $stmt}')"
-   ```
-
-3. **No warehouse needed at runtime** — writes don't go through SQL compute. (The warehouse is still needed once for the `CREATE TABLE` above.)
-
-4. **Different grants** — `EXTERNAL USE SCHEMA` on the **target's** schema (now external thanks to step 1), and `READ FILES, WRITE FILES, CREATE EXTERNAL TABLE` on the External Location backing the target bucket. See the `external-direct` tab in [Grant the service principal](#grant-the-service-principal).
-
-5. **No `stagingTablePath`** — initial export writes directly to the final external table; no intermediate staging.
-
-6. **The User owns the schema** — there's no auto-`ALTER` in this mode. If you add a column to the ViewDefinition, you must `ALTER TABLE` yourself before recreating the destination, or initial validation will fail.
-
-### Destination configuration
-
-```http
-POST /fhir/AidboxTopicDestination
-
-{
-  "resourceType": "AidboxTopicDestination",
-  "id": "patient-databricks-external",
-  "topic": "http://example.org/subscriptions/patient-updates",
-  "kind": "data-lakehouse-at-least-once",
-  "meta": {
-    "profile": [
-      "http://health-samurai.io/fhir/core/StructureDefinition/aidboxtopicdestination-dataLakehouseAtLeastOnceProfile"
-    ]
-  },
-  "parameter": [
-    {"name": "writeMode", "valueString": "external-direct"},
-    {"name": "databricksWorkspaceUrl", "valueString": "$DATABRICKS_HOST"},
-    {"name": "databricksClientId", "valueString": "$SP_CLIENT_ID"},
-    {"name": "databricksClientSecret", "valueString": "$SP_CLIENT_SECRET"},
-    {"name": "tableName", "valueString": "$CATALOG.$TARGET_SCHEMA.$TARGET_TABLE"},
-    {"name": "awsRegion", "valueString": "$AWS_REGION"},
-    {"name": "viewDefinition", "valueString": "patient_flat"},
-    {"name": "batchSize", "valueUnsignedInt": 50},
-    {"name": "sendIntervalMs", "valueUnsignedInt": 5000}
-  ]
-}
-```
-
-### Static AWS keys (no Unity Catalog vending)
-
-`external-direct` can also write to a Delta table that isn't governed by Unity Catalog — for example, a bucket your own AWS account owns directly, or a MinIO / non-Databricks S3 deployment. Omit `databricksWorkspaceUrl` entirely and provide static AWS keys + `tablePath`:
-
-```http
-POST /fhir/AidboxTopicDestination
-
-{
-  "resourceType": "AidboxTopicDestination",
-  "id": "patient-deltalake-s3",
-  "topic": "http://example.org/subscriptions/patient-updates",
-  "kind": "data-lakehouse-at-least-once",
-  "meta": {
-    "profile": [
-      "http://health-samurai.io/fhir/core/StructureDefinition/aidboxtopicdestination-dataLakehouseAtLeastOnceProfile"
-    ]
-  },
-  "parameter": [
-    {"name": "writeMode", "valueString": "external-direct"},
-    {"name": "tablePath", "valueString": "s3://my-bucket/patients/"},
-    {"name": "awsRegion", "valueString": "us-east-1"},
-    {"name": "awsAccessKeyId", "valueString": "<key>"},
-    {"name": "awsSecretAccessKey", "valueString": "<secret>"},
-    {"name": "viewDefinition", "valueString": "patient_flat"},
-    {"name": "batchSize", "valueUnsignedInt": 50},
-    {"name": "sendIntervalMs", "valueUnsignedInt": 5000}
-  ]
-}
-```
-
-You can also omit `awsAccessKeyId` / `awsSecretAccessKey` to fall back to the [AWS SDK default credentials provider chain](https://docs.aws.amazon.com/sdk-for-java/latest/developer-guide/credentials-chain.html) — env vars, EC2 instance profile / ECS task role, EKS IRSA, or shared profile from `~/.aws/credentials`.
-
 ## Initial export
+
+{% hint style="info" %}
+The same flow described below is also exposed standalone as a FHIR operation: [`$viewdefinition-export`](../../modules/sql-on-fhir/operation-viewdefinition-export.md). Use that operation when you want a one-shot snapshot of a ViewDefinition without standing up a continuous `AidboxTopicDestination` — it reuses this module as the `kind=data-lakehouse` backend, and you get an async kick-off + status-poll URL instead of a destination's `$status`. See the [Ad-hoc one-shot export](#ad-hoc-one-shot-export) section below for a usage example.
+{% endhint %}
 
 When a new destination is created with `skipInitialExport` not set to `true`, the module exports the **current state** of every row in `sof.<view>` — one row per resource the ViewDefinition matches.
 
@@ -1168,70 +904,93 @@ To skip the initial export (e.g., the table is already populated or you only nee
 { "name": "skipInitialExport", "valueBoolean": true }
 ```
 
-### How it works — managed modes
+### How it works
 
-Initial bulk export uses a **staging table** as a relay: the module writes Parquet to an external Delta table at `stagingTablePath` (via UC credential vending), then `MERGE INTO` the managed target on `id`, then drops the staging table. Identical for `managed-zerobus` and `managed-sql`.
+![Bulk initial-export flow: Aidbox writes per-chunk Delta stagings on S3, then issues one MERGE INTO target via the Databricks SQL warehouse, then drops the stagings.](../../../assets/aidbox-databricks-bulk.svg)
 
-```mermaid
-graph LR
-    PG[(Aidbox PostgreSQL<br/>sof.&lt;view&gt;)]:::neutral2
-    M[Aidbox sender]:::blue2
-    Staging[Staging external Delta table<br/>on stagingTablePath]:::yellow2
-    WH[Databricks SQL warehouse]:::green2
-    Target[(Unity Catalog managed Delta target)]:::violet2
+The same code path powers both the destination's initial export and the standalone [`$viewdefinition-export` operation](../../modules/sql-on-fhir/operation-viewdefinition-export.md#how-it-works-kind-data-lakehouse) — see the operation page for the step-by-step.
 
-    M -- 1. read rows --> PG
-    M -- 2. write Parquet + Delta commit<br/>via Unity-Catalog-vended STS --> Staging
-    M -- 3. MERGE INTO target USING staging ON id<br/>WHEN NOT MATCHED THEN INSERT * --> WH
-    WH -- 4. read --> Staging
-    WH -- 5. write --> Target
-    M -- 6. DROP TABLE staging --> WH
+### Timing & monitoring
+
+The kick-off and the export are **decoupled** — `POST /AidboxTopicDestination` does not hold the HTTP connection open while billions of rows stream into Databricks.
+
+| Phase | Where it runs | Approx. duration |
+|---|---|---|
+| Aidbox writes the resource to PG | sync, inside the POST | <1s |
+| Module bootstrap (validate, OAuth token, schema sync + optional `ALTER TABLE` via SQL warehouse) | sync, inside the POST | 1-2 min on a cold warehouse, <1s when warm |
+| Initial export (cursor → staging Delta → `MERGE INTO` target → drop staging) | **async, in a background `future`** | seconds to hours, depending on row count and `initialExportParallelism` |
+| Continuous worker (PG queue → batch → Zerobus or SQL) | async, runs forever | — |
+
+So `POST /AidboxTopicDestination` returns `201 Created` after **bootstrap** (1-2 minutes worst-case), not after initial-export. There's no HTTP timeout regardless of dataset size.
+
+Poll progress via the destination's `$status` endpoint:
+
+```sh
+curl -u root:secret "$AIDBOX_URL/fhir/AidboxTopicDestination/patient-databricks/\$status" | jq
 ```
 
-Steps in detail:
+Relevant fields during initial export:
 
-1. Register a temporary external Delta table at `stagingTablePath` with the same schema as `sof.<view>`.
-2. Unity Catalog vends short-lived STS credentials for the staging path.
-3. The module writes all `sof.<view>` rows to the staging path as one Delta commit.
-4. The module issues `MERGE INTO {managed_target} USING {staging} ON t.id = s.id WHEN NOT MATCHED THEN INSERT *` against the SQL warehouse. The MERGE reads the staging Delta snapshot through the Delta protocol and inserts any rows whose `id` is not yet present in the target.
-5. The module drops the staging table.
+- `initialExportStatus` — `not_started` / `export-in-progress` / `completed` / `skipped` / `failed`.
+- `initialExportProgress_rowsSent` — running row count (updated every 10k rows).
+- `initialExportError` — error message when `initialExportStatus=failed`.
 
-The whole sequence runs as one atomic operation from the destination's lifecycle perspective. On failure: best-effort drop of the staging table, retry up to 3 times with exponential backoff (1s → 2s → 4s).
+On failure the module retries up to 3 times with exponential backoff (1s → 2s → 4s). The `MERGE INTO ... ON t.id = s.id WHEN NOT MATCHED THEN INSERT *` is idempotent on `id`, so a retry after a lost ack inserts zero new rows.
 
-{% hint style="info" %}
-The MERGE is idempotent on `id` — a retried export after a lost response inserts nothing instead of duplicating. Your ViewDefinition must have an `id` column.
-{% endhint %}
+The continuous worker starts polling the PG queue **immediately after destination creation**, in parallel with initial export — initial-export and live writes are not serialized. The MERGE keying on `id` means a continuous-stream row inserted before initial-export catches up just gets skipped by the eventual MERGE pass (idempotent).
 
 ### Large-scale initial export
 
-For >=1M-row datasets the single-cursor + single-Kernel-writer default is the wall-clock bottleneck. The `initialExportParallelism` parameter (default `1`) fans the staging write out across N hash-partitioned workers. They write into the **same** staging Delta table — Delta supports concurrent append-only writers natively (INSERT × INSERT does not conflict). The final `MERGE INTO target` runs as a single SQL statement after all chunks land.
+For ≥1M-row datasets the single-cursor + single-Kernel-writer default is the wall-clock bottleneck. The `initialExportParallelism` parameter (default `1`) fans the staging write out across `N` hash-partitioned chunks. The chunks are written by parallel workers into per-chunk staging Delta tables, then a single `MERGE INTO target USING (SELECT * FROM staging_0 UNION ALL ...)` materializes everything into the managed target in one SQL statement.
 
-Coordination across one or many Aidbox nodes uses **PostgreSQL advisory locks** (`pg_try_advisory_lock`). All Aidbox nodes share the same metastore by definition, so no external dependency is needed — each worker thread on each node tries to claim chunk ids `0..N-1`, runs the partition, marks the chunk completed in the destination resource extension, releases the lock, and moves to the next available chunk. PG drops advisory locks on connection disconnect, so a crashed worker frees its chunk for re-claim automatically.
+**`N` is the cluster-wide chunk count, not a per-pod thread count.** You set it once on the destination; the module figures out how many workers each Aidbox pod runs.
 
-Recommended values:
+**How a multi-pod cluster cooperates:** every Aidbox pod sharing the same PG metastore participates automatically — there's no leader, no service-discovery, no external coordinator.
 
-| N | Use case |
-|---|---|
-| `1` (default) | Backward-compatible, single-cursor sequential. |
-| `4` | Single Aidbox node, ≥1M rows. ~3-4× speedup. |
-| `8` | Larger Aidbox (≥8 cores) + plenty of PG read capacity. |
-| `16-32` | Multi-Aidbox HA deployment, ≥100M-row scale. Chunks distribute across all nodes; total cap by your PG `max_connections` budget. |
+- Each pod spawns up to `min(N, <pod's cpu cores>)` local worker threads.
+- Every worker loops over chunk-ids `0..N-1` and tries `pg_try_advisory_lock(destination-hash, chunk-id)` on each one. The first pod's worker to claim a given chunk-id runs that chunk; other workers (on the same pod or any other pod) see `false` and move to the next chunk-id.
+- When a chunk finishes the worker marks the chunk-id completed in the destination resource extension (a separate PG advisory lock serializes that read-modify-write across pods) and releases the chunk's lock.
+- A crashed worker's PG connection drops → PG releases all its session-level advisory locks automatically → a sibling worker on any pod picks the chunk up on its next loop iteration.
+
+Effective wall-clock concurrency is therefore `min(N, sum_of_cores_across_all_pods)`. Raising `N` past total cores doesn't make it faster — extra workers spin on lock-claim with nothing to do. Lowering `N` below total cores wastes CPU.
+
+**Picking `N` for a multi-pod cluster:**
+
+| Cluster shape | Suggested `N` | Notes |
+|---|---|---|
+| 1 pod, ≤4 cores | `1` (default) | Single-cursor sequential. Fine for <1M rows. |
+| 1 pod, 4-8 cores, ≥1M rows | `4` | ~3-4× speedup; one Kernel writer per worker, one PG cursor per worker. |
+| 1 pod, ≥8 cores | `8` | Watch PG read capacity — each cursor holds one connection until its chunk finishes. |
+| 2-4 pods (HA), ≥10M rows | `16` | Distributes evenly across pods; survives a pod restart mid-export. |
+| 4+ pods, ≥100M rows | `32` | Cap by your PG `max_connections` budget — each worker holds at least one connection. |
+
+**Picking `N` — formula.** Two ceilings, take the smaller:
+
+$$
+N = \min\!\left(\, C_{\text{total}},\; \frac{M - B}{2} \,\right)
+$$
+
+where
+
+- $$C_{\text{total}}$$ — sum of CPU cores allocated to every Aidbox pod connected to this metastore. Each pod auto-caps its local worker pool at its own core count (via `Runtime.availableProcessors()`); the cluster-wide sum is the maximum number of workers that will ever run concurrently. Setting $$N$$ higher than that adds nothing — surplus workers spin on `pg_try_advisory_lock` returning `false`.
+- $$M$$ — your PostgreSQL `max_connections` setting (default `100`).
+- $$B$$ — connections Aidbox uses for normal traffic (HikariCP pool size × pod count). Conservative default: $$30 \cdot \text{pod\_count}$$. Check your `pg_stat_activity` under steady-state load if you want a tighter number.
+- The `/ 2` reflects that each worker holds at most two PG connections: one for the `sof.<view>` server-side cursor, one short-lived for the lock-and-progress operations.
+
+Floor at `1` (default), don't bother going above `64`.
+
+**Worked example** — 4 pods × 8 cores each, $$M = 200$$:
+
+$$
+C_{\text{total}} = 4 \cdot 8 = 32, \qquad
+B = 30 \cdot 4 = 120
+$$
+
+$$
+N = \min\!\left(\, 32,\; \frac{200 - 120}{2} \,\right) = \min(32,\, 40) = 32
+$$
 
 Independent of `initialExportParallelism`, the SQL warehouse running the final MERGE remains a separate axis — for ≥100M-row exports temporarily scale it to `M` or `L` while initial-export is running, then back down once `initialExportStatus=completed`.
-
-### How it works — `external-direct` mode
-
-```mermaid
-graph LR
-    PG[(Aidbox PostgreSQL<br/>sof.&lt;view&gt;)]:::neutral2
-    M[Aidbox sender]:::blue2
-    Target[(External Delta target<br/>on S3 / GCS / ADLS)]:::violet2
-
-    M -- 1. read rows --> PG
-    M -- 2. write Parquet + Delta commit<br/>via Unity-Catalog-vended STS --> Target
-```
-
-No staging — the module writes `sof.<view>` rows straight to the external target table. All rows land in one Delta commit at the end, so consumers see either zero rows or the full historical batch (all-or-nothing visibility). Requires `EXTERNAL USE SCHEMA` so Unity Catalog will vend write credentials for the target.
 
 ## Monitoring
 
@@ -1273,32 +1032,20 @@ The module automatically:
 2. **Adds deletion flag**: Sets `is_deleted = 0` for create/update, `is_deleted = 1` for delete operations
 3. **Batches messages**: Groups messages according to `batchSize` and `sendIntervalMs` parameters
 4. **Coerces types per write path**:
-   - `managed-sql` / `external-direct` — Java SQL dates / timestamps are converted to ISO-8601 strings; the SQL warehouse (or the Delta-Kernel writer) parses them into `DATE` / `TIMESTAMP` columns.
+   - `managed-sql` — Java SQL dates / timestamps are converted to ISO-8601 strings; the SQL warehouse parses them into `DATE` / `TIMESTAMP` columns.
    - `managed-zerobus` — dates are encoded as `int32` epoch-days, timestamps as `int64` epoch-microseconds, as required by the Zerobus REST wire format. ISO strings would be rejected with a `400` from the endpoint.
 
 See [Output semantics](#output-semantics) for append-only behaviour, at-least-once delivery, and the recommended read-time dedup query.
 
 ## Compaction and maintenance
 
-**Managed modes (`managed-zerobus` and `managed-sql`)** — Databricks runs maintenance for you:
+Databricks runs maintenance for you:
 
 - [Predictive Optimization](https://docs.databricks.com/aws/en/optimizations/predictive-optimization) is enabled by default for Databricks accounts created on or after **2024-11-11**. Older accounts can enable it manually at the catalog / schema level.
 - When enabled, it runs `OPTIMIZE`, `VACUUM`, and `ANALYZE` in the background.
 - Predictive Optimization runs against managed tables **only** and is billed under the **Jobs Serverless** SKU.
 
-**`external-direct` mode** — you own the table and the maintenance:
-
-- Predictive Optimization does **not** apply to external tables (Databricks restricts it to managed tables).
-- Recommended pattern: schedule a [Databricks SQL Job](https://docs.databricks.com/aws/en/jobs/) running
-
-  ```sql
-  OPTIMIZE aidbox_export.fhir.patients;
-  VACUUM   aidbox_export.fhir.patients RETAIN 168 HOURS;
-  ```
-
 ## Schema evolution
-
-### Managed modes (auto-heal)
 
 Both `managed-zerobus` and `managed-sql` auto-`ALTER TABLE ADD COLUMNS` when the ViewDefinition has new columns. Triggered at sender start and on per-batch schema-mismatch (retried once).
 
@@ -1314,20 +1061,54 @@ Existing rows will have `NULL` in the new column.
 The module only ADDS columns automatically. Column drops, renames, or narrowing type changes (e.g., `BIGINT` → `INT`) are not auto-applied — you must run the corresponding `ALTER TABLE` manually.
 {% endhint %}
 
-### `external-direct` mode (manual)
+## Ad-hoc one-shot export
 
-The User owns the external table schema. If the ViewDefinition adds a column without a matching `ALTER TABLE` on the Databricks side, the destination's healthcheck will **fail at startup** with a clear error message pointing at the missing column.
+{% hint style="info" %}
+Available in Aidbox versions **2605** and later.
+{% endhint %}
 
-To add a column:
+Besides the continuous `AidboxTopicDestination` flow above, the module also serves as the `kind="data-lakehouse"` backend for the [SQL-on-FHIR v2 `$viewdefinition-export` operation](../../modules/sql-on-fhir/operation-viewdefinition-export.md) — a one-shot async export of a ViewDefinition's rows into the same Databricks managed UC table. Useful for periodic snapshots / backfills / ad-hoc dumps where standing up a continuous destination is overkill.
 
-1. Run `ALTER TABLE aidbox_export.fhir.patients ADD COLUMNS (new_col STRING)` in Databricks SQL.
-2. Add the column to your ViewDefinition.
-3. Re-materialize: `POST /fhir/ViewDefinition/{id}/$materialize`.
-4. Delete and recreate the destination.
+Architecturally this is **the initial export from [Initial export](#initial-export) above, exposed standalone** — same `sof.<view>` → staging Delta → `MERGE INTO target` → drop-staging flow, no continuous-streaming worker afterwards, no `AidboxTopicDestination` row in PG. The Databricks-side setup (catalog, schema, target table, staging schema, SP, grants, warehouse) is therefore identical to the continuous flow's setup above.
+
+Invocation:
+
+```http
+POST /fhir/ViewDefinition/$viewdefinition-export
+Prefer: respond-async
+
+{
+  "resourceType": "Parameters",
+  "parameter": [
+    {"name": "view",
+     "part": [{"name": "name",          "valueString": "patient_flat"},
+              {"name": "viewReference", "valueReference": {"reference": "ViewDefinition/patient_flat"}}]},
+    {"name": "kind",      "valueString": "data-lakehouse"},
+    {"name": "writeMode", "valueString": "managed-zerobus"},
+    {"name": "databricksWorkspaceUrl", "valueString": "$DATABRICKS_HOST"},
+    {"name": "databricksWorkspaceId",  "valueString": "$WORKSPACE_ID"},
+    {"name": "databricksRegion",       "valueString": "$DATABRICKS_REGION"},
+    {"name": "tableName",              "valueString": "$CATALOG.$TARGET_SCHEMA.$TARGET_TABLE"},
+    {"name": "databricksWarehouseId",  "valueString": "$WAREHOUSE_ID"},
+    {"name": "awsRegion",              "valueString": "$AWS_REGION"},
+    {"name": "stagingTablePath",       "valueString": "s3://$STAGING_BUCKET/staging/$TARGET_TABLE/"}
+  ]
+}
+```
+
+Returns `202 Accepted` + `Content-Location: /fhir/ViewDefinition/$viewdefinition-export/status/<uuid>`. Poll that URL until you get `200 OK` with the final `Parameters` output.
+
+### Scaling and multi-pod execution
+
+For large views add `{"name": "chunkCount", "valueUnsignedInt": <N>}` to the Parameters body — same chunking semantics and sizing formula as the continuous-destination flow's [Large-scale initial export](#large-scale-initial-export).
+
+Chunks run on Aidbox's standard async-task engine, so they spread across every pod sharing the metastore and status polls are answered by any pod. No load-balancer affinity is needed. See the [operation page's Multi-pod execution](../../modules/sql-on-fhir/operation-viewdefinition-export.md#multi-pod-execution) for the orchestration details.
+
+See the [`$viewdefinition-export` operation page](../../modules/sql-on-fhir/operation-viewdefinition-export.md) for the full parameter list, status response shape, and current limitations.
 
 ## Multiple destinations
 
-You can create multiple destinations for the same topic — for example, to mirror the same data into both a managed analytics table and an external archive table, or to use different ViewDefinitions for different downstream consumers. Each destination operates independently with its own queue, writer, and status.
+You can create multiple destinations for the same topic — for example, to materialize the same source resources into different ViewDefinitions for different downstream consumers, or to mirror writes into separate managed tables (different catalogs / schemas). Each destination operates independently with its own queue, writer, and status.
 
 ## Retry behavior
 
@@ -1340,24 +1121,21 @@ You can create multiple destinations for the same topic — for example, to mirr
 
 ### Common issues
 
-1. **`EXTERNAL_WRITE_NOT_ALLOWED_FOR_TABLE`** (writeMode=external-direct against a managed table) — Unity Catalog vending refuses managed tables by design. Either recreate the table as external (with explicit `LOCATION '...'`), or switch the destination to `writeMode=managed`.
-2. **`EXTERNAL_ACCESS_DISABLED_ON_METASTORE`** — your Unity Catalog metastore has external data access disabled (the Databricks Free Edition default). In Catalog Explorer → Metastore → enable **External data access**.
-3. **`Privilege EXTERNAL USE SCHEMA is not applicable to this entity`** — you're trying to grant `EXTERNAL USE SCHEMA` on a managed schema. Either recreate the schema as external, or switch to `writeMode=managed`.
-4. **`INSUFFICIENT_PRIVILEGES` on table or warehouse** — verify all grants in [Grant the service principal](#grant-the-service-principal). Don't forget `CAN_USE` on the warehouse.
-5. **`DELTA_INSERT_COLUMN_ARITY_MISMATCH`** in managed mode — the module should auto-heal this once. If it persists, check that the schema diff is column-add only (drops / renames are not auto-applied).
-6. **Schema mismatch in external-direct mode** — the module fails at startup with a clear message naming the missing columns. Run the corresponding `ALTER TABLE` and recreate the destination.
-7. **Slow first write** — Serverless warehouses cold-start in 30-90s on first use after idle. The module's HTTP timeout is 120s for SQL Statement Execution and uses `wait_timeout=50s` polling, so cold starts succeed transparently but the first batch's latency is high. Keep the warehouse warm with a periodic ping if first-batch latency matters.
-8. **Duplicate rows after recreating destination** — deleting and recreating a destination triggers initial export again. Set `skipInitialExport: true` when recreating a destination that already has its data exported.
-9. **`LOCATION_OVERLAP` during initial export** — `stagingTablePath` either equals the staging schema's `storage_root` (which UC treats as the schema's own managed location) or doesn't sit under your External Location. Set it to a sub-prefix of the External Location, e.g. `s3://<bucket>/staging/patient_flat/`, not the External Location root itself.
-10. **`Unsupported table kind. Tables created in default storage are not supported` (Zerobus error 4024)** — the catalog backing your target table was created without `--storage-root`, so Unity Catalog placed it in the workspace's default-storage prefix. `managed-zerobus` refuses to write into default storage. Recreate the catalog with `databricks catalogs create <name> --storage-root s3://<bucket>/managed/` pointing inside a registered External Location (see [Create the catalog and target schema](#create-the-catalog-and-target-schema) in the usage example).
-11. **`DELTA_CREATE_TABLE_SCHEME_MISMATCH` on initial export retry** — your `stagingTablePath` contains a `_delta_log/` from a previous initial-export run, and the new run has a different ViewDefinition schema (e.g. you added `ts`/`cts` columns). The module drops the UC staging table metadata on cleanup but does NOT delete S3 files, so the old `_delta_log/` survives and conflicts. Fix: either point `stagingTablePath` at a fresh sub-prefix (e.g. append a nonce: `s3://<bucket>/staging/<table>-v2/`), or manually `aws s3 rm --recursive` the old prefix.
+1. **`Privilege EXTERNAL USE SCHEMA is not applicable to this entity`** — you're trying to grant `EXTERNAL USE SCHEMA` on a managed schema. The staging schema (`<target-schema>_staging`) must be external — create it with an explicit `storage_root` pointed at your staging External Location.
+2. **`INSUFFICIENT_PRIVILEGES` on table or warehouse** — verify all grants in [Grant the service principal](#grant-the-service-principal). Don't forget `CAN_USE` on the warehouse.
+3. **`DELTA_INSERT_COLUMN_ARITY_MISMATCH`** — the module should auto-heal this once. If it persists, check that the schema diff is column-add only (drops / renames are not auto-applied).
+4. **Slow first write** — Serverless warehouses cold-start in 30-90s on first use after idle. The module's HTTP timeout is 120s for SQL Statement Execution and uses `wait_timeout=50s` polling, so cold starts succeed transparently but the first batch's latency is high. Keep the warehouse warm with a periodic ping if first-batch latency matters.
+5. **Duplicate rows after recreating destination** — deleting and recreating a destination triggers initial export again. Set `skipInitialExport: true` when recreating a destination that already has its data exported.
+6. **`LOCATION_OVERLAP` during initial export** — `stagingTablePath` either equals the staging schema's `storage_root` (which UC treats as the schema's own managed location) or doesn't sit under your External Location. Set it to a sub-prefix of the External Location, e.g. `s3://<bucket>/staging/patient_flat/`, not the External Location root itself.
+7. **`Unsupported table kind. Tables created in default storage are not supported` (Zerobus error 4024)** — the catalog backing your target table was created without `--storage-root`, so Unity Catalog placed it in the workspace's default-storage prefix. `managed-zerobus` refuses to write into default storage. Recreate the catalog with `databricks catalogs create <name> --storage-root s3://<bucket>/managed/` pointing inside a registered External Location (see [Create the catalog and target schema](#create-the-catalog-and-target-schema) in the usage example).
+8. **`DELTA_CREATE_TABLE_SCHEME_MISMATCH` on initial export retry** — your `stagingTablePath` contains a `_delta_log/` from a previous initial-export run, and the new run has a different ViewDefinition schema (e.g. you added `ts`/`cts` columns). The module drops the UC staging table metadata on cleanup but does NOT delete S3 files, so the old `_delta_log/` survives and conflicts. Fix: either point `stagingTablePath` at a fresh sub-prefix (e.g. append a nonce: `s3://<bucket>/staging/<table>-v2/`), or manually `aws s3 rm --recursive` the old prefix.
 
 ## Related documentation
 
 - [ViewDefinitions](../../modules/sql-on-fhir/defining-flat-views-with-view-definitions.md)
 - [`$materialize` operation](../../modules/sql-on-fhir/operation-materialize.md)
+- [`$viewdefinition-export` operation](../../modules/sql-on-fhir/operation-viewdefinition-export.md) — the SQL-on-FHIR ad-hoc export this module backs as `kind=data-lakehouse`
 - [Topic-based Subscriptions](../../modules/topic-based-subscriptions/README.md)
-- [External Secrets (Vault)](../../configuration/secret-files.md) — storing sensitive parameters like `databricksClientSecret` as file-backed secrets
 - [HashiCorp Vault Integration](../../tutorials/other-tutorials/hashicorp-vault-external-secrets.md) — step-by-step tutorial for Kubernetes with Secrets Store CSI Driver
 - [Azure Key Vault Integration](../../tutorials/other-tutorials/azure-key-vault-external-secrets.md) — step-by-step tutorial for AKS with Azure Key Vault
 - [Databricks: Predictive Optimization](https://docs.databricks.com/aws/en/optimizations/predictive-optimization)
