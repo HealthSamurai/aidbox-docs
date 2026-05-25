@@ -115,6 +115,8 @@ The service principal and the grants it needs are set up in the [Usage example](
 - For initial-export: an **S3 bucket** you control (AWS S3 only — see [Initial export](#initial-export)).
 - **Metastore External Data Access enabled** — Account Console → Catalog → Metastores → `<your-metastore>` → toggle **External Data Access** on ([Databricks docs](https://docs.databricks.com/aws/en/external-access/admin)). Aidbox is "non-Databricks compute" from UC's perspective and won't be able to vend staging-write credentials until this is on, regardless of how grants are configured. Requires metastore admin.
 
+![Databricks Catalog Explorer → metastore details → External data access toggle.](../../../assets/databricks-metastore-external-data-access.png)
+
 The service principal that authenticates the module is created in step 3 of the usage example — you don't need it before you start.
 
 ### Setup
