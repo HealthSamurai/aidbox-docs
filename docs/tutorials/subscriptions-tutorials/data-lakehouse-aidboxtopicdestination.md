@@ -513,7 +513,7 @@ databricks external-locations create "$EXTERNAL_LOCATION_NAME" \
 
 ### Create the catalog and target schema
 
-The catalog's `--storage-root` must sit inside the External Location you just registered. A managed catalog created without `--storage-root` falls back to the workspace's default-storage prefix on most modern workspaces, and `managed-zerobus` refuses to write into default storage with `Unsupported table kind` (error code 4024).
+The catalog's `--storage-root` must sit inside the External Location you just registered.
 
 ```sh
 databricks catalogs create "$CATALOG" \
@@ -533,7 +533,7 @@ databricks api post /api/2.0/sql/statements --json "$(jq -n \
 
 ### Create the managed Delta target table
 
-Columns must match the ViewDefinition you created above, plus a mandatory `is_deleted INT`:
+Columns must match the ViewDefinition, plus a mandatory `is_deleted INT` (see [Output semantics](#output-semantics)). See [Schema evolution](#schema-evolution) for the FHIR → SQL type mapping.
 
 ```sh
 databricks api post /api/2.0/sql/statements --json "$(jq -n \
@@ -541,25 +541,6 @@ databricks api post /api/2.0/sql/statements --json "$(jq -n \
   --arg stmt "CREATE TABLE $CATALOG.$TARGET_SCHEMA.$TARGET_TABLE (id STRING, ts TIMESTAMP, cts TIMESTAMP, gender STRING, birth_date DATE, family_name STRING, given_name STRING, is_deleted INT) USING DELTA" \
   '{warehouse_id: $wh, wait_timeout: "30s", statement: $stmt}')"
 ```
-
-{% hint style="warning" %}
-`is_deleted INT` is mandatory — the module sets it to `0` for create/update, `1` for delete.
-{% endhint %}
-
-**Type mapping ViewDefinition → SQL:**
-
-| FHIR / ViewDefinition type | Databricks SQL type |
-| -------------------------- | ------------------- |
-| `id`, `string`, `code`     | `STRING`            |
-| `date`                     | `DATE`              |
-| `dateTime`, `instant`      | `TIMESTAMP`         |
-| `integer`, `positiveInt`   | `INT`               |
-| `decimal`                  | `DOUBLE`            |
-| `boolean`                  | `BOOLEAN`           |
-
-{% hint style="info" %}
-In both `managed-*` modes the module issues `ALTER TABLE ADD COLUMNS` automatically when the ViewDefinition gains columns. See [Schema evolution](#schema-evolution).
-{% endhint %}
 
 {% endstep %}
 
@@ -753,10 +734,6 @@ POST /fhir/ViewDefinition/patient_flat/$materialize
 }
 ```
 
-{% hint style="info" %}
-Must be materialized as a **view**, not a table. Details in the [`$materialize` operation](../../modules/sql-on-fhir/operation-materialize.md) docs.
-{% endhint %}
-
 {% endstep %}
 
 {% step %}
@@ -819,13 +796,13 @@ POST /fhir/Patient
 }
 ```
 
-Then query your Databricks table to confirm the data arrived (replace with your catalog/schema/table):
+Then query your Databricks table to confirm the data arrived:
 
 ```sql
-SELECT * FROM <catalog>.<schema>.<table>;
+SELECT * FROM aidbox_export.fhir.patients;
 ```
 
-You should see one row for John Smith. If you left `skipInitialExport` at its default (`false`), the table also contains a row for every pre-existing row in `sof.patient_flat`. Set `skipInitialExport: true` if you only want forward-going data.
+You should see one row for John Smith.
 
 {% endstep %}
 {% endstepper %}
@@ -1038,6 +1015,17 @@ Databricks runs maintenance for you:
 - Predictive Optimization runs against managed tables **only** and is billed under the **Jobs Serverless** SKU.
 
 ## Schema evolution
+
+The module maps FHIR / ViewDefinition types to Databricks SQL types as follows:
+
+| FHIR / ViewDefinition type | Databricks SQL type |
+| -------------------------- | ------------------- |
+| `id`, `string`, `code`     | `STRING`            |
+| `date`                     | `DATE`              |
+| `dateTime`, `instant`      | `TIMESTAMP`         |
+| `integer`, `positiveInt`   | `INT`               |
+| `decimal`                  | `DOUBLE`            |
+| `boolean`                  | `BOOLEAN`           |
 
 Both `managed-zerobus` and `managed-sql` auto-`ALTER TABLE ADD COLUMNS` when the ViewDefinition has new columns. Triggered at sender start and on per-batch schema-mismatch (retried once).
 
