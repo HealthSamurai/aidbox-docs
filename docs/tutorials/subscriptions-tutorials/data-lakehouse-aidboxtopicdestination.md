@@ -798,19 +798,7 @@ EOF
 {% hint style="warning" %}
 `stagingTablePath` must be a **sub-prefix** of the External Location you registered (here `s3://$STAGING_BUCKET/staging/`), not the root itself. Setting it equal to the External Location root or to the staging schema's `storage_root` makes Databricks refuse with `LOCATION_OVERLAP`. Use a per-destination subdirectory like `staging/patient_flat/` or `staging/<destination-id>/`.
 
-With `initialExportParallelism > 1` the module treats this value as a **base prefix** and writes each chunk into a subfolder `<prefix>/chunk-<K>/` — registering `chunk-0/` … `chunk-{N-1}/` as separate per-chunk staging Delta tables, then dropping them all after the final MERGE. No customer-side setup change: the `CREATE_TABLE` grant on the staging schema (granted below) covers any number of per-chunk tables, and the chunk subfolders inherit the same External Location and storage credential.
 {% endhint %}
-
-Notice the destination does NOT include `databricksClientId` / `databricksClientSecret`. The service-principal credentials live on the Aidbox box itself (env vars `BOX_DATABRICKS_DATA_LAKEHOUSE_CLIENT_ID` and `BOX_DATABRICKS_DATA_LAKEHOUSE_CLIENT_SECRET`, or the corresponding `module.databricks.data-lakehouse.client-id` / `.client-secret` settings) — set them once when you provision the Aidbox cluster:
-
-```bash
-docker run \
-  -e BOX_DATABRICKS_DATA_LAKEHOUSE_CLIENT_ID="${SP_CLIENT_ID}" \
-  -e BOX_DATABRICKS_DATA_LAKEHOUSE_CLIENT_SECRET="${SP_CLIENT_SECRET}" \
-  ... aidboxone/aidbox:edition-XYZ
-```
-
-Per-destination overrides are intentionally not accepted: a resolved plaintext secret in `AidboxTopicDestination.resource` (or in `db_scheduler.scheduled_tasks.task_data` for `$viewdefinition-export`) is readable by anyone with PG read access. Aidbox settings keep the secret in the boot-config and the encrypted-at-rest `aidbox-settings` table instead.
 
 {% endstep %}
 
