@@ -470,6 +470,7 @@
   * [WAL-G](deployment-and-maintenance/backup-and-restore/wal-g.md)
 * [Indexes](deployment-and-maintenance/indexes/README.md)
   * [Get Suggested Indexes](deployment-and-maintenance/indexes/get-suggested-indexes.md)
+  * [Search Parameters Usage Statistics](deployment-and-maintenance/indexes/search-parameter-usage-stats.md)
   * [Create Indexes Manually](deployment-and-maintenance/indexes/create-indexes-manually.md)
 
 ## Developer experience
