@@ -71,10 +71,6 @@ The BigQuery Topic Destination module exports FHIR resources from Aidbox to Goog
 4. Verify the module is loaded. In Aidbox UI, go to **FHIR Packages** and check that the BigQuery profile is present:
    `http://health-samurai.io/fhir/core/StructureDefinition/aidboxtopicdestination-bigQueryAtLeastOnceProfile`
 
-{% hint style="info" %}
-The profile URL above is a FHIR canonical identifier, not an HTTP endpoint. You can find it in the Aidbox UI under FHIR Packages.
-{% endhint %}
-
 ### Kubernetes
 
 For Kubernetes deployments, the module can be downloaded automatically using an init container:

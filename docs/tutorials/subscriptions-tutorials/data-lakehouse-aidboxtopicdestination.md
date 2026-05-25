@@ -150,9 +150,6 @@ The service principal that authenticates the module is created in step 3 of the 
 4. Verify the module is loaded. In Aidbox UI, go to **FHIR Packages** and check that the Delta Lake profile is present:
    `http://health-samurai.io/fhir/core/StructureDefinition/aidboxtopicdestination-dataLakehouseAtLeastOnceProfile`
 
-{% hint style="info" %}
-The profile URL above is a FHIR canonical identifier, not an HTTP endpoint. You can find it in the Aidbox UI under FHIR Packages.
-{% endhint %}
 
 ### Kubernetes
 
