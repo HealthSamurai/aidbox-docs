@@ -89,7 +89,7 @@ Content-Location: /fhir/ViewDefinition/$viewdefinition-export/status/<export-id>
 | `databricksWarehouseId` | yes | SQL warehouse id (used at setup for schema sync + at finalize for the MERGE). |
 | `awsRegion` | yes | AWS region of the S3 staging bucket. |
 | `stagingTablePath` | yes | `s3://bucket/staging/<table>/` — must start with `s3://` or `s3a://`. |
-| `chunkCount` | no | Positive integer (default 1). Splits the export into N per-chunk staging tables and N concurrent writers. Capped by Aidbox's HikariCP pool size; 400 with `parallelism-exceeds-pool` if exceeded. |
+| `chunkCount` | no | Positive integer (default 1). Splits the export into N per-chunk staging tables and N concurrent writers. See [Large-scale and multi-pod execution](#large-scale-and-multi-pod-execution) for sizing. |
 
 OAuth M2M credentials are sourced from Aidbox-wide settings — `BOX_DATABRICKS_DATA_LAKEHOUSE_CLIENT_ID` / `_CLIENT_SECRET` env vars or the corresponding settings registry entries. They are NOT accepted as per-request parameters. See the [Data Lakehouse tutorial](../../tutorials/subscriptions-tutorials/data-lakehouse-aidboxtopicdestination.md) for the full Databricks-side setup.
 
@@ -172,11 +172,32 @@ The `MERGE` is idempotent on `id` — a retried export after a lost response ins
 
 The Databricks-side setup (catalog, schema, target table, staging schema, service principal, grants, warehouse) is documented in the [Data Lakehouse tutorial](../../tutorials/subscriptions-tutorials/data-lakehouse-aidboxtopicdestination.md) — the same setup is reused here.
 
-## Multi-pod execution
+## Large-scale and multi-pod execution
 
-Chunks run on Aidbox's standard async-task engine, so they distribute across every pod sharing the metastore. Status polling and cancellation answer from any pod — no kick-off-pod affinity, no client-side load-balancer pinning.
+Chunks run on **async-api** (Aidbox's db-scheduler-backed task engine), so they distribute across every pod sharing the metastore. Status polling and cancellation answer from any pod — no kick-off-pod affinity, no client-side load-balancer pinning. A pod failure mid-chunk is recovered automatically via the task's heartbeat lapse — another pod re-leases it.
 
-A pod failure mid-chunk is recovered automatically: the chunk task's heartbeat lapses and another pod re-leases it.
+### Capacity caps
+
+Effective cluster-wide concurrent chunks = the smallest of three ceilings:
+
+$$
+\text{concurrency} = \min\!\left(\,
+  \text{chunkCount},\quad
+  \sum_{\text{pods}} S,\quad
+  \frac{M - B}{2}
+\,\right)
+$$
+
+- $$S$$ — **`scheduler-executor-threads`** per pod ([Aidbox setting](../../reference/all-settings.md#scheduler-executor-threads)). This is the **hard per-pod cap** on async-api task execution. Excess chunks queue in `db_scheduler.scheduled_tasks` with `picked=false` and wait. Default is small (≈10); bump it if you plan high `chunkCount`.
+- $$M$$ — PostgreSQL `max_connections`.
+- $$B$$ — connections Aidbox uses for normal traffic (HikariCP pool size × pod count).
+- $$/2$$ — each chunk worker holds up to two PG connections (one cursor + one short-lived).
+
+The kick-off handler returns `400 parallelism-exceeds-pool` if `chunkCount > (M − B) / 2` is obvious from settings, but the scheduler-thread cap is **not validated** at kick-off — the export simply runs slower than expected if you exceed it.
+
+### Differences vs `AidboxTopicDestination` initial export
+
+The continuous-destination init-export uses a **different code path** (raw `(future ...)` + PG advisory locks, not async-api) with `min(N, availableProcessors())` as the per-pod cap. `scheduler-executor-threads` doesn't apply there. See the [tutorial's Large-scale section](../../tutorials/subscriptions-tutorials/data-lakehouse-aidboxtopicdestination.md#large-scale-initial-export) for that path.
 
 ## Cloud support
 

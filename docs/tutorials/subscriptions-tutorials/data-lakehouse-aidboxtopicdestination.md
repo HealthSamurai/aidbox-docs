@@ -915,11 +915,18 @@ The continuous worker starts polling the PG queue **immediately after destinatio
 
 The `initialExportParallelism` parameter (default `1`) fans the staging write out across `N` hash-partitioned chunks written by parallel workers, then materialized in one `MERGE INTO target`. Use it when the single-cursor default becomes the wall-clock bottleneck.
 
-`N` is the cluster-wide chunk count, not a per-pod thread count. Every Aidbox pod sharing the same PG metastore participates automatically — chunks are claimed by whichever pod is free, and a crashed pod's chunks are picked up by a sibling.
+#### What `N` does **not** control
 
-Effective wall-clock concurrency is `min(N, total cores across all pods)`. Raising `N` past that adds nothing.
+- **Hot-path live writes** — every destination has one sender thread that drains the PG queue and pushes batches via Zerobus/SQL. This thread is unrelated to `N` and unaffected by initial-export. Live writes continue throughout init-export in parallel.
+- **`$viewdefinition-export`** — that operation has its own `chunkCount` parameter on a different orchestrator (async-api). Different cap mechanics — see the [operation page](../../modules/sql-on-fhir/operation-viewdefinition-export.md#large-scale-and-multi-pod-execution).
 
-**Picking `N` for a multi-pod cluster:**
+#### How chunks distribute across pods
+
+Every Aidbox pod sharing the same PG metastore participates automatically (PG advisory-lock based chunk-claim, no leader). Each pod runs **up to `min(N, its CPU cores)`** chunk workers — the per-pod cap is the JVM's `Runtime.availableProcessors()` (you can't set it from settings for this code path). Chunks are claimed first-come-first-served, and a crashed pod's chunks are picked up by a sibling on next poll.
+
+#### Capacity planning
+
+Effective cluster-wide concurrency = `min(N, sum-of-cores-across-pods, PG-pool-budget)`. The smallest of these three is your real bottleneck.
 
 | Cluster shape    | Suggested `N` | Notes                                    |
 | ---------------- | ------------- | ---------------------------------------- |
@@ -929,33 +936,32 @@ Effective wall-clock concurrency is `min(N, total cores across all pods)`. Raisi
 | 2-4 pods (HA)    | `16`          | Survives a pod restart mid-export.       |
 | 4+ pods          | `32`          | Cap by your PG `max_connections` budget. |
 
-**Picking `N` — formula.** Two ceilings, take the smaller:
+#### Sizing formula
 
 $$
 N = \min\!\left(\, C_{\text{total}},\; \frac{M - B}{2} \,\right)
 $$
 
-where
-
-- $$C_{\text{total}}$$ — sum of CPU cores across every Aidbox pod connected to this metastore. Each pod caps its local worker pool at its core count, so the cluster total is the ceiling on concurrent workers.
-- $$M$$ — your PostgreSQL `max_connections` setting (default `100`).
+- $$C_{\text{total}}$$ — sum of CPU cores across every Aidbox pod. Each pod caps its local workers at its own core count, so the cluster total is the ceiling on concurrent chunks.
+- $$M$$ — your PostgreSQL `max_connections` (default `100`).
 - $$B$$ — connections Aidbox uses for normal traffic (HikariCP pool size × pod count). Conservative default: $$30 \cdot \text{pod\_count}$$.
-- The `/ 2` reflects that each worker holds up to two PG connections.
+- $$/2$$ — each chunk worker may hold up to two PG connections (one cursor + one short-lived for lock-and-progress).
 
-Floor at `1` (default), don't bother going above `64`.
+Floor at `1`, don't bother going above `64`.
 
 **Worked example** — 4 pods × 8 cores each, $$M = 200$$:
 
-$$
-C_{\text{total}} = 4 \cdot 8 = 32, \qquad
-B = 30 \cdot 4 = 120
-$$
+$$C_{\text{total}} = 32,\quad B = 120,\quad N = \min(32,\, (200-120)/2) = \min(32, 40) = 32$$
 
-$$
-N = \min\!\left(\, 32,\; \frac{200 - 120}{2} \,\right) = \min(32,\, 40) = 32
-$$
+#### What to watch during init-export
 
-Independent of `initialExportParallelism`, the SQL warehouse running the final MERGE remains a separate axis — for very large exports temporarily scale it to `M` or `L` while initial-export is running, then back down once `initialExportStatus=completed`.
+- **PG `pg_stat_activity`** — should show up to `N` concurrent `SELECT … WHERE abs(hashtext(id::text)) % N = K` queries, one per active chunk. They flip between `state=active` and `state=idle in transaction` as Kernel writes parquet between fetches (normal — not a bug).
+- **`db_scheduler.scheduled_tasks`** — empty for AidboxTopicDestination init-export (this path uses raw futures + advisory locks, not async-api). Status lives in the destination resource itself.
+- **`$status` endpoint** — `initialExportStatus` + `initialExportProgress_rowsSent` updated every 10k rows.
+
+#### SQL warehouse sizing (independent axis)
+
+The Serverless SQL warehouse running the final `MERGE INTO` is separate from `initialExportParallelism`. For very large exports, temporarily bump the warehouse to `M` or `L` while initial-export is running, then back to `2X-Small` once `initialExportStatus=completed`. Hot-path Zerobus writes don't use the warehouse.
 
 ## Monitoring
 
