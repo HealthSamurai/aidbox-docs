@@ -130,7 +130,7 @@ The service principal that authenticates the module is created in step 3 of the 
 
 The module reads Databricks OAuth M2M credentials from box settings. Create the SP in the Databricks UI (**Settings → Identity and access → Service principals → Add**, then **Secrets → Generate secret**), then:
 
-![Databricks workspace settings → Identity and access → Service principals.](../../../assets/databricks-service-principals.png)
+![Databricks workspace settings → Identity and access → Service principals.](../../../assets/databricks-service-principals.avif)
 
 ```sh
 export BOX_DATABRICKS_DATA_LAKEHOUSE_CLIENT_ID=<sp-client-id>
@@ -379,7 +379,7 @@ You already created the Service Principal and exported `BOX_DATABRICKS_DATA_LAKE
 
 Now in the Databricks UI under **SQL Warehouses** pick or create a Serverless warehouse, grab its ID:
 
-![Databricks SQL Warehouse Overview tab showing the warehouse ID.](../../../assets/databricks-sql-warehouse.png)
+![Databricks SQL Warehouse Overview tab showing the warehouse ID.](../../../assets/databricks-sql-warehouse.avif)
 
 ```sh
 export WAREHOUSE_ID=<warehouse-id>
