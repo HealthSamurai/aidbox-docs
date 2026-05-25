@@ -1,7 +1,7 @@
 ---
 description: Materializing SQL-on-FHIR ViewDefinitions as database tables, views, or materialized views
 ---
-# `$materialize` operation
+# $materialize operation
 
 {% hint style="warning" %}
 `$materialize` is not part of the official FHIR or SQL on FHIR specifications. This is a custom operation implemented by Aidbox, and its API may be subject to changes in future versions.

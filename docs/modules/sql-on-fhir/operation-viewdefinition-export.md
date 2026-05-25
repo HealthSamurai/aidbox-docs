@@ -1,7 +1,7 @@
 ---
 description: Async bulk export of a ViewDefinition's materialized rows to a backend-provided sink (Databricks Delta, etc.)
 ---
-# `$viewdefinition-export` operation
+# $viewdefinition-export operation
 
 {% hint style="info" %}
 Available in Aidbox versions **2605** and later. Requires **fhir-schema mode**. Implements [SQL-on-FHIR v2 `$viewdefinition-export`](https://build.fhir.org/ig/FHIR/sql-on-fhir-v2/OperationDefinition-ViewDefinitionExport.html).

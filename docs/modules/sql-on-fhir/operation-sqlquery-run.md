@@ -1,7 +1,7 @@
 ---
 description: Using the $sqlquery-run operation to execute SQLQuery Libraries over ViewDefinition tables
 ---
-# `$sqlquery-run` operation
+# $sqlquery-run operation
 
 {% hint style="warning" %}
 Requires **fhir-schema mode**.
