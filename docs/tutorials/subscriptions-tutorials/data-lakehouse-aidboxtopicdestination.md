@@ -9,9 +9,7 @@ This functionality is available starting from Aidbox version **2605**.
 {% endhint %}
 
 {% hint style="warning" %}
-**Cloud support: AWS S3 only (today)** for the initial-export staging bucket (`s3://...` / `s3a://...`). The Unity Catalog managed target table is unaffected — UC manages its own storage.
-
-Need GCS or Azure ADLS Gen2? [Contact us](../../overview/contact-us.md) — they're not wired through yet and we can prioritise.
+**Cloud support: AWS S3 only (today)** for the initial-export staging bucket (`s3://...` / `s3a://...`). 
 {% endhint %}
 
 This page sets up an `AidboxTopicDestination` that streams FHIR resource changes into a Databricks Unity Catalog managed Delta table. Rows are flattened by a [ViewDefinition](../../modules/sql-on-fhir/defining-flat-views-with-view-definitions.md) so analytics consumers see columns, not nested FHIR JSON.

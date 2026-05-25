@@ -179,11 +179,7 @@ A pod failure mid-chunk is recovered automatically: the chunk task's heartbeat l
 
 ## Cloud support
 
-The Data Lakehouse backend's staging path currently supports **AWS S3 only** (`s3://...` / `s3a://...`). The Unity Catalog managed target table is unaffected — UC manages its own storage.
-
-{% hint style="info" %}
-Need **GCS** (`gs://...`) or **Azure ADLS Gen2** (`abfss://...`) staging? [Contact us](../../overview/contact-us.md) — they're not wired through the backend yet, but the Aidbox-side wiring is cloud-agnostic and we can prioritize.
-{% endhint %}
+The Data Lakehouse backend's staging path currently supports **AWS S3 only** (`s3://...` / `s3a://...`). 
 
 ## Limitations (current)
 
