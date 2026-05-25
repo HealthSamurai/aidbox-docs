@@ -39,7 +39,8 @@ Prefer: respond-async
     {"name": "tableName",              "valueString": "xxx.xxx.patient_flat"},
     {"name": "databricksWarehouseId",  "valueString": "xxx"},
     {"name": "awsRegion",              "valueString": "xxx"},
-    {"name": "stagingTablePath",       "valueString": "s3://xxx/staging/patient_flat/"}
+    {"name": "stagingTablePath",       "valueString": "s3://xxx/staging/patient_flat/"},
+    {"name": "chunkCount",             "valueUnsignedInt": 1}
   ]
 }
 ```

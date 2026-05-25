@@ -770,7 +770,8 @@ curl -u <client-name>:<client-secret> -X POST "$AIDBOX_URL/fhir/AidboxTopicDesti
     {"name": "stagingTablePath", "valueString": "s3://${STAGING_BUCKET}/staging/${TARGET_TABLE}/"},
     {"name": "viewDefinition", "valueString": "patient_flat"},
     {"name": "batchSize", "valueUnsignedInt": 50},
-    {"name": "sendIntervalMs", "valueUnsignedInt": 5000}
+    {"name": "sendIntervalMs", "valueUnsignedInt": 5000},
+    {"name": "initialExportParallelism", "valueUnsignedInt": 1}
   ]
 }
 EOF
