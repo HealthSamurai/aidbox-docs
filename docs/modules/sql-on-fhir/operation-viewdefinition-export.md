@@ -73,31 +73,41 @@ Content-Location: /fhir/ViewDefinition/$viewdefinition-export/status/<export-id>
 
 ### Spec parameters
 
-| Parameter | Required | Notes |
-|---|---|---|
-| `view` | yes | Exactly one entry. `viewReference` must point at a server-stored ViewDefinition. Inline `viewResource` is not yet supported. |
-| `kind` | yes | Selects the backend (e.g. `data-lakehouse`). |
-| `clientTrackingId` | no | Echoed back in the status response. |
-| `_format` | no | `ndjson`, `parquet`, `json`, or omitted. Functionally ignored — the sink format is determined by the backend (Delta for `kind=data-lakehouse`). |
-| `header` | no | Echoed; not meaningful for non-CSV sinks. |
-| `_since` | no | ISO-8601 instant. Filters the source view by its timestamp column (the column whose ViewDefinition path is `getAidboxTs()`). 400 `:no-timestamp-column` if `_since` is set but the view exposes no such column. See [`_since` (incremental export)](#_since-incremental-export). |
-| `patient` (0..\*) | no | List of Patient references. Currently accepted but **not yet applied** — the full view is exported. |
-| `group` (0..\*) | no | List of Group references. Same status as `patient`. |
-| `source` | no | External data source URI. **Not supported** — rejected. |
+<table>
+<thead>
+<tr><th width="230">Parameter</th><th width="110">Required</th><th>Notes</th></tr>
+</thead>
+<tbody>
+<tr><td><code>view</code></td><td>yes</td><td>Exactly one entry. <code>viewReference</code> must point at a server-stored ViewDefinition. Inline <code>viewResource</code> is not yet supported.</td></tr>
+<tr><td><code>kind</code></td><td>yes</td><td>Selects the backend (e.g. <code>data-lakehouse</code>).</td></tr>
+<tr><td><code>clientTrackingId</code></td><td>no</td><td>Echoed back in the status response.</td></tr>
+<tr><td><code>_format</code></td><td>no</td><td><code>ndjson</code>, <code>parquet</code>, <code>json</code>, or omitted. Functionally ignored — the sink format is determined by the backend (Delta for <code>kind=data-lakehouse</code>).</td></tr>
+<tr><td><code>header</code></td><td>no</td><td>Echoed; not meaningful for non-CSV sinks.</td></tr>
+<tr><td><code>_since</code></td><td>no</td><td>ISO-8601 instant. Filters the source view by its timestamp column (the column whose ViewDefinition path is <code>getAidboxTs()</code>). 400 <code>:no-timestamp-column</code> if <code>_since</code> is set but the view exposes no such column. See <a href="#_since-incremental-export"><code>_since</code> (incremental export)</a>.</td></tr>
+<tr><td><code>patient</code> (0..*)</td><td>no</td><td>List of Patient references. Currently accepted but <strong>not yet applied</strong> — the full view is exported.</td></tr>
+<tr><td><code>group</code> (0..*)</td><td>no</td><td>List of Group references. Same status as <code>patient</code>.</td></tr>
+<tr><td><code>source</code></td><td>no</td><td>External data source URI. <strong>Not supported</strong> — rejected.</td></tr>
+</tbody>
+</table>
 
 ### Data Lakehouse backend parameters (`kind=data-lakehouse`)
 
-| Parameter | Required | Notes |
-|---|---|---|
-| `writeMode` | yes | `managed-zerobus` (default — REST row-insert) or `managed-sql` (SQL warehouse INSERT). |
-| `tableName` | yes | Managed UC table full name `catalog.schema.table`. |
-| `databricksWorkspaceUrl` | yes | `https://<workspace>.cloud.databricks.com`. |
-| `databricksWorkspaceId` | yes | Numeric workspace id (for Zerobus URL). |
-| `databricksRegion` | yes | Workspace AWS region. |
-| `databricksWarehouseId` | yes | SQL warehouse id (used at setup for schema sync + at finalize for the MERGE). |
-| `awsRegion` | yes | AWS region of the S3 staging bucket. |
-| `stagingTablePath` | yes | `s3://bucket/staging/<table>/` — must start with `s3://` or `s3a://`. |
-| `chunkCount` | no | Positive integer (default 1). Splits the export into N per-chunk staging tables and N concurrent writers. See [Large-scale and multi-pod execution](#large-scale-and-multi-pod-execution) for sizing. |
+<table>
+<thead>
+<tr><th width="230">Parameter</th><th width="110">Required</th><th>Notes</th></tr>
+</thead>
+<tbody>
+<tr><td><code>writeMode</code></td><td>yes</td><td><code>managed-zerobus</code> (default — REST row-insert) or <code>managed-sql</code> (SQL warehouse INSERT).</td></tr>
+<tr><td><code>tableName</code></td><td>yes</td><td>Managed UC table full name <code>catalog.schema.table</code>.</td></tr>
+<tr><td><code>databricksWorkspaceUrl</code></td><td>yes</td><td><code>https://&lt;workspace&gt;.cloud.databricks.com</code>.</td></tr>
+<tr><td><code>databricksWorkspaceId</code></td><td>yes</td><td>Numeric workspace id (for Zerobus URL).</td></tr>
+<tr><td><code>databricksRegion</code></td><td>yes</td><td>Workspace AWS region.</td></tr>
+<tr><td><code>databricksWarehouseId</code></td><td>yes</td><td>SQL warehouse id (used at setup for schema sync + at finalize for the MERGE).</td></tr>
+<tr><td><code>awsRegion</code></td><td>yes</td><td>AWS region of the S3 staging bucket.</td></tr>
+<tr><td><code>stagingTablePath</code></td><td>yes</td><td><code>s3://bucket/staging/&lt;table&gt;/</code> — must start with <code>s3://</code> or <code>s3a://</code>.</td></tr>
+<tr><td><code>chunkCount</code></td><td>no</td><td>Positive integer (default 1). Splits the export into N per-chunk staging tables and N concurrent writers. See <a href="#large-scale-and-multi-pod-execution">Large-scale and multi-pod execution</a> for sizing.</td></tr>
+</tbody>
+</table>
 
 OAuth M2M credentials are sourced from Aidbox-wide settings — `BOX_DATABRICKS_DATA_LAKEHOUSE_CLIENT_ID` / `_CLIENT_SECRET` env vars or the corresponding settings registry entries. They are NOT accepted as per-request parameters. See the [Data Lakehouse tutorial](../../tutorials/subscriptions-tutorials/data-lakehouse-aidboxtopicdestination.md) for the full Databricks-side setup.
 
