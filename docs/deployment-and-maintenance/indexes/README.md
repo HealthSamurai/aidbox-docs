@@ -124,7 +124,7 @@ It depends — and that's the point. A short tour of what can vary:
 * **Modifiers.** `:contains` and `:exact` on the same `name` parameter need different functional indexes; `:in` / `:not-in` / `:above` / `:below` on token parameters expand into ValueSet lookups; `:identifier` / `:of-type` pull from different jsonb paths.
 * **Path expressions.** Aidbox stores resources as jsonb, so the suggester emits *functional* indexes over `knife_extract_text(...)` or `jsonb_path_query(...)` — one per SP path — rather than indexes on plain columns.
 * **Joins.** Chained queries (`Observation?subject:Patient.name=John`) and reverse-chain `_has` queries translate into SQL joins or subselects; both sides need their own indexes.
-* **Full-resource fallback.** Token and reference parameters without a dedicated path fall back to a GIN over the whole jsonb (`<rt>_resource_jsonb`). It rescues queries that no functional index covers, but it's larger on disk.
+* **Full-resource fallback.** Token and reference parameters without a dedicated path fall back to a GIN over the whole jsonb. It rescues queries that no functional index covers, but it's larger on disk.
 
 Hand-picking the right combination per parameter is impractical. The next sections cover Aidbox's [suggest-index RPCs](#index-suggestion), which compute the candidates for you, and the [usage-statistics RPCs](#usage-statistics), which tell you which suggestions actually deserve the disk space.
 
