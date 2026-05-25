@@ -221,7 +221,7 @@ All requests in this tutorial use `Content-Type: application/json`.
 <tr><td><code>writeMode</code></td><td>string</td><td><code>managed-zerobus</code> (default) or <code>managed-sql</code>. Omit to get <code>managed-zerobus</code></td></tr>
 <tr><td><code>skipInitialExport</code></td><td>boolean</td><td>Skip initial export of existing data (default: <code>false</code>)</td></tr>
 <tr><td><code>targetFileSizeMb</code></td><td>unsignedInt</td><td>Parquet target size during initial export (default: <code>128</code>)</td></tr>
-<tr><td><code>initialExportParallelism</code></td><td>unsignedInt</td><td>Cluster-wide number of parallel chunks for hash-partitioned initial export (default <code>1</code> — sequential). See <a href="#large-scale-initial-export">Large-scale initial export</a> for the sizing formula.</td></tr>
+<tr><td><code>initialExportChunkCount</code></td><td>unsignedInt</td><td>Cluster-wide number of parallel chunks for hash-partitioned initial export (default <code>1</code> — sequential). See <a href="#large-scale-initial-export">Large-scale initial export</a> for the sizing formula.</td></tr>
 </tbody>
 </table>
 
@@ -260,7 +260,7 @@ All requests in this tutorial use `Content-Type: application/json`.
 <tbody>
 <tr><td><code>skipInitialExport</code></td><td>boolean</td><td>Skip initial export of existing data (default: <code>false</code>)</td></tr>
 <tr><td><code>targetFileSizeMb</code></td><td>unsignedInt</td><td>Parquet target size during initial export (default: <code>128</code>)</td></tr>
-<tr><td><code>initialExportParallelism</code></td><td>unsignedInt</td><td>Cluster-wide number of parallel chunks for hash-partitioned initial export (default <code>1</code> — sequential). See <a href="#large-scale-initial-export">Large-scale initial export</a> for the sizing formula.</td></tr>
+<tr><td><code>initialExportChunkCount</code></td><td>unsignedInt</td><td>Cluster-wide number of parallel chunks for hash-partitioned initial export (default <code>1</code> — sequential). See <a href="#large-scale-initial-export">Large-scale initial export</a> for the sizing formula.</td></tr>
 </tbody>
 </table>
 
@@ -771,7 +771,7 @@ curl -u <client-name>:<client-secret> -X POST "$AIDBOX_URL/fhir/AidboxTopicDesti
     {"name": "viewDefinition", "valueString": "patient_flat"},
     {"name": "batchSize", "valueUnsignedInt": 50},
     {"name": "sendIntervalMs", "valueUnsignedInt": 5000},
-    {"name": "initialExportParallelism", "valueUnsignedInt": 1}
+    {"name": "initialExportChunkCount", "valueUnsignedInt": 1}
   ]
 }
 EOF
@@ -913,7 +913,7 @@ The continuous worker starts polling the PG queue **immediately after destinatio
 
 ### Large-scale initial export
 
-The `initialExportParallelism` parameter (default `1`) fans the staging write out across `N` hash-partitioned chunks written by parallel workers, then materialized in one `MERGE INTO target`. Use it when the single-cursor default becomes the wall-clock bottleneck.
+The `initialExportChunkCount` parameter (default `1`) fans the staging write out across `N` hash-partitioned chunks written by parallel workers, then materialized in one `MERGE INTO target`. Use it when the single-cursor default becomes the wall-clock bottleneck.
 
 #### What `N` does **not** control
 
@@ -922,52 +922,38 @@ The `initialExportParallelism` parameter (default `1`) fans the staging write ou
 
 #### How chunks distribute across pods
 
-Every Aidbox pod sharing the same PG metastore participates automatically (PG advisory-lock based chunk-claim, no leader). Each pod runs **up to `min(N, its CPU cores)`** chunk workers — the per-pod cap is the JVM's `Runtime.availableProcessors()` (you can't set it from settings for this code path). Chunks are claimed first-come-first-served, and a crashed pod's chunks are picked up by a sibling on next poll.
+Init-export runs on the same async scheduler `$viewdefinition-export` uses. Chunks fan out across every Aidbox pod sharing the metastore; each pod's per-pod concurrency cap is [`scheduler-executor-threads`](../../reference/all-settings.md#scheduler-executor-threads) (default `10`). A coordinator task reschedules itself with backoff until all chunks land, then issues the final `MERGE INTO target` and drops the staging tables.
+
+A pod that crashes mid-chunk is reclaimed automatically — the next free executor on a sibling pod picks the chunk up on the next poll. No manual intervention.
 
 #### Capacity planning
 
-Effective cluster-wide concurrency = `min(N, sum-of-cores-across-pods, PG-pool-budget)`. The smallest of these three is your real bottleneck.
+Effective cluster-wide concurrency = `min(N, Σ scheduler-executor-threads, PG-pool-budget)`. The smallest of these three is your real bottleneck.
 
-| Cluster shape    | Suggested `N` | Notes                                    |
-| ---------------- | ------------- | ---------------------------------------- |
-| 1 pod, ≤4 cores  | `1` (default) | Single-cursor sequential.                |
-| 1 pod, 4-8 cores | `4`           | ~3-4× speedup.                           |
-| 1 pod, ≥8 cores  | `8`           | Watch PG read capacity.                  |
-| 2-4 pods (HA)    | `16`          | Survives a pod restart mid-export.       |
-| 4+ pods          | `32`          | Cap by your PG `max_connections` budget. |
+| Cluster shape | Suggested `N` | Notes                                         |
+| ------------- | ------------- | --------------------------------------------- |
+| 1 pod         | `1` (default) | Single-cursor sequential.                     |
+| 1 pod         | `4`           | ~3-4× speedup vs single-cursor.               |
+| 1 pod         | `8`           | Watch PG read capacity.                       |
+| 2-4 pods (HA) | `16`          | Survives a pod restart mid-export.            |
+| 4+ pods       | `32`          | Cap by your PG `max_connections` budget.      |
 
-#### Sizing formula
-
-$$
-N = \min\!\left(\, C_{\text{total}},\; \frac{M - B}{2} \,\right)
-$$
-
-- $$C_{\text{total}}$$ — sum of CPU cores across every Aidbox pod. Each pod caps its local workers at its own core count, so the cluster total is the ceiling on concurrent chunks.
-- $$M$$ — your PostgreSQL `max_connections` (default `100`).
-- $$B$$ — connections Aidbox uses for normal traffic (HikariCP pool size × pod count). Conservative default: $$30 \cdot \text{pod\_count}$$.
-- $$/2$$ — each chunk worker may hold up to two PG connections (one cursor + one short-lived for lock-and-progress).
-
-Floor at `1`, don't bother going above `64`.
-
-**Worked example** — 4 pods × 8 cores each, $$M = 200$$:
-
-$$C_{\text{total}} = 32,\quad B = 120,\quad N = \min(32,\, (200-120)/2) = \min(32, 40) = 32$$
+Raise the per-pod [`scheduler-executor-threads`](../../reference/all-settings.md#scheduler-executor-threads) setting in step with `N` if you want a single pod to run more than ~10 chunks in parallel — otherwise the surplus chunks just queue.
 
 #### JVM heap
 
-Each chunk worker holds a Kernel Parquet buffer in memory — column-major rows + dictionary encoding state — until it reaches `targetFileSizeMb` (default 128 MiB) and flushes a file. With `N` chunks running concurrently per pod, peak heap from staging buffers alone is ≈ `min(N, cores) × targetFileSizeMb`.
+Each chunk worker holds a Kernel Parquet buffer in memory — column-major rows + dictionary encoding state — until it reaches `targetFileSizeMb` (default 128 MiB) and flushes a file. With `N` chunks running concurrently per pod, peak heap from staging buffers alone is ≈ `min(N, scheduler-executor-threads) × targetFileSizeMb`.
 
-If you raise `initialExportParallelism` beyond a few chunks per pod, bump JVM `-Xmx` proportionally (via the [`JAVA_OPTS`](../../reference/all-settings.md#java-opts) setting) or lower `targetFileSizeMb` via the destination parameter. The default Aidbox heap fits a single-cursor (`N=1`) export comfortably but is the first thing to OOM under aggressive parallelism. There's no warning at kick-off — symptom is `java.lang.OutOfMemoryError: Java heap space` mid-export.
+If you raise `initialExportChunkCount` beyond a few chunks per pod, bump JVM `-Xmx` proportionally (via the [`JAVA_OPTS`](../../reference/all-settings.md#java-opts) setting) or lower `targetFileSizeMb` via the destination parameter. The default Aidbox heap fits a single-cursor (`N=1`) export comfortably but is the first thing to OOM under aggressive parallelism. There's no warning at kick-off — symptom is `java.lang.OutOfMemoryError: Java heap space` mid-export.
 
 #### What to watch during init-export
 
 - **PG `pg_stat_activity`** — should show up to `N` concurrent `SELECT … WHERE abs(hashtext(id::text)) % N = K` queries, one per active chunk. They flip between `state=active` and `state=idle in transaction` as Kernel writes parquet between fetches (normal — not a bug).
-- **`db_scheduler.scheduled_tasks`** — empty for AidboxTopicDestination init-export (this path uses raw futures + advisory locks, not async-api). Status lives in the destination resource itself.
-- **`$status` endpoint** — `initialExportStatus` + `initialExportProgress_rowsSent` updated every 10k rows.
+- **`$status` endpoint** — `initialExportStatus` flips to `export-in-progress` once the coordinator's first tick lands, `completed` after the final MERGE. `initialExportRowsSent` is updated on every coordinator tick.
 
 #### SQL warehouse sizing (independent axis)
 
-The Serverless SQL warehouse running the final `MERGE INTO` is separate from `initialExportParallelism`. For very large exports, temporarily bump the warehouse to `M` or `L` while initial-export is running, then back to `2X-Small` once `initialExportStatus=completed`. Hot-path Zerobus writes don't use the warehouse.
+The Serverless SQL warehouse running the final `MERGE INTO` is separate from `initialExportChunkCount`. For very large exports, temporarily bump the warehouse to `M` or `L` while initial-export is running, then back to `2X-Small` once `initialExportStatus=completed`. Hot-path Zerobus writes don't use the warehouse.
 
 ## Monitoring
 
@@ -1013,14 +999,6 @@ The module automatically:
    - `managed-zerobus` — dates are encoded as `int32` epoch-days, timestamps as `int64` epoch-microseconds, as required by the Zerobus REST wire format. ISO strings would be rejected with a `400` from the endpoint.
 
 See [Output semantics](#output-semantics) for append-only behaviour, at-least-once delivery, and the recommended read-time dedup query.
-
-## Compaction and maintenance
-
-Databricks runs maintenance for you:
-
-- [Predictive Optimization](https://docs.databricks.com/aws/en/optimizations/predictive-optimization) is enabled by default for Databricks accounts created on or after **2024-11-11**. Older accounts can enable it manually at the catalog / schema level.
-- When enabled, it runs `OPTIMIZE`, `VACUUM`, and `ANALYZE` in the background.
-- Predictive Optimization runs against managed tables **only** and is billed under the **Jobs Serverless** SKU.
 
 ## Schema evolution
 
