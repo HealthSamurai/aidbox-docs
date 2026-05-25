@@ -314,7 +314,7 @@ This is one example, not the only approach — wrap it in a Databricks SQL view 
 
 ## Usage example: patient data export
 
-The example below uses `managed-zerobus` (the default). For the alternative SQL-warehouse path, see [`managed-sql` configuration](#alternative-managed-sql-configuration).
+The example below uses `managed-zerobus` (the default).
 
 Authenticate the [Databricks CLI](https://docs.databricks.com/aws/en/dev-tools/cli/install) once — **as your own user** (PAT or `databricks auth login`).
 
@@ -883,14 +883,13 @@ The same code path powers both the destination's initial export and the standalo
 
 The kick-off and the export are **decoupled** — `POST /AidboxTopicDestination` does not hold the HTTP connection open while billions of rows stream into Databricks.
 
-| Phase                                                                                            | Where it runs                       | Approx. duration                                                        |
-| ------------------------------------------------------------------------------------------------ | ----------------------------------- | ----------------------------------------------------------------------- |
-| Aidbox writes the resource to PG                                                                 | sync, inside the POST               | <1s                                                                     |
-| Module bootstrap (validate, OAuth token, schema sync + optional `ALTER TABLE` via SQL warehouse) | sync, inside the POST               | 1-2 min on a cold warehouse, <1s when warm                              |
-| Initial export (cursor → staging Delta → `MERGE INTO` target → drop staging)                     | **async, in a background `future`** | seconds to hours, depending on row count and `initialExportParallelism` |
-| Continuous worker (PG queue → batch → Zerobus or SQL)                                            | async, runs forever                 | —                                                                       |
+| Phase             | Where it runs            | Approx. duration                          |
+| ----------------- | ------------------------ | ----------------------------------------- |
+| Bootstrap         | sync, inside the POST    | 1-2 min on a cold warehouse, <1s when warm |
+| Initial export    | async, in the background | seconds to hours                          |
+| Continuous worker | async, runs forever      | —                                         |
 
-So `POST /AidboxTopicDestination` returns `201 Created` after **bootstrap** (1-2 minutes worst-case), not after initial-export. There's no HTTP timeout regardless of dataset size.
+`POST /AidboxTopicDestination` returns `201 Created` after bootstrap (1-2 minutes worst-case), not after initial-export. There's no HTTP timeout regardless of dataset size.
 
 Poll progress via the destination's `$status` endpoint:
 
@@ -918,13 +917,13 @@ Effective wall-clock concurrency is `min(N, total cores across all pods)`. Raisi
 
 **Picking `N` for a multi-pod cluster:**
 
-| Cluster shape              | Suggested `N` | Notes                                                                                |
-| -------------------------- | ------------- | ------------------------------------------------------------------------------------ |
-| 1 pod, ≤4 cores            | `1` (default) | Single-cursor sequential. Fine for <1M rows.                                         |
-| 1 pod, 4-8 cores, ≥1M rows | `4`           | ~3-4× speedup; one Kernel writer per worker, one PG cursor per worker.               |
-| 1 pod, ≥8 cores            | `8`           | Watch PG read capacity — each cursor holds one connection until its chunk finishes.  |
-| 2-4 pods (HA), ≥10M rows   | `16`          | Distributes evenly across pods; survives a pod restart mid-export.                   |
-| 4+ pods, ≥100M rows        | `32`          | Cap by your PG `max_connections` budget — each worker holds at least one connection. |
+| Cluster shape              | Suggested `N` | Notes                                            |
+| -------------------------- | ------------- | ------------------------------------------------ |
+| 1 pod, ≤4 cores            | `1` (default) | Fine for <1M rows.                               |
+| 1 pod, 4-8 cores, ≥1M rows | `4`           | ~3-4× speedup.                                   |
+| 1 pod, ≥8 cores            | `8`           | Watch PG read capacity.                          |
+| 2-4 pods (HA), ≥10M rows   | `16`          | Survives a pod restart mid-export.               |
+| 4+ pods, ≥100M rows        | `32`          | Cap by your PG `max_connections` budget.         |
 
 **Picking `N` — formula.** Two ceilings, take the smaller:
 
@@ -1036,9 +1035,11 @@ The module only ADDS columns automatically. Column drops, renames, or narrowing 
 
 ## Ad-hoc one-shot export
 
-The same Databricks setup also backs the [`$viewdefinition-export`](../../modules/sql-on-fhir/operation-viewdefinition-export.md) operation — a one-shot async export of a ViewDefinition without standing up a continuous destination. See that page for parameters, multi-pod scaling, status / cancel endpoints, and limitations.
+The same Databricks setup also backs the `$viewdefinition-export` operation — a one-shot async export of a ViewDefinition without standing up a continuous destination.
 
-Available in Aidbox **2605** and later.
+{% content-ref url="../../modules/sql-on-fhir/operation-viewdefinition-export.md" %}
+[operation-viewdefinition-export.md](../../modules/sql-on-fhir/operation-viewdefinition-export.md)
+{% endcontent-ref %}
 
 ## Multiple destinations
 
