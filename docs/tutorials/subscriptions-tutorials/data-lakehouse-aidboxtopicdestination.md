@@ -957,7 +957,7 @@ $$C_{\text{total}} = 32,\quad B = 120,\quad N = \min(32,\, (200-120)/2) = \min(3
 
 Each chunk worker holds a Kernel Parquet buffer in memory — column-major rows + dictionary encoding state — until it reaches `targetFileSizeMb` (default 128 MiB) and flushes a file. With `N` chunks running concurrently per pod, peak heap from staging buffers alone is ≈ `min(N, cores) × targetFileSizeMb`.
 
-If you raise `initialExportParallelism` beyond a few chunks per pod, bump JVM `-Xmx` proportionally or lower `targetFileSizeMb` via the destination parameter. The default Aidbox heap fits a single-cursor (`N=1`) export comfortably but is the first thing to OOM under aggressive parallelism. There's no warning at kick-off — symptom is `java.lang.OutOfMemoryError: Java heap space` mid-export.
+If you raise `initialExportParallelism` beyond a few chunks per pod, bump JVM `-Xmx` proportionally (via the [`JAVA_OPTS`](../../reference/all-settings.md#java-opts) setting) or lower `targetFileSizeMb` via the destination parameter. The default Aidbox heap fits a single-cursor (`N=1`) export comfortably but is the first thing to OOM under aggressive parallelism. There's no warning at kick-off — symptom is `java.lang.OutOfMemoryError: Java heap space` mid-export.
 
 #### What to watch during init-export
 
