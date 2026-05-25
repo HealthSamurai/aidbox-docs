@@ -413,7 +413,7 @@ aws s3api create-bucket --bucket "$STAGING_BUCKET" --region "$AWS_REGION"
 
 ### Create the IAM role Databricks will assume
 
-The trust policy starts with `ExternalId: PLACEHOLDER` — the Storage Credential step below patches in the real value.
+`PLACEHOLDER` is patched in by the Storage Credential step below.
 
 ```sh
 aws iam create-role --role-name "$IAM_ROLE_NAME" \
