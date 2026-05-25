@@ -43,7 +43,7 @@ Recording is non-blocking: each search appends to an in-memory buffer; a backgro
 
 The read RPC backing the **Stats** tab. Returns rows from `aidbox_stat.search_param_stats` filtered by your scope, sorted by the column you specify. Use it to find which SearchParameters are queried most, which take the longest, and which lack a backing index.
 
-<figure><img src="../../../assets/sp-stats-tab.png" alt="SearchParameter Stats tab — call counts and timing per shape"><figcaption><p>SearchParameter → Stats tab. One row per (resource type, shape); sortable by calls / mean / total / last-used.</p></figcaption></figure>
+<figure><img src="../../../assets/sp-stats-tab.avif" alt="SearchParameter Stats tab — call counts and timing per shape"><figcaption><p>SearchParameter → Stats tab. One row per (resource type, shape); sortable by calls / mean / total / last-used.</p></figcaption></figure>
 
 ```yaml
 POST /rpc
@@ -132,7 +132,7 @@ A scoped reset preserves the in-memory buffer for any resource type, search para
 
 The read RPC backing the **Indexes** tab. Ties together three sources: the [index-suggestion engine](get-suggested-indexes.md) (what indexes *should* exist), `pg_indexes` (what *does* exist), and `aidbox_stat.search_param_stats` (what callers are actually doing). One row per candidate index; the row carries both Postgres-side counters (scans, size) and Aidbox-side usage stats (`hit_calls`, `hit_shapes`).
 
-<figure><img src="../../../assets/sp-indexes-tab.png" alt="SearchParameter Indexes tab — candidate indexes with create/drop actions"><figcaption><p>SearchParameter → Indexes tab. One row per candidate index per base; <code>hit_calls</code> shows how much real traffic would benefit from each.</p></figcaption></figure>
+<figure><img src="../../../assets/sp-indexes-tab.avif" alt="SearchParameter Indexes tab — candidate indexes with create/drop actions"><figcaption><p>SearchParameter → Indexes tab. One row per candidate index per base; <code>hit_calls</code> shows how much real traffic would benefit from each.</p></figcaption></figure>
 
 ```yaml
 POST /rpc
