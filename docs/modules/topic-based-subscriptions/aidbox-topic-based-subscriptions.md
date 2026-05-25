@@ -152,7 +152,8 @@ Ensure that the resource metadata contains the kind-specific `AidboxTopicDestina
         <code>aws-sns</code>,
         <code>clickhouse</code>,
         <code>clickhouse-at-least-once</code>,
-        <code>bigquery-at-least-once</code>
+        <code>bigquery-at-least-once</code>,
+        <code>data-lakehouse-at-least-once</code>
       </td>
     </tr>
     <tr>

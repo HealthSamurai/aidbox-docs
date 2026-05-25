@@ -45,6 +45,7 @@ Aidbox provides several implementations of subscriptions. For enhanced capabilit
           <li><a href="../../tutorials/subscriptions-tutorials/aidboxtopicsubscription-sns-tutorial.md">AWS SNS</a></li>
           <li><a href="../../tutorials/subscriptions-tutorials/clickhouse-aidboxtopicdestination.md">ClickHouse</a></li>
           <li><a href="../../tutorials/subscriptions-tutorials/bigquery-aidboxtopicdestination.md">BigQuery</a></li>
+          <li><a href="../../tutorials/subscriptions-tutorials/data-lakehouse-aidboxtopicdestination.md">Data Lakehouse (Databricks)</a></li>
         </ul>
         *additional channels will be implemented by request
       </td>

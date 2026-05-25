@@ -111,107 +111,83 @@ The service principal and the grants it needs are set up in the [Usage example](
 
 - Aidbox **2605** or newer ([install guide](../../getting-started/run-aidbox-locally.md))
 - A Databricks workspace (Free Edition works for evaluation, paid for production)
-- The [Databricks CLI](https://docs.databricks.com/aws/en/dev-tools/cli/install) installed locally — every Databricks-side operation in the tutorial uses it
-- AWS CLI (for initial-export staging — bucket + IAM role)
+- The [Databricks CLI](https://docs.databricks.com/aws/en/dev-tools/cli/install) installed and authenticated locally — every Databricks-side operation in the tutorial uses it
+- An AWS account + **AWS CLI** authenticated locally with permission to create S3 buckets and IAM roles — initial-export staging lives in an S3 bucket you own, and the IAM trust policy patch needs `iam:UpdateAssumeRolePolicy`
+- [`jq`](https://jqlang.org/) on `PATH` — several steps parse JSON responses inline
 - A SQL warehouse
 - For `managed-zerobus`: Zerobus enabled on your SKU (Databricks Free Edition supports it; for paid plans confirm with Databricks support)
 - For initial-export: an **S3 bucket** you control. GCS and Azure ADLS Gen2 are not supported for the staging path today (see the "Cloud support: AWS only" callout above).
 
 The service principal that authenticates the module is created in step 3 of the usage example — you don't need it before you start.
 
-### Docker Compose
+### Setup
 
-1. Download the Databricks module JAR file and place it next to your **docker-compose.yaml**:
+{% stepper %}
 
-   ```sh
-   curl -O https://storage.googleapis.com/aidbox-modules/topic-destination-deltalake/databricks-module-2605.0.jar
-   ```
+{% step %}
+#### Export the service-principal credentials
 
-2. Edit your **docker-compose.yaml** and add these lines to the Aidbox service:
+The module reads Databricks OAuth M2M credentials **exclusively** from box settings — destinations and `$viewdefinition-export` do NOT accept per-request `databricksClientId/Secret`. Create the SP in the Databricks UI (**Settings → Identity and access → Service principals → Add**, then **Secrets → Generate secret**), then:
 
-   ```yaml
-   aidbox:
-     volumes:
-       - ./databricks-module-2605.0.jar:/databricks-module.jar
-       # ... other volumes ...
-     environment:
-       BOX_MODULE_LOAD: io.healthsamurai.databricks.core
-       BOX_MODULE_JAR: "/databricks-module.jar"
-       BOX_FHIR_SCHEMA_VALIDATION: "true"
-       # Databricks OAuth M2M service-principal credentials. These are
-       # the exclusive source — destinations and `$viewdefinition-export`
-       # do NOT accept per-request `databricksClientId/Secret`. One SP
-       # per Aidbox cluster. See "Authentication" for SP setup.
-       BOX_DATABRICKS_DATA_LAKEHOUSE_CLIENT_ID:     ${SP_CLIENT_ID}
-       BOX_DATABRICKS_DATA_LAKEHOUSE_CLIENT_SECRET: ${SP_CLIENT_SECRET}
-       # ... other environment variables ...
-   ```
+```sh
+export BOX_DATABRICKS_DATA_LAKEHOUSE_CLIENT_ID=<sp-client-id>
+```
 
-3. Start Aidbox:
+```sh
+export BOX_DATABRICKS_DATA_LAKEHOUSE_CLIENT_SECRET=<sp-client-secret>
+```
 
-   ```sh
-   docker compose up
-   ```
+{% endstep %}
 
-### Kubernetes
+{% step %}
+#### Download the module JAR
 
-For Kubernetes deployments, the module can be downloaded automatically using an init container:
+```sh
+curl -O https://storage.googleapis.com/aidbox-modules/topic-destination-deltalake/databricks-module-2605.0.jar
+```
+
+{% endstep %}
+
+{% step %}
+#### Wire the module into docker-compose.yaml
 
 ```yaml
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: aidbox
-spec:
-  template:
-    spec:
-      initContainers:
-        - name: download-deltalake-module
-          image: debian:bookworm-slim
-          command:
-            - sh
-            - -c
-            - |
-              apt-get -y update && apt-get -y install curl
-              curl -L -o /modules/databricks-module.jar \
-                https://storage.googleapis.com/aidbox-modules/topic-destination-deltalake/databricks-module-2605.0.jar
-              chmod 644 /modules/databricks-module.jar
-          volumeMounts:
-            - mountPath: /modules
-              name: modules-volume
-      containers:
-        - name: aidbox
-          image: healthsamurai/aidboxone:edge
-          env:
-            - name: BOX_MODULE_LOAD
-              value: "io.healthsamurai.databricks.core"
-            - name: BOX_MODULE_JAR
-              value: "/modules/databricks-module.jar"
-            - name: BOX_FHIR_SCHEMA_VALIDATION
-              value: "true"
-            # Databricks OAuth M2M service-principal credentials. These
-            # are the exclusive source — destinations and
-            # `$viewdefinition-export` do NOT accept per-request
-            # `databricksClientId/Secret`. One SP per Aidbox cluster.
-            # See "Authentication" for SP setup.
-            - name: BOX_DATABRICKS_DATA_LAKEHOUSE_CLIENT_ID
-              valueFrom:
-                secretKeyRef:
-                  name: aidbox-databricks-sp
-                  key: client-id
-            - name: BOX_DATABRICKS_DATA_LAKEHOUSE_CLIENT_SECRET
-              valueFrom:
-                secretKeyRef:
-                  name: aidbox-databricks-sp
-                  key: client-secret
-            # ... other environment variables ...
-          volumeMounts:
-            - name: modules-volume
-              mountPath: /modules
-      volumes:
-        - name: modules-volume
-          emptyDir: {}
+aidbox:
+  volumes:
+    - ./databricks-module-2605.0.jar:/databricks-module.jar
+    # ... other volumes ...
+  environment:
+    BOX_MODULE_LOAD: io.healthsamurai.databricks.core
+    BOX_MODULE_JAR: "/databricks-module.jar"
+    BOX_FHIR_SCHEMA_VALIDATION: "true"
+    BOX_DATABRICKS_DATA_LAKEHOUSE_CLIENT_ID:     ${BOX_DATABRICKS_DATA_LAKEHOUSE_CLIENT_ID}
+    BOX_DATABRICKS_DATA_LAKEHOUSE_CLIENT_SECRET: ${BOX_DATABRICKS_DATA_LAKEHOUSE_CLIENT_SECRET}
+    # ... other environment variables ...
 ```
+
+{% endstep %}
+
+{% step %}
+#### Start Aidbox
+
+```sh
+docker compose up
+```
+
+{% endstep %}
+
+{% step %}
+#### Verify the module loaded
+
+In Aidbox UI, go to **FHIR Packages** and check that the Delta Lake profile is present:
+
+```
+http://health-samurai.io/fhir/core/StructureDefinition/aidboxtopicdestination-dataLakehouseAtLeastOnceProfile
+```
+
+{% endstep %}
+
+{% endstepper %}
 
 ## Configuration
 
@@ -401,93 +377,11 @@ export IAM_ROLE_NAME=aidbox-staging-role
 
 {% stepper %}
 {% step %}
-### Create the subscription topic
+### Pick the SQL warehouse
 
-Declares which FHIR resource changes trigger the export. The destination resource (later step) references this topic by URL.
-
-```http
-POST /fhir/AidboxSubscriptionTopic
-
-{
-  "resourceType": "AidboxSubscriptionTopic",
-  "url": "http://example.org/subscriptions/patient-updates",
-  "status": "active",
-  "trigger": [
-    {
-      "resource": "Patient",
-      "supportedInteraction": ["create", "update", "delete"],
-      "fhirPathCriteria": "name.exists()"
-    }
-  ]
-}
-```
-
-{% endstep %}
-
-{% step %}
-### Create + materialize the ViewDefinition
-
-A [ViewDefinition](../../modules/sql-on-fhir/defining-flat-views-with-view-definitions.md) flattens each FHIR resource into a row using [FHIRPath](https://hl7.org/fhirpath/) expressions. **Decide the column shape here first** — the Databricks target table will be created to match exactly.
-
-```http
-POST /fhir/ViewDefinition
-
-{
-  "resourceType": "ViewDefinition",
-  "id": "patient_flat",
-  "name": "patient_flat",
-  "resource": "Patient",
-  "status": "active",
-  "select": [
-    {
-      "column": [
-        {"name": "id", "path": "id"},
-        {"name": "ts", "path": "getAidboxTs()"},
-        {"name": "cts", "path": "getAidboxCts()"},
-        {"name": "gender", "path": "gender"},
-        {"name": "birth_date", "path": "birthDate"}
-      ]
-    },
-    {
-      "forEach": "name.where(use = 'official').first()",
-      "column": [
-        {"name": "family_name", "path": "family"},
-        {"name": "given_name", "path": "given.join(' ')"}
-      ]
-    }
-  ]
-}
-```
-
-`getAidboxTs()` exposes `meta.lastUpdated` (the FHIR resource version timestamp), `getAidboxCts()` exposes the row's row-creation timestamp in Aidbox's storage. Both are Aidbox FHIRPath extensions and are useful for read-time dedup of the append-only history (see [Querying the table](#querying-the-table)).
-
-Then [materialize](../../modules/sql-on-fhir/operation-materialize.md) it as a database view in the `sof` schema — the module reads rows from `sof.patient_flat`:
-
-```http
-POST /fhir/ViewDefinition/patient_flat/$materialize
-
-{
-  "resourceType": "Parameters",
-  "parameter": [
-    {"name": "type", "valueCode": "view"}
-  ]
-}
-```
-
-{% hint style="info" %}
-Must be materialized as a **view**, not a table. Details in the [`$materialize` operation](../../modules/sql-on-fhir/operation-materialize.md) docs.
-{% endhint %}
-
-{% endstep %}
-
-{% step %}
-### Create the service principal and SQL warehouse
-
-In the Databricks UI: **Settings → Identity and access → Service principals → Add**, then under that SP **Secrets → Generate secret**. Under **SQL Warehouses**, pick or create a Serverless warehouse, get its ID.
+You already created the SP and exported `BOX_DATABRICKS_DATA_LAKEHOUSE_CLIENT_ID/_SECRET` in the [Setup stepper](#setup). Now in the Databricks UI under **SQL Warehouses** pick or create a Serverless warehouse, grab its ID:
 
 ```sh
-export SP_CLIENT_ID=<sp-client-id>
-export SP_CLIENT_SECRET=<sp-client-secret>
 export WAREHOUSE_ID=<warehouse-id>
 ```
 
@@ -496,7 +390,7 @@ Grant the SP `Can use` on the warehouse:
 ```sh
 databricks warehouses update-permissions "$WAREHOUSE_ID" --json '{
   "access_control_list": [
-    {"service_principal_name": "'"$SP_CLIENT_ID"'", "permission_level": "CAN_USE"}
+    {"service_principal_name": "'"$BOX_DATABRICKS_DATA_LAKEHOUSE_CLIENT_ID"'", "permission_level": "CAN_USE"}
   ]
 }'
 ```
@@ -521,7 +415,7 @@ aws s3api create-bucket --bucket "$STAGING_BUCKET" --region "$AWS_REGION"
 {% step %}
 ### Create the IAM role Databricks will assume
 
-Create the role with a minimal trust policy; the next step patches in the real External ID and the self-assume principal.
+The trust policy starts with `ExternalId: PLACEHOLDER` — the Storage Credential step below patches in the real value.
 
 ```sh
 aws iam create-role --role-name "$IAM_ROLE_NAME" \
@@ -537,7 +431,9 @@ aws iam create-role --role-name "$IAM_ROLE_NAME" \
 }
 EOF
 )"
+```
 
+```sh
 aws iam put-role-policy --role-name "$IAM_ROLE_NAME" --policy-name s3-access \
   --policy-document "$(cat <<EOF
 {
@@ -550,7 +446,9 @@ aws iam put-role-policy --role-name "$IAM_ROLE_NAME" --policy-name s3-access \
 }
 EOF
 )"
+```
 
+```sh
 export STAGING_ROLE_ARN=$(aws iam get-role --role-name "$IAM_ROLE_NAME" \
   --query 'Role.Arn' --output text)
 ```
@@ -560,37 +458,18 @@ export STAGING_ROLE_ARN=$(aws iam get-role --role-name "$IAM_ROLE_NAME" \
 {% step %}
 ### Register the Storage Credential in Unity Catalog
 
-Create the credential first; Databricks generates the External ID we need for the trust policy:
-
-```shell
-export EXTERNAL_ID=$(databricks storage-credentials create \
+```sh
+databricks storage-credentials create \
   --json '{"name":"'"$STORAGE_CRED_NAME"'","aws_iam_role":{"role_arn":"'"$STAGING_ROLE_ARN"'"}}' \
-  --skip-validation \
-  | jq -r '.aws_iam_role.external_id // empty')
-
-# Some CLI versions don't surface external_id in the create response —
-# re-fetch via `get` as a fallback. Both calls hit the same UC resource;
-# the second call is safe if the first already populated EXTERNAL_ID.
-if [ -z "$EXTERNAL_ID" ]; then
-  export EXTERNAL_ID=$(databricks storage-credentials get "$STORAGE_CRED_NAME" \
-    | jq -r '.aws_iam_role.external_id // empty')
-fi
-
-# Fail loud if both attempts came back empty — the trust policy patch
-# below would silently bake in an empty ExternalId and break STS
-# assume-role with a confusing 403 later.
-if [ -z "$EXTERNAL_ID" ]; then
-  echo "ERROR: storage-credentials returned no aws_iam_role.external_id." >&2
-  echo "  Inspect manually:" >&2
-  echo "  databricks storage-credentials get $STORAGE_CRED_NAME" >&2
-  exit 1
-fi
-echo "EXTERNAL_ID=$EXTERNAL_ID"
+  --skip-validation
 ```
 
-Patch the role's trust policy with the real External ID and validate:
+```sh
+export EXTERNAL_ID=$(databricks storage-credentials get "$STORAGE_CRED_NAME" \
+  | jq -r '.aws_iam_role.external_id')
+```
 
-```shell
+```sh
 aws iam update-assume-role-policy --role-name "$IAM_ROLE_NAME" \
   --policy-document "$(cat <<EOF
 {
@@ -607,8 +486,13 @@ aws iam update-assume-role-policy --role-name "$IAM_ROLE_NAME" \
 }
 EOF
 )"
+```
 
+```sh
 sleep 10  # IAM propagation
+```
+
+```sh
 databricks storage-credentials validate --storage-credential-name "$STORAGE_CRED_NAME"
 ```
 
@@ -636,10 +520,9 @@ The catalog's `--storage-root` must sit inside the External Location you just re
 ```sh
 databricks catalogs create "$CATALOG" \
   --storage-root "s3://$STAGING_BUCKET/managed/"
+```
 
-# `jq -n --arg` lets bash variables expand into a JSON string without
-# nested-quote escaping headaches. Same shape used for every
-# `databricks api post /api/2.0/sql/statements` call below.
+```sh
 databricks api post /api/2.0/sql/statements --json "$(jq -n \
   --arg wh "$WAREHOUSE_ID" \
   --arg stmt "CREATE SCHEMA $CATALOG.$TARGET_SCHEMA" \
@@ -721,20 +604,29 @@ Grant only the set matching your `writeMode`. The SP runs the module at request 
 
 ```sh
 databricks grants update catalog "$CATALOG" --json '{
-  "changes":[{"principal":"'"$SP_CLIENT_ID"'","add":["USE_CATALOG"]}]}'
+  "changes":[{"principal":"'"$BOX_DATABRICKS_DATA_LAKEHOUSE_CLIENT_ID"'","add":["USE_CATALOG"]}]}'
+```
 
+```sh
 databricks grants update schema "$CATALOG.$TARGET_SCHEMA" --json '{
-  "changes":[{"principal":"'"$SP_CLIENT_ID"'","add":["USE_SCHEMA"]}]}'
+  "changes":[{"principal":"'"$BOX_DATABRICKS_DATA_LAKEHOUSE_CLIENT_ID"'","add":["USE_SCHEMA"]}]}'
+```
 
+```sh
 databricks grants update table "$CATALOG.$TARGET_SCHEMA.$TARGET_TABLE" --json '{
-  "changes":[{"principal":"'"$SP_CLIENT_ID"'","add":["SELECT","MODIFY"]}]}'
+  "changes":[{"principal":"'"$BOX_DATABRICKS_DATA_LAKEHOUSE_CLIENT_ID"'","add":["SELECT","MODIFY"]}]}'
+```
 
-# initial-export only:
+Initial-export only — staging schema + external location grants:
+
+```sh
 databricks grants update schema "$CATALOG.$STAGING_SCHEMA" --json '{
-  "changes":[{"principal":"'"$SP_CLIENT_ID"'","add":["EXTERNAL_USE_SCHEMA","USE_SCHEMA","CREATE_TABLE"]}]}'
+  "changes":[{"principal":"'"$BOX_DATABRICKS_DATA_LAKEHOUSE_CLIENT_ID"'","add":["EXTERNAL_USE_SCHEMA","USE_SCHEMA","CREATE_TABLE"]}]}'
+```
 
+```sh
 databricks grants update external-location "$EXTERNAL_LOCATION_NAME" --json '{
-  "changes":[{"principal":"'"$SP_CLIENT_ID"'","add":["READ_FILES","WRITE_FILES","CREATE_EXTERNAL_TABLE"]}]}'
+  "changes":[{"principal":"'"$BOX_DATABRICKS_DATA_LAKEHOUSE_CLIENT_ID"'","add":["READ_FILES","WRITE_FILES","CREATE_EXTERNAL_TABLE"]}]}'
 ```
 {% endtab %}
 
@@ -752,24 +644,113 @@ Identical privilege set to `managed-zerobus` — the SQL warehouse is hit on eve
 
 ```sh
 databricks grants update catalog "$CATALOG" --json '{
-  "changes":[{"principal":"'"$SP_CLIENT_ID"'","add":["USE_CATALOG"]}]}'
+  "changes":[{"principal":"'"$BOX_DATABRICKS_DATA_LAKEHOUSE_CLIENT_ID"'","add":["USE_CATALOG"]}]}'
+```
 
+```sh
 databricks grants update schema "$CATALOG.$TARGET_SCHEMA" --json '{
-  "changes":[{"principal":"'"$SP_CLIENT_ID"'","add":["USE_SCHEMA"]}]}'
+  "changes":[{"principal":"'"$BOX_DATABRICKS_DATA_LAKEHOUSE_CLIENT_ID"'","add":["USE_SCHEMA"]}]}'
+```
 
+```sh
 databricks grants update table "$CATALOG.$TARGET_SCHEMA.$TARGET_TABLE" --json '{
-  "changes":[{"principal":"'"$SP_CLIENT_ID"'","add":["SELECT","MODIFY"]}]}'
+  "changes":[{"principal":"'"$BOX_DATABRICKS_DATA_LAKEHOUSE_CLIENT_ID"'","add":["SELECT","MODIFY"]}]}'
+```
 
-# initial-export only:
+Initial-export only — staging schema + external location grants:
+
+```sh
 databricks grants update schema "$CATALOG.$STAGING_SCHEMA" --json '{
-  "changes":[{"principal":"'"$SP_CLIENT_ID"'","add":["EXTERNAL_USE_SCHEMA","USE_SCHEMA","CREATE_TABLE"]}]}'
+  "changes":[{"principal":"'"$BOX_DATABRICKS_DATA_LAKEHOUSE_CLIENT_ID"'","add":["EXTERNAL_USE_SCHEMA","USE_SCHEMA","CREATE_TABLE"]}]}'
+```
 
+```sh
 databricks grants update external-location "$EXTERNAL_LOCATION_NAME" --json '{
-  "changes":[{"principal":"'"$SP_CLIENT_ID"'","add":["READ_FILES","WRITE_FILES","CREATE_EXTERNAL_TABLE"]}]}'
+  "changes":[{"principal":"'"$BOX_DATABRICKS_DATA_LAKEHOUSE_CLIENT_ID"'","add":["READ_FILES","WRITE_FILES","CREATE_EXTERNAL_TABLE"]}]}'
 ```
 {% endtab %}
 
 {% endtabs %}
+
+{% endstep %}
+
+{% step %}
+### Create the subscription topic
+
+Databricks side is done — back to Aidbox. The subscription topic declares which FHIR resource changes trigger the export; the destination resource (next step) references this topic by URL.
+
+```http
+POST /fhir/AidboxSubscriptionTopic
+
+{
+  "resourceType": "AidboxSubscriptionTopic",
+  "url": "http://example.org/subscriptions/patient-updates",
+  "status": "active",
+  "trigger": [
+    {
+      "resource": "Patient",
+      "supportedInteraction": ["create", "update", "delete"],
+      "fhirPathCriteria": "name.exists()"
+    }
+  ]
+}
+```
+
+{% endstep %}
+
+{% step %}
+### Create + materialize the ViewDefinition
+
+A [ViewDefinition](../../modules/sql-on-fhir/defining-flat-views-with-view-definitions.md) flattens each FHIR resource into a row using [FHIRPath](https://hl7.org/fhirpath/) expressions. The column shape here must match the Databricks target table you created above.
+
+```http
+POST /fhir/ViewDefinition
+
+{
+  "resourceType": "ViewDefinition",
+  "id": "patient_flat",
+  "name": "patient_flat",
+  "resource": "Patient",
+  "status": "active",
+  "select": [
+    {
+      "column": [
+        {"name": "id", "path": "id"},
+        {"name": "ts", "path": "getAidboxTs()"},
+        {"name": "cts", "path": "getAidboxCts()"},
+        {"name": "gender", "path": "gender"},
+        {"name": "birth_date", "path": "birthDate"}
+      ]
+    },
+    {
+      "forEach": "name.where(use = 'official').first()",
+      "column": [
+        {"name": "family_name", "path": "family"},
+        {"name": "given_name", "path": "given.join(' ')"}
+      ]
+    }
+  ]
+}
+```
+
+`getAidboxTs()` exposes `meta.lastUpdated` (the FHIR resource version timestamp), `getAidboxCts()` exposes the row's row-creation timestamp in Aidbox's storage. Both are Aidbox FHIRPath extensions and are useful for read-time dedup of the append-only history (see [Querying the table](#querying-the-table)).
+
+Then [materialize](../../modules/sql-on-fhir/operation-materialize.md) it as a database view in the `sof` schema — the module reads rows from `sof.patient_flat`:
+
+```http
+POST /fhir/ViewDefinition/patient_flat/$materialize
+
+{
+  "resourceType": "Parameters",
+  "parameter": [
+    {"name": "type", "valueCode": "view"}
+  ]
+}
+```
+
+{% hint style="info" %}
+Must be materialized as a **view**, not a table. Details in the [`$materialize` operation](../../modules/sql-on-fhir/operation-materialize.md) docs.
+{% endhint %}
 
 {% endstep %}
 
@@ -779,7 +760,7 @@ databricks grants update external-location "$EXTERNAL_LOCATION_NAME" --json '{
 The request may take **one or two minutes** — Aidbox runs schema sync against the warehouse (potentially waking it from idle) and, if `skipInitialExport` is not set, kicks off the initial bulk export before returning.
 
 ```sh
-curl -u root:secret -X POST "$AIDBOX_URL/fhir/AidboxTopicDestination" \
+curl -u <client-name>:<client-secret> -X POST "$AIDBOX_URL/fhir/AidboxTopicDestination" \
   -H 'Content-Type: application/json' \
   --data-binary @- <<EOF | jq
 {
@@ -926,7 +907,7 @@ So `POST /AidboxTopicDestination` returns `201 Created` after **bootstrap** (1-2
 Poll progress via the destination's `$status` endpoint:
 
 ```sh
-curl -u root:secret "$AIDBOX_URL/fhir/AidboxTopicDestination/patient-databricks/\$status" | jq
+curl -u <client-name>:<client-secret> "$AIDBOX_URL/fhir/AidboxTopicDestination/patient-databricks/\$status" | jq
 ```
 
 Relevant fields during initial export:
@@ -1063,48 +1044,9 @@ The module only ADDS columns automatically. Column drops, renames, or narrowing 
 
 ## Ad-hoc one-shot export
 
-{% hint style="info" %}
-Available in Aidbox versions **2605** and later.
-{% endhint %}
+The same Databricks setup also backs the [`$viewdefinition-export`](../../modules/sql-on-fhir/operation-viewdefinition-export.md) operation — a one-shot async export of a ViewDefinition without standing up a continuous destination. See that page for parameters, multi-pod scaling, status / cancel endpoints, and limitations.
 
-Besides the continuous `AidboxTopicDestination` flow above, the module also serves as the `kind="data-lakehouse"` backend for the [SQL-on-FHIR v2 `$viewdefinition-export` operation](../../modules/sql-on-fhir/operation-viewdefinition-export.md) — a one-shot async export of a ViewDefinition's rows into the same Databricks managed UC table. Useful for periodic snapshots / backfills / ad-hoc dumps where standing up a continuous destination is overkill.
-
-Architecturally this is **the initial export from [Initial export](#initial-export) above, exposed standalone** — same `sof.<view>` → staging Delta → `MERGE INTO target` → drop-staging flow, no continuous-streaming worker afterwards, no `AidboxTopicDestination` row in PG. The Databricks-side setup (catalog, schema, target table, staging schema, SP, grants, warehouse) is therefore identical to the continuous flow's setup above.
-
-Invocation:
-
-```http
-POST /fhir/ViewDefinition/$viewdefinition-export
-Prefer: respond-async
-
-{
-  "resourceType": "Parameters",
-  "parameter": [
-    {"name": "view",
-     "part": [{"name": "name",          "valueString": "patient_flat"},
-              {"name": "viewReference", "valueReference": {"reference": "ViewDefinition/patient_flat"}}]},
-    {"name": "kind",      "valueString": "data-lakehouse"},
-    {"name": "writeMode", "valueString": "managed-zerobus"},
-    {"name": "databricksWorkspaceUrl", "valueString": "$DATABRICKS_HOST"},
-    {"name": "databricksWorkspaceId",  "valueString": "$WORKSPACE_ID"},
-    {"name": "databricksRegion",       "valueString": "$DATABRICKS_REGION"},
-    {"name": "tableName",              "valueString": "$CATALOG.$TARGET_SCHEMA.$TARGET_TABLE"},
-    {"name": "databricksWarehouseId",  "valueString": "$WAREHOUSE_ID"},
-    {"name": "awsRegion",              "valueString": "$AWS_REGION"},
-    {"name": "stagingTablePath",       "valueString": "s3://$STAGING_BUCKET/staging/$TARGET_TABLE/"}
-  ]
-}
-```
-
-Returns `202 Accepted` + `Content-Location: /fhir/ViewDefinition/$viewdefinition-export/status/<uuid>`. Poll that URL until you get `200 OK` with the final `Parameters` output.
-
-### Scaling and multi-pod execution
-
-For large views add `{"name": "chunkCount", "valueUnsignedInt": <N>}` to the Parameters body — same chunking semantics and sizing formula as the continuous-destination flow's [Large-scale initial export](#large-scale-initial-export).
-
-Chunks run on Aidbox's standard async-task engine, so they spread across every pod sharing the metastore and status polls are answered by any pod. No load-balancer affinity is needed. See the [operation page's Multi-pod execution](../../modules/sql-on-fhir/operation-viewdefinition-export.md#multi-pod-execution) for the orchestration details.
-
-See the [`$viewdefinition-export` operation page](../../modules/sql-on-fhir/operation-viewdefinition-export.md) for the full parameter list, status response shape, and current limitations.
+Available in Aidbox **2605** and later.
 
 ## Multiple destinations
 
