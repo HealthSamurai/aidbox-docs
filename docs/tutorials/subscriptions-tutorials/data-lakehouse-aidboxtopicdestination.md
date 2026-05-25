@@ -8,10 +8,6 @@ description: Export FHIR resources to Databricks Unity Catalog managed Delta tab
 This functionality is available starting from Aidbox version **2605**.
 {% endhint %}
 
-{% hint style="warning" %}
-**Cloud support: AWS S3 only (today)** for the initial-export staging bucket (`s3://...` / `s3a://...`).
-{% endhint %}
-
 This page sets up an `AidboxTopicDestination` that streams FHIR resource changes into a Databricks Unity Catalog managed Delta table. Rows are flattened by a [ViewDefinition](../../modules/sql-on-fhir/defining-flat-views-with-view-definitions.md) so analytics consumers see columns, not nested FHIR JSON.
 
 ## Background
@@ -116,7 +112,7 @@ The service principal and the grants it needs are set up in the [Usage example](
 - [`jq`](https://jqlang.org/) on `PATH` — several steps parse JSON responses inline
 - A SQL warehouse
 - For `managed-zerobus`: Zerobus enabled on your SKU (Databricks Free Edition supports it; for paid plans confirm with Databricks support)
-- For initial-export: an **S3 bucket** you control. GCS and Azure ADLS Gen2 are not supported for the staging path today (see the "Cloud support: AWS only" callout above).
+- For initial-export: an **S3 bucket** you control (AWS S3 only — see [Initial export](#initial-export)).
 
 The service principal that authenticates the module is created in step 3 of the usage example — you don't need it before you start.
 
@@ -492,11 +488,8 @@ EOF
 ```
 
 ```sh
-sleep 10  # IAM propagation
-```
-
-```sh
-databricks storage-credentials validate --storage-credential-name "$STORAGE_CRED_NAME"
+sleep 10 \
+  && databricks storage-credentials validate --storage-credential-name "$STORAGE_CRED_NAME"
 ```
 
 Empty `results` means success.
@@ -883,6 +876,10 @@ POST /fhir/AidboxTopicDestination
 The Databricks setup is identical to `managed-zerobus` — same catalog, schema, target table, warehouse, staging chain, SP, and grants. The warehouse simply ends up servicing every batch instead of only the bootstrap.
 
 ## Initial export
+
+{% hint style="warning" %}
+**Cloud support: AWS S3 only (today)** for the initial-export staging bucket (`s3://...` / `s3a://...`). GCS and Azure ADLS Gen2 are not supported for the staging path.
+{% endhint %}
 
 {% hint style="info" %}
 The same flow described below is also exposed standalone as a FHIR operation: [`$viewdefinition-export`](../../modules/sql-on-fhir/operation-viewdefinition-export.md). Use that operation when you want a one-shot snapshot of a ViewDefinition without standing up a continuous `AidboxTopicDestination` — it reuses this module as the `kind=data-lakehouse` backend, and you get an async kick-off + status-poll URL instead of a destination's `$status`. See the [Ad-hoc one-shot export](#ad-hoc-one-shot-export) section below for a usage example.
