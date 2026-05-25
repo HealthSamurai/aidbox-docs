@@ -912,16 +912,9 @@ The continuous worker starts polling the PG queue **immediately after destinatio
 
 For ≥1M-row datasets the single-cursor + single-Kernel-writer default is the wall-clock bottleneck. The `initialExportParallelism` parameter (default `1`) fans the staging write out across `N` hash-partitioned chunks. The chunks are written by parallel workers into per-chunk staging Delta tables, then a single `MERGE INTO target USING (SELECT * FROM staging_0 UNION ALL ...)` materializes everything into the managed target in one SQL statement.
 
-**`N` is the cluster-wide chunk count, not a per-pod thread count.** You set it once on the destination; the module figures out how many workers each Aidbox pod runs.
+`N` is the cluster-wide chunk count, not a per-pod thread count. Every Aidbox pod sharing the same PG metastore participates automatically — chunks are claimed by whichever pod is free, and a crashed pod's chunks are picked up by a sibling.
 
-**How a multi-pod cluster cooperates:** every Aidbox pod sharing the same PG metastore participates automatically — there's no leader, no service-discovery, no external coordinator.
-
-- Each pod spawns up to `min(N, <pod's cpu cores>)` local worker threads.
-- Every worker loops over chunk-ids `0..N-1` and tries `pg_try_advisory_lock(destination-hash, chunk-id)` on each one. The first pod's worker to claim a given chunk-id runs that chunk; other workers (on the same pod or any other pod) see `false` and move to the next chunk-id.
-- When a chunk finishes the worker marks the chunk-id completed in the destination resource extension (a separate PG advisory lock serializes that read-modify-write across pods) and releases the chunk's lock.
-- A crashed worker's PG connection drops → PG releases all its session-level advisory locks automatically → a sibling worker on any pod picks the chunk up on its next loop iteration.
-
-Effective wall-clock concurrency is therefore `min(N, sum_of_cores_across_all_pods)`. Raising `N` past total cores doesn't make it faster — extra workers spin on lock-claim with nothing to do. Lowering `N` below total cores wastes CPU.
+Effective wall-clock concurrency is `min(N, total cores across all pods)`. Raising `N` past that adds nothing.
 
 **Picking `N` for a multi-pod cluster:**
 
@@ -941,10 +934,10 @@ $$
 
 where
 
-- $$C_{\text{total}}$$ — sum of CPU cores allocated to every Aidbox pod connected to this metastore. Each pod auto-caps its local worker pool at its own core count (via `Runtime.availableProcessors()`); the cluster-wide sum is the maximum number of workers that will ever run concurrently. Setting $$N$$ higher than that adds nothing — surplus workers spin on `pg_try_advisory_lock` returning `false`.
+- $$C_{\text{total}}$$ — sum of CPU cores across every Aidbox pod connected to this metastore. Each pod caps its local worker pool at its core count, so the cluster total is the ceiling on concurrent workers.
 - $$M$$ — your PostgreSQL `max_connections` setting (default `100`).
-- $$B$$ — connections Aidbox uses for normal traffic (HikariCP pool size × pod count). Conservative default: $$30 \cdot \text{pod\_count}$$. Check your `pg_stat_activity` under steady-state load if you want a tighter number.
-- The `/ 2` reflects that each worker holds at most two PG connections: one for the `sof.<view>` server-side cursor, one short-lived for the lock-and-progress operations.
+- $$B$$ — connections Aidbox uses for normal traffic (HikariCP pool size × pod count). Conservative default: $$30 \cdot \text{pod\_count}$$.
+- The `/ 2` reflects that each worker holds up to two PG connections.
 
 Floor at `1` (default), don't bother going above `64`.
 
