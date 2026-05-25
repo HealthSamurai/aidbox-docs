@@ -111,7 +111,7 @@ The service principal and the grants it needs are set up in the [Usage example](
 
 - Aidbox **2605** or newer ([install guide](../../getting-started/run-aidbox-locally.md))
 - A Databricks workspace (Free Edition works for evaluation, paid for production)
-- The [Databricks CLI](https://docs.databricks.com/aws/en/dev-tools/cli/install) installed locally (`brew install databricks/tap/databricks` on macOS) — every Databricks-side operation in the tutorial uses it
+- The [Databricks CLI](https://docs.databricks.com/aws/en/dev-tools/cli/install) installed locally — every Databricks-side operation in the tutorial uses it
 - AWS CLI (for initial-export staging — bucket + IAM role)
 - A SQL warehouse
 - For `managed-zerobus`: Zerobus enabled on your SKU (Databricks Free Edition supports it; for paid plans confirm with Databricks support)
@@ -138,6 +138,12 @@ The service principal that authenticates the module is created in step 3 of the 
        BOX_MODULE_LOAD: io.healthsamurai.databricks.core
        BOX_MODULE_JAR: "/databricks-module.jar"
        BOX_FHIR_SCHEMA_VALIDATION: "true"
+       # Databricks OAuth M2M service-principal credentials. These are
+       # the exclusive source — destinations and `$viewdefinition-export`
+       # do NOT accept per-request `databricksClientId/Secret`. One SP
+       # per Aidbox cluster. See "Authentication" for SP setup.
+       BOX_DATABRICKS_DATA_LAKEHOUSE_CLIENT_ID:     ${SP_CLIENT_ID}
+       BOX_DATABRICKS_DATA_LAKEHOUSE_CLIENT_SECRET: ${SP_CLIENT_SECRET}
        # ... other environment variables ...
    ```
 
@@ -187,6 +193,21 @@ spec:
               value: "/modules/databricks-module.jar"
             - name: BOX_FHIR_SCHEMA_VALIDATION
               value: "true"
+            # Databricks OAuth M2M service-principal credentials. These
+            # are the exclusive source — destinations and
+            # `$viewdefinition-export` do NOT accept per-request
+            # `databricksClientId/Secret`. One SP per Aidbox cluster.
+            # See "Authentication" for SP setup.
+            - name: BOX_DATABRICKS_DATA_LAKEHOUSE_CLIENT_ID
+              valueFrom:
+                secretKeyRef:
+                  name: aidbox-databricks-sp
+                  key: client-id
+            - name: BOX_DATABRICKS_DATA_LAKEHOUSE_CLIENT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: aidbox-databricks-sp
+                  key: client-secret
             # ... other environment variables ...
           volumeMounts:
             - name: modules-volume
