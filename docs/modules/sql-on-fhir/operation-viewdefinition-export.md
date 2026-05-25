@@ -11,6 +11,10 @@ Exports a ViewDefinition's flattened rows into a sink (e.g. a Databricks Delta t
 
 Use this for one-shot snapshots, backfills, or ad-hoc dumps when standing up a streaming `AidboxTopicDestination` is overkill.
 
+{% hint style="warning" %}
+The Databricks-side setup (catalog, schema, target table, staging schema, service principal, grants, warehouse) must be in place **before** you kick off an export. It is documented in the [Data Lakehouse tutorial](../../tutorials/subscriptions-tutorials/data-lakehouse-aidboxtopicdestination.md) — the same setup is reused here.
+{% endhint %}
+
 ## Registered backends
 
 | `kind` | Sink | Module |
@@ -40,10 +44,14 @@ Prefer: respond-async
     {"name": "databricksWarehouseId",  "valueString": "xxx"},
     {"name": "awsRegion",              "valueString": "xxx"},
     {"name": "stagingTablePath",       "valueString": "s3://xxx/staging/patient_flat/"},
-    {"name": "chunkCount",             "valueUnsignedInt": 1}
+    {"name": "chunkCount",             "valueUnsignedInt": 1},
+
+    {"name": "_since", "valueInstant": "2026-01-01T00:00:00Z"}
   ]
 }
 ```
+
+The `_since` line above requests an **incremental export**: only rows whose timestamp column changed at or after the given instant are materialized. Omit it for a full snapshot. See [`_since` (incremental export)](#_since-incremental-export) for details.
 
 Response:
 
@@ -72,7 +80,7 @@ Content-Location: /fhir/ViewDefinition/$viewdefinition-export/status/<export-id>
 | `clientTrackingId` | no | Echoed back in the status response. |
 | `_format` | no | `ndjson`, `parquet`, `json`, or omitted. Functionally ignored — the sink format is determined by the backend (Delta for `kind=data-lakehouse`). |
 | `header` | no | Echoed; not meaningful for non-CSV sinks. |
-| `_since` | no | ISO-8601 instant. Filters rows by the view's timestamp column (`ts` or `last_updated`). 400 if `_since` is set but the view exposes neither column. |
+| `_since` | no | ISO-8601 instant. Filters the source view by its timestamp column (the column whose ViewDefinition path is `getAidboxTs()`). 400 `:no-timestamp-column` if `_since` is set but the view exposes no such column. See [`_since` (incremental export)](#_since-incremental-export). |
 | `patient` (0..\*) | no | List of Patient references. Currently accepted but **not yet applied** — the full view is exported. |
 | `group` (0..\*) | no | List of Group references. Same status as `patient`. |
 | `source` | no | External data source URI. **Not supported** — rejected. |
@@ -155,22 +163,37 @@ What cancellation does **not** do:
 
 ![Bulk export flow: Aidbox writes per-chunk Delta stagings on S3, then issues one MERGE INTO target via the Databricks SQL warehouse, then drops the stagings.](../../../assets/aidbox-databricks-bulk.svg)
 
-With `chunkCount = N` (default `N=1`), the backend hash-partitions `sof.<view>` into `N` chunks, writes each chunk into its own external Delta table under `<stagingTablePath>/chunk-K/`, then materializes the union into the managed target with one `MERGE INTO target USING (SELECT * FROM staging_0 UNION ALL …)` against the SQL warehouse and drops every staging. The `N=1` case is the degenerate path of the same flow.
-
-Steps:
-
-1. `plan-export` decides the chunk count from `chunkCount`. `setup-export` syncs the target schema against `sof.<view>` (auto-`ALTER ADD COLUMNS` if Aidbox added columns) and pre-computes the staging-column spec.
-2. Each chunk task creates its own external Delta table at `<stagingTablePath>/chunk-K/`, vends short-lived STS credentials from Unity Catalog for that prefix, and streams its hash-partition of `sof.<view>` as one Delta commit.
-3. Once all chunks complete, the coordinator task invokes `finalize-export`: `MERGE INTO target USING (SELECT * FROM staging_0 UNION ALL …) ON t.id = s.id WHEN NOT MATCHED THEN INSERT *`.
-4. The module drops every staging table.
-
-On failure the per-chunk stagings are best-effort dropped via `cancel-export`. Chunks retry up to 2 times with a 30-second backoff; if they exhaust retries the export is reported as `failed`.
+With `chunkCount = N` (default `N=1`), for each chunk the module creates a per-chunk external Delta staging table, fills it from the hash-partitioned `sof.<view>`, then a single `MERGE INTO target` materializes the union into the managed target and drops every staging. Failed chunks retry with backoff; if retries are exhausted the export is reported as `failed` and stagings are best-effort cleaned up.
 
 {% hint style="info" %}
 The `MERGE` is idempotent on `id` — a retried export after a lost response inserts nothing instead of duplicating. Your ViewDefinition must select an `id` column.
 {% endhint %}
 
-The Databricks-side setup (catalog, schema, target table, staging schema, service principal, grants, warehouse) is documented in the [Data Lakehouse tutorial](../../tutorials/subscriptions-tutorials/data-lakehouse-aidboxtopicdestination.md) — the same setup is reused here.
+## `_since` (incremental export)
+
+`_since` turns the export into an incremental one: instead of materializing the entire view, the source query is filtered by the view's timestamp column.
+
+**Which column it filters on.** The column in your ViewDefinition whose `path` is `getAidboxTs()` (this FHIRPath returns `meta.lastUpdated`). For example:
+
+```json
+{
+  "resourceType": "ViewDefinition",
+  "name": "patient_flat",
+  "select": [
+    {"column": [
+      {"name": "id", "path": "id"},
+      {"name": "ts", "path": "getAidboxTs()"},
+      {"name": "family", "path": "name.family.first()"}
+    ]}
+  ]
+}
+```
+
+Here `_since=2026-01-01T00:00:00Z` filters as `WHERE ts >= '2026-01-01T00:00:00Z'`.
+
+**Failure mode.** If the ViewDefinition exposes no column whose path resolves to `getAidboxTs()`, kick-off fails synchronously with `400 OperationOutcome` and reason `:no-timestamp-column`. Either add such a column to the view or omit `_since`.
+
+**Typical use case.** Cron-driven incremental exports. Persist the `exportEndTime` from the completed status response, then pass it as `_since` on the next kick-off — each run materializes only rows changed since the previous run finished.
 
 ## Large-scale and multi-pod execution
 
@@ -206,6 +229,6 @@ The Data Lakehouse backend's staging path currently supports **AWS S3 only** (`s
 ## Limitations (current)
 
 - One `view` per request (spec allows `1..*`).
-- `patient` / `group` filters extracted but not yet applied to the SQL. `_since` is applied.
+- `patient` / `group` filters extracted but not yet applied to the SQL.
 - `cancelUrl` (the spec's pointer to a cancel endpoint exposed in the kick-off response) is not yet returned. Cancellation itself works — `DELETE` on the status URL is supported (see [Cancellation](#cancellation) above).
 - `estimatedTimeRemaining` is not computed.
