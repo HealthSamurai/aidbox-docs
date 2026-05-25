@@ -817,7 +817,7 @@ DELETE /fhir/AidboxTopicDestination/patient-databricks
 
 This stops the export and cleans up the internal message queue. Data already written to Databricks is not affected.
 
-## Alternative: `managed-sql` configuration
+## Alternative: managed-sql configuration
 
 If Zerobus isn't available on your Databricks SKU (older paid plans, some regions), set `writeMode=managed-sql`. Same managed Unity Catalog target, same staging-MERGE initial-export, but live per-batch writes go through a Databricks SQL warehouse instead of Zerobus REST.
 
@@ -909,7 +909,7 @@ The continuous worker starts polling the PG queue **immediately after destinatio
 
 ### Large-scale initial export
 
-For ≥1M-row datasets the single-cursor + single-Kernel-writer default is the wall-clock bottleneck. The `initialExportParallelism` parameter (default `1`) fans the staging write out across `N` hash-partitioned chunks. The chunks are written by parallel workers into per-chunk staging Delta tables, then a single `MERGE INTO target USING (SELECT * FROM staging_0 UNION ALL ...)` materializes everything into the managed target in one SQL statement.
+The `initialExportParallelism` parameter (default `1`) fans the staging write out across `N` hash-partitioned chunks written by parallel workers, then materialized in one `MERGE INTO target`. Use it when the single-cursor default becomes the wall-clock bottleneck.
 
 `N` is the cluster-wide chunk count, not a per-pod thread count. Every Aidbox pod sharing the same PG metastore participates automatically — chunks are claimed by whichever pod is free, and a crashed pod's chunks are picked up by a sibling.
 
@@ -917,13 +917,13 @@ Effective wall-clock concurrency is `min(N, total cores across all pods)`. Raisi
 
 **Picking `N` for a multi-pod cluster:**
 
-| Cluster shape              | Suggested `N` | Notes                                            |
-| -------------------------- | ------------- | ------------------------------------------------ |
-| 1 pod, ≤4 cores            | `1` (default) | Fine for <1M rows.                               |
-| 1 pod, 4-8 cores, ≥1M rows | `4`           | ~3-4× speedup.                                   |
-| 1 pod, ≥8 cores            | `8`           | Watch PG read capacity.                          |
-| 2-4 pods (HA), ≥10M rows   | `16`          | Survives a pod restart mid-export.               |
-| 4+ pods, ≥100M rows        | `32`          | Cap by your PG `max_connections` budget.         |
+| Cluster shape    | Suggested `N` | Notes                                    |
+| ---------------- | ------------- | ---------------------------------------- |
+| 1 pod, ≤4 cores  | `1` (default) | Single-cursor sequential.                |
+| 1 pod, 4-8 cores | `4`           | ~3-4× speedup.                           |
+| 1 pod, ≥8 cores  | `8`           | Watch PG read capacity.                  |
+| 2-4 pods (HA)    | `16`          | Survives a pod restart mid-export.       |
+| 4+ pods          | `32`          | Cap by your PG `max_connections` budget. |
 
 **Picking `N` — formula.** Two ceilings, take the smaller:
 
@@ -951,7 +951,7 @@ $$
 N = \min\!\left(\, 32,\; \frac{200 - 120}{2} \,\right) = \min(32,\, 40) = 32
 $$
 
-Independent of `initialExportParallelism`, the SQL warehouse running the final MERGE remains a separate axis — for ≥100M-row exports temporarily scale it to `M` or `L` while initial-export is running, then back down once `initialExportStatus=completed`.
+Independent of `initialExportParallelism`, the SQL warehouse running the final MERGE remains a separate axis — for very large exports temporarily scale it to `M` or `L` while initial-export is running, then back down once `initialExportStatus=completed`.
 
 ## Monitoring
 
