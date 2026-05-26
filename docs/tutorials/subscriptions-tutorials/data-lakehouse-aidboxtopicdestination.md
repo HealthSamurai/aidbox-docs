@@ -585,6 +585,7 @@ Grant only the set matching your `writeMode`. The SP runs the module at request 
 | `SELECT`, `MODIFY` | the target table | `DESCRIBE` + initial-bulk `MERGE INTO` |
 | `USE_SCHEMA`, `EXTERNAL_USE_SCHEMA`, `CREATE_TABLE` | the staging schema | resolve the sibling schema, vend STS for the staging table, and let the sender register it (initial-export only) |
 | `READ_FILES`, `WRITE_FILES`, `CREATE_EXTERNAL_TABLE` | the External Location | write bulk Parquet via vended STS (initial-export only) |
+| `EXTERNAL_USE_LOCATION` | the External Location | vend path-credentials for Phase 0 staging cleanup (recursive-deletes orphan Parquet/`_delta_log` left from prior runs before the next `CREATE TABLE` — without this grant cleanup is skipped and files accumulate, but init-export still works) |
 | `CAN_USE` | the SQL warehouse | bootstrap schema-sync statements + initial-bulk `MERGE` (no warehouse traffic during live writes) — already granted in the SP/warehouse step |
 
 ```sh
@@ -611,7 +612,7 @@ databricks grants update schema "$CATALOG.$STAGING_SCHEMA" --json '{
 
 ```sh
 databricks grants update external-location "$EXTERNAL_LOCATION_NAME" --json '{
-  "changes":[{"principal":"'"$BOX_DATABRICKS_DATA_LAKEHOUSE_CLIENT_ID"'","add":["READ_FILES","WRITE_FILES","CREATE_EXTERNAL_TABLE"]}]}'
+  "changes":[{"principal":"'"$BOX_DATABRICKS_DATA_LAKEHOUSE_CLIENT_ID"'","add":["READ_FILES","WRITE_FILES","CREATE_EXTERNAL_TABLE","EXTERNAL_USE_LOCATION"]}]}'
 ```
 
 {% endtab %}
@@ -626,6 +627,7 @@ Identical privilege set to `managed-zerobus` — the SQL warehouse is hit on eve
 | `SELECT`, `MODIFY`                                   | the target table      | `DESCRIBE` + every-batch `INSERT` + initial-bulk `MERGE INTO`                                                    |
 | `USE_SCHEMA`, `EXTERNAL_USE_SCHEMA`, `CREATE_TABLE`  | the staging schema    | resolve the sibling schema, vend STS for the staging table, and let the sender register it (initial-export only) |
 | `READ_FILES`, `WRITE_FILES`, `CREATE_EXTERNAL_TABLE` | the External Location | write bulk Parquet via vended STS (initial-export only)                                                          |
+| `EXTERNAL_USE_LOCATION`                              | the External Location | vend path-credentials for Phase 0 staging cleanup (recursive-deletes orphan Parquet/`_delta_log` left from prior runs before the next `CREATE TABLE` — without this grant cleanup is skipped and files accumulate, but init-export still works) |
 | `CAN_USE`                                            | the SQL warehouse     | every-batch INSERT + bootstrap + initial-bulk — already granted in the SP/warehouse step                         |
 
 ```sh
@@ -652,7 +654,7 @@ databricks grants update schema "$CATALOG.$STAGING_SCHEMA" --json '{
 
 ```sh
 databricks grants update external-location "$EXTERNAL_LOCATION_NAME" --json '{
-  "changes":[{"principal":"'"$BOX_DATABRICKS_DATA_LAKEHOUSE_CLIENT_ID"'","add":["READ_FILES","WRITE_FILES","CREATE_EXTERNAL_TABLE"]}]}'
+  "changes":[{"principal":"'"$BOX_DATABRICKS_DATA_LAKEHOUSE_CLIENT_ID"'","add":["READ_FILES","WRITE_FILES","CREATE_EXTERNAL_TABLE","EXTERNAL_USE_LOCATION"]}]}'
 ```
 
 {% endtab %}
@@ -1059,7 +1061,13 @@ You can create multiple destinations for the same topic — for example, to mate
 7. **Duplicate rows after recreating destination** — deleting and recreating a destination triggers initial export again. Set `skipInitialExport: true` when recreating a destination that already has its data exported.
 8. **`LOCATION_OVERLAP` during initial export** — `stagingTablePath` either equals the staging schema's `storage_root` (which UC treats as the schema's own managed location) or doesn't sit under your External Location. Set it to a sub-prefix of the External Location, e.g. `s3://<bucket>/staging/patient_flat/`, not the External Location root itself.
 9. **`Unsupported table kind. Tables created in default storage are not supported` (Zerobus error 4024)** — the catalog backing your target table was created without `--storage-root`, so Unity Catalog placed it in the workspace's default-storage prefix. `managed-zerobus` refuses to write into default storage. Recreate the catalog with `databricks catalogs create <name> --storage-root s3://<bucket>/managed/` pointing inside a registered External Location (see [Create the catalog and target schema](#create-the-catalog-and-target-schema) in the usage example).
-10. **`DELTA_CREATE_TABLE_SCHEME_MISMATCH` on initial export retry** — your `stagingTablePath` contains a `_delta_log/` from a previous initial-export run, and the new run has a different ViewDefinition schema (e.g. you added `ts`/`cts` columns). The module drops the UC staging table metadata on cleanup but does NOT delete S3 files, so the old `_delta_log/` survives and conflicts. Fix: either point `stagingTablePath` at a fresh sub-prefix (e.g. append a nonce: `s3://<bucket>/staging/<table>-v2/`), or manually `aws s3 rm --recursive` the old prefix.
+10. **`DELTA_CREATE_TABLE_SCHEME_MISMATCH` on initial export retry** — your `stagingTablePath` contains a `_delta_log/` from a previous initial-export run, and the new run has a different ViewDefinition schema (e.g. you added `ts`/`cts` columns). The module drops the UC staging table metadata on cleanup but does NOT delete S3 files, so the old `_delta_log/` survives and conflicts. Fix: either point `stagingTablePath` at a fresh sub-prefix (e.g. append a nonce: `s3://<bucket>/staging/<table>-v2/`), or manually `aws s3 rm --recursive` the old prefix. Granting `EXTERNAL_USE_LOCATION` on the External Location (see item 11) enables the module's Phase 0 auto-cleanup so this stops biting on column-add re-runs.
+11. **`staging-s3-cleanup-skipped` log with `:reason :no-external-use-location-grant`** — the SP lacks `EXTERNAL_USE_LOCATION` on the External Location covering the staging path. Phase 0 cleanup (auto-recursive-delete of stale staging Parquet/`_delta_log` between runs) is disabled and files accumulate. Init-export itself keeps working. Fix by granting the privilege:
+    ```sh
+    databricks grants update external-location "$EXTERNAL_LOCATION_NAME" --json '{
+      "changes":[{"principal":"'"$BOX_DATABRICKS_DATA_LAKEHOUSE_CLIENT_ID"'","add":["EXTERNAL_USE_LOCATION"]}]}'
+    ```
+    Or via SQL: `GRANT EXTERNAL USE LOCATION ON EXTERNAL LOCATION \`<name>\` TO \`<sp-application-id>\`;`. Verify with `SHOW GRANTS ON EXTERNAL LOCATION \`<name>\`;`.
 
 ## Related documentation
 
