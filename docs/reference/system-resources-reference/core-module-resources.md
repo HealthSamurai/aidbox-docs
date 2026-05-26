@@ -5736,6 +5736,30 @@ Profile for FHIR Bulk Data $export operation POST parameters. Based on https://b
   "desc" : "\n\n**Allowed values**: `opt-in` | `opt-out`"
 }, {
   "path" : "parameter",
+  "name" : "parameter:onPatientError",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : "Behavior when patient references are invalid: fail (default, returns 422) or ignore (drop and proceed)."
+}, {
+  "path" : "parameter.name",
+  "name" : "name",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "code",
+  "desc" : "\n\n**Allowed values**: `fail` | `ignore`"
+}, {
+  "path" : "parameter",
   "name" : "parameter:organizationIdentifierSystem",
   "lvl" : 0,
   "min" : 0,
@@ -5959,6 +5983,14 @@ Status and progress of a FHIR Bulk Export operation.
   "max" : "*",
   "type" : "string",
   "desc" : "List of patient IDs to export data for."
+}, {
+  "path" : "params.patient-errors",
+  "name" : "patient-errors",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : "*",
+  "type" : "OperationOutcome",
+  "desc" : "Per-patient OperationOutcome for references ignored by onPatientError=ignore. Each entry is a full OperationOutcome resource with a single warning issue describing why the reference was dropped."
 }, {
   "path" : "params.group-id",
   "name" : "group-id",
@@ -8799,12 +8831,12 @@ Data Lakehouse at-least-once delivery profile for AidboxTopicDestination. Defaul
   "desc" : ""
 }, {
   "path" : "parameter",
-  "name" : "parameter:initialExportParallelism",
+  "name" : "parameter:initialExportChunkCount",
   "lvl" : 0,
   "min" : 0,
   "max" : 1,
   "type" : "",
-  "desc" : "Total number of parallel chunks for the initial-export hash partition. Default 1 (sequential). Recommended 4-8 for >=1M-row datasets on a single Aidbox node; 16-32 for multi-Aidbox setups. Chunks distribute across all Aidbox nodes via PG advisory locks."
+  "desc" : "Number of hash-partitioned chunks the initial export splits into. Default 1 (single cursor). Chunks distribute across Aidbox pods and write into per-chunk staging Delta tables that are merged into the managed target in one MERGE INTO at finalize."
 }, {
   "path" : "parameter.name",
   "name" : "name",
