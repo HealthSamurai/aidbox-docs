@@ -1,6 +1,7 @@
 ---
 description: Async bulk export of a ViewDefinition's materialized rows to a backend-provided sink (Databricks Delta, etc.)
 ---
+
 # $viewdefinition-export operation
 
 {% hint style="info" %}
@@ -17,8 +18,8 @@ The Databricks-side setup (catalog, schema, target table, staging schema, servic
 
 ## Registered backends
 
-| `kind` | Sink | Module |
-|---|---|---|
+| `kind`           | Sink                                         | Module                                                                                                    |
+| ---------------- | -------------------------------------------- | --------------------------------------------------------------------------------------------------------- |
 | `data-lakehouse` | Databricks Unity Catalog managed Delta table | [Data Lakehouse module](../../tutorials/subscriptions-tutorials/data-lakehouse-aidboxtopicdestination.md) |
 
 ## Kick-off
@@ -50,8 +51,6 @@ Prefer: respond-async
   ]
 }
 ```
-
-The `_since` line above requests an **incremental export**: only rows whose timestamp column changed at or after the given instant are materialized. Omit it for a full snapshot. See [`_since` (incremental export)](#_since-incremental-export) for details.
 
 Response:
 
@@ -129,19 +128,24 @@ Completed output for `kind=data-lakehouse`:
 {
   "resourceType": "Parameters",
   "parameter": [
-    {"name": "exportId", "valueString": "<uuid>"},
-    {"name": "status",   "valueCode":   "completed"},
-    {"name": "clientTrackingId", "valueString": "..."},
-    {"name": "exportStartTime", "valueInstant": "2026-05-22T00:00:00Z"},
-    {"name": "exportEndTime",   "valueInstant": "2026-05-22T00:01:30Z"},
-    {"name": "output",
-     "part": [{"name": "name",     "valueString": "patient_flat"},
-              {"name": "location", "valueUri":    "databricks-uc:catalog.schema.patient_flat"}]}
+    { "name": "exportId", "valueString": "<uuid>" },
+    { "name": "status", "valueCode": "completed" },
+    { "name": "clientTrackingId", "valueString": "..." },
+    { "name": "exportStartTime", "valueInstant": "2026-05-22T00:00:00Z" },
+    { "name": "exportEndTime", "valueInstant": "2026-05-22T00:01:30Z" },
+    {
+      "name": "output",
+      "part": [
+        { "name": "name", "valueString": "patient_flat" },
+        {
+          "name": "location",
+          "valueUri": "databricks-uc:catalog.schema.patient_flat"
+        }
+      ]
+    }
   ]
 }
 ```
-
-The `output[].location` URI scheme is backend-specific (`databricks-uc:` for the data-lakehouse backend).
 
 ## Cancellation
 
@@ -188,7 +192,7 @@ Two consequences worth knowing:
 - **If you rotate `stagingTablePath` between runs** (for example, a date-stamped prefix), each prior prefix is left behind in your bucket and the auto-cleanup never fires for it. Either reuse one prefix across runs, or `aws s3 rm --recursive` the old ones yourself.
 - **The auto-cleanup uses Unity Catalog `temporary-path-credentials`**, so the principal needs `EXTERNAL_USE_LOCATION` on the External Location that covers `stagingTablePath`. Without that grant the cleanup is skipped and a `staging-s3-cleanup-skipped` event is logged; the export itself still runs. The same grant table is documented in the [Data Lakehouse tutorial setup](../../tutorials/subscriptions-tutorials/data-lakehouse-aidboxtopicdestination.md#setup).
 
-## _since (incremental export)
+## \_since (incremental export)
 
 `_since` turns the export into an incremental one: instead of materializing the entire view, the source query is filtered by the view's timestamp column.
 
@@ -199,11 +203,13 @@ Two consequences worth knowing:
   "resourceType": "ViewDefinition",
   "name": "patient_flat",
   "select": [
-    {"column": [
-      {"name": "id", "path": "id"},
-      {"name": "ts", "path": "getAidboxTs()"},
-      {"name": "family", "path": "name.family.first()"}
-    ]}
+    {
+      "column": [
+        { "name": "id", "path": "id" },
+        { "name": "ts", "path": "getAidboxTs()" },
+        { "name": "family", "path": "name.family.first()" }
+      ]
+    }
   ]
 }
 ```
@@ -241,20 +247,17 @@ The kick-off handler returns `400 parallelism-exceeds-pool` if `chunkCount > (M 
 
 Both flows produce the same kind of output — flattened FHIR rows merged into a managed Delta table — and parallelism is sized the same way. They differ in **how you start them** and **where you read progress from**:
 
-|                  | `$viewdefinition-export`                                            | `AidboxTopicDestination` initial export                                                               |
-| ---------------- | ------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------- |
-| When it runs     | On demand — when you `POST` this operation                          | Automatically, once, when you create a destination with `skipInitialExport=false`                     |
-| Progress polling | `GET /fhir/ViewDefinition/$viewdefinition-export/status/<export-id>` | `GET /fhir/AidboxTopicDestination/<id>/$status`                                                       |
-| After completion | The operation is done. No follow-up writes.                         | The destination keeps streaming live FHIR changes into the same target table.                        |
+|                  | `$viewdefinition-export`                                             | `AidboxTopicDestination` initial export                                           |
+| ---------------- | -------------------------------------------------------------------- | --------------------------------------------------------------------------------- |
+| When it runs     | On demand — when you `POST` this operation                           | Automatically, once, when you create a destination with `skipInitialExport=false` |
+| Progress polling | `GET /fhir/ViewDefinition/$viewdefinition-export/status/<export-id>` | `GET /fhir/AidboxTopicDestination/<id>/$status`                                   |
+| After completion | The operation is done. No follow-up writes.                          | The destination keeps streaming live FHIR changes into the same target table.     |
 
 Use this operation for one-shot snapshots and backfills. Use the destination flow when you want the same initial fill **plus** continuous replication afterwards. For tutorial-specific operational notes on the destination flow, see [Large-scale initial export](../../tutorials/subscriptions-tutorials/data-lakehouse-aidboxtopicdestination.md#large-scale-initial-export).
 
-## Cloud support
-
-The Data Lakehouse backend's staging path currently supports **AWS S3 only** (`s3://...` / `s3a://...`). 
-
 ## Limitations (current)
 
+- The Data Lakehouse backend's staging path currently supports **AWS S3 only** (`s3://...` / `s3a://...`).
 - One `view` per request (spec allows `1..*`).
 - `patient` / `group` filters extracted but not yet applied to the SQL.
 - `cancelUrl` (the spec's pointer to a cancel endpoint exposed in the kick-off response) is not yet returned. Cancellation itself works — `DELETE` on the status URL is supported (see [Cancellation](#cancellation) above).
