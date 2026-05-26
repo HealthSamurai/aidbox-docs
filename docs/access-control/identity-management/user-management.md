@@ -18,7 +18,7 @@ Because everything is a resource, you can manage users the same way you manage c
 
 ### Password management
 
-Passwords are managed through the standard CRUD API on the `User` resource. Aidbox automatically hashes passwords using scrypt before storing them.
+Aidbox automatically hashes passwords using scrypt before storing them. You can manage them either through the dedicated `/auth/*` endpoints (self-service change and admin-initiated reset, described below) or directly via CRUD on the `User` resource.
 
 #### Creating a user with a password
 
@@ -34,7 +34,7 @@ Content-Type: application/json
 
 The response contains the scrypt hash (format `$s0$...`) instead of the plaintext password.
 
-#### Changing a password
+#### Changing a password via CRUD
 
 Update the `password` field via `PUT` or `PATCH`:
 
@@ -48,10 +48,128 @@ Content-Type: application/json
 ```
 
 {% hint style="warning" %}
-Password changes do **not** require the current password. Any client with write access to the `User` resource can change any user's password. Protect the `User` resource with an [AccessPolicy](../authorization/access-policies.md) that restricts write access.
+A CRUD update does **not** require the current password. Any client with write access to the `User` resource can change any user's password. Protect the `User` resource with an [AccessPolicy](../authorization/access-policies.md) that restricts write access. For an end-user flow that does verify the current password, use [`/auth/change-password`](#self-service-password-change) instead.
 {% endhint %}
 
-When audit logging is enabled, password changes generate an AuditEvent with DICOM subtype `110139` ("User password changed"). See [Audit and Logging](../audit-and-logging.md) for details.
+When audit logging is enabled, password changes generate an AuditEvent with DICOM subtype `110139` ("User password changed"). Resets through the reset-link flow also carry the `password-self-reset` subtype, and admin-issued resets carry `password-force-reset`. See [Audit and Logging](../audit-and-logging.md) for details.
+
+#### Self-service password change
+
+Signed-in users can change their own password by providing the current one. Unlike a direct CRUD update, this verifies the current password before applying the change.
+
+```http
+POST /auth/change-password
+Content-Type: application/json
+
+{
+  "currentPassword": "old-password",
+  "newPassword":     "new-password"
+}
+```
+
+On success, Aidbox updates the password and signs the user out of every active session — they have to log in again everywhere. If the current password is wrong, the new one is the same as the current one, or it violates the [policy](#password-policy), the request fails and the password is not changed.
+
+#### Admin-initiated password reset
+
+When a user forgot their password or their account was compromised, an administrator can issue a one-time reset link. Aidbox immediately invalidates the user's current password, signs them out of every device, and prepares a fresh link that can be used once. The response contains the URL to share with the user.
+
+{% hint style="info" %}
+Force reset does not disable two-factor authentication. If the user lost their TOTP device, reset or disable 2FA for that user separately — otherwise the reset link will still ask for a TOTP code before letting them set a new password.
+{% endhint %}
+
+```http
+POST /auth/force-reset-password
+Content-Type: application/json
+
+{
+  "userId": "user-1"
+}
+```
+
+```http
+HTTP/1.1 200 OK
+Content-Type: application/json
+
+{
+  "code": "password_reset_link_issued",
+  "data": {
+    "resetUrl": "https://<aidbox>/auth/reset-password?token=eyJhbGc...",
+    "token":    "eyJhbGc..."
+  }
+}
+```
+
+The link is valid for **15 minutes** and lets the user set a new password once. Issuing another reset for the same user replaces the previous link.
+
+{% hint style="warning" %}
+`/auth/force-reset-password` has no default AccessPolicy — grant it explicitly to administrators only.
+{% endhint %}
+
+{% hint style="info" %}
+Aidbox does not deliver the reset link itself. Pass `resetUrl` to the user out-of-band — email, SMS, in-app message, or whatever channel you trust.
+{% endhint %}
+
+#### Resetting a password via reset link
+
+When the user opens the reset link, Aidbox renders an HTML page that walks them through setting a new password. There are three possible outcomes:
+
+* The token is missing, expired or already used — the user sees an error page with a Back to login action.
+* The user has two-factor authentication enabled — they are asked for a TOTP code first, then for a new password.
+* No 2FA — they are asked directly for a new password.
+
+Once the new password is saved, Aidbox signs the user out everywhere and the link stops working.
+
+If you build your own UI instead of relying on the built-in page, the JSON endpoints behind that flow look like this.
+
+For users without 2FA, the new password is submitted directly:
+
+```http
+POST /auth/reset-password
+Content-Type: application/json
+
+{
+  "token":       "<reset-token>",
+  "newPassword": "new-password"
+}
+```
+
+For users with [two-factor authentication](../authentication/two-factor-authentication.md), the user first confirms a TOTP code:
+
+```http
+POST /auth/reset-password-mfa
+Content-Type: application/json
+
+{
+  "token": "<reset-token>",
+  "totp":  "123456"
+}
+```
+
+In response Aidbox returns a short-lived password-set token (valid for one minute) that the UI then submits together with the new password:
+
+```http
+POST /auth/reset-password
+Content-Type: application/json
+
+{
+  "token":       "<passwordSetToken>",
+  "newPassword": "new-password"
+}
+```
+
+#### Password policy
+
+Aidbox can enforce a single optional password rule:
+
+| Setting                                | Env var                                   | Description                                            |
+|----------------------------------------|-------------------------------------------|--------------------------------------------------------|
+| `security.user-password.min-length`    | `BOX_SECURITY_USER_PASSWORD_MIN_LENGTH`   | Minimum user password length (positive integer).       |
+
+If the setting is not configured, Aidbox does not enforce a minimum password length. When set, the policy applies whenever someone tries to set a plaintext password — through `/auth/change-password`, `/auth/reset-password`, or a direct write to a `User` resource. Passwords that are already stored as a scrypt hash (for example when copying a `User` record between environments) are not re-checked.
+
+{% hint style="info" %}
+Aidbox intentionally does not enforce password complexity, expiry, or reuse rules. This follows [NIST SP 800-63B](https://pages.nist.gov/800-63-3/sp800-63b.html), which recommends against periodic forced password changes and composition rules.
+{% endhint %}
 
 ### Security considerations
 
@@ -61,10 +179,6 @@ When audit logging is enabled, password changes generate an AuditEvent with DICO
 
 {% hint style="info" %}
 **No automatic account lockout**: Aidbox does not lock accounts after repeated failed login attempts. The only lockout mechanism is manually setting `User.inactive` to `true`. See [Prohibit user to login](../../tutorials/security-access-control-tutorials/prohibit-user-to-login.md).
-{% endhint %}
-
-{% hint style="info" %}
-**No built-in password policies**: Aidbox does not enforce password complexity, expiry, or reuse rules. Implement these checks in your application layer before calling the Aidbox API.
 {% endhint %}
 
 See also:
@@ -95,7 +209,7 @@ See also:
 ### Automatically create users from external systems
 In some cases, you want to authenticate with an external IdP and still have a corresponding User resource inside Aidbox for auditing, patient‑to‑user mapping, or granular AccessPolicy rules. Aidbox supports just‑in‑time user provisioning:
 - In case of SSO, Users are created automatically.
-– In case of API access, it is possible to create User at first request using [setting](../../reference/all-settings.md#security.introspection-create-user).
+- In case of API access, it is possible to create User at first request using [setting](../../reference/all-settings.md#security.introspection-create-user).
 
 See also:
 
