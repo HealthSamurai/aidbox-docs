@@ -496,15 +496,15 @@ databricks grants update external-location "$EXTERNAL_LOCATION_NAME" --json '{
 {% tab title="managed-sql" %}
 Identical privilege set to `managed-zerobus` — the SQL warehouse is hit on every batch instead of only at bootstrap + initial-bulk:
 
-| Privilege                                            | Granted on            | Purpose                                                                                                          |
-| ---------------------------------------------------- | --------------------- | ---------------------------------------------------------------------------------------------------------------- |
-| `USE_CATALOG`                                        | the catalog           | navigate the catalog                                                                                             |
-| `USE_SCHEMA`                                         | the target schema     | resolve the target table                                                                                         |
-| `SELECT`, `MODIFY`                                   | the target table      | `DESCRIBE` + every-batch `INSERT` + initial-bulk `MERGE INTO`                                                    |
-| `USE_SCHEMA`, `EXTERNAL_USE_SCHEMA`, `CREATE_TABLE`  | the staging schema    | resolve the sibling schema, vend STS for the staging table, and let the sender register it (initial-export only) |
-| `READ_FILES`, `WRITE_FILES`, `CREATE_EXTERNAL_TABLE` | the External Location | write bulk Parquet via vended STS (initial-export only)                                                          |
+| Privilege                                            | Granted on            | Purpose                                                                                                                                                                                                                                         |
+| ---------------------------------------------------- | --------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `USE_CATALOG`                                        | the catalog           | navigate the catalog                                                                                                                                                                                                                            |
+| `USE_SCHEMA`                                         | the target schema     | resolve the target table                                                                                                                                                                                                                        |
+| `SELECT`, `MODIFY`                                   | the target table      | `DESCRIBE` + every-batch `INSERT` + initial-bulk `MERGE INTO`                                                                                                                                                                                   |
+| `USE_SCHEMA`, `EXTERNAL_USE_SCHEMA`, `CREATE_TABLE`  | the staging schema    | resolve the sibling schema, vend STS for the staging table, and let the sender register it (initial-export only)                                                                                                                                |
+| `READ_FILES`, `WRITE_FILES`, `CREATE_EXTERNAL_TABLE` | the External Location | write bulk Parquet via vended STS (initial-export only)                                                                                                                                                                                         |
 | `EXTERNAL_USE_LOCATION`                              | the External Location | vend path-credentials for Phase 0 staging cleanup (recursive-deletes orphan Parquet/`_delta_log` left from prior runs before the next `CREATE TABLE` — without this grant cleanup is skipped and files accumulate, but init-export still works) |
-| `CAN_USE`                                            | the SQL warehouse     | every-batch INSERT + bootstrap + initial-bulk — already granted in the SP/warehouse step                         |
+| `CAN_USE`                                            | the SQL warehouse     | every-batch INSERT + bootstrap + initial-bulk — already granted in the SP/warehouse step                                                                                                                                                        |
 
 ```sh
 databricks grants update catalog "$CATALOG" --json '{
@@ -831,7 +831,7 @@ Then query your Databricks table to confirm the data arrived. In the Databricks 
 SELECT * FROM aidbox_export.fhir.patients;
 ```
 
-You should see one row for John Smith. If you created the destination *before* any patients existed in Aidbox, that one is the only row — initial export had nothing to copy. POST a few more patients and re-run the query to see live writes accumulate.
+You should see one row for John Smith. If you created the destination _before_ any patients existed in Aidbox, that one is the only row — initial export had nothing to copy. POST a few more patients and re-run the query to see live writes accumulate.
 
 {% endstep %}
 {% endstepper %}
@@ -850,36 +850,18 @@ This stops the export and cleans up the internal message queue. Data already wri
 
 If Zerobus isn't available on your Databricks SKU (older paid plans, some regions), set `writeMode=managed-sql`. Same managed Unity Catalog target, same staging-MERGE initial-export, but live per-batch writes go through a Databricks SQL warehouse instead of Zerobus REST.
 
-The destination payload differs from the `managed-zerobus` example by dropping `databricksWorkspaceId` + `databricksRegion` and changing `writeMode`:
-
 ```http
 POST /fhir/AidboxTopicDestination
 
 {
-  "resourceType": "AidboxTopicDestination",
-  "id": "patient-databricks-sql",
-  "topic": "http://example.org/subscriptions/patient-updates",
-  "kind": "data-lakehouse-at-least-once",
-  "meta": {
-    "profile": [
-      "http://health-samurai.io/fhir/core/StructureDefinition/aidboxtopicdestination-dataLakehouseAtLeastOnceProfile"
-    ]
-  },
+  // ...
   "parameter": [
     {"name": "writeMode", "valueString": "managed-sql"},
-    {"name": "databricksWorkspaceUrl", "valueString": "$DATABRICKS_HOST"},
-    {"name": "tableName", "valueString": "$CATALOG.$TARGET_SCHEMA.$TARGET_TABLE"},
-    {"name": "databricksWarehouseId", "valueString": "$WAREHOUSE_ID"},
-    {"name": "awsRegion", "valueString": "$AWS_REGION"},
-    {"name": "stagingTablePath", "valueString": "s3://$STAGING_BUCKET/staging/$TARGET_TABLE/"},
-    {"name": "viewDefinition", "valueString": "patient_flat"},
-    {"name": "batchSize", "valueUnsignedInt": 50},
-    {"name": "sendIntervalMs", "valueUnsignedInt": 5000}
+    // ...
   ]
 }
 ```
 
-The Databricks setup is identical to `managed-zerobus` — same catalog, schema, target table, warehouse, staging chain, SP, and grants. The warehouse simply ends up servicing every batch instead of only the bootstrap.
 
 ## Initial export
 
@@ -888,8 +870,7 @@ The Databricks setup is identical to `managed-zerobus` — same catalog, schema,
 {% endhint %}
 
 {% hint style="info" %}
-The same flow described below is also exposed standalone as a FHIR operation: [`$viewdefinition-export`](../../modules/sql-on-fhir/operation-viewdefinition-export.md). Use that operation when you want a one-shot snapshot of a ViewDefinition without standing up a continuous `AidboxTopicDestination` — it reuses this module as the `kind=data-lakehouse` backend, and you get an async kick-off + status-poll URL instead of a destination's `$status`. See the [Ad-hoc one-shot export](#ad-hoc-one-shot-export) section below for a usage example.
-{% endhint %}
+The same flow described below is also exposed standalone as a FHIR operation: [`$viewdefinition-export`](../../modules/sql-on-fhir/operation-viewdefinition-export.md). Use that operation when you want a one-shot snapshot of a ViewDefinition without standing up a continuous `AidboxTopicDestination`. {% endhint %}
 
 When a new destination is created with `skipInitialExport` not set to `true`, the module exports the **current state** of every row in `sof.<view>` — one row per resource the ViewDefinition matches.
 
@@ -910,15 +891,15 @@ The same code path powers both the destination's initial export and the standalo
 
 ### Timing & monitoring
 
-The kick-off and the export are **decoupled** — `POST /AidboxTopicDestination` does not hold the HTTP connection open while billions of rows stream into Databricks.
+The kick-off and the export are **decoupled** — `POST /fhir/AidboxTopicDestination` does not hold the HTTP connection open while billions of rows stream into Databricks.
 
-| Phase             | Where it runs            | Approx. duration                          |
-| ----------------- | ------------------------ | ----------------------------------------- |
+| Phase             | Where it runs            | Approx. duration                           |
+| ----------------- | ------------------------ | ------------------------------------------ |
 | Bootstrap         | sync, inside the POST    | 1-2 min on a cold warehouse, <1s when warm |
-| Initial export    | async, in the background | seconds to hours                          |
-| Continuous worker | async, runs forever      | —                                         |
+| Initial export    | async, in the background | seconds to hours                           |
+| Continuous worker | async, runs forever      | —                                          |
 
-`POST /AidboxTopicDestination` returns `201 Created` after bootstrap (1-2 minutes worst-case), not after initial-export. There's no HTTP timeout regardless of dataset size.
+`POST /fhir/AidboxTopicDestination` returns `201 Created` after bootstrap (1-2 minutes worst-case), not after initial-export. There's no HTTP timeout regardless of dataset size.
 
 Poll progress via the destination's `$status` endpoint:
 
@@ -955,13 +936,13 @@ A pod that crashes mid-chunk is reclaimed automatically — the next free execut
 
 Effective cluster-wide concurrency = `min(N, Σ scheduler-executor-threads, PG-pool-budget)`. The smallest of these three is your real bottleneck.
 
-| Cluster shape | Suggested `N` | Notes                                         |
-| ------------- | ------------- | --------------------------------------------- |
-| 1 pod         | `1` (default) | Single-cursor sequential.                     |
-| 1 pod         | `4`           | ~3-4× speedup vs single-cursor.               |
-| 1 pod         | `8`           | Watch PG read capacity.                       |
-| 2-4 pods (HA) | `16`          | Survives a pod restart mid-export.            |
-| 4+ pods       | `32`          | Cap by your PG `max_connections` budget.      |
+| Cluster shape | Suggested `N` | Notes                                    |
+| ------------- | ------------- | ---------------------------------------- |
+| 1 pod         | `1` (default) | Single-cursor sequential.                |
+| 1 pod         | `4`           | ~3-4× speedup vs single-cursor.          |
+| 1 pod         | `8`           | Watch PG read capacity.                  |
+| 2-4 pods (HA) | `16`          | Survives a pod restart mid-export.       |
+| 4+ pods       | `32`          | Cap by your PG `max_connections` budget. |
 
 Raise the per-pod [`scheduler-executor-threads`](../../reference/all-settings.md#scheduler-executor-threads) setting in step with `N` if you want a single pod to run more than ~10 chunks in parallel — otherwise the surplus chunks just queue.
 
@@ -970,15 +951,6 @@ Raise the per-pod [`scheduler-executor-threads`](../../reference/all-settings.md
 Each chunk worker holds a Kernel Parquet buffer in memory — column-major rows + dictionary encoding state — until it reaches `targetFileSizeMb` (default 128 MiB) and flushes a file. With `N` chunks running concurrently per pod, peak heap from staging buffers alone is ≈ `min(N, scheduler-executor-threads) × targetFileSizeMb`.
 
 If you raise `initialExportChunkCount` beyond a few chunks per pod, bump JVM `-Xmx` proportionally (via the [`JAVA_OPTS`](../../reference/all-settings.md#java-opts) setting) or lower `targetFileSizeMb` via the destination parameter. The default Aidbox heap fits a single-cursor (`N=1`) export comfortably but is the first thing to OOM under aggressive parallelism. There's no warning at kick-off — symptom is `java.lang.OutOfMemoryError: Java heap space` mid-export.
-
-#### What to watch during init-export
-
-- **PG `pg_stat_activity`** — should show up to `N` concurrent `SELECT … WHERE abs(hashtext(id::text)) % N = K` queries, one per active chunk. They flip between `state=active` and `state=idle in transaction` as Kernel writes parquet between fetches (normal — not a bug).
-- **`$status` endpoint** — `initialExportStatus` flips to `export-in-progress` once the coordinator's first tick lands, `completed` after the final MERGE. `initialExportRowsSent` is updated on every coordinator tick.
-
-#### SQL warehouse sizing (independent axis)
-
-The Serverless SQL warehouse running the final `MERGE INTO` is separate from `initialExportChunkCount`. For very large exports, temporarily bump the warehouse to `M` or `L` while initial-export is running, then back to `2X-Small` once `initialExportStatus=completed`. Hot-path Zerobus writes don't use the warehouse.
 
 ## Monitoring
 
@@ -1051,18 +1023,6 @@ Existing rows will have `NULL` in the new column.
 {% hint style="warning" %}
 The module only ADDS columns automatically. Column drops, renames, or narrowing type changes (e.g., `BIGINT` → `INT`) are not auto-applied — you must run the corresponding `ALTER TABLE` manually.
 {% endhint %}
-
-## Ad-hoc one-shot export
-
-The same Databricks setup also backs the `$viewdefinition-export` operation — a one-shot async export of a ViewDefinition without standing up a continuous destination.
-
-{% content-ref url="../../modules/sql-on-fhir/operation-viewdefinition-export.md" %}
-[operation-viewdefinition-export.md](../../modules/sql-on-fhir/operation-viewdefinition-export.md)
-{% endcontent-ref %}
-
-## Multiple destinations
-
-You can create multiple destinations for the same topic — for example, to materialize the same source resources into different ViewDefinitions for different downstream consumers, or to mirror writes into separate managed tables (different catalogs / schemas). Each destination operates independently with its own queue, writer, and status.
 
 ## Retry behavior
 
