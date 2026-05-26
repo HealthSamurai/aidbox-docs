@@ -61,7 +61,6 @@ Unity Catalog tables come in two flavours:
 | Predictive Optimization           | Enabled by default for accounts created on or after **2024-11-11**; runs `OPTIMIZE` / `VACUUM` / `ANALYZE` automatically. Billed under the **Jobs Serverless** SKU. | **Not supported** — Predictive Optimization runs only on managed tables                          |
 | Liquid Clustering                 | Opt-in per table (automatic liquid clustering requires Predictive Optimization and is also opt-in)                                                                  | Opt-in per table                                                                                 |
 
-The "Supported write paths" row drives the module's `writeMode` values — see [Overview](#overview) for the resulting write paths.
 
 ## Overview
 
@@ -291,7 +290,9 @@ If you raise `initialExportChunkCount` beyond a few chunks per pod, bump JVM `-X
 - A SQL warehouse
 - For `managed-zerobus`: Zerobus enabled on your SKU (Databricks Free Edition supports it; for paid plans confirm with Databricks support)
 
-### Setup
+### Aidbox-side setup
+
+Five steps to get Aidbox up with the module loaded. The Databricks-side workspace setup follows in the next sub-section.
 
 {% stepper %}
 
@@ -374,6 +375,14 @@ docker compose up
 ```
 
 {% endstep %}
+
+{% endstepper %}
+
+### Databricks-side setup
+
+Ten steps to prepare your Databricks workspace — the catalog, schemas, target table, S3 staging bucket, IAM trust chain, and grants. The Service Principal you created in the Aidbox-side setup is the principal we grant throughout.
+
+{% stepper %}
 
 {% step %}
 
@@ -850,7 +859,7 @@ All requests in this tutorial use `Content-Type: application/json`.
 
 ## Usage example: configure your first export
 
-Workspace setup (SP creds, Databricks CLI auth, S3 bucket, UC catalog, schemas, target / staging tables, grants) is covered in [Setup](#setup) above — complete it before running these steps.
+Workspace setup (SP creds, Databricks CLI auth, S3 bucket, UC catalog, schemas, target / staging tables, grants) is covered in [Installation](#installation) above — complete it before running these steps.
 
 Only one environment variable is needed for the per-export commands below — the Aidbox endpoint that will receive the destination POST:
 
@@ -941,9 +950,15 @@ POST /fhir/ViewDefinition/patient_flat/$materialize
 
 {% step %}
 
-### Configure the destination (`managed-zerobus`)
+### Configure the destination
 
 The request may take **one or two minutes** — Aidbox runs schema sync against the warehouse (potentially waking it from idle) and, if `skipInitialExport` is not set, kicks off the initial bulk export before returning.
+
+Pick the `writeMode` tab matching your Databricks SKU. The bodies are identical except for the `writeMode` value:
+
+{% tabs %}
+{% tab title="managed-zerobus" %}
+Default — live per-batch writes use the Zerobus REST row-insert endpoint, so no SQL warehouse stays warm for the hot path:
 
 ```sh
 curl -u <client-name>:<client-secret> -X POST "$AIDBOX_URL/fhir/AidboxTopicDestination" \
@@ -976,6 +991,44 @@ curl -u <client-name>:<client-secret> -X POST "$AIDBOX_URL/fhir/AidboxTopicDesti
 }
 EOF
 ```
+{% endtab %}
+
+{% tab title="managed-sql" %}
+Use this when Zerobus isn't available on your Databricks SKU (older paid plans, some regions). Same managed Unity Catalog target, same staging-MERGE initial export — but live per-batch writes go through the SQL warehouse, so the warehouse stays warm and is billed continuously:
+
+```sh
+curl -u <client-name>:<client-secret> -X POST "$AIDBOX_URL/fhir/AidboxTopicDestination" \
+  -H 'Content-Type: application/json' \
+  --data-binary @- <<EOF | jq
+{
+  "resourceType": "AidboxTopicDestination",
+  "id": "patient-databricks",
+  "topic": "http://example.org/subscriptions/patient-updates",
+  "kind": "data-lakehouse-at-least-once",
+  "meta": {
+    "profile": [
+      "http://health-samurai.io/fhir/core/StructureDefinition/aidboxtopicdestination-dataLakehouseAtLeastOnceProfile"
+    ]
+  },
+  "parameter": [
+    {"name": "writeMode", "valueString": "managed-sql"},
+    {"name": "databricksWorkspaceUrl", "valueString": "${DATABRICKS_HOST}"},
+    {"name": "databricksWorkspaceId", "valueString": "${WORKSPACE_ID}"},
+    {"name": "databricksRegion", "valueString": "${DATABRICKS_REGION}"},
+    {"name": "tableName", "valueString": "${CATALOG}.${TARGET_SCHEMA}.${TARGET_TABLE}"},
+    {"name": "databricksWarehouseId", "valueString": "${WAREHOUSE_ID}"},
+    {"name": "awsRegion", "valueString": "${AWS_REGION}"},
+    {"name": "stagingTablePath", "valueString": "s3://${STAGING_BUCKET}/staging/${TARGET_TABLE}/"},
+    {"name": "viewDefinition", "valueString": "patient_flat"},
+    {"name": "batchSize", "valueUnsignedInt": 50},
+    {"name": "sendIntervalMs", "valueUnsignedInt": 5000},
+    {"name": "initialExportChunkCount", "valueUnsignedInt": 1}
+  ]
+}
+EOF
+```
+{% endtab %}
+{% endtabs %}
 
 {% hint style="warning" %}
 `stagingTablePath` must be a **sub-prefix** of the External Location you registered (here `s3://$STAGING_BUCKET/staging/`), not the root itself. Setting it equal to the External Location root or to the staging schema's `storage_root` makes Databricks refuse with `LOCATION_OVERLAP`. Use a per-destination subdirectory like `staging/patient_flat/` or `staging/<destination-id>/`.
@@ -1020,23 +1073,6 @@ DELETE /fhir/AidboxTopicDestination/patient-databricks
 ```
 
 This stops the export and cleans up the internal message queue. Data already written to Databricks is not affected.
-
-## Alternative: managed-sql configuration
-
-If Zerobus isn't available on your Databricks SKU (older paid plans, some regions), set `writeMode=managed-sql`. Same managed Unity Catalog target, same staging-MERGE initial-export, but live per-batch writes go through a Databricks SQL warehouse instead of Zerobus REST.
-
-```http
-POST /fhir/AidboxTopicDestination
-
-{
-  // ...
-  "parameter": [
-    {"name": "writeMode", "valueString": "managed-sql"},
-    // ...
-  ]
-}
-```
-
 
 ## Monitoring
 

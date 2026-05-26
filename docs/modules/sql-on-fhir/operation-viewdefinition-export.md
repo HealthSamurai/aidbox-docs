@@ -190,7 +190,7 @@ After the `MERGE` succeeds the module drops the per-chunk staging tables (Unity 
 Two consequences worth knowing:
 
 - **If you rotate `stagingTablePath` between runs** (for example, a date-stamped prefix), each prior prefix is left behind in your bucket and the auto-cleanup never fires for it. Either reuse one prefix across runs, or `aws s3 rm --recursive` the old ones yourself.
-- **The auto-cleanup uses Unity Catalog `temporary-path-credentials`**, so the principal needs `EXTERNAL_USE_LOCATION` on the External Location that covers `stagingTablePath`. Without that grant the cleanup is skipped and a `staging-s3-cleanup-skipped` event is logged; the export itself still runs. The same grant table is documented in the [Data Lakehouse tutorial setup](../../tutorials/subscriptions-tutorials/data-lakehouse-aidboxtopicdestination.md#setup).
+- **The auto-cleanup uses Unity Catalog `temporary-path-credentials`**, so the principal needs `EXTERNAL_USE_LOCATION` on the External Location that covers `stagingTablePath`. Without that grant the cleanup is skipped and a `staging-s3-cleanup-skipped` event is logged; the export itself still runs. The same grant table is documented in the [Data Lakehouse tutorial — Databricks-side setup](../../tutorials/subscriptions-tutorials/data-lakehouse-aidboxtopicdestination.md#databricks-side-setup).
 
 ## \_since (incremental export)
 
