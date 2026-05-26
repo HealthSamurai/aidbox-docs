@@ -126,7 +126,7 @@ The service principal that authenticates the module is created in step 3 of the 
 
 Account Console → Catalog → Metastores → `<your-metastore>` → toggle **External Data Access** on ([Databricks docs](https://docs.databricks.com/aws/en/external-access/admin)).
 
-Aidbox is "non-Databricks compute" from Unity Catalog's perspective. Until this toggle is on, UC refuses to vend staging-write credentials regardless of how schema / external-location grants are configured — every `temporary-table-credentials` call returns `EXTERNAL_ACCESS_DISABLED_ON_METASTORE`. Requires metastore admin.
+Aidbox is "non-Databricks compute" from Unity Catalog's perspective. Requires metastore admin.
 
 ![Databricks Catalog Explorer → metastore details → External data access toggle.](../../../assets/databricks-metastore-external-data-access.avif)
 
@@ -136,7 +136,7 @@ Aidbox is "non-Databricks compute" from Unity Catalog's perspective. Until this 
 
 #### Export the service-principal credentials
 
-The module reads Databricks OAuth M2M credentials from box settings. Create the SP in the Databricks UI (**Settings → Identity and access → Service principals → Add**, then **Secrets → Generate secret**), then:
+The module reads Databricks OAuth M2M credentials from box settings. Create the SP in the Databricks UI (**Settings → Identity and access → Service principals → Add**, then **Secrets → Generate secret**).
 
 ![Databricks workspace settings → Identity and access → Service principals.](../../../assets/databricks-service-principals.avif)
 
@@ -220,8 +220,7 @@ export TARGET_SCHEMA=fhir
 export STAGING_SCHEMA=fhir_staging
 export TARGET_TABLE=patients
 
-# Region where the Databricks workspace lives — used to compose the
-# Zerobus REST endpoint hostname.
+# Region where the Databricks workspace lives
 export DATABRICKS_REGION=us-east-1
 
 # Region of your S3 bucket. Usually the same as DATABRICKS_REGION
@@ -234,8 +233,7 @@ export AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output tex
 # Databricks' own AWS account. Hardcoded for commercial AWS regions —
 # Databricks publishes this account ID and uses it for every commercial
 # workspace. **GovCloud customers use a different ID**: see Databricks'
-# AWS GovCloud setup docs for the value to substitute here. Innovacer
-# (and other commercial-region customers) keep the value below as-is.
+# AWS GovCloud setup docs for the value to substitute here. 
 export DATABRICKS_AWS_ACCOUNT_ID=414351767826
 
 # Unity Catalog resource names created in later steps.

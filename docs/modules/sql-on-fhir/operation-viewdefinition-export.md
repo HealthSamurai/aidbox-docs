@@ -230,7 +230,13 @@ The kick-off handler returns `400 parallelism-exceeds-pool` if `chunkCount > (M 
 
 ### Differences vs `AidboxTopicDestination` initial export
 
-The continuous-destination init-export uses a **different code path** (raw `(future ...)` + PG advisory locks, not async-api) with `min(N, availableProcessors())` as the per-pod cap. `scheduler-executor-threads` doesn't apply there. See the [tutorial's Large-scale section](../../tutorials/subscriptions-tutorials/data-lakehouse-aidboxtopicdestination.md#large-scale-initial-export) for that path.
+The continuous `AidboxTopicDestination` initial-export shares this **same async-api chunking primitive** — same `db_scheduler.scheduled_tasks` fan-out, same `scheduler-executor-threads` per-pod cap, same per-chunk staging Delta + final MERGE finalize. The differences are at the **edges**, not in the chunking model:
+
+- **Kick-off shape** — this operation is HTTP-driven (`POST /fhir/ViewDefinition/<name>/$viewdefinition-export`); the topic-destination init-export fires automatically when an `AidboxTopicDestination` is created with `skipInitialExport=false`.
+- **Status surface** — this operation reports via [`/Operation/<id>/$status`](#status-polling); the topic-destination flow denormalises its progress onto the destination resource's `initial-export-status` / `initial-export-rows-sent` extensions, readable via `GET /fhir/AidboxTopicDestination/<id>/$status`.
+- **Sender-restart sweep** — the topic-destination flow has a boot-time sweep that flips destinations whose `initial-export-status='export-in-progress'` extension has no live db-scheduler row to `failed`, recovering from pod crashes mid-export. This operation has no equivalent because it has no continuous lifecycle to resume.
+
+For topic-destination-specific operational notes (capacity-planning table per cluster shape, what `initialExportChunkCount` does and does NOT control), see [Large-scale initial export](../../tutorials/subscriptions-tutorials/data-lakehouse-aidboxtopicdestination.md#large-scale-initial-export) in the tutorial.
 
 ## Cloud support
 
