@@ -113,15 +113,24 @@ The service principal and the grants it needs are set up in the [Usage example](
 - A SQL warehouse
 - For `managed-zerobus`: Zerobus enabled on your SKU (Databricks Free Edition supports it; for paid plans confirm with Databricks support)
 - For initial-export: an **S3 bucket** you control (AWS S3 only — see [Initial export](#initial-export)).
-- **Metastore External Data Access enabled** — Account Console → Catalog → Metastores → `<your-metastore>` → toggle **External Data Access** on ([Databricks docs](https://docs.databricks.com/aws/en/external-access/admin)). Aidbox is "non-Databricks compute" from UC's perspective and won't be able to vend staging-write credentials until this is on, regardless of how grants are configured. Requires metastore admin.
-
-![Databricks Catalog Explorer → metastore details → External data access toggle.](../../../assets/databricks-metastore-external-data-access.avif)
 
 The service principal that authenticates the module is created in step 3 of the usage example — you don't need it before you start.
 
 ### Setup
 
 {% stepper %}
+
+{% step %}
+
+#### Enable metastore External Data Access
+
+Account Console → Catalog → Metastores → `<your-metastore>` → toggle **External Data Access** on ([Databricks docs](https://docs.databricks.com/aws/en/external-access/admin)).
+
+Aidbox is "non-Databricks compute" from Unity Catalog's perspective. Until this toggle is on, UC refuses to vend staging-write credentials regardless of how schema / external-location grants are configured — every `temporary-table-credentials` call returns `EXTERNAL_ACCESS_DISABLED_ON_METASTORE`. Requires metastore admin.
+
+![Databricks Catalog Explorer → metastore details → External data access toggle.](../../../assets/databricks-metastore-external-data-access.avif)
+
+{% endstep %}
 
 {% step %}
 
@@ -1053,7 +1062,7 @@ You can create multiple destinations for the same topic — for example, to mate
 ### Common issues
 
 1. **`Privilege EXTERNAL USE SCHEMA is not applicable to this entity`** — you're trying to grant `EXTERNAL USE SCHEMA` on a managed schema. The staging schema (`<target-schema>_staging`) must be external — create it with an explicit `storage_root` pointed at your staging External Location.
-2. **`Databricks denied access at POST /temporary-table-credentials [PERMISSION_DENIED]: External Data Access from non Databricks Compute environment is disabled for metastore …`** (`EXTERNAL_ACCESS_DISABLED_ON_METASTORE`) — metastore-level toggle is off. Account Console → Catalog → Metastores → `<your-metastore>` → enable **External Data Access**. Requires metastore admin. See [Prerequisites](#prerequisites).
+2. **`Databricks denied access at POST /temporary-table-credentials [PERMISSION_DENIED]: External Data Access from non Databricks Compute environment is disabled for metastore …`** (`EXTERNAL_ACCESS_DISABLED_ON_METASTORE`) — metastore-level toggle is off. See [Setup step 1](#enable-metastore-external-data-access).
 3. **`Databricks denied access at POST /temporary-table-credentials: principal lacks privileges (need EXTERNAL USE SCHEMA …)`** (no `error_code` shown in message) — the grant looked successful but didn't actually apply because the staging schema is managed, not external. Recreate the staging schema via `databricks schemas create … --storage-root s3://…` and re-grant.
 4. **`INSUFFICIENT_PRIVILEGES` on table or warehouse** — verify all grants in [Grant the service principal](#grant-the-service-principal). Don't forget `CAN_USE` on the warehouse.
 5. **`DELTA_INSERT_COLUMN_ARITY_MISMATCH`** — the module should auto-heal this once. If it persists, check that the schema diff is column-add only (drops / renames are not auto-applied).
