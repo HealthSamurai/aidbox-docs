@@ -179,6 +179,15 @@ With `chunkCount = N` (default `N=1`), for each chunk the module creates a per-c
 The `MERGE` is idempotent on `id` — a retried export after a lost response inserts nothing instead of duplicating. Your ViewDefinition must select an `id` column.
 {% endhint %}
 
+### Staging cleanup on S3
+
+After the `MERGE` succeeds the module drops the per-chunk staging tables (Unity Catalog metadata) but does **not** delete the underlying Parquet and `_delta_log/` files on S3. They are recursive-deleted at the **start** of the next call that reuses the same `stagingTablePath`, before the new staging tables are created.
+
+Two consequences worth knowing:
+
+- **If you rotate `stagingTablePath` between runs** (for example, a date-stamped prefix), each prior prefix is left behind in your bucket and the auto-cleanup never fires for it. Either reuse one prefix across runs, or `aws s3 rm --recursive` the old ones yourself.
+- **The auto-cleanup uses Unity Catalog `temporary-path-credentials`**, so the principal needs `EXTERNAL_USE_LOCATION` on the External Location that covers `stagingTablePath`. Without that grant the cleanup is skipped and a `staging-s3-cleanup-skipped` event is logged; the export itself still runs. The same grant table is documented in the [Data Lakehouse tutorial setup](../../tutorials/subscriptions-tutorials/data-lakehouse-aidboxtopicdestination.md#setup).
+
 ## _since (incremental export)
 
 `_since` turns the export into an incremental one: instead of materializing the entire view, the source query is filtered by the view's timestamp column.
