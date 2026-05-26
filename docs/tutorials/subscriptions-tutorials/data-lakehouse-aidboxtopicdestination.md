@@ -109,12 +109,9 @@ The service principal and the grants it needs are set up in the [Usage example](
 - A Databricks workspace (Free Edition works for evaluation, paid for production)
 - The [Databricks CLI](https://docs.databricks.com/aws/en/dev-tools/cli/install) installed and authenticated locally — every Databricks-side operation in the tutorial uses it
 - An AWS account + **AWS CLI** authenticated locally with permission to create S3 buckets and IAM roles — initial-export staging lives in an S3 bucket you own, and the IAM trust policy patch needs `iam:UpdateAssumeRolePolicy`
-- [`jq`](https://jqlang.org/) on `PATH` — several steps parse JSON responses inline
+- [`jq`](https://jqlang.org/)
 - A SQL warehouse
 - For `managed-zerobus`: Zerobus enabled on your SKU (Databricks Free Edition supports it; for paid plans confirm with Databricks support)
-- For initial-export: an **S3 bucket** you control (AWS S3 only — see [Initial export](#initial-export)).
-
-The service principal that authenticates the module is created in step 3 of the usage example — you don't need it before you start.
 
 ### Setup
 
