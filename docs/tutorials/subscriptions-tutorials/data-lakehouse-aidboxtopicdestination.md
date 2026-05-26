@@ -137,9 +137,13 @@ The module reads Databricks OAuth M2M credentials from box settings. Create the 
 
 ![Databricks workspace settings → Identity and access → Service principals.](../../../assets/databricks-service-principals.avif)
 
+Save the SP's client ID into a box settings env var:
+
 ```sh
 export BOX_DATABRICKS_DATA_LAKEHOUSE_CLIENT_ID=<sp-client-id>
 ```
+
+And the client secret:
 
 ```sh
 export BOX_DATABRICKS_DATA_LAKEHOUSE_CLIENT_SECRET=<sp-client-secret>
@@ -151,6 +155,8 @@ export BOX_DATABRICKS_DATA_LAKEHOUSE_CLIENT_SECRET=<sp-client-secret>
 
 #### Download the module JAR
 
+Download the published JAR to your project directory:
+
 ```sh
 curl -O https://storage.googleapis.com/aidbox-modules/topic-destination-deltalake/databricks-module-2605.0.jar
 ```
@@ -160,6 +166,8 @@ curl -O https://storage.googleapis.com/aidbox-modules/topic-destination-deltalak
 {% step %}
 
 #### Wire the module into docker-compose.yaml
+
+Mount the JAR and point Aidbox at it via env vars:
 
 ```yaml
 aidbox:
@@ -180,6 +188,8 @@ aidbox:
 {% step %}
 
 #### Start Aidbox
+
+Start the stack:
 
 ```sh
 docker compose up
@@ -277,6 +287,8 @@ databricks warehouses update-permissions "$WAREHOUSE_ID" --json '{
 
 Use the same region as your Databricks workspace. The same bucket holds both the managed target's storage root and the initial-export staging area, under separate prefixes.
 
+Create the bucket:
+
 ```sh
 aws s3api create-bucket --bucket "$STAGING_BUCKET" --region "$AWS_REGION"
 ```
@@ -288,6 +300,8 @@ aws s3api create-bucket --bucket "$STAGING_BUCKET" --region "$AWS_REGION"
 #### Create the IAM role Databricks will assume
 
 `PLACEHOLDER` is patched in by the Storage Credential step below.
+
+Create the role with a temporary trust policy (the `PLACEHOLDER` external-id is replaced once Unity Catalog gives us a real one):
 
 ```sh
 aws iam create-role --role-name "$IAM_ROLE_NAME" \
@@ -305,6 +319,8 @@ EOF
 )"
 ```
 
+Attach the S3 access policy so the role can read/write the staging bucket:
+
 ```sh
 aws iam put-role-policy --role-name "$IAM_ROLE_NAME" --policy-name s3-access \
   --policy-document "$(cat <<EOF
@@ -320,6 +336,8 @@ EOF
 )"
 ```
 
+Capture the role ARN — Unity Catalog references it when we register the Storage Credential:
+
 ```sh
 export STAGING_ROLE_ARN=$(aws iam get-role --role-name "$IAM_ROLE_NAME" \
   --query 'Role.Arn' --output text)
@@ -331,16 +349,22 @@ export STAGING_ROLE_ARN=$(aws iam get-role --role-name "$IAM_ROLE_NAME" \
 
 #### Register the Storage Credential in Unity Catalog
 
+Register the Storage Credential pointing at the IAM role:
+
 ```sh
 databricks storage-credentials create \
   --json '{"name":"'"$STORAGE_CRED_NAME"'","aws_iam_role":{"role_arn":"'"$STAGING_ROLE_ARN"'"}}' \
   --skip-validation
 ```
 
+Read back the external-id Unity Catalog generated for the IAM trust relationship:
+
 ```sh
 export EXTERNAL_ID=$(databricks storage-credentials get "$STORAGE_CRED_NAME" \
   | jq -r '.aws_iam_role.external_id')
 ```
+
+Patch the IAM role's trust policy with the real external-id (replacing `PLACEHOLDER`):
 
 ```sh
 aws iam update-assume-role-policy --role-name "$IAM_ROLE_NAME" \
@@ -360,6 +384,8 @@ aws iam update-assume-role-policy --role-name "$IAM_ROLE_NAME" \
 EOF
 )"
 ```
+
+Validate Databricks can actually assume the role end-to-end (10s wait lets the IAM update propagate):
 
 ```sh
 sleep 10 \
@@ -393,6 +419,8 @@ The catalog's `--storage-root` must sit inside the External Location you just re
 databricks catalogs create "$CATALOG" \
   --storage-root "s3://$STAGING_BUCKET/managed/"
 ```
+
+Create the target schema inside the new catalog:
 
 ```sh
 databricks api post /api/2.0/sql/statements --json "$(jq -n \
@@ -459,15 +487,21 @@ Grant only the set matching your `writeMode`. The SP runs the module at request 
 | `EXTERNAL_USE_LOCATION` | the External Location | vend path-credentials for Phase 0 staging cleanup (recursive-deletes orphan Parquet/`_delta_log` left from prior runs before the next `CREATE TABLE` — without this grant cleanup is skipped and files accumulate, but init-export still works) |
 | `CAN_USE` | the SQL warehouse | bootstrap schema-sync statements + initial-bulk `MERGE` (no warehouse traffic during live writes) — already granted in the SP/warehouse step |
 
+Catalog-level navigate grant:
+
 ```sh
 databricks grants update catalog "$CATALOG" --json '{
   "changes":[{"principal":"'"$BOX_DATABRICKS_DATA_LAKEHOUSE_CLIENT_ID"'","add":["USE_CATALOG"]}]}'
 ```
 
+Target-schema resolve grant:
+
 ```sh
 databricks grants update schema "$CATALOG.$TARGET_SCHEMA" --json '{
   "changes":[{"principal":"'"$BOX_DATABRICKS_DATA_LAKEHOUSE_CLIENT_ID"'","add":["USE_SCHEMA"]}]}'
 ```
+
+Target-table read + merge grants:
 
 ```sh
 databricks grants update table "$CATALOG.$TARGET_SCHEMA.$TARGET_TABLE" --json '{
@@ -476,10 +510,14 @@ databricks grants update table "$CATALOG.$TARGET_SCHEMA.$TARGET_TABLE" --json '{
 
 Initial-export only — staging schema + external location grants:
 
+Staging-schema grants (STS vending + table create) — initial-export only:
+
 ```sh
 databricks grants update schema "$CATALOG.$STAGING_SCHEMA" --json '{
   "changes":[{"principal":"'"$BOX_DATABRICKS_DATA_LAKEHOUSE_CLIENT_ID"'","add":["EXTERNAL_USE_SCHEMA","USE_SCHEMA","CREATE_TABLE"]}]}'
 ```
+
+External-location grants (Parquet writes + path-credentials cleanup) — initial-export only:
 
 ```sh
 databricks grants update external-location "$EXTERNAL_LOCATION_NAME" --json '{
@@ -501,15 +539,21 @@ Identical privilege set to `managed-zerobus` — the SQL warehouse is hit on eve
 | `EXTERNAL_USE_LOCATION`                              | the External Location | vend path-credentials for Phase 0 staging cleanup (recursive-deletes orphan Parquet/`_delta_log` left from prior runs before the next `CREATE TABLE` — without this grant cleanup is skipped and files accumulate, but init-export still works) |
 | `CAN_USE`                                            | the SQL warehouse     | every-batch INSERT + bootstrap + initial-bulk — already granted in the SP/warehouse step                                                                                                                                                        |
 
+Catalog-level navigate grant:
+
 ```sh
 databricks grants update catalog "$CATALOG" --json '{
   "changes":[{"principal":"'"$BOX_DATABRICKS_DATA_LAKEHOUSE_CLIENT_ID"'","add":["USE_CATALOG"]}]}'
 ```
 
+Target-schema resolve grant:
+
 ```sh
 databricks grants update schema "$CATALOG.$TARGET_SCHEMA" --json '{
   "changes":[{"principal":"'"$BOX_DATABRICKS_DATA_LAKEHOUSE_CLIENT_ID"'","add":["USE_SCHEMA"]}]}'
 ```
+
+Target-table read + merge grants:
 
 ```sh
 databricks grants update table "$CATALOG.$TARGET_SCHEMA.$TARGET_TABLE" --json '{
@@ -518,10 +562,14 @@ databricks grants update table "$CATALOG.$TARGET_SCHEMA.$TARGET_TABLE" --json '{
 
 Initial-export only — staging schema + external location grants:
 
+Staging-schema grants (STS vending + table create) — initial-export only:
+
 ```sh
 databricks grants update schema "$CATALOG.$STAGING_SCHEMA" --json '{
   "changes":[{"principal":"'"$BOX_DATABRICKS_DATA_LAKEHOUSE_CLIENT_ID"'","add":["EXTERNAL_USE_SCHEMA","USE_SCHEMA","CREATE_TABLE"]}]}'
 ```
+
+External-location grants (Parquet writes + path-credentials cleanup) — initial-export only:
 
 ```sh
 databricks grants update external-location "$EXTERNAL_LOCATION_NAME" --json '{

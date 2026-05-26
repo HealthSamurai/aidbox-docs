@@ -179,7 +179,7 @@ With `chunkCount = N` (default `N=1`), for each chunk the module creates a per-c
 The `MERGE` is idempotent on `id` — a retried export after a lost response inserts nothing instead of duplicating. Your ViewDefinition must select an `id` column.
 {% endhint %}
 
-## `_since` (incremental export)
+## _since (incremental export)
 
 `_since` turns the export into an incremental one: instead of materializing the entire view, the source query is filtered by the view's timestamp column.
 
@@ -230,13 +230,15 @@ The kick-off handler returns `400 parallelism-exceeds-pool` if `chunkCount > (M 
 
 ### Differences vs `AidboxTopicDestination` initial export
 
-The continuous `AidboxTopicDestination` initial-export shares this **same async-api chunking primitive** — same `db_scheduler.scheduled_tasks` fan-out, same `scheduler-executor-threads` per-pod cap, same per-chunk staging Delta + final MERGE finalize. The differences are at the **edges**, not in the chunking model:
+Both flows produce the same kind of output — flattened FHIR rows merged into a managed Delta table — and parallelism is sized the same way. They differ in **how you start them** and **where you read progress from**:
 
-- **Kick-off shape** — this operation is HTTP-driven (`POST /fhir/ViewDefinition/<name>/$viewdefinition-export`); the topic-destination init-export fires automatically when an `AidboxTopicDestination` is created with `skipInitialExport=false`.
-- **Status surface** — this operation reports via [`/Operation/<id>/$status`](#status-polling); the topic-destination flow denormalises its progress onto the destination resource's `initial-export-status` / `initial-export-rows-sent` extensions, readable via `GET /fhir/AidboxTopicDestination/<id>/$status`.
-- **Sender-restart sweep** — the topic-destination flow has a boot-time sweep that flips destinations whose `initial-export-status='export-in-progress'` extension has no live db-scheduler row to `failed`, recovering from pod crashes mid-export. This operation has no equivalent because it has no continuous lifecycle to resume.
+|                  | `$viewdefinition-export`                                            | `AidboxTopicDestination` initial export                                                               |
+| ---------------- | ------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------- |
+| When it runs     | On demand — when you `POST` this operation                          | Automatically, once, when you create a destination with `skipInitialExport=false`                     |
+| Progress polling | `GET /fhir/ViewDefinition/$viewdefinition-export/status/<export-id>` | `GET /fhir/AidboxTopicDestination/<id>/$status`                                                       |
+| After completion | The operation is done. No follow-up writes.                         | The destination keeps streaming live FHIR changes into the same target table.                        |
 
-For topic-destination-specific operational notes (capacity-planning table per cluster shape, what `initialExportChunkCount` does and does NOT control), see [Large-scale initial export](../../tutorials/subscriptions-tutorials/data-lakehouse-aidboxtopicdestination.md#large-scale-initial-export) in the tutorial.
+Use this operation for one-shot snapshots and backfills. Use the destination flow when you want the same initial fill **plus** continuous replication afterwards. For tutorial-specific operational notes on the destination flow, see [Large-scale initial export](../../tutorials/subscriptions-tutorials/data-lakehouse-aidboxtopicdestination.md#large-scale-initial-export).
 
 ## Cloud support
 
