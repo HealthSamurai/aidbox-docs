@@ -99,7 +99,185 @@ The bearer is sent on every Databricks call. What differs between modes is which
 | `managed-zerobus` (default) | only during initial-export (staging vending) | bootstrap + initial-export only               | Zerobus REST (every batch) | Zerobus ingest service, Databricks-side |
 | `managed-sql`               | only during initial-export (staging vending) | every batch (`INSERT` / `ALTER` / `DESCRIBE`) | —                          | SQL warehouse compute                   |
 
-The service principal and the grants it needs are set up in the [Usage example](#usage-example-patient-data-export) below.
+The service principal and the grants it needs are set up in [Installation](#installation) and exercised in the [Usage example](#usage-example-configure-your-first-export) below.
+
+## Output semantics
+
+How writes show up in your Delta table, and how to query the result.
+
+### Append-only
+
+Every change to a FHIR resource is written as a **new row** — there are no in-place UPDATEs or DELETEs:
+
+- **Create** → new row with `is_deleted = 0`
+- **Update** → new row with `is_deleted = 0` (old row remains)
+- **Delete** → new row with `is_deleted = 1`
+
+Example — a single patient created, updated twice, then deleted produces four rows with the same `id`:
+
+| `id`  | `ts` (`meta.lastUpdated`) | `gender` | `family_name` | `is_deleted` |
+| ----- | ------------------------- | -------- | ------------- | ------------ |
+| `p-1` | `2026-04-01T10:00:00Z`    | `male`   | `Smith`       | `0`          |
+| `p-1` | `2026-04-02T08:00:00Z`    | `male`   | `Smith-Jones` | `0`          |
+| `p-1` | `2026-04-03T14:00:00Z`    | `other`  | `Smith-Jones` | `0`          |
+| `p-1` | `2026-04-04T09:00:00Z`    | `other`  | `Smith-Jones` | `1`          |
+
+Use [the read-time projection below](#querying-the-table) to collapse history to "latest row per id, excluding deleted".
+
+### At-least-once delivery
+
+Messages are persisted in a PostgreSQL queue and retried on failure. Both write modes have the same crash-between-commit-and-ack semantics:
+
+- Initial export is **idempotent** for both: rows are staged in an external Delta, then `MERGE INTO target USING staging ON t.id = s.id WHEN NOT MATCHED THEN INSERT *`. A replay finds the existing rows in the target and inserts zero new ones.
+- Live writes are **at-least-once** for both: the Zerobus REST endpoint has no offset / transaction id; the SQL `INSERT` path has the same constraint. Use the read-time dedup pattern below to collapse duplicates.
+
+### Querying the table
+
+Because every change is written as a new row (and `managed-*` modes can deliver duplicates on crash-replay), querying the table directly returns full history plus possible dupes. Most analytics workloads (cohort builds, longitudinal queries, time-windowed aggregates) want exactly this — full event history is the point.
+
+If your query needs "latest state per resource", one common SQL pattern is window-function dedup. Add a timestamp column to your ViewDefinition (e.g. `meta.lastUpdated` as `ts`) and:
+
+```sql
+SELECT * EXCEPT(rn) FROM (
+  SELECT *, ROW_NUMBER() OVER (PARTITION BY id ORDER BY ts DESC) AS rn
+  FROM aidbox_export.fhir.patients
+)
+WHERE rn = 1 AND is_deleted = 0;
+```
+
+This is one example, not the only approach — wrap it in a Databricks SQL view if used frequently, or skip it entirely if your queries already aggregate over history.
+
+## Data transformation
+
+The module automatically:
+
+1. **Applies ViewDefinition**: Transforms each FHIR resource using the specified ViewDefinition SQL
+2. **Adds deletion flag**: Sets `is_deleted = 0` for create/update, `is_deleted = 1` for delete operations
+3. **Batches messages**: Groups messages according to `batchSize` and `sendIntervalMs` parameters
+4. **Coerces types per write path**:
+   - `managed-sql` — Java SQL dates / timestamps are converted to ISO-8601 strings; the SQL warehouse parses them into `DATE` / `TIMESTAMP` columns.
+   - `managed-zerobus` — dates are encoded as `int32` epoch-days, timestamps as `int64` epoch-microseconds, as required by the Zerobus REST wire format. ISO strings would be rejected with a `400` from the endpoint.
+
+See [Output semantics](#output-semantics) for append-only behaviour, at-least-once delivery, and the recommended read-time dedup query.
+
+## Schema evolution
+
+The module maps FHIR / ViewDefinition types to Databricks SQL types as follows:
+
+| FHIR / ViewDefinition type | Databricks SQL type |
+| -------------------------- | ------------------- |
+| `id`, `string`, `code`     | `STRING`            |
+| `date`                     | `DATE`              |
+| `dateTime`, `instant`      | `TIMESTAMP`         |
+| `integer`, `positiveInt`   | `INT`               |
+| `decimal`                  | `DOUBLE`            |
+| `boolean`                  | `BOOLEAN`           |
+
+Both `managed-zerobus` and `managed-sql` auto-`ALTER TABLE ADD COLUMNS` when the ViewDefinition has new columns. Triggered at sender start and on per-batch schema-mismatch (retried once).
+
+To add a column:
+
+1. Add the column to your ViewDefinition.
+2. Re-materialize: `POST /fhir/ViewDefinition/{id}/$materialize`.
+3. Either delete and recreate the destination, OR wait for the next write — auto-heal will catch it on the first batch.
+
+Existing rows will have `NULL` in the new column.
+
+{% hint style="warning" %}
+The module only ADDS columns automatically. Column drops, renames, or narrowing type changes (e.g., `BIGINT` → `INT`) are not auto-applied — you must run the corresponding `ALTER TABLE` manually.
+{% endhint %}
+
+## Initial export
+
+{% hint style="warning" %}
+**Cloud support: AWS S3 only (today)** for the initial-export staging bucket (`s3://...` / `s3a://...`). GCS and Azure ADLS Gen2 are not supported for the staging path.
+{% endhint %}
+
+{% hint style="info" %}
+The same flow described below is also exposed standalone as a FHIR operation: [`$viewdefinition-export`](../../modules/sql-on-fhir/operation-viewdefinition-export.md). Use that operation when you want a one-shot snapshot of a ViewDefinition without standing up a continuous `AidboxTopicDestination`. {% endhint %}
+
+When a new destination is created with `skipInitialExport` not set to `true`, the module exports the **current state** of every row in `sof.<view>` — one row per resource the ViewDefinition matches.
+
+- **Updates after destination creation** append a new row each (`POST` / `PUT` / `DELETE`), accumulating a full audit trail.
+- **Pre-existing history is not exported.** Initial export reads each resource's current row from `sof.<view>`, not Aidbox's `_history` table. Run a one-off ETL from `_history` before destination creation if you need older versions.
+
+To skip the initial export (e.g., the table is already populated or you only need forward-going data), add `skipInitialExport` to the destination's `parameter` array:
+
+```json
+{ "name": "skipInitialExport", "valueBoolean": true }
+```
+
+### How it works
+
+![Bulk initial-export flow: Aidbox writes per-chunk Delta stagings on S3, then issues one MERGE INTO target via the Databricks SQL warehouse, then drops the stagings.](../../../assets/aidbox-databricks-bulk.svg)
+
+The same code path powers both the destination's initial export and the standalone [`$viewdefinition-export` operation](../../modules/sql-on-fhir/operation-viewdefinition-export.md#how-it-works-kind-data-lakehouse) — see the operation page for the step-by-step.
+
+### Timing & monitoring
+
+The kick-off and the export are **decoupled** — `POST /fhir/AidboxTopicDestination` does not hold the HTTP connection open while billions of rows stream into Databricks.
+
+| Phase             | Where it runs            | Approx. duration                           |
+| ----------------- | ------------------------ | ------------------------------------------ |
+| Bootstrap         | sync, inside the POST    | 1-2 min on a cold warehouse, <1s when warm |
+| Initial export    | async, in the background | seconds to hours                           |
+| Continuous worker | async, runs forever      | —                                          |
+
+`POST /fhir/AidboxTopicDestination` returns `201 Created` after bootstrap (1-2 minutes worst-case), not after initial-export. There's no HTTP timeout regardless of dataset size.
+
+Poll progress via the destination's `$status` endpoint:
+
+```sh
+curl -u <client-name>:<client-secret> "$AIDBOX_URL/fhir/AidboxTopicDestination/patient-databricks/\$status" | jq
+```
+
+Relevant fields during initial export:
+
+- `initialExportStatus` — `not_started` / `export-in-progress` / `completed` / `skipped` / `failed`.
+- `initialExportProgress_rowsSent` — running row count (updated every 10k rows).
+- `initialExportError` — error message when `initialExportStatus=failed`.
+
+On failure the module retries up to 3 times with exponential backoff (1s → 2s → 4s). The `MERGE INTO ... ON t.id = s.id WHEN NOT MATCHED THEN INSERT *` is idempotent on `id`, so a retry after a lost ack inserts zero new rows.
+
+The continuous worker starts polling the PG queue **immediately after destination creation**, in parallel with initial export — initial-export and live writes are not serialized. The MERGE keying on `id` means a continuous-stream row inserted before initial-export catches up just gets skipped by the eventual MERGE pass (idempotent).
+
+### Large-scale initial export
+
+The `initialExportChunkCount` parameter (default `1`) fans the staging write across `N` hash-partitioned chunks that run on **async-api** — the same chunking primitive as [`$viewdefinition-export`](../../modules/sql-on-fhir/operation-viewdefinition-export.md). Chunks distribute across every Aidbox pod sharing the metastore; a final `MERGE INTO target` materialises the result and drops the stagings. Pod-failure recovery, the per-pod concurrency cap (`scheduler-executor-threads`), and the cluster-wide concurrency formula are all covered in [Large-scale and multi-pod execution](../../modules/sql-on-fhir/operation-viewdefinition-export.md#large-scale-and-multi-pod-execution) — read that first.
+
+The notes below are topic-destination-specific: what `N` does NOT touch, a quick capacity-planning table, and the JVM-heap interaction with `targetFileSizeMb`.
+
+#### What `N` does **not** control
+
+- **Hot-path live writes** — every destination has one sender thread that drains the PG queue and pushes batches via Zerobus/SQL. This thread is unrelated to `N` and unaffected by initial-export. Live writes continue throughout init-export in parallel.
+- **`$viewdefinition-export` runs** — that operation has its own `chunkCount` parameter, sized against the same async-api executor pool. Bumping `initialExportChunkCount` doesn't change `$viewdefinition-export` throughput and vice versa.
+
+#### Capacity planning
+
+Concrete starting points per cluster shape — see [Capacity caps](../../modules/sql-on-fhir/operation-viewdefinition-export.md#capacity-caps) for the formal `min(chunkCount, Σ scheduler-executor-threads, (max_connections − base) / 2)` formula:
+
+| Cluster shape | Suggested `N` | Notes                                    |
+| ------------- | ------------- | ---------------------------------------- |
+| 1 pod         | `1` (default) | Single-cursor sequential.                |
+| 1 pod         | `4`           | ~3-4× speedup vs single-cursor.          |
+| 1 pod         | `8`           | Watch PG read capacity.                  |
+| 2-4 pods (HA) | `16`          | Survives a pod restart mid-export.       |
+| 4+ pods       | `32`          | Cap by your PG `max_connections` budget. |
+
+Raise [`scheduler-executor-threads`](../../reference/all-settings.md#scheduler-executor-threads) (default `10`) in step with `N` if you want a single pod to run more than ~10 chunks in parallel — otherwise the surplus chunks just queue.
+
+#### JVM heap
+
+Each chunk worker holds a Kernel Parquet buffer in memory until it reaches `targetFileSizeMb` (default 128 MiB) and flushes a file. With `N` chunks running concurrently per pod, peak heap from staging buffers alone is ≈ `min(N, scheduler-executor-threads) × targetFileSizeMb`.
+
+If you raise `initialExportChunkCount` beyond a few chunks per pod, bump JVM `-Xmx` proportionally (via the [`JAVA_OPTS`](../../reference/all-settings.md#java-opts) setting) or lower `targetFileSizeMb` via the destination parameter. The default Aidbox heap fits a single-cursor (`N=1`) export comfortably but is the first thing to OOM under aggressive parallelism. There's no warning at kick-off — symptom is `java.lang.OutOfMemoryError: Java heap space` mid-export.
+
+## Retry behavior
+
+- **Failed batch** — message stays in the PostgreSQL queue and retries on the next `sendIntervalMs` tick. 1-second backoff between failed attempts.
+- **OAuth bearer token** — cached; auto-refreshed via `/oidc/v1/token` when the current one has under 5 minutes remaining.
+- **Worker thread crash** — auto-restarts with exponential backoff (1s initial, 60s max). The queue ensures no messages are lost.
+- **Initial export failure** — retries up to 3 times with `1s → 2s → 4s` backoff. After 3 failures, `initialExportStatus = failed`, error available via `$status`, live delivery continues unaffected, and recreating the destination kicks off a fresh attempt.
 
 ## Installation
 
@@ -670,52 +848,6 @@ All requests in this tutorial use `Content-Type: application/json`.
 
 {% endtabs %}
 
-## Output semantics
-
-How writes show up in your Delta table, and how to query the result.
-
-### Append-only
-
-Every change to a FHIR resource is written as a **new row** — there are no in-place UPDATEs or DELETEs:
-
-- **Create** → new row with `is_deleted = 0`
-- **Update** → new row with `is_deleted = 0` (old row remains)
-- **Delete** → new row with `is_deleted = 1`
-
-Example — a single patient created, updated twice, then deleted produces four rows with the same `id`:
-
-| `id`  | `ts` (`meta.lastUpdated`) | `gender` | `family_name` | `is_deleted` |
-| ----- | ------------------------- | -------- | ------------- | ------------ |
-| `p-1` | `2026-04-01T10:00:00Z`    | `male`   | `Smith`       | `0`          |
-| `p-1` | `2026-04-02T08:00:00Z`    | `male`   | `Smith-Jones` | `0`          |
-| `p-1` | `2026-04-03T14:00:00Z`    | `other`  | `Smith-Jones` | `0`          |
-| `p-1` | `2026-04-04T09:00:00Z`    | `other`  | `Smith-Jones` | `1`          |
-
-Use [the read-time projection below](#querying-the-table) to collapse history to "latest row per id, excluding deleted".
-
-### At-least-once delivery
-
-Messages are persisted in a PostgreSQL queue and retried on failure. Both write modes have the same crash-between-commit-and-ack semantics:
-
-- Initial export is **idempotent** for both: rows are staged in an external Delta, then `MERGE INTO target USING staging ON t.id = s.id WHEN NOT MATCHED THEN INSERT *`. A replay finds the existing rows in the target and inserts zero new ones.
-- Live writes are **at-least-once** for both: the Zerobus REST endpoint has no offset / transaction id; the SQL `INSERT` path has the same constraint. Use the read-time dedup pattern below to collapse duplicates.
-
-### Querying the table
-
-Because every change is written as a new row (and `managed-*` modes can deliver duplicates on crash-replay), querying the table directly returns full history plus possible dupes. Most analytics workloads (cohort builds, longitudinal queries, time-windowed aggregates) want exactly this — full event history is the point.
-
-If your query needs "latest state per resource", one common SQL pattern is window-function dedup. Add a timestamp column to your ViewDefinition (e.g. `meta.lastUpdated` as `ts`) and:
-
-```sql
-SELECT * EXCEPT(rn) FROM (
-  SELECT *, ROW_NUMBER() OVER (PARTITION BY id ORDER BY ts DESC) AS rn
-  FROM aidbox_export.fhir.patients
-)
-WHERE rn = 1 AND is_deleted = 0;
-```
-
-This is one example, not the only approach — wrap it in a Databricks SQL view if used frequently, or skip it entirely if your queries already aggregate over history.
-
 ## Usage example: configure your first export
 
 Workspace setup (SP creds, Databricks CLI auth, S3 bucket, UC catalog, schemas, target / staging tables, grants) is covered in [Setup](#setup) above — complete it before running these steps.
@@ -906,91 +1038,6 @@ POST /fhir/AidboxTopicDestination
 ```
 
 
-## Initial export
-
-{% hint style="warning" %}
-**Cloud support: AWS S3 only (today)** for the initial-export staging bucket (`s3://...` / `s3a://...`). GCS and Azure ADLS Gen2 are not supported for the staging path.
-{% endhint %}
-
-{% hint style="info" %}
-The same flow described below is also exposed standalone as a FHIR operation: [`$viewdefinition-export`](../../modules/sql-on-fhir/operation-viewdefinition-export.md). Use that operation when you want a one-shot snapshot of a ViewDefinition without standing up a continuous `AidboxTopicDestination`. {% endhint %}
-
-When a new destination is created with `skipInitialExport` not set to `true`, the module exports the **current state** of every row in `sof.<view>` — one row per resource the ViewDefinition matches.
-
-- **Updates after destination creation** append a new row each (`POST` / `PUT` / `DELETE`), accumulating a full audit trail.
-- **Pre-existing history is not exported.** Initial export reads each resource's current row from `sof.<view>`, not Aidbox's `_history` table. Run a one-off ETL from `_history` before destination creation if you need older versions.
-
-To skip the initial export (e.g., the table is already populated or you only need forward-going data), add `skipInitialExport` to the destination's `parameter` array:
-
-```json
-{ "name": "skipInitialExport", "valueBoolean": true }
-```
-
-### How it works
-
-![Bulk initial-export flow: Aidbox writes per-chunk Delta stagings on S3, then issues one MERGE INTO target via the Databricks SQL warehouse, then drops the stagings.](../../../assets/aidbox-databricks-bulk.svg)
-
-The same code path powers both the destination's initial export and the standalone [`$viewdefinition-export` operation](../../modules/sql-on-fhir/operation-viewdefinition-export.md#how-it-works-kind-data-lakehouse) — see the operation page for the step-by-step.
-
-### Timing & monitoring
-
-The kick-off and the export are **decoupled** — `POST /fhir/AidboxTopicDestination` does not hold the HTTP connection open while billions of rows stream into Databricks.
-
-| Phase             | Where it runs            | Approx. duration                           |
-| ----------------- | ------------------------ | ------------------------------------------ |
-| Bootstrap         | sync, inside the POST    | 1-2 min on a cold warehouse, <1s when warm |
-| Initial export    | async, in the background | seconds to hours                           |
-| Continuous worker | async, runs forever      | —                                          |
-
-`POST /fhir/AidboxTopicDestination` returns `201 Created` after bootstrap (1-2 minutes worst-case), not after initial-export. There's no HTTP timeout regardless of dataset size.
-
-Poll progress via the destination's `$status` endpoint:
-
-```sh
-curl -u <client-name>:<client-secret> "$AIDBOX_URL/fhir/AidboxTopicDestination/patient-databricks/\$status" | jq
-```
-
-Relevant fields during initial export:
-
-- `initialExportStatus` — `not_started` / `export-in-progress` / `completed` / `skipped` / `failed`.
-- `initialExportProgress_rowsSent` — running row count (updated every 10k rows).
-- `initialExportError` — error message when `initialExportStatus=failed`.
-
-On failure the module retries up to 3 times with exponential backoff (1s → 2s → 4s). The `MERGE INTO ... ON t.id = s.id WHEN NOT MATCHED THEN INSERT *` is idempotent on `id`, so a retry after a lost ack inserts zero new rows.
-
-The continuous worker starts polling the PG queue **immediately after destination creation**, in parallel with initial export — initial-export and live writes are not serialized. The MERGE keying on `id` means a continuous-stream row inserted before initial-export catches up just gets skipped by the eventual MERGE pass (idempotent).
-
-### Large-scale initial export
-
-The `initialExportChunkCount` parameter (default `1`) fans the staging write across `N` hash-partitioned chunks that run on **async-api** — the same chunking primitive as [`$viewdefinition-export`](../../modules/sql-on-fhir/operation-viewdefinition-export.md). Chunks distribute across every Aidbox pod sharing the metastore; a final `MERGE INTO target` materialises the result and drops the stagings. Pod-failure recovery, the per-pod concurrency cap (`scheduler-executor-threads`), and the cluster-wide concurrency formula are all covered in [Large-scale and multi-pod execution](../../modules/sql-on-fhir/operation-viewdefinition-export.md#large-scale-and-multi-pod-execution) — read that first.
-
-The notes below are topic-destination-specific: what `N` does NOT touch, a quick capacity-planning table, and the JVM-heap interaction with `targetFileSizeMb`.
-
-#### What `N` does **not** control
-
-- **Hot-path live writes** — every destination has one sender thread that drains the PG queue and pushes batches via Zerobus/SQL. This thread is unrelated to `N` and unaffected by initial-export. Live writes continue throughout init-export in parallel.
-- **`$viewdefinition-export` runs** — that operation has its own `chunkCount` parameter, sized against the same async-api executor pool. Bumping `initialExportChunkCount` doesn't change `$viewdefinition-export` throughput and vice versa.
-
-#### Capacity planning
-
-Concrete starting points per cluster shape — see [Capacity caps](../../modules/sql-on-fhir/operation-viewdefinition-export.md#capacity-caps) for the formal `min(chunkCount, Σ scheduler-executor-threads, (max_connections − base) / 2)` formula:
-
-| Cluster shape | Suggested `N` | Notes                                    |
-| ------------- | ------------- | ---------------------------------------- |
-| 1 pod         | `1` (default) | Single-cursor sequential.                |
-| 1 pod         | `4`           | ~3-4× speedup vs single-cursor.          |
-| 1 pod         | `8`           | Watch PG read capacity.                  |
-| 2-4 pods (HA) | `16`          | Survives a pod restart mid-export.       |
-| 4+ pods       | `32`          | Cap by your PG `max_connections` budget. |
-
-Raise [`scheduler-executor-threads`](../../reference/all-settings.md#scheduler-executor-threads) (default `10`) in step with `N` if you want a single pod to run more than ~10 chunks in parallel — otherwise the surplus chunks just queue.
-
-#### JVM heap
-
-Each chunk worker holds a Kernel Parquet buffer in memory until it reaches `targetFileSizeMb` (default 128 MiB) and flushes a file. With `N` chunks running concurrently per pod, peak heap from staging buffers alone is ≈ `min(N, scheduler-executor-threads) × targetFileSizeMb`.
-
-If you raise `initialExportChunkCount` beyond a few chunks per pod, bump JVM `-Xmx` proportionally (via the [`JAVA_OPTS`](../../reference/all-settings.md#java-opts) setting) or lower `targetFileSizeMb` via the destination parameter. The default Aidbox heap fits a single-cursor (`N=1`) export comfortably but is the first thing to OOM under aggressive parallelism. There's no warning at kick-off — symptom is `java.lang.OutOfMemoryError: Java heap space` mid-export.
-
 ## Monitoring
 
 ### Status endpoint
@@ -1022,53 +1069,6 @@ Returns a FHIR [Parameters](https://www.hl7.org/fhir/parameters.html) resource:
 - `messagesDeliveryAttempts` — total delivery attempts (including retries)
 - `initialExportStatus` — `not_started`, `export-in-progress`, `completed`, `skipped`, or `failed`
 - `initialExportProgress_rowsSent` — number of rows sent during initial export
-
-## Data transformation
-
-The module automatically:
-
-1. **Applies ViewDefinition**: Transforms each FHIR resource using the specified ViewDefinition SQL
-2. **Adds deletion flag**: Sets `is_deleted = 0` for create/update, `is_deleted = 1` for delete operations
-3. **Batches messages**: Groups messages according to `batchSize` and `sendIntervalMs` parameters
-4. **Coerces types per write path**:
-   - `managed-sql` — Java SQL dates / timestamps are converted to ISO-8601 strings; the SQL warehouse parses them into `DATE` / `TIMESTAMP` columns.
-   - `managed-zerobus` — dates are encoded as `int32` epoch-days, timestamps as `int64` epoch-microseconds, as required by the Zerobus REST wire format. ISO strings would be rejected with a `400` from the endpoint.
-
-See [Output semantics](#output-semantics) for append-only behaviour, at-least-once delivery, and the recommended read-time dedup query.
-
-## Schema evolution
-
-The module maps FHIR / ViewDefinition types to Databricks SQL types as follows:
-
-| FHIR / ViewDefinition type | Databricks SQL type |
-| -------------------------- | ------------------- |
-| `id`, `string`, `code`     | `STRING`            |
-| `date`                     | `DATE`              |
-| `dateTime`, `instant`      | `TIMESTAMP`         |
-| `integer`, `positiveInt`   | `INT`               |
-| `decimal`                  | `DOUBLE`            |
-| `boolean`                  | `BOOLEAN`           |
-
-Both `managed-zerobus` and `managed-sql` auto-`ALTER TABLE ADD COLUMNS` when the ViewDefinition has new columns. Triggered at sender start and on per-batch schema-mismatch (retried once).
-
-To add a column:
-
-1. Add the column to your ViewDefinition.
-2. Re-materialize: `POST /fhir/ViewDefinition/{id}/$materialize`.
-3. Either delete and recreate the destination, OR wait for the next write — auto-heal will catch it on the first batch.
-
-Existing rows will have `NULL` in the new column.
-
-{% hint style="warning" %}
-The module only ADDS columns automatically. Column drops, renames, or narrowing type changes (e.g., `BIGINT` → `INT`) are not auto-applied — you must run the corresponding `ALTER TABLE` manually.
-{% endhint %}
-
-## Retry behavior
-
-- **Failed batch** — message stays in the PostgreSQL queue and retries on the next `sendIntervalMs` tick. 1-second backoff between failed attempts.
-- **OAuth bearer token** — cached; auto-refreshed via `/oidc/v1/token` when the current one has under 5 minutes remaining.
-- **Worker thread crash** — auto-restarts with exponential backoff (1s initial, 60s max). The queue ensures no messages are lost.
-- **Initial export failure** — retries up to 3 times with `1s → 2s → 4s` backoff. After 3 failures, `initialExportStatus = failed`, error available via `$status`, live delivery continues unaffected, and recreating the destination kicks off a fresh attempt.
 
 ## Troubleshooting
 
