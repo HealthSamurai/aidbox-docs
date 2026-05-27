@@ -218,6 +218,25 @@ BOX_FHIR_BULK_STORAGE_AWS_BUCKET=your-bucket-name
 See also:
 * [File storage: AWS S3](../../file-storage/aws-s3.md)
 
+### Overriding storage per request
+
+By default every export writes to the storage configured by the `BOX_FHIR_BULK_STORAGE_*` settings above. A single request can override individual storage fields with `_aidbox.*` parameters — as query parameters on **GET**, or inside the **POST** [Parameters body](#post-with-a-parameters-body-patient-and-group). They are honored on all export levels (patient, group, system).
+
+| Parameter | Overrides | Value type (POST) |
+| --- | --- | --- |
+| `_aidbox.storageProvider` | Provider (`gcp`, `aws`, `azure`) | `valueString` |
+| `_aidbox.storageBucket` | Target bucket | `valueString` |
+| `_aidbox.storageAccount` | Account resource, e.g. `AwsAccount/aws-account` | `valueReference` |
+| `_aidbox.azureStorage` | Azure storage account name (workload identity) | `valueString` |
+| `_aidbox.azureContainer` | Azure container name (workload identity) | `valueString` |
+
+Only the fields you pass are overridden; the rest are taken from the configured settings, which must still be set and valid — the override is merged on top of the resolved configuration, not used instead of it. For example, passing only `_aidbox.storageBucket` writes to a different bucket while keeping the configured provider and account.
+
+```http
+GET /fhir/$export?_type=Patient&_aidbox.storageBucket=tenant-a-exports
+Prefer: respond-async
+```
+
 ## Parameters
 
 The `$export` operation accepts several parameters to customize the export: **query parameters on GET**, or the same parameters inside a **FHIR Parameters resource** when you use **POST** on patient- and group-level exports (see [POST with a Parameters body](#post-with-a-parameters-body-patient-and-group)). Supported parameter names are `_outputFormat`, `_since`, `_until`, `_type`, `_typeFilter`, and `patient`.
