@@ -220,6 +220,10 @@ See also:
 
 ### Overriding storage per request
 
+{% hint style="warning" %}
+Available since Aidbox version 2605.
+{% endhint %}
+
 By default every export writes to the storage configured by the `BOX_FHIR_BULK_STORAGE_*` settings above. A single request can override individual storage fields with `_aidbox.*` parameters — as query parameters on **GET**, or inside the **POST** [Parameters body](#post-with-a-parameters-body-patient-and-group). They are honored on all export levels (patient, group, system).
 
 | Parameter | Overrides | Value type (POST) |
