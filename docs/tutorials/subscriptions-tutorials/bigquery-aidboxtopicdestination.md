@@ -128,8 +128,6 @@ When a new version is released, update the JAR URL/filename in your deployment c
 
 ### Required Parameters
 
-All requests in this tutorial use `Content-Type: application/json`.
-
 | Parameter           | Type        | Description                         |
 | ------------------- | ----------- | ----------------------------------- |
 | `projectId`         | string      | Google Cloud project ID             |

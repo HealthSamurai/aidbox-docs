@@ -771,9 +771,7 @@ databricks grants update external-location "$EXTERNAL_LOCATION_NAME" --json '{
 
 {% endstepper %}
 
-## Configuration
-
-All requests in this tutorial use `Content-Type: application/json`.
+## AidboxTopicDestination parameter
 
 {% tabs %}
 {% tab title="managed-zerobus mode (default)" %}

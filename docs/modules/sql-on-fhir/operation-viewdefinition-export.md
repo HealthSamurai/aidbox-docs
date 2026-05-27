@@ -8,13 +8,7 @@ description: Async bulk export of a ViewDefinition's materialized rows to a back
 Available in Aidbox versions **2605** and later. Requires **fhir-schema mode**. Implements [SQL-on-FHIR v2 `$viewdefinition-export`](https://build.fhir.org/ig/FHIR/sql-on-fhir-v2/OperationDefinition-ViewDefinitionExport.html).
 {% endhint %}
 
-Exports a ViewDefinition's flattened rows into a sink (e.g. a Databricks Delta table). The backend is contributed by an Aidbox module; you pick it with the `kind` parameter.
-
-Use this for one-shot snapshots, backfills, or ad-hoc dumps when standing up a streaming `AidboxTopicDestination` is overkill.
-
-{% hint style="warning" %}
-The Databricks-side setup (catalog, schema, target table, staging schema, service principal, grants, warehouse) must be in place **before** you kick off an export. It is documented in the [Data Lakehouse tutorial](../../tutorials/subscriptions-tutorials/data-lakehouse-aidboxtopicdestination.md) — the same setup is reused here.
-{% endhint %}
+Exports ViewDefinition results to a destination. Use `kind` to choose the Aidbox module backend.
 
 ## Registered backends
 
@@ -22,7 +16,13 @@ The Databricks-side setup (catalog, schema, target table, staging schema, servic
 | ---------------- | -------------------------------------------- | --------------------------------------------------------------------------------------------------------- |
 | `data-lakehouse` | Databricks Unity Catalog managed Delta table | [Data Lakehouse module](../../tutorials/subscriptions-tutorials/data-lakehouse-aidboxtopicdestination.md) |
 
-## Kick-off
+## Databricks Delta table
+
+{% hint style="warning" %}
+The Databricks-side setup (catalog, schema, target table, staging schema, service principal, grants, warehouse) must be in place **before** you kick off an export. It is documented in the [Data Lakehouse tutorial](../../tutorials/subscriptions-tutorials/data-lakehouse-aidboxtopicdestination.md) — the same setup is reused here.
+{% endhint %}
+
+### Kick-off
 
 ```http
 POST /fhir/ViewDefinition/$viewdefinition-export
@@ -68,8 +68,6 @@ Content-Location: /fhir/ViewDefinition/$viewdefinition-export/status/<export-id>
 }
 ```
 
-## Parameters
-
 ### Spec parameters
 
 <table>
@@ -89,7 +87,7 @@ Content-Location: /fhir/ViewDefinition/$viewdefinition-export/status/<export-id>
 </tbody>
 </table>
 
-### Data Lakehouse backend parameters (`kind=data-lakehouse`)
+### Data Lakehouse backend parameters
 
 <table>
 <thead>
@@ -110,7 +108,7 @@ Content-Location: /fhir/ViewDefinition/$viewdefinition-export/status/<export-id>
 
 OAuth M2M credentials are sourced from Aidbox-wide settings — `BOX_DATABRICKS_DATA_LAKEHOUSE_CLIENT_ID` / `_CLIENT_SECRET` env vars or the corresponding settings registry entries. They are NOT accepted as per-request parameters. See the [Data Lakehouse tutorial](../../tutorials/subscriptions-tutorials/data-lakehouse-aidboxtopicdestination.md) for the full Databricks-side setup.
 
-## Status polling
+### Status polling
 
 ```http
 GET /fhir/ViewDefinition/$viewdefinition-export/status/<export-id>
@@ -147,7 +145,7 @@ Completed output for `kind=data-lakehouse`:
 }
 ```
 
-## Cancellation
+### Cancellation
 
 ```http
 DELETE /fhir/ViewDefinition/$viewdefinition-export/status/<export-id>
@@ -164,7 +162,7 @@ What cancellation does **not** do:
 - It does not roll back rows already merged into the target managed table. The merge is the last step of finalize-export — if cancel arrives before finalize, no rows have landed; if after finalize, the operation is already terminal.
 - It does not delete history rows of chunks that already completed.
 
-## Failure model
+### Failure model
 
 - **Input validation failures** (missing `view`, missing `kind`, multiple views, `source` set, etc.) — synchronous `400 OperationOutcome` from the kick-off `POST`. No `export-id` is allocated.
 - **Backend-side failures** — async. Kick-off returns `202` with an `export-id`; status polling later reports `status=failed` with the error in the `error` parameter. Common causes:
@@ -173,7 +171,7 @@ What cancellation does **not** do:
   - **Missing target table** / **missing required parameter** (e.g., no `tableName`).
   - **Schema mismatch** the module can't auto-`ALTER`.
 
-## How it works (`kind=data-lakehouse`)
+### How it works (`kind=data-lakehouse`)
 
 ![Bulk export flow: Aidbox writes per-chunk Delta stagings on S3, then issues one MERGE INTO target via the Databricks SQL warehouse, then drops the stagings.](../../../assets/aidbox-databricks-bulk.svg)
 
@@ -222,7 +220,7 @@ Here `_since=2026-01-01T00:00:00Z` filters as `WHERE ts >= '2026-01-01T00:00:00Z
 
 ## Large-scale and multi-pod execution
 
-Chunks run on **async-api** (Aidbox's db-scheduler-backed task engine), so they distribute across every pod sharing the metastore. Status polling and cancellation answer from any pod — no kick-off-pod affinity, no client-side load-balancer pinning. A pod failure mid-chunk is recovered automatically via the task's heartbeat lapse — another pod re-leases it.
+Chunks run on **async-api**, so they distribute across every pod sharing the metastore. Status polling and cancellation answer from any pod — no kick-off-pod affinity, no client-side load-balancer pinning. A pod failure mid-chunk is recovered automatically via the task's heartbeat lapse — another pod re-leases it.
 
 ### Capacity caps
 
@@ -236,14 +234,14 @@ $$
 \,\right)
 $$
 
-- $$S$$ — **`scheduler-executor-threads`** per pod ([Aidbox setting](../../reference/all-settings.md#scheduler-executor-threads)). This is the **hard per-pod cap** on async-api task execution. Excess chunks queue in `db_scheduler.scheduled_tasks` with `picked=false` and wait. Default is small (≈10); bump it if you plan high `chunkCount`.
+- $$S$$ — **`scheduler-executor-threads`** per pod ([Aidbox setting](../../reference/all-settings.md#scheduler-executor-threads)). This is the **hard per-pod cap** on async-api task execution. Excess chunks queue in `db_scheduler.scheduled_tasks` with `picked=false` and wait.
 - $$M$$ — PostgreSQL `max_connections`.
 - $$B$$ — connections Aidbox uses for normal traffic (HikariCP pool size × pod count).
 - $$/2$$ — each chunk worker holds up to two PG connections (one cursor + one short-lived).
 
 The kick-off handler returns `400 parallelism-exceeds-pool` if `chunkCount > (M − B) / 2` is obvious from settings, but the scheduler-thread cap is **not validated** at kick-off — the export simply runs slower than expected if you exceed it.
 
-### Differences vs `AidboxTopicDestination` initial export
+## Differences vs `AidboxTopicDestination` initial export
 
 Both flows produce the same kind of output — flattened FHIR rows merged into a managed Delta table — and parallelism is sized the same way. They differ in **how you start them** and **where you read progress from**:
 
@@ -255,7 +253,7 @@ Both flows produce the same kind of output — flattened FHIR rows merged into a
 
 Use this operation for one-shot snapshots and backfills. Use the destination flow when you want the same initial fill **plus** continuous replication afterwards. For tutorial-specific operational notes on the destination flow, see [Large-scale initial export](../../tutorials/subscriptions-tutorials/data-lakehouse-aidboxtopicdestination.md#large-scale-initial-export).
 
-## Limitations (current)
+## Limitations
 
 - The Data Lakehouse backend's staging path currently supports **AWS S3 only** (`s3://...` / `s3a://...`).
 - One `view` per request (spec allows `1..*`).
