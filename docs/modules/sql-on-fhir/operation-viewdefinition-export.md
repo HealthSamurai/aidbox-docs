@@ -268,10 +268,10 @@ Raise [`scheduler-executor-threads`](../../reference/all-settings.md#scheduler-e
 Each chunk worker holds a Kernel Parquet buffer in memory until it reaches `targetFileSizeMb` (default 128 MiB) and flushes a file. With `N` chunks running concurrently per pod, peak heap from staging buffers alone is roughly:
 
 $$
-\min(N, \text{scheduler-executor-threads}) \times \text{targetFileSizeMb}
+\min(N, \text{scheduler-executors}) \times \text{targetFileSizeMb}
 $$
 
-If you raise `chunkCount` beyond a few chunks per pod, bump JVM `-Xmx` proportionally (via [`JAVA_OPTS`](../../reference/all-settings.md#java-opts)) or lower `targetFileSizeMb`. The default Aidbox heap fits a single-cursor (`chunkCount=1`) export comfortably but is the first thing to OOM under aggressive parallelism. There is no warning at kick-off — the symptom is `java.lang.OutOfMemoryError: Java heap space` mid-export.
+If you raise `chunkCount` beyond a few chunks per pod, increase the JVM heap proportionally (via [`JAVA_OPTS`](../../reference/all-settings.md#java-opts)) or lower `targetFileSizeMb`. The default Aidbox heap fits a single-cursor (`chunkCount=1`) export comfortably but is the first thing to OOM under aggressive parallelism.
 
 ## Differences vs `AidboxTopicDestination` initial export
 
