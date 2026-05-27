@@ -210,7 +210,7 @@ To skip the initial export (e.g., the table is already populated or you only nee
 
 ![Bulk initial-export flow: Aidbox writes per-chunk Delta stagings on S3, then issues one MERGE INTO target via the Databricks SQL warehouse, then drops the stagings.](../../../assets/aidbox-databricks-bulk.svg)
 
-The same code path powers both the destination's initial export and the standalone [`$viewdefinition-export` operation](../../modules/sql-on-fhir/operation-viewdefinition-export.md#how-it-works-kind-data-lakehouse) — see the operation page for the step-by-step.
+The destination's initial export and the standalone [`$viewdefinition-export` operation](../../modules/sql-on-fhir/operation-viewdefinition-export.md#how-it-works-kind-data-lakehouse) use the same data-lakehouse bulk-export engine — see the operation page for the step-by-step.
 
 ### Timing & monitoring
 
@@ -242,34 +242,18 @@ The continuous worker starts polling the PG queue **immediately after destinatio
 
 ### Large-scale initial export
 
-The `initialExportChunkCount` parameter (default `1`) fans the staging write across `N` hash-partitioned chunks that run on **async-api** — the same chunking primitive as [`$viewdefinition-export`](../../modules/sql-on-fhir/operation-viewdefinition-export.md). Chunks distribute across every Aidbox pod sharing the metastore; a final `MERGE INTO target` materialises the result and drops the stagings. Pod-failure recovery, the per-pod concurrency cap (`scheduler-executor-threads`), and the cluster-wide concurrency formula are all covered in [Large-scale and multi-pod execution](../../modules/sql-on-fhir/operation-viewdefinition-export.md#large-scale-and-multi-pod-execution) — read that first.
+The `initialExportChunkCount` parameter (default `1`) maps to the same chunking model as [`$viewdefinition-export`](../../modules/sql-on-fhir/operation-viewdefinition-export.md)'s `chunkCount`: `N` hash-partitioned chunks run on **async-api**, write per-chunk Delta staging tables, then a final `MERGE INTO target` materialises the result and drops the stagings.
 
-The notes below are topic-destination-specific: what `N` does NOT touch, a quick capacity-planning table, and the JVM-heap interaction with `targetFileSizeMb`.
+Pod-failure recovery, the per-pod concurrency cap (`scheduler-executor-threads`), DB-pool sizing, and JVM heap sizing are covered in [Large-scale and multi-pod execution](../../modules/sql-on-fhir/operation-viewdefinition-export.md#large-scale-and-multi-pod-execution). Use that page as the canonical capacity guide; substitute `initialExportChunkCount` wherever it says `chunkCount`.
 
 #### What `N` does **not** control
 
 - **Hot-path live writes** — every destination has one sender thread that drains the PG queue and pushes batches via Zerobus/SQL. This thread is unrelated to `N` and unaffected by initial-export. Live writes continue throughout init-export in parallel.
 - **`$viewdefinition-export` runs** — that operation has its own `chunkCount` parameter, sized against the same async-api executor pool. Bumping `initialExportChunkCount` doesn't change `$viewdefinition-export` throughput and vice versa.
 
-#### Capacity planning
+#### Destination-specific sizing note
 
-Concrete starting points per cluster shape — see [Capacity caps](../../modules/sql-on-fhir/operation-viewdefinition-export.md#capacity-caps) for the formal `min(chunkCount, Σ scheduler-executor-threads, (max_connections − base) / 2)` formula:
-
-| Cluster shape | Suggested `N` | Notes                                    |
-| ------------- | ------------- | ---------------------------------------- |
-| 1 pod         | `1` (default) | Single-cursor sequential.                |
-| 1 pod         | `4`           | ~3-4× speedup vs single-cursor.          |
-| 1 pod         | `8`           | Watch PG read capacity.                  |
-| 2-4 pods (HA) | `16`          | Survives a pod restart mid-export.       |
-| 4+ pods       | `32`          | Cap by your PG `max_connections` budget. |
-
-Raise [`scheduler-executor-threads`](../../reference/all-settings.md#scheduler-executor-threads) (default `10`) in step with `N` if you want a single pod to run more than ~10 chunks in parallel — otherwise the surplus chunks just queue.
-
-#### JVM heap
-
-Each chunk worker holds a Kernel Parquet buffer in memory until it reaches `targetFileSizeMb` (default 128 MiB) and flushes a file. With `N` chunks running concurrently per pod, peak heap from staging buffers alone is ≈ `min(N, scheduler-executor-threads) × targetFileSizeMb`.
-
-If you raise `initialExportChunkCount` beyond a few chunks per pod, bump JVM `-Xmx` proportionally (via the [`JAVA_OPTS`](../../reference/all-settings.md#java-opts) setting) or lower `targetFileSizeMb` via the destination parameter. The default Aidbox heap fits a single-cursor (`N=1`) export comfortably but is the first thing to OOM under aggressive parallelism. There's no warning at kick-off — symptom is `java.lang.OutOfMemoryError: Java heap space` mid-export.
+Initial export and live writes share the same Aidbox process and DB pool. Leave capacity for the destination's live sender and ordinary Aidbox traffic when choosing `initialExportChunkCount`; do not size it to consume every scheduler thread or every DB connection.
 
 ## Retry behavior
 
