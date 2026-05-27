@@ -241,18 +241,7 @@ The continuous worker starts polling the PG queue **immediately after destinatio
 
 ### Large-scale initial export
 
-The `initialExportChunkCount` parameter (default `1`) maps to the same chunking model as [`$viewdefinition-export`](../../modules/sql-on-fhir/operation-viewdefinition-export.md)'s `chunkCount`: `N` hash-partitioned chunks run on **async-api**, write per-chunk Delta staging tables, then a final `MERGE INTO target` materialises the result and drops the stagings.
-
-Pod-failure recovery, the per-pod concurrency cap (`scheduler-executor-threads`), DB-pool sizing, and JVM heap sizing are covered in [Large-scale and multi-pod execution](../../modules/sql-on-fhir/operation-viewdefinition-export.md#large-scale-and-multi-pod-execution). Use that page as the canonical capacity guide; substitute `initialExportChunkCount` wherever it says `chunkCount`.
-
-#### What `N` does **not** control
-
-- **Hot-path live writes** — every destination has one sender thread that drains the PG queue and pushes batches via Zerobus/SQL. This thread is unrelated to `N` and unaffected by initial-export. Live writes continue throughout init-export in parallel.
-- **`$viewdefinition-export` runs** — that operation has its own `chunkCount` parameter, sized against the same async-api executor pool. Bumping `initialExportChunkCount` doesn't change `$viewdefinition-export` throughput and vice versa.
-
-#### Destination-specific sizing note
-
-Initial export and live writes share the same Aidbox process and DB pool. Leave capacity for the destination's live sender and ordinary Aidbox traffic when choosing `initialExportChunkCount`; do not size it to consume every scheduler thread or every DB connection.
+For large tables, set `initialExportChunkCount` to split the initial export into parallel chunks. Initial export uses the same bulk engine as [`$viewdefinition-export`](../../modules/sql-on-fhir/operation-viewdefinition-export.md); use its [large-scale execution guide](../../modules/sql-on-fhir/operation-viewdefinition-export.md#large-scale-and-multi-pod-execution) for sizing, substituting `initialExportChunkCount` for `chunkCount`.
 
 ## Retry behavior
 
@@ -790,7 +779,7 @@ databricks grants update external-location "$EXTERNAL_LOCATION_NAME" --json '{
 <tr><td><code>writeMode</code></td><td>string</td><td><code>managed-zerobus</code> (default) or <code>managed-sql</code>. Omit to get <code>managed-zerobus</code></td></tr>
 <tr><td><code>skipInitialExport</code></td><td>boolean</td><td>Skip initial export of existing data (default: <code>false</code>)</td></tr>
 <tr><td><code>targetFileSizeMb</code></td><td>unsignedInt</td><td>Parquet target size during initial export (default: <code>128</code>)</td></tr>
-<tr><td><code>initialExportChunkCount</code></td><td>unsignedInt</td><td>Cluster-wide number of parallel chunks for hash-partitioned initial export (default <code>1</code> — sequential). See <a href="#large-scale-initial-export">Large-scale initial export</a> for the sizing formula.</td></tr>
+<tr><td><code>initialExportChunkCount</code></td><td>unsignedInt</td><td>Cluster-wide number of parallel chunks for hash-partitioned initial export (default <code>1</code> — sequential). See <a href="#large-scale-initial-export">Large-scale initial export</a> for sizing.</td></tr>
 </tbody>
 </table>
 
@@ -829,7 +818,7 @@ databricks grants update external-location "$EXTERNAL_LOCATION_NAME" --json '{
 <tbody>
 <tr><td><code>skipInitialExport</code></td><td>boolean</td><td>Skip initial export of existing data (default: <code>false</code>)</td></tr>
 <tr><td><code>targetFileSizeMb</code></td><td>unsignedInt</td><td>Parquet target size during initial export (default: <code>128</code>)</td></tr>
-<tr><td><code>initialExportChunkCount</code></td><td>unsignedInt</td><td>Cluster-wide number of parallel chunks for hash-partitioned initial export (default <code>1</code> — sequential). See <a href="#large-scale-initial-export">Large-scale initial export</a> for the sizing formula.</td></tr>
+<tr><td><code>initialExportChunkCount</code></td><td>unsignedInt</td><td>Cluster-wide number of parallel chunks for hash-partitioned initial export (default <code>1</code> — sequential). See <a href="#large-scale-initial-export">Large-scale initial export</a> for sizing.</td></tr>
 </tbody>
 </table>
 

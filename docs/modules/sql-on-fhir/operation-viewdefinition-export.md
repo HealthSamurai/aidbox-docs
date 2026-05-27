@@ -151,7 +151,7 @@ Completed output for `kind=data-lakehouse`:
 DELETE /fhir/ViewDefinition/$viewdefinition-export/status/<export-id>
 ```
 
-Stops an in-flight export and triggers backend cleanup (the data-lakehouse backend drops per-chunk staging tables it created). Response codes:
+Stops an in-flight export and triggers backend cleanup (the data-lakehouse backend drops per-chunk staging tables and recursively deletes the S3 staging prefixes it created, best-effort). Response codes:
 
 - `202 Accepted` — cancel acknowledged, async cleanup running. Body reports `status=canceling`. Subsequent status polls return `200 OK` with `status=cancelled` once cleanup is done.
 - `200 OK` — operation already terminal (`completed` / `failed` / `cancelled`). DELETE is idempotent.
@@ -161,6 +161,7 @@ What cancellation does **not** do:
 
 - It does not roll back rows already merged into the target managed table. The merge is the last step of finalize-export — if cancel arrives before finalize, no rows have landed; if after finalize, the operation is already terminal.
 - It does not delete history rows of chunks that already completed.
+- It does not hard-kill an already executing JVM task. Running chunks stop cooperatively when they observe the cancel marker.
 
 ### Failure model
 
@@ -183,11 +184,17 @@ The `MERGE` is idempotent on `id` — a retried export after a lost response ins
 
 ### Staging cleanup on S3
 
-After the `MERGE` succeeds the module drops the per-chunk staging tables (Unity Catalog metadata) but does **not** delete the underlying Parquet and `_delta_log/` files on S3. They are recursive-deleted at the **start** of the next call that reuses the same `stagingTablePath`, before the new staging tables are created.
+The module treats `stagingTablePath` as reusable scratch space:
+
+- at setup, it recursively deletes the root `stagingTablePath` before chunk fan-out;
+- before each chunk creates its staging table, it recursively deletes that chunk's sub-prefix;
+- after successful finalize, it drops the per-chunk Unity Catalog staging tables and recursively deletes both the per-chunk prefixes and the root staging prefix;
+- on cancellation and failed chunks, the same cleanup is attempted best-effort.
 
 Two consequences worth knowing:
 
-- **If you rotate `stagingTablePath` between runs** (for example, a date-stamped prefix), each prior prefix is left behind in your bucket and the auto-cleanup never fires for it. Either reuse one prefix across runs, or `aws s3 rm --recursive` the old ones yourself.
+- **If you rotate `stagingTablePath` between runs** (for example, a date-stamped prefix), Aidbox can only clean the prefix used by the current run. Older prefixes are your responsibility.
+- **Cleanup is best-effort.** If S3, Databricks credential vending, or grants fail during cleanup, the export still reports according to the data path result and logs the cleanup problem. A later run that reuses the same prefix will try again at setup.
 - **The auto-cleanup uses Unity Catalog `temporary-path-credentials`**, so the principal needs `EXTERNAL_USE_LOCATION` on the External Location that covers `stagingTablePath`. Without that grant the cleanup is skipped and a `staging-s3-cleanup-skipped` event is logged; the export itself still runs. The same grant table is documented in the [Data Lakehouse tutorial — Databricks-side setup](../../tutorials/subscriptions-tutorials/data-lakehouse-aidboxtopicdestination.md#databricks-side-setup).
 
 ## \_since (incremental export)
@@ -224,7 +231,7 @@ Chunks run on **async-api**, so they distribute across every pod sharing the met
 
 ### Capacity caps
 
-Effective cluster-wide concurrent chunks = the smallest of three ceilings:
+Effective cluster-wide concurrent chunks is bounded by the smallest of three ceilings:
 
 $$
 \text{concurrency} = \min\!\left(\,
@@ -240,7 +247,9 @@ $$
 
 Each running chunk holds a long-lived PostgreSQL cursor connection while reading `sof.<view>`. It may also need short-lived DB work around task execution and status/cancel checks, so do not size chunk parallelism up to the full pool.
 
-The kick-off handler returns `400 parallelism-exceeds-pool` if the requested `chunkCount` exceeds the current pod's obvious DB-pool headroom (`H - 4`). The scheduler-thread cap is **not validated** at kick-off — the export simply runs slower than expected if you exceed it.
+Treat this as a capacity upper bound, not a scheduling guarantee. It assumes the pods that share the metastore are equally eligible to run async-api tasks and have comparable DB pools.
+
+The kick-off handler returns `400 parallelism-exceeds-pool` if the requested `chunkCount` exceeds the receiving pod's obvious DB-pool headroom (`H - 4`). The scheduler-thread cap and the summed cluster capacity are **not validated** at kick-off — if you exceed them, surplus chunks simply queue and the export runs slower than expected.
 
 Concrete starting points:
 
