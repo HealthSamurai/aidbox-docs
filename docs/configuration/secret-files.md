@@ -146,6 +146,7 @@ The following fields support secret references via the extension pattern:
 | **TokenIntrospector**      | `introspection_endpoint.authorization` | Authorization header value                       |
 | **AidboxTopicDestination** | `parameter.saslJaasConfig`             | SASL JAAS configuration for Kafka authentication |
 | **AidboxTopicDestination** | `parameter.sslKeystoreKey`             | SSL keystore private key for Kafka connection    |
+| **AidboxTopicDestination** | `parameter.header`                     | HTTP header value for webhook requests (e.g. Authorization token) |
 
 ## Delivering secrets to the filesystem
 

@@ -43,7 +43,7 @@ http://health-samurai.io/fhir/core/StructureDefinition/aidboxtopicdestination-we
 
 ### Available Parameters
 
-<table data-full-width="false"><thead><tr><th width="204">Parameter name</th><th width="192">Value type</th><th>Description</th></tr></thead><tbody><tr><td><code>endpoint</code> *</td><td>valueUrl</td><td>Webhook URL.</td></tr><tr><td><code>timeout</code></td><td>valueUnsignedInt</td><td>Timeout in seconds to attempt notification delivery (default: 30).</td></tr><tr><td><code>keepAlive</code></td><td>valueInteger</td><td>The time in seconds that the host will allow an idle connection to remain open before it is closed (default: 120, <code>-1</code> - disable).</td></tr><tr><td><code>maxMessagesInBatch</code></td><td>valueUnsignedInt</td><td>Maximum number of events that can be combined in a single notification (default: 20).</td></tr><tr><td><code>header</code></td><td>valueString</td><td>HTTP header for webhook request in the following format: <code>&#x3C;Name>: &#x3C;Value></code>. Zero or many.</td></tr></tbody></table>
+<table data-full-width="false"><thead><tr><th width="204">Parameter name</th><th width="192">Value type</th><th>Description</th></tr></thead><tbody><tr><td><code>endpoint</code> *</td><td>valueUrl</td><td>Webhook URL.</td></tr><tr><td><code>timeout</code></td><td>valueUnsignedInt</td><td>Timeout in seconds to attempt notification delivery (default: 30).</td></tr><tr><td><code>keepAlive</code></td><td>valueInteger</td><td>The time in seconds that the host will allow an idle connection to remain open before it is closed (default: 120, <code>-1</code> - disable).</td></tr><tr><td><code>maxMessagesInBatch</code></td><td>valueUnsignedInt</td><td>Maximum number of events that can be combined in a single notification (default: 20).</td></tr><tr><td><code>header</code></td><td>valueString</td><td>HTTP header for webhook request in the following format: <code>&#x3C;Name>: &#x3C;Value></code>. Zero or many. Supports <a href="../../configuration/secret-files.md">external secrets</a> — use <code>value._string</code> instead of <code>valueString</code> to reference a vault secret whose file content is the full <code>Name: Value</code> string.</td></tr></tbody></table>
 
 \* required parameter.
 
@@ -83,6 +83,74 @@ accept: application/json
   ]
 }
 </code></pre>
+
+### Using an external secret for a header
+
+To avoid storing sensitive header values (e.g. `Authorization` tokens) in the database, reference a vault secret in place of `valueString`. The secret file must contain the full header string in `Name: Value` format.
+
+{% tabs %}
+{% tab title="vault-config.json" %}
+```json
+{
+  "secret": {
+    "webhook-auth-header": {
+      "path": "/run/secrets/webhook-auth-header",
+      "scope": {"resource_type": "AidboxTopicDestination", "id": "webhook-destination"}
+    }
+  }
+}
+```
+{% endtab %}
+{% tab title="Secret file content" %}
+```
+Authorization: Bearer secret-token
+```
+{% endtab %}
+{% tab title="AidboxTopicDestination" %}
+```json
+POST /fhir/AidboxTopicDestination
+content-type: application/json
+accept: application/json
+
+{
+  "resourceType": "AidboxTopicDestination",
+  "meta": {
+    "profile": [
+      "http://health-samurai.io/fhir/core/StructureDefinition/aidboxtopicdestination-webhookAtLeastOnceProfile"
+    ]
+  },
+  "kind": "webhook-at-least-once",
+  "id": "webhook-destination",
+  "topic": "http://example.org/FHIR/R5/SubscriptionTopic/QuestionnaireResponse-topic",
+  "parameter": [
+    {
+      "name": "endpoint",
+      "valueUrl": "https://aidbox.requestcatcher.com/test"
+    },
+    {
+      "name": "header",
+      "value": {
+        "_string": {
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/data-absent-reason",
+              "valueCode": "masked"
+            },
+            {
+              "url": "http://health-samurai.io/fhir/secret-reference",
+              "valueString": "webhook-auth-header"
+            }
+          ]
+        }
+      }
+    }
+  ]
+}
+```
+{% endtab %}
+{% endtabs %}
+
+See [External Secrets](../../configuration/secret-files.md) for vault config setup and secret rotation details.
 
 ## **Status Introspection**
 
