@@ -231,37 +231,14 @@ Chunks run on **async-api**, so they distribute across every pod sharing the met
 
 ### Capacity caps
 
-Effective cluster-wide concurrent chunks is bounded by the smallest of three ceilings:
+Effective cluster-wide concurrent chunks is the smallest of three ceilings: the requested `chunkCount`, the total scheduler capacity across pods, and the total DB headroom across pods. The relevant per-pod knobs:
 
-$$
-\text{concurrency} = \min\!\left(\,
-  \text{chunkCount},\quad
-  \sum_{\text{pods}} S,\quad
-  \sum_{\text{pods}} \max(0, H - 4)
-\,\right)
-$$
+- **S** — [`scheduler-executor-threads`](../../reference/all-settings.md#scheduler-executor-threads). Hard cap on async-api task execution per pod; excess chunks wait in the async-api queue until a slot frees up.
+- **H** — [`db.pool.maximum-pool-size`](../../reference/all-settings.md#db.pool.maximum-pool-size). Chunks may claim at most `H − 4` slots per pod, because each running chunk holds a long-lived PostgreSQL cursor on `sof.<view>` for its entire lifetime. The remaining `4` slots are reserved for normal request traffic, sender workers, status polling, and the async-api coordinator.
 
-- $$S$$ — **[`scheduler-executor-threads`](../../reference/all-settings.md#scheduler-executor-threads)** per pod. This is the **hard per-pod cap** on async-api task execution. Excess chunks wait in the async-api queue until a slot frees up.
-- $$H$$ — Aidbox DB pool size per pod: [`db.pool.maximum-pool-size`](../../reference/all-settings.md#db.pool.maximum-pool-size).
-- `4` — DB connections Aidbox reserves for normal request traffic, sender workers, status polling, and async-api coordinator work. The kick-off guard rejects `chunkCount > (H - 4)` with `400 parallelism-exceeds-pool`.
+The kick-off handler validates only the receiving pod's `H − 4` and returns `400 parallelism-exceeds-pool` if `chunkCount` doesn't fit. The scheduler-thread cap and the cluster-wide DB sum are **not validated** at kick-off — surplus chunks just queue and the export runs slower than expected.
 
-Each running chunk holds a long-lived PostgreSQL cursor connection while reading `sof.<view>`. It may also need short-lived DB work around task execution and status/cancel checks, so do not size chunk parallelism up to the full pool.
-
-Treat this as a capacity upper bound, not a scheduling guarantee. It assumes the pods that share the metastore are equally eligible to run async-api tasks and have comparable DB pools.
-
-The kick-off handler returns `400 parallelism-exceeds-pool` if the requested `chunkCount` exceeds the receiving pod's obvious DB-pool headroom (`H - 4`). The scheduler-thread cap and the summed cluster capacity are **not validated** at kick-off — if you exceed them, surplus chunks simply queue and the export runs slower than expected.
-
-Concrete starting points:
-
-| Cluster shape | Suggested `chunkCount` | Notes                                    |
-| ------------- | ---------------------- | ---------------------------------------- |
-| 1 pod         | `1` (default)          | Single-cursor sequential.                |
-| 1 pod         | `4`                    | ~3-4x speedup vs single-cursor.          |
-| 1 pod         | `8`                    | Watch PG read capacity and heap.         |
-| 2-4 pods (HA) | `16`                   | Survives a pod restart mid-export.       |
-| 4+ pods       | `32`                   | Cap by scheduler threads and DB pool.    |
-
-Raise [`scheduler-executor-threads`](../../reference/all-settings.md#scheduler-executor-threads) in step with `chunkCount` if you want a single pod to run more than ~10 chunks in parallel — otherwise the surplus chunks just queue. Also raise [`db.pool.maximum-pool-size`](../../reference/all-settings.md#db.pool.maximum-pool-size) if the kick-off guard rejects the requested value.
+**Sizing rule of thumb:** start with `chunkCount = pods × 4`. To go higher, raise `scheduler-executor-threads` and `db.pool.maximum-pool-size` proportionally on every pod — otherwise kick-off rejects or excess chunks queue.
 
 ### JVM heap
 
