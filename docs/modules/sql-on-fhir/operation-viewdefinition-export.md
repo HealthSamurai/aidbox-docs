@@ -237,13 +237,13 @@ $$
 \text{concurrency} = \min\!\left(\,
   \text{chunkCount},\quad
   \sum_{\text{pods}} S,\quad
-  \sum_{\text{pods}} \max(0, H - R)
+  \sum_{\text{pods}} \max(0, H - 4)
 \,\right)
 $$
 
-- $$S$$ — **[`scheduler-executor-threads`](../../reference/all-settings.md#scheduler-executor-threads)** per pod. This is the **hard per-pod cap** on async-api task execution. Excess chunks queue in `db_scheduler.scheduled_tasks` with `picked=false` and wait.
-- $$H$$ — Aidbox DB pool size per pod: [`db.pool.maximum-pool-size`](../../reference/all-settings.md#db.pool.maximum-pool-size) (`BOX_DB_POOL_MAXIMUM_POOL_SIZE` / HikariCP `maximumPoolSize`).
-- $$R$$ — DB connections reserved for normal Aidbox traffic, sender workers, status polling, and coordinator work. The current kick-off guard uses `R = 4`.
+- $$S$$ — **[`scheduler-executor-threads`](../../reference/all-settings.md#scheduler-executor-threads)** per pod. This is the **hard per-pod cap** on async-api task execution. Excess chunks wait in the async-api queue until a slot frees up.
+- $$H$$ — Aidbox DB pool size per pod: [`db.pool.maximum-pool-size`](../../reference/all-settings.md#db.pool.maximum-pool-size).
+- `4` — DB connections Aidbox reserves for normal request traffic, sender workers, status polling, and async-api coordinator work. The kick-off guard rejects `chunkCount > (H - 4)` with `400 parallelism-exceeds-pool`.
 
 Each running chunk holds a long-lived PostgreSQL cursor connection while reading `sof.<view>`. It may also need short-lived DB work around task execution and status/cancel checks, so do not size chunk parallelism up to the full pool.
 
