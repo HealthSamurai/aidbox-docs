@@ -106,7 +106,7 @@ Content-Location: /fhir/ViewDefinition/$viewdefinition-export/status/<export-id>
 </tbody>
 </table>
 
-OAuth M2M credentials are sourced from Aidbox-wide settings — `BOX_DATABRICKS_DATA_LAKEHOUSE_CLIENT_ID` / `_CLIENT_SECRET` env vars or the corresponding settings registry entries. They are NOT accepted as per-request parameters. See the [Data Lakehouse tutorial](../../tutorials/subscriptions-tutorials/data-lakehouse-aidboxtopicdestination.md) for the full Databricks-side setup.
+OAuth M2M credentials are sourced from Aidbox-wide settings — [`BOX_DATABRICKS_DATA_LAKEHOUSE_CLIENT_ID` / `_CLIENT_SECRET`](../../tutorials/subscriptions-tutorials/data-lakehouse-aidboxtopicdestination.md#export-the-service-principal-credentials) env vars or the corresponding settings registry entries. They are NOT accepted as per-request parameters. See the [Data Lakehouse tutorial](../../tutorials/subscriptions-tutorials/data-lakehouse-aidboxtopicdestination.md) for the full Databricks-side setup.
 
 ### Status polling
 
@@ -227,7 +227,7 @@ Here `_since=2026-01-01T00:00:00Z` filters as `WHERE ts >= '2026-01-01T00:00:00Z
 
 ## Large-scale and multi-pod execution
 
-Chunks run on **async-api**, so they distribute across every pod sharing the metastore. Status polling and cancellation answer from any pod — no kick-off-pod affinity, no client-side load-balancer pinning. A pod failure mid-chunk is recovered automatically via the task's heartbeat lapse — another pod re-leases it.
+Chunks run on **async-api**, so they distribute across every pod in the Aidbox cluster. Status polling and cancellation work from any pod. If a pod fails mid-chunk, another pod picks up the chunk automatically.
 
 ### Capacity caps
 
