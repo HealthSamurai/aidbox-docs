@@ -233,10 +233,10 @@ Chunks run on **async-api**, so they distribute across every pod in the Aidbox c
 
 Effective cluster-wide concurrent chunks is the smallest of three ceilings: the requested `chunkCount`, the total scheduler capacity across pods, and the total DB headroom across pods. The relevant per-pod knobs:
 
-- **S** — [`scheduler-executor-threads`](../../reference/all-settings.md#scheduler-executor-threads). Hard cap on async-api task execution per pod; excess chunks wait in the async-api queue until a slot frees up.
-- **H** — [`db.pool.maximum-pool-size`](../../reference/all-settings.md#db.pool.maximum-pool-size). Chunks may claim at most `H − 4` slots per pod, because each running chunk holds a long-lived PostgreSQL cursor on `sof.<view>` for its entire lifetime. The remaining `4` slots are reserved for normal request traffic, sender workers, status polling, and the async-api coordinator.
+- [`scheduler-executor-threads`](../../reference/all-settings.md#scheduler-executor-threads) — hard cap on async-api task execution per pod; excess chunks wait in the async-api queue until a slot frees up.
+- [`db.pool.maximum-pool-size`](../../reference/all-settings.md#db.pool.maximum-pool-size) — chunks may claim at most `pool size − 4` slots per pod, because each running chunk holds a long-lived PostgreSQL cursor on `sof.<view>` for its entire lifetime. The remaining `4` slots are reserved for normal request traffic, sender workers, status polling, and the async-api coordinator.
 
-The kick-off handler validates only the receiving pod's `H − 4` and returns `400 parallelism-exceeds-pool` if `chunkCount` doesn't fit. The scheduler-thread cap and the cluster-wide DB sum are **not validated** at kick-off — surplus chunks just queue and the export runs slower than expected.
+The kick-off handler validates only the receiving pod's `pool size − 4` and returns `400 parallelism-exceeds-pool` if `chunkCount` doesn't fit. The scheduler-thread cap and the cluster-wide DB sum are **not validated** at kick-off — surplus chunks just queue and the export runs slower than expected.
 
 **Sizing rule of thumb:** start with `chunkCount = pods × 4`. To go higher, raise `scheduler-executor-threads` and `db.pool.maximum-pool-size` proportionally on every pod — otherwise kick-off rejects or excess chunks queue.
 
