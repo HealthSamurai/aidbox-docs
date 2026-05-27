@@ -209,19 +209,13 @@ To skip the initial export (e.g., the table is already populated or you only nee
 
 ![Bulk initial-export flow: Aidbox writes per-chunk Delta stagings on S3, then issues one MERGE INTO target via the Databricks SQL warehouse, then drops the stagings.](../../../assets/aidbox-databricks-bulk.svg)
 
-The destination's initial export and the standalone [`$viewdefinition-export` operation](../../modules/sql-on-fhir/operation-viewdefinition-export.md#how-it-works-kind-data-lakehouse) use the same data-lakehouse bulk-export engine — see the operation page for the step-by-step.
+The destination's initial export and the standalone [`$viewdefinition-export` operation](../../modules/sql-on-fhir/operation-viewdefinition-export.md#how-it-works-kind-data-lakehouse) use the same data-lakehouse bulk-export engine.
 
 ### Timing & monitoring
 
 The kick-off and the export are **decoupled** — `POST /fhir/AidboxTopicDestination` does not hold the HTTP connection open while billions of rows stream into Databricks.
 
-| Phase             | Where it runs            | Approx. duration                           |
-| ----------------- | ------------------------ | ------------------------------------------ |
-| Bootstrap         | sync, inside the POST    | 1-2 min on a cold warehouse, <1s when warm |
-| Initial export    | async, in the background | seconds to hours                           |
-| Continuous worker | async, runs forever      | —                                          |
-
-`POST /fhir/AidboxTopicDestination` returns `201 Created` after bootstrap (1-2 minutes worst-case), not after initial-export. There's no HTTP timeout regardless of dataset size.
+`POST /fhir/AidboxTopicDestination` returns `201 Created` after bootstrap (1-2 minutes worst-case).
 
 Poll progress via the destination's `$status` endpoint:
 
@@ -232,7 +226,7 @@ curl -u <client-name>:<client-secret> "$AIDBOX_URL/fhir/AidboxTopicDestination/p
 Relevant fields during initial export:
 
 - `initialExportStatus` — `not_started` / `export-in-progress` / `completed` / `skipped` / `failed`.
-- `initialExportProgress_rowsSent` — running row count (updated every 10k rows).
+- `initialExportProgress_rowsSent` — running row count.
 - `initialExportError` — error message when `initialExportStatus=failed`.
 
 On failure the module retries up to 3 times with exponential backoff (1s → 2s → 4s). The `MERGE INTO ... ON t.id = s.id WHEN NOT MATCHED THEN INSERT *` is idempotent on `id`, so a retry after a lost ack inserts zero new rows.
@@ -246,7 +240,7 @@ For large tables, set `initialExportChunkCount` to split the initial export into
 ## Retry behavior
 
 - **Failed batch** — message stays in the PostgreSQL queue and retries on the next `sendIntervalMs` tick. 1-second backoff between failed attempts.
-- **OAuth bearer token** — cached; auto-refreshed via `/oidc/v1/token` when the current one has under 5 minutes remaining.
+- **OAuth bearer token** — cached; auto-refreshed when the current one has under 5 minutes remaining.
 - **Worker thread crash** — auto-restarts with exponential backoff (1s initial, 60s max). The queue ensures no messages are lost.
 - **Initial export failure** — retries up to 3 times with `1s → 2s → 4s` backoff. After 3 failures, `initialExportStatus = failed`, error available via `$status`, live delivery continues unaffected, and recreating the destination kicks off a fresh attempt.
 
