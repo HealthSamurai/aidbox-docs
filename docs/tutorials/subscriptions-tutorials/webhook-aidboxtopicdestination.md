@@ -43,7 +43,7 @@ http://health-samurai.io/fhir/core/StructureDefinition/aidboxtopicdestination-we
 
 ### Available Parameters
 
-<table data-full-width="false"><thead><tr><th width="204">Parameter name</th><th width="192">Value type</th><th>Description</th></tr></thead><tbody><tr><td><code>endpoint</code> *</td><td>valueUrl</td><td>Webhook URL.</td></tr><tr><td><code>timeout</code></td><td>valueUnsignedInt</td><td>Timeout in seconds to attempt notification delivery (default: 30).</td></tr><tr><td><code>keepAlive</code></td><td>valueInteger</td><td>The time in seconds that the host will allow an idle connection to remain open before it is closed (default: 120, <code>-1</code> - disable).</td></tr><tr><td><code>maxMessagesInBatch</code></td><td>valueUnsignedInt</td><td>Maximum number of events that can be combined in a single notification (default: 20).</td></tr><tr><td><code>header</code></td><td>valueString</td><td>HTTP header for webhook request in the following format: <code>&#x3C;Name>: &#x3C;Value></code>. Zero or many. Supports <a href="../../configuration/secret-files.md">external secrets</a> — use <code>value._string</code> instead of <code>valueString</code> to reference a vault secret whose file content is the full <code>Name: Value</code> string.</td></tr></tbody></table>
+<table data-full-width="false"><thead><tr><th width="204">Parameter name</th><th width="192">Value type</th><th>Description</th></tr></thead><tbody><tr><td><code>endpoint</code> *</td><td>valueUrl</td><td>Webhook URL.</td></tr><tr><td><code>timeout</code></td><td>valueUnsignedInt</td><td>Timeout in seconds to attempt notification delivery (default: 30).</td></tr><tr><td><code>keepAlive</code></td><td>valueInteger</td><td>The time in seconds that the host will allow an idle connection to remain open before it is closed (default: 120, <code>-1</code> - disable).</td></tr><tr><td><code>maxMessagesInBatch</code></td><td>valueUnsignedInt</td><td>Maximum number of events that can be combined in a single notification (default: 20).</td></tr><tr><td><code>header</code></td><td>valueString</td><td>HTTP header for webhook request in the following format: <code>&#x3C;Name>: &#x3C;Value></code>. Zero or many. Supports <a href="../../configuration/secret-files.md">external secrets</a> — use <code>_valueString</code> with the secret reference extension to reference a vault secret whose file content is the full <code>Name: Value</code> string.</td></tr></tbody></table>
 
 \* required parameter.
 
@@ -129,19 +129,17 @@ accept: application/json
     },
     {
       "name": "header",
-      "value": {
-        "_string": {
-          "extension": [
-            {
-              "url": "http://hl7.org/fhir/StructureDefinition/data-absent-reason",
-              "valueCode": "masked"
-            },
-            {
-              "url": "http://health-samurai.io/fhir/secret-reference",
-              "valueString": "webhook-auth-header"
-            }
-          ]
-        }
+      "_valueString": {
+        "extension": [
+          {
+            "url": "http://hl7.org/fhir/StructureDefinition/data-absent-reason",
+            "valueCode": "masked"
+          },
+          {
+            "url": "http://health-samurai.io/fhir/secret-reference",
+            "valueString": "webhook-auth-header"
+          }
+        ]
       }
     }
   ]
