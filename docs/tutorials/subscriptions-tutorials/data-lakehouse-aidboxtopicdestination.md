@@ -731,7 +731,7 @@ databricks grants update external-location "$EXTERNAL_LOCATION_NAME" --json '{
 
 {% endstepper %}
 
-## AidboxTopicDestination parameter
+## AidboxTopicDestination parameters
 
 {% tabs %}
 {% tab title="managed-zerobus mode (default)" %}
@@ -755,9 +755,7 @@ databricks grants update external-location "$EXTERNAL_LOCATION_NAME" --json '{
 </tbody>
 </table>
 
-<details>
-
-<summary>Advanced parameters</summary>
+**Not required:**
 
 <table>
 <thead>
@@ -770,8 +768,6 @@ databricks grants update external-location "$EXTERNAL_LOCATION_NAME" --json '{
 <tr><td><code>initialExportChunkCount</code></td><td>unsignedInt</td><td>Cluster-wide number of parallel chunks for hash-partitioned initial export (default <code>1</code> — sequential). See <a href="#large-scale-initial-export">Large-scale initial export</a> for sizing.</td></tr>
 </tbody>
 </table>
-
-</details>
 
 {% endtab %}
 
@@ -795,9 +791,7 @@ databricks grants update external-location "$EXTERNAL_LOCATION_NAME" --json '{
 </tbody>
 </table>
 
-<details>
-
-<summary>Advanced parameters</summary>
+**Not required:**
 
 <table>
 <thead>
@@ -809,8 +803,6 @@ databricks grants update external-location "$EXTERNAL_LOCATION_NAME" --json '{
 <tr><td><code>initialExportChunkCount</code></td><td>unsignedInt</td><td>Cluster-wide number of parallel chunks for hash-partitioned initial export (default <code>1</code> — sequential). See <a href="#large-scale-initial-export">Large-scale initial export</a> for sizing.</td></tr>
 </tbody>
 </table>
-
-</details>
 {% endtab %}
 
 {% endtabs %}
@@ -1085,7 +1077,14 @@ Returns a FHIR [Parameters](https://www.hl7.org/fhir/parameters.html) resource:
     databricks grants update external-location "$EXTERNAL_LOCATION_NAME" --json '{
       "changes":[{"principal":"'"$BOX_DATABRICKS_DATA_LAKEHOUSE_CLIENT_ID"'","add":["EXTERNAL_USE_LOCATION"]}]}'
     ```
-    Or via SQL: `GRANT EXTERNAL USE LOCATION ON EXTERNAL LOCATION \`<name>\` TO \`<sp-application-id>\`;`. Verify with `SHOW GRANTS ON EXTERNAL LOCATION \`<name>\`;`.
+    Or via SQL:
+    ```sql
+    GRANT EXTERNAL USE LOCATION ON EXTERNAL LOCATION `<name>` TO `<sp-application-id>`;
+    ```
+    Verify with:
+    ```sql
+    SHOW GRANTS ON EXTERNAL LOCATION `<name>`;
+    ```
 
 ## Related documentation
 

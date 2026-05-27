@@ -261,5 +261,4 @@ Use this operation for one-shot snapshots and backfills. Use the destination flo
 - The Data Lakehouse backend's staging path currently supports **AWS S3 only** (`s3://...` / `s3a://...`).
 - One `view` per request (spec allows `1..*`).
 - `patient` / `group` filters extracted but not yet applied to the SQL.
-- `cancelUrl` (the spec's pointer to a cancel endpoint exposed in the kick-off response) is not yet returned. Cancellation itself works — `DELETE` on the status URL is supported (see [Cancellation](#cancellation) above).
 - `estimatedTimeRemaining` is not computed.
