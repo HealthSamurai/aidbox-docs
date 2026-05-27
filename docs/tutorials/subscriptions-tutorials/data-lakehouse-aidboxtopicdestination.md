@@ -194,16 +194,10 @@ The module only ADDS columns automatically. Column drops, renames, or narrowing 
 {% hint style="info" %}
 The same flow described below is also exposed standalone as a FHIR operation: [`$viewdefinition-export`](../../modules/sql-on-fhir/operation-viewdefinition-export.md). Use that operation when you want a one-shot snapshot of a ViewDefinition without standing up a continuous `AidboxTopicDestination`. {% endhint %}
 
-When a new destination is created with `skipInitialExport` not set to `true`, the module exports the **current state** of every row in `sof.<view>` — one row per resource the ViewDefinition matches.
+When a new destination is created with `skipInitialExport` not set to `true`, the module exports the **current state** of every row in `sof.<view>`.
 
 - **Updates after destination creation** append a new row each (`POST` / `PUT` / `DELETE`), accumulating a full audit trail.
 - **Pre-existing history is not exported.** Initial export reads each resource's current row from `sof.<view>`, not Aidbox's `_history` table. Run a one-off ETL from `_history` before destination creation if you need older versions.
-
-To skip the initial export (e.g., the table is already populated or you only need forward-going data), add `skipInitialExport` to the destination's `parameter` array:
-
-```json
-{ "name": "skipInitialExport", "valueBoolean": true }
-```
 
 ### How it works
 
@@ -235,7 +229,7 @@ The continuous worker starts polling the PG queue **immediately after destinatio
 
 ### Large-scale initial export
 
-For large tables, set `initialExportChunkCount` to split the initial export into parallel chunks. Initial export uses the same bulk engine as [`$viewdefinition-export`](../../modules/sql-on-fhir/operation-viewdefinition-export.md); use its [large-scale execution guide](../../modules/sql-on-fhir/operation-viewdefinition-export.md#large-scale-and-multi-pod-execution) for sizing, substituting `initialExportChunkCount` for `chunkCount`.
+For large tables, set `initialExportChunkCount` to split the initial export into parallel chunks. Initial export uses the same bulk engine as [`$viewdefinition-export`](../../modules/sql-on-fhir/operation-viewdefinition-export.md); use its [large-scale execution section](../../modules/sql-on-fhir/operation-viewdefinition-export.md#large-scale-and-multi-pod-execution) for sizing, substituting `initialExportChunkCount` for `chunkCount`.
 
 ## Retry behavior
 
