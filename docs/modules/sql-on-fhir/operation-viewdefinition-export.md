@@ -241,8 +241,8 @@ $$
 \,\right)
 $$
 
-- $$S$$ — **`scheduler-executor-threads`** per pod ([Aidbox setting](../../reference/all-settings.md#scheduler-executor-threads)). This is the **hard per-pod cap** on async-api task execution. Excess chunks queue in `db_scheduler.scheduled_tasks` with `picked=false` and wait.
-- $$H$$ — Aidbox DB pool size per pod (`BOX_DB_POOL_MAX` / HikariCP `maximumPoolSize`).
+- $$S$$ — **[`scheduler-executor-threads`](../../reference/all-settings.md#scheduler-executor-threads)** per pod. This is the **hard per-pod cap** on async-api task execution. Excess chunks queue in `db_scheduler.scheduled_tasks` with `picked=false` and wait.
+- $$H$$ — Aidbox DB pool size per pod: [`db.pool.maximum-pool-size`](../../reference/all-settings.md#db.pool.maximum-pool-size) (`BOX_DB_POOL_MAXIMUM_POOL_SIZE` / HikariCP `maximumPoolSize`).
 - $$R$$ — DB connections reserved for normal Aidbox traffic, sender workers, status polling, and coordinator work. The current kick-off guard uses `R = 4`.
 
 Each running chunk holds a long-lived PostgreSQL cursor connection while reading `sof.<view>`. It may also need short-lived DB work around task execution and status/cancel checks, so do not size chunk parallelism up to the full pool.
@@ -261,7 +261,7 @@ Concrete starting points:
 | 2-4 pods (HA) | `16`                   | Survives a pod restart mid-export.       |
 | 4+ pods       | `32`                   | Cap by scheduler threads and DB pool.    |
 
-Raise [`scheduler-executor-threads`](../../reference/all-settings.md#scheduler-executor-threads) (default `10`) in step with `chunkCount` if you want a single pod to run more than ~10 chunks in parallel — otherwise the surplus chunks just queue. Also raise `BOX_DB_POOL_MAX` if the kick-off guard rejects the requested value.
+Raise [`scheduler-executor-threads`](../../reference/all-settings.md#scheduler-executor-threads) in step with `chunkCount` if you want a single pod to run more than ~10 chunks in parallel — otherwise the surplus chunks just queue. Also raise [`db.pool.maximum-pool-size`](../../reference/all-settings.md#db.pool.maximum-pool-size) if the kick-off guard rejects the requested value.
 
 ### JVM heap
 
@@ -271,7 +271,7 @@ $$
 \min(N, \text{scheduler-executor-threads}) \times \text{targetFileSizeMb}
 $$
 
-If you raise `chunkCount` beyond a few chunks per pod, bump JVM `-Xmx` proportionally (via the [`JAVA_OPTS`](../../reference/all-settings.md#java-opts) setting) or lower `targetFileSizeMb`. The default Aidbox heap fits a single-cursor (`chunkCount=1`) export comfortably but is the first thing to OOM under aggressive parallelism. There is no warning at kick-off — the symptom is `java.lang.OutOfMemoryError: Java heap space` mid-export.
+If you raise `chunkCount` beyond a few chunks per pod, bump JVM `-Xmx` proportionally (via [`JAVA_OPTS`](../../reference/all-settings.md#java-opts)) or lower `targetFileSizeMb`. The default Aidbox heap fits a single-cursor (`chunkCount=1`) export comfortably but is the first thing to OOM under aggressive parallelism. There is no warning at kick-off — the symptom is `java.lang.OutOfMemoryError: Java heap space` mid-export.
 
 ## Differences vs `AidboxTopicDestination` initial export
 
