@@ -61,7 +61,6 @@ Unity Catalog tables come in two flavours:
 | Predictive Optimization           | Enabled by default for accounts created on or after **2024-11-11**; runs `OPTIMIZE` / `VACUUM` / `ANALYZE` automatically. Billed under the **Jobs Serverless** SKU. | **Not supported** — Predictive Optimization runs only on managed tables                          |
 | Liquid Clustering                 | Opt-in per table (automatic liquid clustering requires Predictive Optimization and is also opt-in)                                                                  | Opt-in per table                                                                                 |
 
-
 ## Overview
 
 The module exports FHIR resources from Aidbox to a Delta Lake table in a flattened format using [ViewDefinitions](../../modules/sql-on-fhir/defining-flat-views-with-view-definitions.md) (SQL-on-FHIR).
@@ -411,7 +410,7 @@ export AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output tex
 # Databricks' own AWS account. Hardcoded for commercial AWS regions —
 # Databricks publishes this account ID and uses it for every commercial
 # workspace. **GovCloud customers use a different ID**: see Databricks'
-# AWS GovCloud setup docs for the value to substitute here. 
+# AWS GovCloud setup docs for the value to substitute here.
 export DATABRICKS_AWS_ACCOUNT_ID=414351767826
 
 # Unity Catalog resource names created in later steps.
@@ -700,15 +699,15 @@ databricks grants update external-location "$EXTERNAL_LOCATION_NAME" --json '{
 {% tab title="managed-sql" %}
 Identical privilege set to `managed-zerobus` — the SQL warehouse is hit on every batch instead of only at bootstrap + initial-bulk:
 
-| Privilege                                            | Granted on            | Purpose                                                                                                                                                                                                                                         |
-| ---------------------------------------------------- | --------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `USE_CATALOG`                                        | the catalog           | navigate the catalog                                                                                                                                                                                                                            |
-| `USE_SCHEMA`                                         | the target schema     | resolve the target table                                                                                                                                                                                                                        |
-| `SELECT`, `MODIFY`                                   | the target table      | `DESCRIBE` + every-batch `INSERT` + initial-bulk `MERGE INTO`                                                                                                                                                                                   |
-| `USE_SCHEMA`, `EXTERNAL_USE_SCHEMA`, `CREATE_TABLE`  | the staging schema    | resolve the sibling schema, vend STS for the staging table, and let the sender register it (initial-export only)                                                                                                                                |
-| `READ_FILES`, `WRITE_FILES`, `CREATE_EXTERNAL_TABLE` | the External Location | write bulk Parquet via vended STS (initial-export only)                                                                                                                                                                                         |
+| Privilege                                            | Granted on            | Purpose                                                                                                                                                                                                                               |
+| ---------------------------------------------------- | --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `USE_CATALOG`                                        | the catalog           | navigate the catalog                                                                                                                                                                                                                  |
+| `USE_SCHEMA`                                         | the target schema     | resolve the target table                                                                                                                                                                                                              |
+| `SELECT`, `MODIFY`                                   | the target table      | `DESCRIBE` + every-batch `INSERT` + initial-bulk `MERGE INTO`                                                                                                                                                                         |
+| `USE_SCHEMA`, `EXTERNAL_USE_SCHEMA`, `CREATE_TABLE`  | the staging schema    | resolve the sibling schema, vend STS for the staging table, and let the sender register it (initial-export only)                                                                                                                      |
+| `READ_FILES`, `WRITE_FILES`, `CREATE_EXTERNAL_TABLE` | the External Location | write bulk Parquet via vended STS (initial-export only)                                                                                                                                                                               |
 | `EXTERNAL_USE_LOCATION`                              | the External Location | vend path-credentials so the module can recursive-delete orphan Parquet / `_delta_log/` left from prior runs before the next `CREATE TABLE` — without this grant cleanup is skipped and files accumulate, but init-export still works |
-| `CAN_USE`                                            | the SQL warehouse     | every-batch INSERT + bootstrap + initial-bulk — already granted in the SP/warehouse step                                                                                                                                                        |
+| `CAN_USE`                                            | the SQL warehouse     | every-batch INSERT + bootstrap + initial-bulk — already granted in the SP/warehouse step                                                                                                                                              |
 
 Catalog-level navigate grant:
 
@@ -973,6 +972,7 @@ curl -u <client-name>:<client-secret> -X POST "$AIDBOX_URL/fhir/AidboxTopicDesti
 }
 EOF
 ```
+
 {% endtab %}
 
 {% tab title="managed-sql" %}
@@ -1009,6 +1009,7 @@ curl -u <client-name>:<client-secret> -X POST "$AIDBOX_URL/fhir/AidboxTopicDesti
 }
 EOF
 ```
+
 {% endtab %}
 {% endtabs %}
 
