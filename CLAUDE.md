@@ -16,6 +16,22 @@ redirects.yaml  — URL redirects
 
 ## Writing Documentation
 
+### Writing style (no slop)
+
+Prose in `docs/` must read like a human wrote it, not a model. Apply these rules to every paragraph you draft or edit:
+
+- **No em dashes.** Use a comma, colon, period, or parentheses instead. Reference lists use `term: description`, not `term — description`.
+- **No adverbs.** Cut `-ly` words and the usual fillers: `just`, `really`, `actually`, `simply`, `automatically`, `programmatically`, `silently`, `continuously`, `immediately`, `frequently`, `entirely`, `fundamentally`, `inherently`.
+- **Active voice with a named actor.** "Aidbox persists the message", not "the message is persisted". When the actor is the reader, use `you`. Avoid inanimate things doing human verbs ("the decision emerges", "the data tells us").
+- **No throat-clearing openers.** Cut `Here's what…`, `It turns out`, `The truth is`, `At its core`, `It's worth noting`, `When it comes to`. State the point.
+- **No "not X, it's Y" contrasts** or negative listings. State Y directly.
+- **No vague declaratives.** Replace "the implications are significant" with the specific implication.
+- **No meta-commentary.** Don't announce sections (`In this section we'll…`, `Let me walk you through…`); let the page move.
+- **Vary rhythm.** Mix sentence lengths. Two items often beat three. Don't end every paragraph with a punchy fragment.
+- **Trust the reader.** Skip softeners, restatements, and pull-quote lines.
+
+Run `/stop-slop <file>` on a finished page (or section) to flush remaining patterns. The full rule set lives in `.claude/skills/stop-slop/` (`SKILL.md`, `references/phrases.md`, `references/structures.md`).
+
 ### Setup
 
 Run `bun install` once after cloning — this installs docs-tools and sets up git hooks.
