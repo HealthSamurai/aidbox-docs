@@ -236,14 +236,32 @@ By default every export writes to the storage configured by the `BOX_FHIR_BULK_S
 
 Only the fields you pass are overridden; the rest are taken from the configured settings, which must still be set and valid — the override is merged on top of the resolved configuration, not used instead of it. For example, passing only `_aidbox.storageBucket` writes to a different bucket while keeping the configured provider and account.
 
+{% tabs %}
+{% tab title="GET" %}
 ```http
 GET /fhir/$export?_type=Patient&_aidbox.storageBucket=tenant-a-exports
 Prefer: respond-async
 ```
+{% endtab %}
+
+{% tab title="POST" %}
+```json
+{
+  "resourceType": "Parameters",
+  "parameter": [
+    { "name": "_type", "valueString": "Patient" },
+    { "name": "_aidbox.storageBucket", "valueString": "tenant-a-exports" }
+  ]
+}
+```
+{% endtab %}
+{% endtabs %}
 
 ## Parameters
 
-The `$export` operation accepts several parameters to customize the export: **query parameters on GET**, or the same parameters inside a **FHIR Parameters resource** when you use **POST** on patient- and group-level exports (see [POST with a Parameters body](#post-with-a-parameters-body-patient-and-group)). Supported parameter names are `_outputFormat`, `_since`, `_until`, `_type`, `_typeFilter`, and `patient`.
+The `$export` operation accepts several parameters to customize the export: **query parameters on GET**, or the same parameters inside a **FHIR Parameters resource** when you use **POST** on patient- and group-level exports (see [POST with a Parameters body](#post-with-a-parameters-body-patient-and-group)). Supported parameter names are `_outputFormat`, `_since`, `_until`, `_type`, `_typeFilter`, `patient`, and `onPatientError`.
+
+Aidbox extensions add more parameters where they apply: `consentStrategy` / `consentProfile` / `organizationIdentifierSystem` for [consent-based patient filtering](#consent-based-patient-filtering) (group level), and `_aidbox.*` for [overriding storage per request](#overriding-storage-per-request) (all levels).
 
 | Parameter       | Description |
 | --------------- | ----------- |
@@ -275,10 +293,11 @@ Each parameter uses the same name as its query-string counterpart. The value typ
 | `_type`         | `valueString`    |
 | `_typeFilter`   | `valueString`    |
 | `patient`       | `valueReference` |
+| `onPatientError` | `valueCode`     |
 
 For `patient`, set `valueReference.reference` to `Patient/{id}`. For `_type`, use one part with comma-separated resource types or repeat `_type` several times; Aidbox joins all `_type` values into one comma-separated list. Repeat `_typeFilter` or `patient` parts when you need multiple values.
 
-Any other parameter name in the body returns **400** with an operation outcome. Unknown or invalid `_typeFilter` syntax, search errors, or patient ids that do not exist (or are not in the group, for group export) also return **400**.
+Parameter validation against the `BulkExportProfile` slice returns **422** with an operation outcome describing the violation. Common cases: an unrecognized parameter name (`unmatched-element-in-closed-slicing`), or a known name with the wrong value type — e.g. `onPatientError` with `valueString` instead of `valueCode` (`wrong-union-type`). Invalid `_typeFilter` syntax and search errors return **400**. Invalid `patient` references — malformed input, a non-existent Patient, or a Patient that is not a member of the requested Group — return **422** by default; set [`onPatientError=ignore`](#lenient-patient-handling) to drop them and continue.
 
 **Example:** POST `/fhir/Patient/$export`
 
@@ -301,48 +320,6 @@ Prefer: respond-async
   ]
 }
 ```
-
-## Storage override parameters
-
-{% hint style="info" %}
-Available since version 2605.
-{% endhint %}
-
-You can override the system-level cloud storage configuration on a per-request basis using Aidbox-specific parameters. This is useful when different export jobs need to write to different buckets or storage accounts.
-
-Storage override parameters use the `_aidbox.` prefix to distinguish them from standard FHIR parameters:
-
-| Parameter                  | Type        | Description                                                    |
-| -------------------------- | ----------- | -------------------------------------------------------------- |
-| `_aidbox.storageProvider`  | `string`    | Storage provider type: `gcp`, `aws`, or `azure`.               |
-| `_aidbox.storageBucket`    | `string`    | Bucket name (GCP or AWS S3).                                   |
-| `_aidbox.storageAccount`   | `Reference` | Cloud account resource reference (e.g. `AwsAccount/my-acct`).  |
-| `_aidbox.azureStorage`     | `string`    | Azure storage account name.                                    |
-| `_aidbox.azureContainer`   | `string`    | Azure blob container name.                                     |
-
-These parameters can be passed as GET query parameters or in a POST Parameters body. Only the parameters you specify are overridden; unspecified values fall back to the system-level settings.
-
-{% tabs %}
-{% tab title="GET" %}
-```http
-GET /fhir/Group/grp-1/$export?_type=Patient&_aidbox.storageBucket=custom-bucket&_aidbox.storageProvider=gcp
-```
-{% endtab %}
-
-{% tab title="POST" %}
-```json
-{
-  "resourceType": "Parameters",
-  "parameter": [
-    { "name": "_type", "valueString": "Patient" },
-    { "name": "_aidbox.storageProvider", "valueString": "aws" },
-    { "name": "_aidbox.storageBucket", "valueString": "custom-bucket" },
-    { "name": "_aidbox.storageAccount", "valueReference": { "reference": "AwsAccount/my-acct" } }
-  ]
-}
-```
-{% endtab %}
-{% endtabs %}
 
 ## Patient-level export
 
@@ -664,7 +641,7 @@ Available since version 2605.
 
 By default, `$export` returns **422** when a `patient` reference is malformed, points at a non-existent Patient, or names a Patient that is not a member of the specified Group. This follows the base [FHIR Bulk Data Export](https://hl7.org/fhir/uv/bulkdata/export.html) specification.
 
-The [Da Vinci `$davinci-data-export`](http://hl7.org/fhir/us/davinci-atr/OperationDefinition-davinci-data-export.html) specification requires different behavior: invalid patient references should be silently ignored and the export should proceed with the valid ones.
+The [Da Vinci `$davinci-data-export`](https://hl7.org/fhir/us/davinci-atr/OperationDefinition-davinci-data-export.html) specification requires different behavior: invalid patient references should be silently ignored and the export should proceed with the valid ones.
 
 Set `onPatientError=ignore` to switch to lenient behavior. Accepted on **Group** and **Patient** level `$export`, via POST Parameters body or GET query string.
 
@@ -680,7 +657,7 @@ Each dropped reference produces one `OperationOutcome` with a single warning iss
 | Reason                                                                              | `issue.code`    |
 | ----------------------------------------------------------------------------------- | --------------- |
 | Reference points at a Patient that does not exist                                   | `not-found`     |
-| Patient exists but is not a member of the requested Group                           | `business-rule` |
+| Patient exists but is not a member of the requested Group (group-level export only) | `business-rule` |
 | Reference is malformed (wrong resource type, `valueString` instead of `valueReference`, missing `valueReference`) | `value`         |
 
 `issue.expression` points back at the offending input slot, e.g. `Parameters.parameter[3]`, which is useful when a request lists many patient refs.
@@ -693,10 +670,14 @@ If every requested `patient` reference is dropped, the server still returns **20
 
 {% tabs %}
 {% tab title="Request" %}
-```json
+```http
 POST /fhir/Group/grp-1/$export
+Accept: application/fhir+json
 Content-Type: application/fhir+json
+Prefer: respond-async
+```
 
+```json
 {
   "resourceType": "Parameters",
   "parameter": [
