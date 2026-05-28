@@ -36,6 +36,16 @@ Per-tab settings:
 
 Stop button cancels the running query via [`$psql-cancel`](../../api/rest-api/other/sql-endpoints.md#usdpsql-cancel). The `Tab` key indents inside the editor; `EXPLAIN` plans render as a monospace block. Each tab keeps its own settings, query text, and running state. Backed by the [`$psql` endpoint](../../api/rest-api/other/sql-endpoints.md#usdpsql).
 
+### Database
+
+Available since Aidbox 2605. A DBA-focused page at `/u/database` with three subpages:
+
+* **Schema Explorer** — every table across all user schemas, grouped by schema. Per-table size, row count, index/toast share, and time since last (auto)vacuum/(auto)analyze. Click a row to inspect its indexes and run `VACUUM`, `ANALYZE`, `REINDEX`, or `TRUNCATE`.
+* **Running Queries** — `pg_stat_activity` snapshot of active queries, refreshed every 5 seconds. Cancel a statement (`pg_cancel_backend`) or terminate the whole connection (`pg_terminate_backend`) from the row.
+* **Search Params Stats** — paginated, sortable view of `aidbox_stat.search_param_stats`. Filter by resource type or search-param substring, drop stats for the selected rows, or reset everything. See [Search Parameters Usage Statistics](../../deployment-and-maintenance/indexes/search-parameter-usage-stats.md) for the underlying data model.
+
+Backed by the [`aidbox.pg/*`](../../database/database-maintenance-rpcs.md) and [`aidbox.index/*`](../../deployment-and-maintenance/indexes/search-parameter-usage-stats.md) RPCs.
+
 ### FHIR Packages
 
 Browse, install, and manage FHIR Implementation Guides and NPM packages loaded into Aidbox via the [FHIR Artifact Registry](../../artifact-registry/artifact-registry-overview.md). Inspect individual resources within each package.
