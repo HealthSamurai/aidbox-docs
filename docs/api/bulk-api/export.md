@@ -253,6 +253,7 @@ The `$export` operation accepts several parameters to customize the export: **qu
 | `_until`        | Includes only resources whose **last modification time** is **before** the given instant (`ts < _until`). ISO 8601 format. Together with `_since`, this defines an open window on the modification timestamp. |
 | `_typeFilter`   | Restricts exported rows using FHIR search criteria **per resource type**, in the form `ResourceType?searchParams` (same idea as the [FHIR Bulk Data `_typeFilter`](https://hl7.org/fhir/uv/bulkdata/export.html) parameter). You may repeat `_typeFilter` multiple times. Multiple filters for the **same** resource type are combined with **OR**. If `_type` is present, every type used in `_typeFilter` must also appear in `_type`; types listed in `_type` but without a filter are exported in full. Standard FHIR search parameters such as `_id` are allowed. Not allowed inside the search part: `_sort`, `_count`, `_page`, `_total`, `_summary`, `_elements`, `_include`, `_revinclude`, `_has`, `_assoc`, `_with`. |
 | `patient`       | Restricts the export to specific patients. **GET:** comma-separated patient **ids** (not full references), e.g. `patient=pt-1,pt-2`. Supported only on **patient-level** GET. **POST:** repeat a `parameter` named `patient`, each with `valueReference.reference` set to `Patient/{id}`. Supported on **patient-level** and **group-level** POST; for group export, every listed patient must exist and be a **member** of that group. |
+| `onPatientError` | Controls behavior when a `patient` reference is malformed, points at a non-existent Patient, or names a Patient that is not a member of the requested Group. `fail` (default): abort with **422**. `ignore`: drop the offending refs, proceed with the rest, and record each dropped ref as an inline `OperationOutcome` warning in `BulkExportStatus.params.patient-errors`. See [Lenient patient handling](#lenient-patient-handling). |
 
 ### POST with a Parameters body (patient and group)
 
@@ -300,6 +301,48 @@ Prefer: respond-async
   ]
 }
 ```
+
+## Storage override parameters
+
+{% hint style="info" %}
+Available since version 2605.
+{% endhint %}
+
+You can override the system-level cloud storage configuration on a per-request basis using Aidbox-specific parameters. This is useful when different export jobs need to write to different buckets or storage accounts.
+
+Storage override parameters use the `_aidbox.` prefix to distinguish them from standard FHIR parameters:
+
+| Parameter                  | Type        | Description                                                    |
+| -------------------------- | ----------- | -------------------------------------------------------------- |
+| `_aidbox.storageProvider`  | `string`    | Storage provider type: `gcp`, `aws`, or `azure`.               |
+| `_aidbox.storageBucket`    | `string`    | Bucket name (GCP or AWS S3).                                   |
+| `_aidbox.storageAccount`   | `Reference` | Cloud account resource reference (e.g. `AwsAccount/my-acct`).  |
+| `_aidbox.azureStorage`     | `string`    | Azure storage account name.                                    |
+| `_aidbox.azureContainer`   | `string`    | Azure blob container name.                                     |
+
+These parameters can be passed as GET query parameters or in a POST Parameters body. Only the parameters you specify are overridden; unspecified values fall back to the system-level settings.
+
+{% tabs %}
+{% tab title="GET" %}
+```http
+GET /fhir/Group/grp-1/$export?_type=Patient&_aidbox.storageBucket=custom-bucket&_aidbox.storageProvider=gcp
+```
+{% endtab %}
+
+{% tab title="POST" %}
+```json
+{
+  "resourceType": "Parameters",
+  "parameter": [
+    { "name": "_type", "valueString": "Patient" },
+    { "name": "_aidbox.storageProvider", "valueString": "aws" },
+    { "name": "_aidbox.storageBucket", "valueString": "custom-bucket" },
+    { "name": "_aidbox.storageAccount", "valueReference": { "reference": "AwsAccount/my-acct" } }
+  ]
+}
+```
+{% endtab %}
+{% endtabs %}
 
 ## Patient-level export
 
@@ -467,3 +510,249 @@ Prefer: respond-async
 {% endtabs %}
 
 The status endpoint works the same way as other export levels. Poll `/fhir/$export-status/<id>` to check progress, and send a DELETE request to cancel.
+
+## Consent-based patient filtering
+
+{% hint style="info" %}
+Available since version 2605.
+{% endhint %}
+
+Group-level export can filter patients based on FHIR [Consent](https://hl7.org/fhir/r4/consent.html) resources. This enables workflows where patient data sharing requires explicit agreement (opt-in) or where patients can refuse sharing (opt-out) — for example, [Da Vinci PDex](https://hl7.org/fhir/us/davinci-pdex/STU2.1/) payer-to-payer exchange and provider access.
+
+| Parameter                        | Type   | Cardinality | Description                                                                            |
+| -------------------------------- | ------ | ----------- | -------------------------------------------------------------------------------------- |
+| `consentStrategy`                | `code` | 0..1        | `opt-in` or `opt-out`. Determines how consents affect patient inclusion.                |
+| `consentProfile`                 | `uri`  | 0..1        | StructureDefinition URL to filter consents by `meta.profile`. Omit to match any Consent.|
+| `organizationIdentifierSystem`   | `uri`  | 0..1        | Which `Organization.identifier.system` to use for actor matching (opt-in only).          |
+
+{% hint style="warning" %}
+For `opt-in`, both `organizationIdentifierSystem` and a JWT token with `extensions.hl7-b2b.organization_id` are required. Missing either returns **422**.
+{% endhint %}
+
+### Consent resource requirements
+
+Consent resources must have:
+
+- `status` = `active`
+- `provision.type` = `permit` (for opt-in) or `deny` (for opt-out)
+- `provision.period` with `start` and `end` covering the current date
+- `meta.profile` matching `consentProfile` (if specified)
+
+For **opt-in**, the Consent must also have `provision.actor` entries with:
+
+- An actor with `role.coding[0].code` = `performer` referencing the **source** Organization (the requesting payer)
+- An actor with `role.coding[0].code` = `IRCP` referencing the **recipient** Organization (resolved from `Group.managingEntity`)
+
+Both organizations are matched by their `identifier` where `system` equals `organizationIdentifierSystem`.
+
+### Opt-out strategy
+
+All group members are included by default. Members are excluded only if they have an active Consent with `provision.type = "deny"` matching the specified profile and a valid period covering the current date.
+
+{% tabs %}
+{% tab title="GET" %}
+```http
+GET /fhir/Group/grp-1/$export?_type=Patient&consentStrategy=opt-out&consentProfile=http://hl7.org/fhir/us/davinci-pdex/StructureDefinition/pdex-provider-consent
+```
+{% endtab %}
+
+{% tab title="POST" %}
+```json
+{
+  "resourceType": "Parameters",
+  "parameter": [
+    { "name": "_type", "valueString": "Patient" },
+    { "name": "consentStrategy", "valueCode": "opt-out" },
+    { "name": "consentProfile", "valueUri": "http://hl7.org/fhir/us/davinci-pdex/StructureDefinition/pdex-provider-consent" }
+  ]
+}
+```
+{% endtab %}
+{% endtabs %}
+
+### Opt-in strategy
+
+No members are included by default. Members are included only if they have an active Consent with `provision.type = "permit"`, matching source and recipient organization actors, and a valid period.
+
+The **source organization** is identified from the JWT access token's [UDAP B2B Authorization Extension](https://build.fhir.org/ig/HL7/fhir-udap-security-ig/branches/master/b2b.html) (`extensions.hl7-b2b.organization_id`). The **recipient organization** is resolved from `Group.managingEntity`, using the `organizationIdentifierSystem` to select the correct identifier.
+
+{% tabs %}
+{% tab title="GET" %}
+```http
+GET /fhir/Group/grp-1/$export?_type=Patient&consentStrategy=opt-in&consentProfile=http://hl7.org/fhir/us/davinci-hrex/StructureDefinition/hrex-consent&organizationIdentifierSystem=urn:oid:2.16.840.1.113883.4.4
+```
+{% endtab %}
+
+{% tab title="POST" %}
+```json
+{
+  "resourceType": "Parameters",
+  "parameter": [
+    { "name": "_type", "valueString": "Patient" },
+    { "name": "consentStrategy", "valueCode": "opt-in" },
+    { "name": "consentProfile", "valueUri": "http://hl7.org/fhir/us/davinci-hrex/StructureDefinition/hrex-consent" },
+    { "name": "organizationIdentifierSystem", "valueUri": "urn:oid:2.16.840.1.113883.4.4" }
+  ]
+}
+```
+{% endtab %}
+{% endtabs %}
+
+### UDAP B2B token configuration
+
+For opt-in workflows, the requesting client must present a **JWT** access token containing the B2B extension. The Client must be configured with `token_format: "jwt"` in the `client_credentials` auth settings — opaque tokens do not carry B2B claims.
+
+Add the `client-hl7B2b` extension to your Client resource:
+
+```json
+{
+  "resourceType": "Client",
+  "id": "payer-client",
+  "grant_types": ["client_credentials"],
+  "auth": {
+    "client_credentials": {
+      "token_format": "jwt"
+    }
+  },
+  "extension": [
+    {
+      "url": "http://health-samurai.io/fhir/core/StructureDefinition/client-hl7B2b",
+      "extension": [
+        {
+          "url": "organization",
+          "valueReference": { "reference": "Organization/my-org" }
+        },
+        {
+          "url": "organizationIdentifierSystem",
+          "valueUri": "urn:oid:2.16.840.1.113883.4.4"
+        },
+        {
+          "url": "purposeOfUse",
+          "valueCoding": {
+            "system": "http://terminology.hl7.org/CodeSystem/v3-ActReason",
+            "code": "HPAYMT"
+          }
+        }
+      ]
+    }
+  ]
+}
+```
+
+When this extension is present, `/auth/token` includes the [UDAP B2B Authorization Extension](https://build.fhir.org/ig/HL7/fhir-udap-security-ig/branches/master/b2b.html) in the JWT:
+
+```json
+{
+  "extensions": {
+    "hl7-b2b": {
+      "version": "1",
+      "organization_id": "urn:oid:2.16.840.1.113883.4.4#12-3456789",
+      "organization_name": "My Organization",
+      "purpose_of_use": ["http://terminology.hl7.org/CodeSystem/v3-ActReason#HPAYMT"]
+    }
+  }
+}
+```
+
+The `organization_id` is resolved from the referenced Organization's identifier where `system` matches `organizationIdentifierSystem`.
+
+## Lenient patient handling
+
+{% hint style="info" %}
+Available since version 2605.
+{% endhint %}
+
+By default, `$export` returns **422** when a `patient` reference is malformed, points at a non-existent Patient, or names a Patient that is not a member of the specified Group. This follows the base [FHIR Bulk Data Export](https://hl7.org/fhir/uv/bulkdata/export.html) specification.
+
+The [Da Vinci `$davinci-data-export`](http://hl7.org/fhir/us/davinci-atr/OperationDefinition-davinci-data-export.html) specification requires different behavior: invalid patient references should be silently ignored and the export should proceed with the valid ones.
+
+Set `onPatientError=ignore` to switch to lenient behavior. Accepted on **Group** and **Patient** level `$export`, via POST Parameters body or GET query string.
+
+| `onPatientError` | Behavior |
+| ---------------- | -------- |
+| `fail` (default) | Abort with **422** if any `patient` reference fails validation. |
+| `ignore`         | Drop the offending references, proceed with the rest, and record each dropped reference as an inline `OperationOutcome` in `BulkExportStatus.params.patient-errors`. |
+
+### Drop categories
+
+Each dropped reference produces one `OperationOutcome` with a single warning issue. `issue.code` is a standard [FHIR issue-type](https://hl7.org/fhir/R4/valueset-issue-type.html) code:
+
+| Reason                                                                              | `issue.code`    |
+| ----------------------------------------------------------------------------------- | --------------- |
+| Reference points at a Patient that does not exist                                   | `not-found`     |
+| Patient exists but is not a member of the requested Group                           | `business-rule` |
+| Reference is malformed (wrong resource type, `valueString` instead of `valueReference`, missing `valueReference`) | `value`         |
+
+`issue.expression` points back at the offending input slot, e.g. `Parameters.parameter[3]`, which is useful when a request lists many patient refs.
+
+### Empty result
+
+If every requested `patient` reference is dropped, the server still returns **202** with a `Content-Location` header. The synthesized status is `completed` with an empty `output[]` and the warnings in `params.patient-errors`. No async export job runs.
+
+### Example
+
+{% tabs %}
+{% tab title="Request" %}
+```json
+POST /fhir/Group/grp-1/$export
+Content-Type: application/fhir+json
+
+{
+  "resourceType": "Parameters",
+  "parameter": [
+    { "name": "_type", "valueString": "Patient" },
+    { "name": "onPatientError", "valueCode": "ignore" },
+    { "name": "patient", "valueReference": { "reference": "Patient/valid-member" } },
+    { "name": "patient", "valueReference": { "reference": "Patient/non-existent" } },
+    { "name": "patient", "valueReference": { "reference": "Patient/outsider" } },
+    { "name": "patient", "valueReference": { "reference": "Organization/foo" } }
+  ]
+}
+```
+{% endtab %}
+
+{% tab title="BulkExportStatus on completion" %}
+```json
+{
+  "resourceType": "BulkExportStatus",
+  "status": "completed",
+  "output": [
+    { "type": "Patient", "url": "https://storage/...", "count": 1 }
+  ],
+  "params": {
+    "patient-errors": [
+      {
+        "resourceType": "OperationOutcome",
+        "issue": [{
+          "severity": "warning",
+          "code": "not-found",
+          "diagnostics": "Patient/non-existent ignored: not found",
+          "expression": ["Parameters.parameter[3]"]
+        }]
+      },
+      {
+        "resourceType": "OperationOutcome",
+        "issue": [{
+          "severity": "warning",
+          "code": "business-rule",
+          "diagnostics": "Patient/outsider ignored: not a member of Group/grp-1",
+          "expression": ["Parameters.parameter[4]"]
+        }]
+      },
+      {
+        "resourceType": "OperationOutcome",
+        "issue": [{
+          "severity": "warning",
+          "code": "value",
+          "diagnostics": "Patient reference ignored: invalid format (Organization/foo)",
+          "expression": ["Parameters.parameter[5]"]
+        }]
+      }
+    ]
+  }
+}
+```
+{% endtab %}
+{% endtabs %}
+
+The status `error[]` array is **not** used here. Per the Bulk Data spec it is reserved for links to NDJSON files of `OperationOutcome` resources produced during the export — a separate channel from per-request validation warnings.
