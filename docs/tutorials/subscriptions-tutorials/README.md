@@ -36,13 +36,13 @@ Route FHIR resource events to AWS EventBridge for serverless processing.
 {% card icon="assets/brand-icons/aws.svg" title="AWS SNS" href="aidboxtopicsubscription-sns-tutorial.md" %}
 Stream FHIR resource events to AWS SNS for pub/sub messaging and fan-out notifications.
 {% endcard %}
-{% card icon="assets/brand-icons/nats.png" title="NATS" href="aidboxtopicsubscription-nats-tutorial.md" %}
+{% card icon="assets/brand-icons/nats.avif" title="NATS" href="aidboxtopicsubscription-nats-tutorial.md" %}
 Integrate Aidbox topic-based subscriptions with NATS and NATS JetStream.
 {% endcard %}
 {% card icon="assets/brand-icons/rabbitmq.svg" title="RabbitMQ" href="rabbitmq-tutorial.md" %}
 Connect Aidbox subscriptions to RabbitMQ over AMQP for real-time FHIR events.
 {% endcard %}
-{% card icon="assets/brand-icons/activemq.png" title="ActiveMQ" href="activemq-tutorial.md" %}
+{% card icon="assets/brand-icons/activemq.avif" title="ActiveMQ" href="activemq-tutorial.md" %}
 Integrate Aidbox subscriptions with ActiveMQ using AMQP 1.0 for event streaming.
 {% endcard %}
 {% endcards %}

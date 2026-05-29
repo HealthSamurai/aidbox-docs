@@ -44,13 +44,13 @@ Export FHIR resources to ClickHouse with SQL-on-FHIR ViewDefinitions for real-ti
 {% card icon="assets/brand-icons/bigquery.svg" title="BigQuery" href="../../tutorials/subscriptions-tutorials/bigquery-aidboxtopicdestination.md" %}
 Export FHIR resources to Google BigQuery with SQL-on-FHIR ViewDefinitions.
 {% endcard %}
-{% card icon="assets/brand-icons/nats.png" title="NATS" href="../../tutorials/subscriptions-tutorials/aidboxtopicsubscription-nats-tutorial.md" %}
+{% card icon="assets/brand-icons/nats.avif" title="NATS" href="../../tutorials/subscriptions-tutorials/aidboxtopicsubscription-nats-tutorial.md" %}
 Integrate Aidbox topic-based subscriptions with NATS and NATS JetStream.
 {% endcard %}
 {% card icon="assets/brand-icons/rabbitmq.svg" title="RabbitMQ" href="../../tutorials/subscriptions-tutorials/rabbitmq-tutorial.md" %}
 Connect Aidbox subscriptions to RabbitMQ over AMQP for real-time FHIR events.
 {% endcard %}
-{% card icon="assets/brand-icons/activemq.png" title="ActiveMQ" href="../../tutorials/subscriptions-tutorials/activemq-tutorial.md" %}
+{% card icon="assets/brand-icons/activemq.avif" title="ActiveMQ" href="../../tutorials/subscriptions-tutorials/activemq-tutorial.md" %}
 Integrate Aidbox subscriptions with ActiveMQ using AMQP 1.0 for event streaming.
 {% endcard %}
 {% card icon="assets/brand-icons/aws.svg" title="AWS EventBridge" href="../../tutorials/subscriptions-tutorials/aws-eventbridge-aidboxtopicdestination.md" %}
