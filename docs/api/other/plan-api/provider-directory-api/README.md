@@ -19,18 +19,17 @@ We store provider information in these FHIR entities:
 * Location — a practitioner's location info (address) and telecom info (phone, email).
 * HealthcareService — services provided by a practitioner.
 
-{% content-ref url="practitioner.md" %}
-[practitioner.md](practitioner.md)
-{% endcontent-ref %}
-
-{% content-ref url="practitionerrole.md" %}
-[practitionerrole.md](practitionerrole.md)
-{% endcontent-ref %}
-
-{% content-ref url="organization.md" %}
-[organization.md](organization.md)
-{% endcontent-ref %}
-
-{% content-ref url="organizationaffiliation.md" %}
-[organizationaffiliation.md](organizationaffiliation.md)
-{% endcontent-ref %}
+{% cards %}
+{% card icon="user" title="Practitioner" href="practitioner.md" %}
+Practitioner resources with demographics, specialty, language, and NPI/IRS identifiers.
+{% endcard %}
+{% card icon="users" title="PractitionerRole" href="practitionerrole.md" %}
+Link practitioners with organizations, networks, locations, and healthcare services.
+{% endcard %}
+{% card icon="box" title="Organization" href="organization.md" %}
+Companies, institutions, healthcare practices, and community groups.
+{% endcard %}
+{% card icon="link" title="OrganizationAffiliation" href="organizationaffiliation.md" %}
+Relationships and shared services between organizations.
+{% endcard %}
+{% endcards %}

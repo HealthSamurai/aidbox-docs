@@ -6,25 +6,25 @@ description: Deploy Aidbox to Kubernetes, managed PostgreSQL, or with Helm chart
 
 ## Deployment guides
 
-{% content-ref url="run-aidbox-in-kubernetes/README.md" %}
-[Run Aidbox on Kubernetes](run-aidbox-in-kubernetes/README.md)
-{% endcontent-ref %}
-
-{% content-ref url="run-aidbox-on-managed-postgresql.md" %}
-[Run Aidbox on managed PostgreSQL](run-aidbox-on-managed-postgresql.md)
-{% endcontent-ref %}
-
-{% content-ref url="how-to-inject-env-variables-into-init-bundle.md" %}
-[How to inject env variables into Init Bundle](how-to-inject-env-variables-into-init-bundle.md)
-{% endcontent-ref %}
+{% cards %}
+{% card icon="assets/brand-icons/kubernetes.svg" title="Run Aidbox on Kubernetes" href="run-aidbox-in-kubernetes/README.md" %}
+Production-ready configurations with Helm charts, HA setup, and self-signed SSL.
+{% endcard %}
+{% card icon="database" title="Run on managed PostgreSQL" href="run-aidbox-on-managed-postgresql.md" %}
+AWS Aurora, Azure Database, GCP Cloud SQL, Databricks Lakebase. Extensions and user setup.
+{% endcard %}
+{% card icon="sliders" title="Inject env variables into Init Bundle" href="how-to-inject-env-variables-into-init-bundle.md" %}
+Inject environment variables with envsubst or sed for secrets and CI/CD pipelines.
+{% endcard %}
+{% endcards %}
 
 ## Cloud deployment tutorials
 
-{% content-ref url="../../tutorials/other-tutorials/how-to-run-aidbox-in-gcp-cloud-run.md" %}
-[how-to-run-aidbox-in-gcp-cloud-run.md](../../tutorials/other-tutorials/how-to-run-aidbox-in-gcp-cloud-run.md)
-{% endcontent-ref %}
-
-{% content-ref url="../../tutorials/other-tutorials/how-to-run-aidbox-in-azure-container-apps.md" %}
-[how-to-run-aidbox-in-azure-container-apps.md](../../tutorials/other-tutorials/how-to-run-aidbox-in-azure-container-apps.md)
-{% endcontent-ref %}
-
+{% cards %}
+{% card icon="assets/brand-icons/googlecloud.svg" title="Run Aidbox in GCP Cloud Run" href="../../tutorials/other-tutorials/how-to-run-aidbox-in-gcp-cloud-run.md" %}
+Deploy Aidbox on Google Cloud Run with Cloud SQL PostgreSQL.
+{% endcard %}
+{% card icon="assets/brand-icons/azure-container-apps.svg" title="Run Aidbox in Azure Container Apps" href="../../tutorials/other-tutorials/how-to-run-aidbox-in-azure-container-apps.md" %}
+Deploy Aidbox on Azure Container Apps with Azure Database for PostgreSQL.
+{% endcard %}
+{% endcards %}

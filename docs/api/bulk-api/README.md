@@ -8,25 +8,23 @@ Aidbox supports various options for the bulk import and export of data.
 
 The list of available Bulk API endpoints:
 
-{% content-ref url="dump.md" %}
-[dump.md](dump.md)
-{% endcontent-ref %}
-
-{% content-ref url="dump-sql.md" %}
-[dump-sql.md](dump-sql.md)
-{% endcontent-ref %}
-
-{% content-ref url="export.md" %}
-[export.md](export.md)
-{% endcontent-ref %}
-
-{% content-ref url="import-and-fhir-import.md" %}
-[import-and-fhir-import.md](import-and-fhir-import.md)
-{% endcontent-ref %}
-
-{% content-ref url="purge.md" %}
-[purge.md](purge.md)
-{% endcontent-ref %}
+{% cards %}
+{% card icon="download" title="$dump" href="dump.md" %}
+Export all FHIR resources of a type as NDJSON stream with chunked transfer encoding.
+{% endcard %}
+{% card icon="database" title="$dump-sql" href="dump-sql.md" %}
+Export SQL query results as CSV or NDJSON stream for analytics.
+{% endcard %}
+{% card icon="download" title="$export" href="export.md" %}
+Export FHIR resources in bulk to cloud storage backends.
+{% endcard %}
+{% card icon="upload" title="$import" href="import-and-fhir-import.md" %}
+Bulk import FHIR resources asynchronously with progress monitoring.
+{% endcard %}
+{% card icon="trash" title="$purge" href="purge.md" %}
+Permanently delete a Patient and all resources in their compartment.
+{% endcard %}
+{% endcards %}
 
 ## Read more
 

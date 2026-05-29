@@ -4,32 +4,18 @@ description: Manage Aidbox licenses, projects, and team members in the centraliz
 
 # Aidbox User Portal
 
-[Aidbox user portal](https://aidbox.app/ui/portal#/signup) allows you to get an [Aidbox license](./licenses.md) and share it with other users
+[Aidbox user portal](https://aidbox.app/ui/portal#/signup) allows you to get an [Aidbox license](./licenses.md) and share it with other users.
 
-## References
-
-### Licenses management
-
-Managing Aidbox licenses in a project
-
-{% content-ref url="licenses.md" %}
-[licenses.md](licenses.md)
-{% endcontent-ref %}
-
-### Projects management
-
-The project allows you to organize Aidbox licenses into groups
-
-{% content-ref url="projects.md" %}
-[projects.md](projects.md)
-{% endcontent-ref %}
-
-### Members management
-
-Invite your team to the project and manage licenses in a single place
-
-{% content-ref url="members.md" %}
-[members.md](members.md)
-{% endcontent-ref %}
+{% cards %}
+{% card icon="key" title="Licenses management" href="licenses.md" %}
+Get and manage Aidbox licenses inside a project.
+{% endcard %}
+{% card icon="box" title="Projects management" href="projects.md" %}
+Organize Aidbox licenses into projects.
+{% endcard %}
+{% card icon="users" title="Members management" href="members.md" %}
+Invite your team to the project and manage licenses in a single place.
+{% endcard %}
+{% endcards %}
 
 See also: [Migrate from legacy licence portal to Aidbox portal](../../tutorials/other-tutorials/migrate-from-legacy-licence-portal-to-aidbox-portal.md)

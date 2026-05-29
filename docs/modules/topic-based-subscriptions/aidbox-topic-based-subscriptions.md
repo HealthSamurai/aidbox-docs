@@ -26,6 +26,44 @@ For an application example, refer to [Aidbox Subscriptions & Kafka AidboxTopicDe
 * **`AidboxTopicDestination`** is a custom Aidbox resource that defines where and how the notifications triggered by an `AidboxSubscriptionTopic` should be sent. This resource offers flexibility in specifying various types of destinations. And is considered as a system configuration resource.
 * **`AidboxSubscriptionStatus`** is a custom Aidbox resource which describes the notifications: what messages stored in the bundle, source and destination.
 
+## Currently supported channels
+
+{% cards %}
+{% card icon="assets/brand-icons/webhook.svg" title="Webhook" href="../../tutorials/subscriptions-tutorials/webhook-aidboxtopicdestination.md" %}
+Send FHIR resource events to HTTP webhooks with retry logic and batch support.
+{% endcard %}
+{% card icon="assets/brand-icons/pubsub.svg" title="GCP Pub/Sub" href="../../tutorials/subscriptions-tutorials/gcp-pub-sub-aidboxtopicdestination.md" %}
+Stream FHIR resource events to Google Cloud Pub/Sub with guaranteed delivery.
+{% endcard %}
+{% card icon="assets/brand-icons/kafka.svg" title="Kafka" href="../../tutorials/subscriptions-tutorials/kafka-aidboxtopicdestination.md" %}
+Stream FHIR resource events to Apache Kafka with best-effort or at-least-once delivery.
+{% endcard %}
+{% card icon="assets/brand-icons/clickhouse.svg" title="ClickHouse" href="../../tutorials/subscriptions-tutorials/clickhouse-aidboxtopicdestination.md" %}
+Export FHIR resources to ClickHouse with SQL-on-FHIR ViewDefinitions for real-time reporting.
+{% endcard %}
+{% card icon="assets/brand-icons/bigquery.svg" title="BigQuery" href="../../tutorials/subscriptions-tutorials/bigquery-aidboxtopicdestination.md" %}
+Export FHIR resources to Google BigQuery with SQL-on-FHIR ViewDefinitions.
+{% endcard %}
+{% card icon="assets/brand-icons/nats.png" title="NATS" href="../../tutorials/subscriptions-tutorials/aidboxtopicsubscription-nats-tutorial.md" %}
+Integrate Aidbox topic-based subscriptions with NATS and NATS JetStream.
+{% endcard %}
+{% card icon="assets/brand-icons/rabbitmq.svg" title="RabbitMQ" href="../../tutorials/subscriptions-tutorials/rabbitmq-tutorial.md" %}
+Connect Aidbox subscriptions to RabbitMQ over AMQP for real-time FHIR events.
+{% endcard %}
+{% card icon="assets/brand-icons/activemq.png" title="ActiveMQ" href="../../tutorials/subscriptions-tutorials/activemq-tutorial.md" %}
+Integrate Aidbox subscriptions with ActiveMQ using AMQP 1.0 for event streaming.
+{% endcard %}
+{% card icon="assets/brand-icons/aws.svg" title="AWS EventBridge" href="../../tutorials/subscriptions-tutorials/aws-eventbridge-aidboxtopicdestination.md" %}
+Route FHIR resource events to AWS EventBridge for serverless processing.
+{% endcard %}
+{% card icon="assets/brand-icons/aws.svg" title="AWS SNS" href="../../tutorials/subscriptions-tutorials/aidboxtopicsubscription-sns-tutorial.md" %}
+Stream FHIR resource events to AWS SNS for pub/sub messaging and fan-out notifications.
+{% endcard %}
+{% card icon="assets/brand-icons/databricks.svg" title="Data Lakehouse (Databricks)" href="../../tutorials/subscriptions-tutorials/data-lakehouse-aidboxtopicdestination.md" %}
+Export FHIR resources to Databricks Unity Catalog managed Delta tables.
+{% endcard %}
+{% endcards %}
+
 ## AidboxSubscriptionTopic
 
 The `AidboxSubscriptionTopic` resource describes the data sources for subscriptions. It allows clients to subscribe to events in Aidbox and filter them using user-defined triggers, which are specified by the `trigger` element. Supported properties:
@@ -333,44 +371,6 @@ graph TD
 * ✅ **Event from Org A**: Processed by the topic (no filtering) and forwarded to aidbox topic destination
 * ✅ **Event from Org B**: Processed by the topic (no filtering) but filtered out at the aidbox topic destination level
 * ❌ **Event from unrelated organization**: Would be filtered out at the aidbox topic destination level
-
-## Currently supported channels
-
-{% content-ref url="../../tutorials/subscriptions-tutorials/webhook-aidboxtopicdestination.md" %}
-[webhook-aidboxtopicdestination.md](../../tutorials/subscriptions-tutorials/webhook-aidboxtopicdestination.md)
-{% endcontent-ref %}
-
-{% content-ref url="../../tutorials/subscriptions-tutorials/gcp-pub-sub-aidboxtopicdestination.md" %}
-[gcp-pub-sub-aidboxtopicdestination.md](../../tutorials/subscriptions-tutorials/gcp-pub-sub-aidboxtopicdestination.md)
-{% endcontent-ref %}
-
-{% content-ref url="../../tutorials/subscriptions-tutorials/kafka-aidboxtopicdestination.md" %}
-[kafka-aidboxtopicdestination.md](../../tutorials/subscriptions-tutorials/kafka-aidboxtopicdestination.md)
-{% endcontent-ref %}
-
-{% content-ref url="../../tutorials/subscriptions-tutorials/clickhouse-aidboxtopicdestination.md" %}
-[clickhouse-aidboxtopicdestination.md](../../tutorials/subscriptions-tutorials/clickhouse-aidboxtopicdestination.md)
-{% endcontent-ref %}
-
-{% content-ref url="../../tutorials/subscriptions-tutorials/bigquery-aidboxtopicdestination.md" %}
-[bigquery-aidboxtopicdestination.md](../../tutorials/subscriptions-tutorials/bigquery-aidboxtopicdestination.md)
-{% endcontent-ref %}
-
-{% content-ref url="../../tutorials/subscriptions-tutorials/aidboxtopicsubscription-nats-tutorial.md" %}
-[aidboxtopicsubscription-nats-tutorial.md](../../tutorials/subscriptions-tutorials/aidboxtopicsubscription-nats-tutorial.md)
-{% endcontent-ref %}
-
-{% content-ref url="../../tutorials/subscriptions-tutorials/rabbitmq-tutorial.md" %}
-[rabbitmq-tutorial.md](../../tutorials/subscriptions-tutorials/rabbitmq-tutorial.md)
-{% endcontent-ref %}
-
-{% content-ref url="../../tutorials/subscriptions-tutorials/activemq-tutorial.md" %}
-[activemq-tutorial.md](../../tutorials/subscriptions-tutorials/activemq-tutorial.md)
-{% endcontent-ref %}
-
-{% content-ref url="../../tutorials/subscriptions-tutorials/aws-eventbridge-aidboxtopicdestination.md" %}
-[aws-eventbridge-aidboxtopicdestination.md](../../tutorials/subscriptions-tutorials/aws-eventbridge-aidboxtopicdestination.md)
-{% endcontent-ref %}
 
 ## Notification Shape
 

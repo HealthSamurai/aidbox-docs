@@ -8,18 +8,17 @@ Archive/restore API was designed to upload unnecessary resources from Aidbox to 
 
 Archive/restore API provides the following operations:
 
-{% content-ref url="create-archive.md" %}
-[create-archive.md](create-archive.md)
-{% endcontent-ref %}
-
-{% content-ref url="restore-archive.md" %}
-[restore-archive.md](restore-archive.md)
-{% endcontent-ref %}
-
-{% content-ref url="delete-archive.md" %}
-[delete-archive.md](delete-archive.md)
-{% endcontent-ref %}
-
-{% content-ref url="prune-archived-data.md" %}
-[prune-archived-data.md](prune-archived-data.md)
-{% endcontent-ref %}
+{% cards %}
+{% card icon="download" title="Create archive" href="create-archive.md" %}
+Move FHIR resources to AWS S3 or GCP Cloud Storage with retention policies.
+{% endcard %}
+{% card icon="bolt" title="Restore archive" href="restore-archive.md" %}
+Bring previously archived FHIR resources back from cloud storage into Aidbox.
+{% endcard %}
+{% card icon="hammer" title="Delete archive" href="delete-archive.md" %}
+Permanently remove archived FHIR resource data from AWS S3 or GCP Cloud Storage.
+{% endcard %}
+{% card icon="database" title="Prune archived data" href="prune-archived-data.md" %}
+Delete archived FHIR resource data from the Aidbox database after a successful upload.
+{% endcard %}
+{% endcards %}

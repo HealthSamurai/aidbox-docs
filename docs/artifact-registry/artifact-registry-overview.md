@@ -56,17 +56,17 @@ The current implementation of the Artifact Registry focuses on five core types o
 
 See also:
 
-{% content-ref url="../tutorials/artifact-registry-tutorials/upload-fhir-implementation-guide/" %}
-[upload-fhir-implementation-guide](../tutorials/artifact-registry-tutorials/upload-fhir-implementation-guide/)
-{% endcontent-ref %}
-
-{% content-ref url="../tutorials/artifact-registry-tutorials/define-extensions/" %}
-[define-extensions](../tutorials/artifact-registry-tutorials/define-extensions/)
-{% endcontent-ref %}
-
-{% content-ref url="../tutorials/artifact-registry-tutorials/custom-resources/" %}
-[custom-resources](../tutorials/artifact-registry-tutorials/custom-resources/)
-{% endcontent-ref %}
+{% cards %}
+{% card icon="download" title="Upload FHIR Implementation Guide" href="../tutorials/artifact-registry-tutorials/upload-fhir-implementation-guide/" %}
+Upload FHIR Implementation Guides to Aidbox using environment variables, UI, API, or local packages.
+{% endcard %}
+{% card icon="sparkles" title="Define Extensions" href="../tutorials/artifact-registry-tutorials/define-extensions/" %}
+Extend standard FHIR resources with custom data elements through FHIR extensions.
+{% endcard %}
+{% card icon="code" title="Custom Resources" href="../tutorials/artifact-registry-tutorials/custom-resources/" %}
+Define custom resources with StructureDefinition or FHIR Schema for non-standard healthcare data.
+{% endcard %}
+{% endcards %}
 
 ## Package Management
 
@@ -114,17 +114,17 @@ flowchart RL
 
 See also:
 
-{% content-ref url="../tutorials/artifact-registry-tutorials/upload-fhir-implementation-guide/aidbox-ui/public-url-to-ig-package.md" %}
-[public-url-to-ig-package.md](../tutorials/artifact-registry-tutorials/upload-fhir-implementation-guide/aidbox-ui/public-url-to-ig-package.md)
-{% endcontent-ref %}
-
-{% content-ref url="../tutorials/artifact-registry-tutorials/upload-fhir-implementation-guide/how-to-load-fhir-ig-with-init-bundle.md" %}
-[how-to-load-fhir-ig-with-init-bundle.md](../tutorials/artifact-registry-tutorials/upload-fhir-implementation-guide/how-to-load-fhir-ig-with-init-bundle.md)
-{% endcontent-ref %}
-
-{% content-ref url="../tutorials/artifact-registry-tutorials/how-to-create-fhir-npm-package.md" %}
-[how-to-create-fhir-npm-package.md](../tutorials/artifact-registry-tutorials/how-to-create-fhir-npm-package.md)
-{% endcontent-ref %}
+{% cards %}
+{% card icon="link" title="Public URL to IG Package" href="../tutorials/artifact-registry-tutorials/upload-fhir-implementation-guide/aidbox-ui/public-url-to-ig-package.md" %}
+Upload an Implementation Guide by pointing Aidbox UI at a .tar.gz URL.
+{% endcard %}
+{% card icon="bolt" title="Load FHIR IG with Init Bundle" href="../tutorials/artifact-registry-tutorials/upload-fhir-implementation-guide/how-to-load-fhir-ig-with-init-bundle.md" %}
+Load a FHIR Implementation Guide on startup through the Aidbox Init Bundle.
+{% endcard %}
+{% card icon="box" title="Create FHIR npm package" href="../tutorials/artifact-registry-tutorials/how-to-create-fhir-npm-package.md" %}
+Group StructureDefinitions, SearchParameters, and other conformance resources into a distributable npm package.
+{% endcard %}
+{% endcards %}
 
 
 ### Loading packages from local filesystem
@@ -145,9 +145,11 @@ Make sure to put all the **dependent packages** in the same directory.
 
 See also:
 
-{% content-ref url="../tutorials/artifact-registry-tutorials/upload-fhir-implementation-guide/initialize-aidbox-from-local-filesystem.md" %}
-[initialize-aidbox-from-local-filesystem.md](../tutorials/artifact-registry-tutorials/upload-fhir-implementation-guide/initialize-aidbox-from-local-filesystem.md)
-{% endcontent-ref %}
+{% cards %}
+{% card icon="doc" title="Local filesystem as artifact registry" href="../tutorials/artifact-registry-tutorials/upload-fhir-implementation-guide/initialize-aidbox-from-local-filesystem.md" %}
+Configure Aidbox to read FHIR packages from a mounted local directory at initialization.
+{% endcard %}
+{% endcards %}
 
 
 ### Pinning and Tree-Shaking
@@ -292,6 +294,8 @@ When multiple versions of a canonical exist, the operation uses the [candidate s
 
 See also:
 
-{% content-ref url="../tutorials/terminology-tutorials/local-terminology.md" %}
-[local-terminology.md](../tutorials/terminology-tutorials/local-terminology.md)
-{% endcontent-ref %}
+{% cards %}
+{% card icon="book" title="Local Terminology" href="../tutorials/terminology-tutorials/local-terminology.md" %}
+Create local CodeSystems and ValueSets for resource validation and explore multiple canonical versions.
+{% endcard %}
+{% endcards %}

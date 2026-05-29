@@ -203,6 +203,31 @@ key: value
 {% endcontent-ref %}
 ```
 
+### Cards (grid of link cards)
+
+Use for index/overview pages where the content IS a list of links. Each card has an icon, title, description, and chevron. Adjacent cards auto-fit into a responsive grid.
+
+```markdown
+{% cards %}
+{% card icon="cloud" title="Run in Sandbox" href="run-aidbox-in-sandbox.md" %}
+Create a free hosted FHIR server instance.
+{% endcard %}
+{% card icon="assets/brand-icons/kafka.svg" title="Kafka" href="kafka-aidboxtopicdestination.md" %}
+Stream FHIR resource events to Apache Kafka.
+{% endcard %}
+{% endcards %}
+```
+
+Attributes:
+- `icon` (optional): a named icon from the registry (`cloud`, `database`, `code`, `book`, `download`, `upload`, `trash`, `terminal`, `shield`, `user`, `users`, `bolt`, `sparkles`, `plug`, `link`, `box`, `chart`, `hammer`, `branch`, `key`, `gear`, `sliders`, `globe`, `clock`, `rocket`, `layers`, `brain`, `check`, `doc`) OR a path like `assets/brand-icons/foo.svg` (resolved relative to the product). Brand logos live in `assets/brand-icons/` so they travel with the docs that reference them.
+- `title` (required): card heading
+- `href` (optional): relative `.md` path or absolute URL. Internal links get htmx SPA navigation. External links open in a new tab.
+- Body: any markdown — rendered as the description.
+
+`columns="1|2|3|4"` on the outer `{% cards %}` pins the column count; without it the grid auto-fits at ~240px per card.
+
+For collapsible blocks (FAQ-style), use plain HTML `<details><summary>...</summary>...</details>` — there is no `{% details %}` widget.
+
 ### File Download
 
 ```markdown
