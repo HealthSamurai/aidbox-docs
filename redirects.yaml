@@ -3,8 +3,8 @@ redirects:
   contact-us: overview/contact-us.md
   access-control/authentication/access-to-aidboxui: access-control/authentication/README.md
   api/other/plan-api/plan-api-overview: api/other/plan-api/README.md
-  api/other/plan-api/provider-member-match: solutions/CMS-0057-F/developer-docs/provider-access-api/provider-member-match.md
-  api/other/plan-api/provider-member-match/README: solutions/CMS-0057-F/developer-docs/provider-access-api/provider-member-match.md
+  api/other/plan-api/provider-member-match: https://www.health-samurai.io/docs/payerbox
+  api/other/plan-api/provider-member-match/README: https://www.health-samurai.io/docs/payerbox
   developer-experience/aidbox-sdk/aidbox-javascript-sdk: deprecated/deprecated/other/aidbox-sdk/aidbox-javascript-sdk.md
   developer-experience/aidbox-sdk/nodejs-sdk: deprecated/deprecated/other/aidbox-sdk/nodejs-sdk.md
   developer-experience/aidbox-sdk/python-sdk: deprecated/deprecated/other/aidbox-sdk/python-sdk.md
@@ -622,12 +622,12 @@ redirects:
   # modules/compliance/* → solutions/*
   modules/compliance: solutions/overview.md
   modules/compliance/aidbox-+-fhir-app-portal: solutions/aidbox-+-fhir-app-portal/README.md
-  modules/compliance/payers-or-cms-0057-f: solutions/CMS-0057-F/README.md
-  modules/compliance/payers-or-cms-0057-f/patient-access-api: solutions/CMS-0057-F/README.md
-  modules/compliance/payers-or-cms-0057-f/payer-to-payer-api: solutions/CMS-0057-F/README.md
-  modules/compliance/payers-or-cms-0057-f/prior-auth-api: solutions/CMS-0057-F/prior-authorization-support-pas-api.md
-  modules/compliance/payers-or-cms-0057-f/provider-access-api: solutions/CMS-0057-F/README.md
-  modules/compliance/payers-or-cms-0057-f/provider-directory-api: solutions/CMS-0057-F/README.md
+  modules/compliance/payers-or-cms-0057-f: https://www.health-samurai.io/docs/payerbox
+  modules/compliance/payers-or-cms-0057-f/patient-access-api: https://www.health-samurai.io/docs/payerbox
+  modules/compliance/payers-or-cms-0057-f/payer-to-payer-api: https://www.health-samurai.io/docs/payerbox
+  modules/compliance/payers-or-cms-0057-f/prior-auth-api: https://www.health-samurai.io/docs/payerbox
+  modules/compliance/payers-or-cms-0057-f/provider-access-api: https://www.health-samurai.io/docs/payerbox
+  modules/compliance/payers-or-cms-0057-f/provider-directory-api: https://www.health-samurai.io/docs/payerbox
   modules/compliance/providers-or-onc-health-it-certification-program: solutions/providers-or-onc-health-it-certification-program/README.md
   modules/compliance/providers-or-onc-health-it-certification-program/b10: solutions/providers-or-onc-health-it-certification-program/README.md
   modules/compliance/providers-or-onc-health-it-certification-program/g-10-standardized-api-for-patient-and-population-services: solutions/providers-or-onc-health-it-certification-program/g-10-standardized-api-for-patient-and-population-services/README.md
@@ -706,17 +706,28 @@ redirects:
   reference/system-resources-reference/awf-module-resources: reference/system-resources-reference/README.md
 
   # solutions/* redirects (case changes, old paths)
-  solutions/payers-or-cms-0057-f: solutions/CMS-0057-F/README.md
-  solutions/payers-or-cms-0057-f/patient-access-api: solutions/CMS-0057-F/README.md
-  solutions/payers-or-cms-0057-f/payer-to-payer-api: solutions/CMS-0057-F/README.md
-  solutions/payers-or-cms-0057-f/prior-auth-api: solutions/CMS-0057-F/prior-authorization-support-pas-api.md
-  solutions/payers-or-cms-0057-f/provider-access-api: solutions/CMS-0057-F/README.md
-  solutions/payers-or-cms-0057-f/provider-directory-api: solutions/CMS-0057-F/README.md
+  solutions/payers-or-cms-0057-f: https://www.health-samurai.io/docs/payerbox
+  solutions/payers-or-cms-0057-f/patient-access-api: https://www.health-samurai.io/docs/payerbox
+  solutions/payers-or-cms-0057-f/payer-to-payer-api: https://www.health-samurai.io/docs/payerbox
+  solutions/payers-or-cms-0057-f/prior-auth-api: https://www.health-samurai.io/docs/payerbox
+  solutions/payers-or-cms-0057-f/provider-access-api: https://www.health-samurai.io/docs/payerbox
+  solutions/payers-or-cms-0057-f/provider-directory-api: https://www.health-samurai.io/docs/payerbox
   solutions/providers-or-onc-health-it-certification-program/b10: solutions/providers-or-onc-health-it-certification-program/README.md
   solutions/providers-or-onc-health-it-certification-program/g6: solutions/providers-or-onc-health-it-certification-program/README.md
   solutions/providers-or-onc-health-it-certification-program/g7: solutions/providers-or-onc-health-it-certification-program/g-7-application-access-patient-selection.md
   solutions/providers-or-onc-health-it-certification-program/g9: solutions/providers-or-onc-health-it-certification-program/g-9-application-access-all-data-request.md
-  solutions/CMS-0057-F/coverage-requirements-discovery-crd/crd-api: solutions/CMS-0057-F/coverage-requirements-discovery-crd/cds-hooks-api.md
+  solutions/CMS-0057-F/coverage-requirements-discovery-crd/crd-api: https://www.health-samurai.io/docs/payerbox
+
+  # === CMS-0057-F section removed (2026-05-28); moved to Payerbox docs ===
+  solutions/CMS-0057-F: https://www.health-samurai.io/docs/payerbox
+  solutions/CMS-0057-F/getting-started: https://www.health-samurai.io/docs/payerbox
+  solutions/CMS-0057-F/getting-started/run-aidbox-+-cms-app-locally: https://www.health-samurai.io/docs/payerbox
+  solutions/CMS-0057-F/coverage-requirements-discovery-crd: https://www.health-samurai.io/docs/payerbox
+  solutions/CMS-0057-F/coverage-requirements-discovery-crd/cds-hooks-api: https://www.health-samurai.io/docs/payerbox
+  solutions/CMS-0057-F/prior-authorization-support-pas-api: https://www.health-samurai.io/docs/payerbox
+  solutions/CMS-0057-F/developer-docs: https://www.health-samurai.io/docs/payerbox
+  solutions/CMS-0057-F/developer-docs/provider-access-api: https://www.health-samurai.io/docs/payerbox
+  solutions/CMS-0057-F/developer-docs/provider-access-api/provider-member-match: https://www.health-samurai.io/docs/payerbox
 
   # modules/observability/* redirects
   modules/observability/metrics/monitoring/set-up-grafana-integration: deprecated/deprecated/other/monitoring/set-up-grafana-integration.md
