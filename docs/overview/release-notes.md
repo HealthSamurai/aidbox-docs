@@ -6,9 +6,56 @@ description: >-
 
 # Release Notes
 
-## May 2026 _`edge`_
+## June 2026 _`edge`_
 
-## April 2026 _`latest, 2604`_
+## May 2026 _`latest, 2605, LTS`_
+
+*   Aidbox FHIR server
+
+    **Features**
+
+    * Added [Databricks Delta table](../tutorials/subscriptions-tutorials/data-lakehouse-aidboxtopicdestination.md) as an AidboxTopicDestination.
+    * [**`$export` improvements**](../api/bulk-api/export.md):
+      * [Consent-aware export](../api/bulk-api/export.md#consent-based-patient-filtering) — bulk export now flows through a single profile with consent strategy as a first-class input, supporting opt-in / opt-out filtering, [UDAP B2B token configuration](../api/bulk-api/export.md#udap-b2b-token-configuration), and DaVinci export-type mapping.
+      * `onPatientError` parameter — choose between `fail` (default, existing behavior) and `ignore` to skip patients that error during export. Per-patient errors are surfaced in the status response as `OperationOutcome` under `patient-errors`.
+      * [Per-request storage override](../api/bulk-api/export.md#overriding-storage-per-request) — override destination bucket and storage type (S3, Azure, GCS) per request via `_aidbox.*` parameters, without changing the box-wide setting.
+    * **Async [`$viewdefinition-export`](../modules/sql-on-fhir/operation-viewdefinition-export.md)** — first-party async SQL-on-FHIR view export with cancellation support. ViewDefinitions can now be materialized to object storage as a managed background task.
+    * **[`$sqlquery-run` operation](../modules/sql-on-fhir/operation-sqlquery-run.md)** — run a SQLQuery `Library` synchronously over ViewDefinition tables. Resolves `relatedArtifact` dependencies into named tables, binds input parameters to `:name` placeholders, and streams the result in the requested format.
+    * **Multirange date search** — date search parameters can now execute against a [`tstzmultirange`](https://www.postgresql.org/docs/14/rangetypes.html) index path, faster for large datasets and overlapping ranges, and fixing ANY-match semantics for resources with repeating date values. Enabled via the [`fhir.search.date-multirange`](../reference/all-settings.md#fhir.search.date-multirange) setting.
+    * **[Smart search parameters and index suggestions](../deployment-and-maintenance/indexes/search-parameter-usage-stats.md)** — Aidbox now collects per-parameter usage and index-health statistics and surfaces them in usage reports and the new **Search Params Stats** view, including suggestions for indexes that would benefit observed query patterns.
+    * **[Database page in Aidbox UI](../overview/aidbox-ui/README.md#database)** — a new DBA-focused page at `/u/database` with three subpages: Schema Explorer browses every table with size, row count, and index usage and runs `VACUUM`, `ANALYZE`, `REINDEX`  on a selected table; Running Queries shows active queries and lets you cancel or terminate them; Search Params Stats gives a sortable, filterable view of search-parameter usage.
+    * **System-level [`$validate`](../api/rest-api/other/validate.md)** — `POST /fhir/$validate` is now available alongside the resource-scoped routes (/fhir/{type}/$validate, /fhir/{type}/{id}/$validate).
+    * [**Password management**](../access-control/identity-management/user-management.md#password-management):
+      * [Self-service password change](../access-control/identity-management/user-management.md#self-service-password-change) — signed-in users change their own password via `POST /auth/change-password` after confirming the current one; all sessions are signed out on success.
+      * [Admin-initiated reset](../access-control/identity-management/user-management.md#admin-initiated-password-reset) — administrators issue a single-use, 15-minute reset link via `POST /auth/force-reset-password`, which invalidates the current password and signs the user out everywhere.
+      * [Reset via link](../access-control/identity-management/user-management.md#resetting-a-password-via-reset-link) — a built-in HTML page (or the `POST /auth/reset-password` and `POST /auth/reset-password-mfa` endpoints) walks the user through setting a new password, with a TOTP step for users who have 2FA enabled.
+      * [Password policy](../access-control/identity-management/user-management.md#password-policy) — optional rule enforced on every password change.
+    * **`login_hint` on the login page** — the standard OAuth `login_hint` parameter pre-fills the username field.
+    * **Redesigned login and auth pages** — refreshed sign-in, 2FA, sessions, and grants screens with a consistent visual style.
+    * **[`Mapping.skipReferenceValidation`](../modules/integration-toolkit/mappings.md#skipping-reference-validation)** — opt-in flag on `Mapping` resources to skip strict reference validation during execution, for ETL flows that work with partially-loaded references.
+
+    **Bug fixes and improvements**
+
+    * Major canonical-write speedup: writes to canonical resources (`StructureDefinition`, `ValueSet`, etc.) no longer invalidate the full [FHIR Artifact Registry](../artifact-registry/artifact-registry-overview.md) cache.
+    * [FAR](../artifact-registry/artifact-registry-overview.md) search now supports `_sort`, `_count`, and `_lastUpdated`: sorting by `_lastUpdated` and pagination via `_count` work for canonicals served from the FHIR Artifact Registry. `meta.lastUpdated` and `createdAt` are emitted respecting `_elements`.
+    * Fixed [`_include:iterate`](../api/rest-api/fhir-search/include-and-revinclude.md) so that transitively-referenced resources are reliably included.
+    * Fixed JSON Patch handling to return HTTP 400 when the request body is not a JSON array, per RFC 6902.
+    * Fixed doubled path prefix in `Bundle.link` URLs (`self`, `first`, `next`) when Aidbox is accessed behind a reverse proxy with a path component in `BOX_WEB_BASE_URL`.
+    * Fixed RBAC policy evaluation for `Role` resources that carry both `roleName` and `links`: affected roles are now loaded correctly.
+    * Fixed S3 multipart upload endpoint resolution when [`$export`](../api/bulk-api/export.md) targets MinIO-compatible storage with custom hosts.
+    * Fixed [FHIR Schema](../modules/profiling-and-validation/fhir-schema-validator/README.md) post-compile type detection so elements literally named `type` are no longer mistaken for type declarations.
+    * Fixed [`$export`](../api/bulk-api/export.md) to honor defaults when called with `GET` and no parameters (previously returned 422 in some cases).
+
+* Formbox (formerly Aidbox Forms)
+  * Improved date validation messaging in NHS forms to provide clearer and more accurate min/max validation feedback.
+  * Enhanced the Entry mode layout to ensure required field indicators are displayed consistently.
+  * Improved the organization selection experience in multi-organization environments.
+  * Enhanced security by restricting AccessPolicy matching to SDC-issued JWT tokens only.
+  * Expanded Group item population capabilities with support for FHIR Query configuration and variables.
+  * Improved Azure Blob Storage integration for file attachment uploads.
+  * Enhanced multilingual form support by automatically loading the default language from the configuration.
+
+## April 2026 _`stable, 2604`_
 
 *   Aidbox FHIR server
 
@@ -43,7 +90,7 @@ description: >-
     * Deprecation plan: the next release (2605, LTS) will fully deprecate and remove all legacy MDM implementations from Aidbox — see [MDMbox](https://www.health-samurai.io/mdmbox).
     * Deprecation plan: the next release (2605, LTS) will be the last release that supports Entity/Attribute and ZEN validation. [FHIR Schema validation](../modules/profiling-and-validation/fhir-schema-validator/README.md) mode will be enabled by default.
 
-## March 2026 _`stable, 2603`_
+## March 2026 _`2603`_
 
 *   Aidbox FHIR server
 
