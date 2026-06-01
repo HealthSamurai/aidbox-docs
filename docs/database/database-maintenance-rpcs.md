@@ -4,24 +4,25 @@ description: Inspect tables, observe active queries, and run maintenance operati
 
 # Database maintenance RPCs
 
-The `aidbox.pg/*` RPC family exposes a thin layer over Postgres' introspection (`pg_stat_*`, `pg_indexes`) and maintenance DDL (`VACUUM`, `ANALYZE`, `REINDEX`, `TRUNCATE`). The same RPCs power the [Database tab in Aidbox UI](../overview/aidbox-ui/README.md#database) — reach for them when scripting backups, building dashboards, or running ad-hoc maintenance.
+Available since Aidbox 2605. The `aidbox.pg/*` RPC family exposes a thin layer over Postgres' introspection (`pg_stat_*`, `pg_indexes`) and maintenance DDL (`VACUUM`, `ANALYZE`, `REINDEX`, `TRUNCATE`). The same RPCs power the [Database tab in Aidbox UI](../overview/aidbox-ui/README.md#database) — reach for them when scripting backups, building dashboards, or running ad-hoc maintenance.
 
 {% hint style="success" %}
 For interactive use, open the **Database** page in Aidbox UI. It calls the RPCs below and renders the results as a sortable, paginated table per section.
 {% endhint %}
 
-`aidbox.pg/reindex-table`, `aidbox.pg/truncate-table`, and the `:schema` / `:schemas` / `:all-schemas` parameters on `aidbox.pg/tables` (plus the `:schema` parameter on `get-table` / `vacuum-table` / `analyze-table`) are available since Aidbox 2605. Earlier versions only see the `public` schema and lack the new RPCs.
-
 ## Listing tables: `aidbox.pg/tables`
 
 Returns one row per table with size, row-count estimate, index/toast share, and recency of vacuum/analyze.
 
-```yaml
+```http
 POST /rpc
+Content-Type: application/json
+```
 
+```yaml
 method: aidbox.pg/tables
 params:
-  all-schemas: true        # see all user schemas; omit for public-only (legacy default)
+  all-schemas: true        # see all user schemas; omit for public-only
   q: pat                   # ILIKE '<q>%' against table name
   limit: 100               # default 100
 ```
@@ -32,7 +33,7 @@ params:
 | `limit` | Max rows. Default `100`. |
 | `schema` | Restrict to one schema. Optional. |
 | `schemas` | Array of schemas. Optional. |
-| `all-schemas` | `true` lists tables across every user schema. Without any of `schema`/`schemas`/`all-schemas`, only `public` is returned — this preserves the legacy default so existing callers (old admin console) keep working. `pg_catalog`, `information_schema`, and `pgagent` are always excluded. |
+| `all-schemas` | `true` lists tables across every user schema. Without `schema`/`schemas`/`all-schemas`, only `public` is returned. `pg_catalog`, `information_schema`, and `pgagent` are always excluded. |
 
 Each row carries `table_schema`, the table name, an estimated row count from `pg_class.reltuples`, total / index / toast sizes in both pretty (`text`) and bytes (`bigint`) forms, plus minutes since the last manual or autonomous vacuum/analyze.
 
@@ -60,9 +61,12 @@ result:
 
 One-shot detail view: the same row `aidbox.pg/tables` would return, plus a per-index breakdown from `pg_indexes` + `pg_stat_all_indexes` and a single sample row.
 
-```yaml
+```http
 POST /rpc
+Content-Type: application/json
+```
 
+```yaml
 method: aidbox.pg/get-table
 params:
   schema: public           # optional; defaults to "public"
@@ -92,8 +96,6 @@ result:
   offset: 0
 ```
 
-For backwards compatibility, `table` may also be passed as a `<schema>.<name>` string; the leading segment overrides `schema`.
-
 ## Maintenance operations
 
 All four maintenance RPCs accept the same shape: `{:table "<name>" :schema "<schema>"}`. `schema` is optional; identifiers are validated against `[A-Za-z0-9_]` and quoted before being spliced into the DDL.
@@ -102,9 +104,12 @@ All four maintenance RPCs accept the same shape: `{:table "<name>" :schema "<sch
 
 Runs `VACUUM` on the table. Pass `analyze: true` to run `VACUUM ANALYZE`. Reclaims dead-tuple space and (optionally) refreshes planner statistics. Concurrent with reads and writes.
 
-```yaml
+```http
 POST /rpc
+Content-Type: application/json
+```
 
+```yaml
 method: aidbox.pg/vacuum-table
 params:
   schema: public
@@ -116,9 +121,12 @@ params:
 
 Runs `ANALYZE` on the table to refresh planner statistics. Use after bulk loads or whenever query plans look stale.
 
-```yaml
+```http
 POST /rpc
+Content-Type: application/json
+```
 
+```yaml
 method: aidbox.pg/analyze-table
 params:
   schema: public
@@ -129,9 +137,12 @@ params:
 
 Runs `REINDEX TABLE` to rebuild every index on the table. Locks the table for writes until completion — prefer running it during a maintenance window.
 
-```yaml
+```http
 POST /rpc
+Content-Type: application/json
+```
 
+```yaml
 method: aidbox.pg/reindex-table
 params:
   schema: public
@@ -142,9 +153,12 @@ params:
 
 Runs `TRUNCATE TABLE` — **permanently deletes every row in the table**. There is no `WHERE` clause and the operation is not undoable. The Aidbox UI deliberately does not surface this RPC — call it only from scripts where you can wrap a confirmation step around it.
 
-```yaml
+```http
 POST /rpc
+Content-Type: application/json
+```
 
+```yaml
 method: aidbox.pg/truncate-table
 params:
   schema: public
@@ -152,7 +166,7 @@ params:
 ```
 
 {% hint style="danger" %}
-`TRUNCATE` removes all rows without producing history entries. To delete resources with full audit/history tracking, use the FHIR API or `aidbox.bulk/*` operations instead.
+`TRUNCATE` removes all rows in one shot without going through the FHIR layer, so the `_history` table is left untouched and no `Provenance` / `AuditEvent` is recorded. For audited deletes — including patient-compartment cleanup with history — see [Delete data](../tutorials/crud-search-tutorials/delete-data.md) (`DELETE /fhir/<rt>/<id>` plus the [`$purge`](../api/bulk-api/purge.md) operation for bulk + history cleanup).
 {% endhint %}
 
 ## Observing running queries
@@ -163,9 +177,12 @@ Backs the **Running Queries** subpage. Reads `pg_stat_activity` and lets you can
 
 Returns one row per active backend (excluding the caller's own), sorted by `query_start` so the longest-running shows first.
 
-```yaml
+```http
 POST /rpc
+Content-Type: application/json
+```
 
+```yaml
 method: aidbox.pg/active-queries
 params: {}
 ```
@@ -187,9 +204,12 @@ result:
 
 `cancel-query` asks Postgres to abort the currently running statement (`pg_cancel_backend`); the connection stays open. `terminate-query` kills the whole connection (`pg_terminate_backend`) — clients see a "terminating connection due to administrator command" error. Prefer cancel over terminate when possible.
 
-```yaml
+```http
 POST /rpc
+Content-Type: application/json
+```
 
+```yaml
 method: aidbox.pg/cancel-query    # or aidbox.pg/terminate-query
 params:
   pid: 2391

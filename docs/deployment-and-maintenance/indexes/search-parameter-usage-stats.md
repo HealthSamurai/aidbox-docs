@@ -59,7 +59,7 @@ params:
   flush-first: true
 ```
 
-Parameter reference. `resource-type-like`, `search-param-like`, `order-dir`, and the `min-time-ms` / `max-time-ms` / `resource-type` / `search-param` `order-by` values are available since Aidbox 2605.
+Parameter reference.
 
 | Parameter            | Behavior                                                                                                                                                          |
 |----------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------|
@@ -112,7 +112,7 @@ result:
 
 ## Counting matching rows: `aidbox.index/count-search-param-stats`
 
-Available since Aidbox 2605. Returns `{total: N}` — the row count `get-search-param-stats` would return under the same filters, ignoring `limit`/`offset`/`order-by`. Use it to drive a paginated UI; the Database tab calls it alongside the row RPC on every filter change.
+Returns `{total: N}` — the row count `get-search-param-stats` would return under the same filters, ignoring `limit`/`offset`/`order-by`. Use it to drive a paginated UI; the Database tab calls it alongside the row RPC on every filter change.
 
 ```yaml
 POST /rpc
