@@ -46,6 +46,15 @@ description: >-
     * Fixed [FHIR Schema](../modules/profiling-and-validation/fhir-schema-validator/README.md) post-compile type detection so elements literally named `type` are no longer mistaken for type declarations.
     * Fixed [`$export`](../api/bulk-api/export.md) to honor defaults when called with `GET` and no parameters (previously returned 422 in some cases).
 
+* Formbox (formerly Aidbox Forms)
+  * Improved date validation messaging in NHS forms to provide clearer and more accurate min/max validation feedback.
+  * Enhanced the Entry mode layout to ensure required field indicators are displayed consistently.
+  * Improved the organization selection experience in multi-organization environments.
+  * Enhanced security by restricting AccessPolicy matching to SDC-issued JWT tokens only.
+  * Expanded Group item population capabilities with support for FHIR Query configuration and variables.
+  * Improved Azure Blob Storage integration for file attachment uploads.
+  * Enhanced multilingual form support by automatically loading the default language from the configuration.
+
 ## April 2026 _`stable, 2604`_
 
 *   Aidbox FHIR server
