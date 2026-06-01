@@ -40,9 +40,9 @@ Stop button cancels the running query via [`$psql-cancel`](../../api/rest-api/ot
 
 Available since Aidbox 2605. A DBA-focused page at `/u/database` with three subpages:
 
-* **Schema Explorer** — every table across all user schemas, grouped by schema. Per-table size, row count, index/toast share, and time since last (auto)vacuum/(auto)analyze. Click a row to inspect its indexes and run `VACUUM`, `ANALYZE`, `REINDEX`, or `TRUNCATE`.
+* **Schema Explorer** — every table across all user schemas, grouped into per-schema tabs. Per-table size, row count, index/toast share, and time since last (auto)vacuum/(auto)analyze. Expand a row to inspect its indexes (with their `CREATE INDEX` DDL on hover) and run `VACUUM`, `ANALYZE`, or `REINDEX`. Destructive operations like `TRUNCATE` are available only via the [`aidbox.pg/*` RPCs](../../database/database-maintenance-rpcs.md).
 * **Running Queries** — `pg_stat_activity` snapshot of active queries, refreshed every 5 seconds. Cancel a statement (`pg_cancel_backend`) or terminate the whole connection (`pg_terminate_backend`) from the row.
-* **Search Params Stats** — paginated, sortable view of `aidbox_stat.search_param_stats`. Filter by resource type or search-param substring, drop stats for the selected rows, or reset everything. See [Search Parameters Usage Statistics](../../deployment-and-maintenance/indexes/search-parameter-usage-stats.md) for the underlying data model.
+* **Search Params Stats** — paginated, sortable view of `aidbox_stat.search_param_stats`. Pick a resource type from the dropdown, filter by search-param substring, drop stats for the selected rows, or reset everything. See [Search Parameters Usage Statistics](../../deployment-and-maintenance/indexes/search-parameter-usage-stats.md) for the underlying data model.
 
 Backed by the [`aidbox.pg/*`](../../database/database-maintenance-rpcs.md) and [`aidbox.index/*`](../../deployment-and-maintenance/indexes/search-parameter-usage-stats.md) RPCs.
 

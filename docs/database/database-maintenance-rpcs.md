@@ -80,6 +80,9 @@ result:
     - index_name: patient_pkey
       index_size: 152 kB
       unique: Y
+      index_type: btree              # pg_am.amname (btree/hash/gin/gist/spgist/brin)
+      index_def: >-                  # full CREATE INDEX statement from pg_get_indexdef
+        CREATE UNIQUE INDEX patient_pkey ON public.patient USING btree (id)
       number_of_scans: 18221
       tuples_read: 18221
       tuples_fetched: 18221
@@ -137,7 +140,7 @@ params:
 
 ### `aidbox.pg/truncate-table`
 
-Runs `TRUNCATE TABLE` — **permanently deletes every row in the table**. There is no `WHERE` clause and the operation is not undoable. The Aidbox UI requires a confirmation dialog before issuing this RPC; treat it the same way in scripts.
+Runs `TRUNCATE TABLE` — **permanently deletes every row in the table**. There is no `WHERE` clause and the operation is not undoable. The Aidbox UI deliberately does not surface this RPC — call it only from scripts where you can wrap a confirmation step around it.
 
 ```yaml
 POST /rpc
