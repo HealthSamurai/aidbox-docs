@@ -59,22 +59,29 @@ params:
   flush-first: true
 ```
 
-Parameter reference:
+Parameter reference.
 
-| Parameter | Behavior |
-|---|---|
-| `resource-type` | Single base. Optional. |
-| `resource-types` | Array — for multi-base SearchParameters. Optional. |
-| `search-param` | Limit to shapes containing this SP under any modifier. Optional. |
-| `by` | `shape` (default) — one row per `(resource_type, search_params)`. |
-| | `param` — one row per `(resource_type, single SP)`, modifiers rolled up. |
-| `order-by` | `calls` (default). |
-| | `mean-time-ms`. |
-| | `total-time-ms`. |
-| | `last-used`. |
-| `limit` | Max rows. Default 100. |
-| `offset` | Pagination offset. Default 0. |
-| `flush-first` | Force a synchronous drain of the in-memory buffer before reading. |
+| Parameter            | Behavior                                                                                                                                                          |
+|----------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `resource-type`      | Exact match on a single base. Optional.                                                                                                                           |
+| `resource-types`     | Array — for multi-base SearchParameters. Optional.                                                                                                                |
+| `search-param`       | Exact-match filter. With `by: shape`, matches shapes containing this SP under any modifier; with `by: param`, matches the unnested SP. Optional.                  |
+| `resource-type-like` | Case-insensitive substring filter on `resource_type` (`ILIKE '%q%'`). Used by the UI search box; can be combined with the exact `resource-type` filter. Optional. |
+| `search-param-like`  | Case-insensitive substring filter on the SP key (`ILIKE '%q%'`). Optional.                                                                                        |
+| `by`                 | `shape` (default) — one row per `(resource_type, search_params)`                                                                                                  |
+|                      | `param` — one row per `(resource_type, single SP)`, modifiers rolled up.                                                                                          |
+| `order-by`           | `calls` (default)                                                                                                                                                 |
+|                      | `mean-time-ms`                                                                                                                                                    |
+|                      | `total-time-ms`                                                                                                                                                   |
+|                      | `min-time-ms`                                                                                                                                                     |
+|                      | `max-time-ms`                                                                                                                                                     |
+|                      | `last-used`                                                                                                                                                       |
+|                      | `resource-type`                                                                                                                                                   |
+|                      | `search-param` (the SP key in `by: param`; the `search_params` array in `by: shape`).                                                                             |
+| `order-dir`          | `desc` (default) or `asc`. Applies to the `order-by` column; secondary tiebreakers (`resource_type`, then SP) stay ascending.                                     |
+| `limit`              | Max rows. Default 100.                                                                                                                                            |
+| `offset`             | Pagination offset. Default 0.                                                                                                                                     |
+| `flush-first`        | Force a synchronous drain of the in-memory buffer before reading.                                                                                                 |
 
 With `by: shape` (the default), one row per `(resource_type, search_params)`:
 
@@ -101,6 +108,27 @@ result:
     mean_time_ms: 24.6
     last_used_at: 2026-05-13T12:04:18.227Z
     has_index: true
+```
+
+## Counting matching rows: `aidbox.index/count-search-param-stats`
+
+Returns `{total: N}` — the row count `get-search-param-stats` would return under the same filters, ignoring `limit`/`offset`/`order-by`. Use it to drive a paginated UI; the Database tab calls it alongside the row RPC on every filter change.
+
+```yaml
+POST /rpc
+
+method: aidbox.index/count-search-param-stats
+params:
+  by: param
+  resource-type-like: patient
+  search-param-like: name
+```
+
+Accepts the same scope params as `get-search-param-stats`: `resource-type`, `resource-types`, `search-param`, `resource-type-like`, `search-param-like`, `by`, `flush-first`.
+
+```yaml
+result:
+  total: 42
 ```
 
 ## Resetting the stats: `aidbox.index/reset-search-param-stats`
