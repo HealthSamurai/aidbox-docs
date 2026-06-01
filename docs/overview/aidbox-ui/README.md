@@ -48,15 +48,15 @@ A DBA-focused page at `/u/database` with three subpages:
 
 * **Schema Explorer** — every table across all user schemas, grouped into per-schema tabs. Per-table size, row count, index/toast share, and time since last (auto)vacuum/(auto)analyze. Expand a row to inspect its indexes (with their `CREATE INDEX` DDL on hover) and run `VACUUM`, `ANALYZE`, or `REINDEX`. Destructive operations like `TRUNCATE` are available only via the [`aidbox.pg/*` RPCs](../../database/database-maintenance-rpcs.md).
 
-<figure><img src="../../../assets/database/schema-explorer.png" alt="Database → Schema Explorer — per-schema tabs over a fuzzy search; one row per table with size, row count, index/toast share, and recency of vacuum/analyze"><figcaption><p>Database → Schema Explorer.</p></figcaption></figure>
+<figure><img src="../../../assets/database/schema-explorer.avif" alt="Database → Schema Explorer — per-schema tabs over a fuzzy search; one row per table with size, row count, index/toast share, and recency of vacuum/analyze"><figcaption><p>Database → Schema Explorer.</p></figcaption></figure>
 
 * **Running Queries** — `pg_stat_activity` snapshot of active queries, refreshed every 5 seconds. Cancel a statement (`pg_cancel_backend`) or terminate the whole connection (`pg_terminate_backend`) from the row.
 
-<figure><img src="../../../assets/database/running-queries.png" alt="Database → Running Queries — live table of pg_stat_activity backends with PID, user, duration, wait event, app, query, and Cancel / Terminate buttons"><figcaption><p>Database → Running Queries.</p></figcaption></figure>
+<figure><img src="../../../assets/database/running-queries.avif" alt="Database → Running Queries — live table of pg_stat_activity backends with PID, user, duration, wait event, app, query, and Cancel / Terminate buttons"><figcaption><p>Database → Running Queries.</p></figcaption></figure>
 
 * **Search Params Stats** — paginated, sortable view of `aidbox_stat.search_param_stats`. Pick a resource type from the dropdown, filter by search-param substring, drop stats for the selected rows, or reset everything. See [Search Parameters Usage Statistics](../../deployment-and-maintenance/indexes/search-parameter-usage-stats.md) for the underlying data model.
 
-<figure><img src="../../../assets/database/search-params-stats.png" alt="Database → Search Params Stats — sortable table of per-SP call counts, mean/min/max/total time, last-used timestamp, and an Index column; per-row checkboxes drive bulk drop"><figcaption><p>Database → Search Params Stats.</p></figcaption></figure>
+<figure><img src="../../../assets/database/search-params-stats.avif" alt="Database → Search Params Stats — sortable table of per-SP call counts, mean/min/max/total time, last-used timestamp, and an Index column; per-row checkboxes drive bulk drop"><figcaption><p>Database → Search Params Stats.</p></figcaption></figure>
 
 Backed by the [`aidbox.pg/*`](../../database/database-maintenance-rpcs.md) and [`aidbox.index/*`](../../deployment-and-maintenance/indexes/search-parameter-usage-stats.md) RPCs.
 
