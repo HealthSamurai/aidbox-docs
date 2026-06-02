@@ -525,6 +525,34 @@ Cancels an active export job for the specified organization.
 
 See also [$export](../../../api/bulk-api/export.md#group-level-export)
 
+### System-level Export
+
+#### Start Export
+
+```
+GET <AIDBOX_BASE_URL>/Organization/<org-id>/fhir/$export
+```
+
+Starts a system-level export scoped to the specified organization. The export includes resources belonging to the organization and its children, hierarchically shared resources from parent organizations, and system-shared resources.
+
+#### Check Export Status
+
+```
+GET <AIDBOX_BASE_URL>/Organization/<org-id>/fhir/$export-status/<export-id>
+```
+
+Checks the status of an export job for the specified organization.
+
+#### Cancel Export
+
+```
+DELETE <AIDBOX_BASE_URL>/Organization/<org-id>/fhir/$export-status/<export-id>
+```
+
+Cancels an active export job for the specified organization.
+
+See also [$export](../../../api/bulk-api/export.md#system-level-export)
+
 ## Authentication
 
 ### Login View
