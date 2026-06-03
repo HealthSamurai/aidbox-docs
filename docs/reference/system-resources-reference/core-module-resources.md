@@ -6000,6 +6000,14 @@ Status and progress of a FHIR Bulk Export operation.
   "type" : "string",
   "desc" : "ID of the group to export data for, when export-level is 'group'."
 }, {
+  "path" : "params.organization-id",
+  "name" : "organization-id",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "id",
+  "desc" : "Organization ID for OrgBAC-scoped bulk export."
+}, {
   "path" : "params.type-filters",
   "name" : "type-filters",
   "lvl" : 1,
