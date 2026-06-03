@@ -225,12 +225,12 @@ Ensure that the resource metadata contains the kind-specific `AidboxTopicDestina
     <tr>
       <td><code>enableLogging</code></td>
       <td>boolean</td>
-      <td>When <code>true</code>, <code>AidboxSubscriptionStatus</code> is logged after each delivery attempt. On failure, the logged status includes an <code>error</code> array. Useful for debugging and monitoring topic destination delivery. Default: <code>false</code>.</td>
+      <td>When <code>true</code>, <code>AidboxSubscriptionStatus</code> is logged after each delivery attempt. On failure, the logged status includes an <code>error</code> array. Useful for debugging and monitoring topic destination delivery (supported since the 2604 release). Default: <code>false</code>.</td>
     </tr>
     <tr>
       <td><code>logLevel</code></td>
       <td>code</td>
-      <td>The log level used when <code>enableLogging</code> is <code>true</code>. Supported values: <code>error</code> | <code>warn</code> | <code>info</code> | <code>debug</code> | <code>trace</code>. Must be equal to or higher than the system-wide log level setting, otherwise messages will be filtered out. Default: <code>info</code>.</td>
+      <td>The log level used when <code>enableLogging</code> is <code>true</code>. Supported values: <code>error</code> | <code>warn</code> | <code>info</code> | <code>debug</code> | <code>trace</code>. Must be equal to or higher than the system-wide log level setting, otherwise messages will be filtered out (supported since the 2604 release). Default: <code>info</code>.</td>
     </tr>
   </tbody>
 </table>
