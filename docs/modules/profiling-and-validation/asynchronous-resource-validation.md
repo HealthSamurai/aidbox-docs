@@ -20,7 +20,7 @@ The API consists of 4 procedures and a couple of resources:
 A validation run is split into chunks of `chunkSize` resources (1000 by default). Chunks are independent tasks executed by the scheduler, so a single large table is validated in parallel. The number of executor threads is controlled by the `scheduler-executors` setting (`BOX_SCHEDULER_EXECUTORS`, default `4`) — increase it to speed up validation of large datasets.
 
 {% hint style="warning" %}
-The previous implementation based on the Aidbox Workflow (AWF) engine is deprecated. It is still used when the setting `batch-validation-legacy-engine` (`BOX_BATCH_VALIDATION_LEGACY_ENGINE`) is set to `true`, or when the async task scheduler is not available. The legacy engine will be removed in a future release. Legacy-only parameters: `filter`, `limit`, `async`.
+The previous implementation based on the Aidbox Workflow (AWF) engine is deprecated. It is still used when the setting `batch-validation-legacy-engine` (`BOX_BATCH_VALIDATION_LEGACY_ENGINE`) is set to `true`, or when the async task scheduler is not available. The legacy engine will be removed in a future release. The `filter`, `limit` and `async` parameters are supported only by the legacy engine — the default engine rejects them with an error.
 {% endhint %}
 
 #### Prepare data
@@ -56,6 +56,8 @@ method: aidbox.validation/batch-validation
 params:
   # resourceType to validate
   resource: Patient
+  ## optional run id; rejected if a run with this id already exists
+  # id: my-validation-run
   ## specify profiles to validate against
   # profiles: ['profile-url-1', 'profile-url-2']
   ## stop the run after this many invalid resources
@@ -130,7 +132,7 @@ result:
   run:
     id: c2b2bcb9-30f3-4632-9a8a-1d04b3a14b99
     resource: patient
-    status: in-progress
+    status: complete   # in-progress | complete | cancelled | failed
     invalid: 2
     resourceType: BatchValidationRun
   status: completed   # in-progress | completed | cancelled | failed
