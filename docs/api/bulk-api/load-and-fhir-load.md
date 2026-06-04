@@ -24,7 +24,7 @@ When loading resources with references, remember that '`<resourceType>/<id>'` is
 {% endhint %}
 
 {% hint style="info" %}
-Please consider using [Asynchronous validation API](../../modules/profiling-and-validation/asynchronous-resource-validation.md#asynchronous-batch-validation-draft) to validate data after $load
+Please consider using [Asynchronous validation API](../../modules/profiling-and-validation/asynchronous-resource-validation.md#asynchronous-batch-validation) to validate data after $load
 {% endhint %}
 
 Load 100 synthea Patients to Aidbox (see [tutorial](../../tutorials/bulk-api-tutorials/synthea-by-bulk-api.md)):
