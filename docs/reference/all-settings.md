@@ -2735,16 +2735,6 @@ Show zen Aidbox config in zen UI and on $config endpoint
 
 <details><summary>Details</summary><table data-header-hidden="true"><thead><tr><th width="200"></th><th></th></tr></thead><tbody><tr><td>ID</td><td><code>zen-project.config.expose</code></td></tr><tr><td>Type</td><td>Bool</td></tr><tr><td>Default value</td><td><code>false</code></td></tr><tr><td>Environment variable</td><td><code>BOX_ZEN_PROJECT_CONFIG_EXPOSE</code></td></tr><tr><td>Deprecated environment variables</td><td><code>AIDBOX_ZEN_CONFIG_EXPOSE</code></td></tr><tr><td>Sensitive</td><td><code>false</code> — value will be visible in plaintext in Admin UI</td></tr><tr><td>Set via</td><td>Environment variables</td></tr><tr><td>Hot reload</td><td><code>false</code> — setting requires system restart</td></tr></tbody></table></details>
 
-### Sync indexes on startup<a href="#zen-project.index.sync-on-start" id="zen-project.index.sync-on-start"></a>
-
-```yaml
-BOX_ZEN_PROJECT_INDEX_SYNC_ON_START: false
-```
-
-If enabled, Aidbox synchronizes managed index on startup
-
-<details><summary>Details</summary><table data-header-hidden="true"><thead><tr><th width="200"></th><th></th></tr></thead><tbody><tr><td>ID</td><td><code>zen-project.index.sync-on-start</code></td></tr><tr><td>Type</td><td>Bool</td></tr><tr><td>Default value</td><td><code>false</code></td></tr><tr><td>Environment variable</td><td><code>BOX_ZEN_PROJECT_INDEX_SYNC_ON_START</code></td></tr><tr><td>Deprecated environment variables</td><td><code>BOX_INDEX_SYNC__ON__START</code></td></tr><tr><td>Sensitive</td><td><code>false</code> — value will be visible in plaintext in Admin UI</td></tr><tr><td>Set via</td><td>Admin UI → Settings<br />Environment variables</td></tr><tr><td>Hot reload</td><td><code>false</code> — setting requires system restart</td></tr></tbody></table></details>
-
 ### Manifest to zen migration<a href="#zen-project.manifest-to-zen-migration" id="zen-project.manifest-to-zen-migration"></a>
 
 ```yaml
