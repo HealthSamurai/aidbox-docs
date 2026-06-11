@@ -503,7 +503,10 @@ Group-level export can filter patients based on FHIR [Consent](https://hl7.org/f
 | `organizationIdentifierSystem`   | `uri`  | 0..1        | Which `Organization.identifier.system` to use for actor matching (opt-in only).          |
 
 {% hint style="warning" %}
-For `opt-in`, both `organizationIdentifierSystem` and a JWT token with `extensions.hl7-b2b.organization_id` are required. Missing either returns **422**.
+For `opt-in`, all of the following are required — missing any returns **422**:
+- `organizationIdentifierSystem`
+- A JWT token with `extensions.hl7-b2b.organization_id` (identifies the **recipient/calling** payer)
+- `Group.managingEntity` pointing to an Organization whose identifier matches the JWT `organization_id`
 {% endhint %}
 
 ### Consent resource requirements
@@ -517,10 +520,10 @@ Consent resources must have:
 
 For **opt-in**, the Consent must also have `provision.actor` entries with:
 
-- An actor with `role.coding[0].code` = `performer` referencing the **source** Organization (the requesting payer)
-- An actor with `role.coding[0].code` = `IRCP` referencing the **recipient** Organization (resolved from `Group.managingEntity`)
+- An actor with `role.coding[0].code` = `performer` referencing the **source/disclosing** Organization (e.g. the old payer). This actor must reference a resolvable Organization — it is read from the Consent itself, not from the request or token.
+- An actor with `role.coding[0].code` = `IRCP` referencing the **recipient/requesting** Organization (the calling payer). This must match the caller's JWT `organization_id` and `Group.managingEntity`.
 
-Both organizations are matched by their `identifier` where `system` equals `organizationIdentifierSystem`.
+The `IRCP` organization is matched by its `identifier` where `system` equals `organizationIdentifierSystem`.
 
 ### Opt-out strategy
 
@@ -549,9 +552,9 @@ GET /fhir/Group/grp-1/$export?_type=Patient&consentStrategy=opt-out&consentProfi
 
 ### Opt-in strategy
 
-No members are included by default. Members are included only if they have an active Consent with `provision.type = "permit"`, matching source and recipient organization actors, and a valid period.
+No members are included by default. Members are included only if they have an active Consent with `provision.type = "permit"`, a resolvable `performer` (source) actor, an `IRCP` (recipient) actor matching the caller, and a valid period.
 
-The **source organization** is identified from the JWT access token's [UDAP B2B Authorization Extension](https://build.fhir.org/ig/HL7/fhir-udap-security-ig/branches/master/b2b.html) (`extensions.hl7-b2b.organization_id`). The **recipient organization** is resolved from `Group.managingEntity`, using the `organizationIdentifierSystem` to select the correct identifier.
+The **recipient organization** (IRCP) is identified from the JWT access token's [UDAP B2B Authorization Extension](https://build.fhir.org/ig/HL7/fhir-udap-security-ig/branches/master/b2b.html) (`extensions.hl7-b2b.organization_id`). This must match `Group.managingEntity` (resolved using `organizationIdentifierSystem`). The **source organization** (performer) is read from each Consent's own `performer` actor — it only needs to reference a resolvable Organization, and is not constrained by the request or token.
 
 {% tabs %}
 {% tab title="GET" %}
@@ -577,9 +580,9 @@ GET /fhir/Group/grp-1/$export?_type=Patient&consentStrategy=opt-in&consentProfil
 
 ### UDAP B2B token configuration
 
-For opt-in workflows, the requesting client must present a **JWT** access token containing the B2B extension. The Client must be configured with `token_format: "jwt"` in the `client_credentials` auth settings — opaque tokens do not carry B2B claims.
+For opt-in workflows, the requesting client (the **recipient/new payer**) must present a **JWT** access token containing the B2B extension. The `organization_id` in the token identifies the recipient — it must match `Group.managingEntity`. The Client must be configured with `token_format: "jwt"` in the `client_credentials` auth settings — opaque tokens do not carry B2B claims.
 
-Add the `client-hl7B2b` extension to your Client resource:
+Add the `client-hl7B2b` extension to your Client resource. The `organization` reference should point to the **recipient** Organization (the payer calling the API):
 
 ```json
 {
