@@ -142,6 +142,7 @@
 * [Aidbox UI](overview/aidbox-ui/README.md)
 * [Versioning](overview/versioning.md)
 * [Release Notes](overview/release-notes.md)
+* [Supply Chain Security](overview/supply-chain-security.md)
 * [FAQ](overview/faq.md)
 * [Contact us](overview/contact-us.md)
 
