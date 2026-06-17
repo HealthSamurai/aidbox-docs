@@ -24,7 +24,14 @@ A successful run prints the verified signature payload. A non-zero exit code mea
 
 Each Aidbox release ships with a Software Bill of Materials that lists the components and dependencies bundled in the image. Use the SBOM to audit dependencies and track them against your vulnerability management process.
 
-Download the SBOM for the edge build: [edge-sbom.json](https://storage.googleapis.com/aidbox_sbom/edge/edge-sbom.json).
+Download the SBOM for the `:edge` build: [edge-sbom.json](https://storage.googleapis.com/aidbox_sbom/edge/edge-sbom.json).
+
+SBOMs for recent supported releases:
+
+- [2605.1](https://storage.googleapis.com/aidbox_sbom/release/2605.1-sbom.json)
+- [2512.4](https://storage.googleapis.com/aidbox_sbom/release/2512.4-sbom.json)
+- [2507.5](https://storage.googleapis.com/aidbox_sbom/release/2507.5-sbom.json)
+- [2410.9](https://storage.googleapis.com/aidbox_sbom/release/2410.9-sbom.json)
 
 ## Vulnerability scanning
 
@@ -49,7 +56,7 @@ Vulnerabilities under active exploitation or involving exposure of protected hea
 
 Health Samurai maintains a VEX (Vulnerability Exploitability eXchange) document that records the exploitability status of scanner findings. Request it through the [customer Zulip](https://connect.health-samurai.io/) or by email at [security@health-samurai.io](mailto:security@health-samurai.io).
 
-Fixes are delivered through the `:stable` channel and supported LTS releases, which receive backports for two years. See [Release Notes](release-notes.md) for fixes included in each version.
+Fixes are delivered through the `:latest` and `:stable` channels and supported LTS releases, which receive backports for two years. See [Versioning](versioning.md) for how these channels relate, and [Release Notes](release-notes.md) for fixes included in each version.
 
 ## Reporting a security issue
 
