@@ -14,6 +14,34 @@ This saves bandwidth and speeds up the loading process, as the client can use it
 Aidbox **ETags** mechanism is based on the **txid** column of the resource table in the database. If you update resources directly in the database, don't forget to update the **txid** column: `UPDATE resource SET txid = nextval('transaction_id_seq')`
 {% endhint %}
 
+### Examples
+
+#### Revalidate a resource you already have (`If-None-Match` → `304`)
+
+When a resource is updated, `GET /fhir/<resourceType>/<id>` returns the new version. To cheaply check whether a version you already hold is still current, send its `versionId` in the `If-None-Match` header:
+
+```
+GET /fhir/Patient/<id>
+Accept: application/json
+If-None-Match: W/"<versionId you remember>"
+```
+
+If the version is unchanged you get `304 Not Modified` with no body (this still reads the resource from the database — the saving is network bandwidth, not database load). If it changed, you get `200 OK` with the new resource and its updated `ETag`. Both `W/"138"` and the bare `138` are accepted.
+
+#### Optimistic locking on update (`If-Match` → `412`)
+
+To prevent lost updates when several writers touch the same resource, send the version your change is based on in the `If-Match` header:
+
+```
+PUT /fhir/Patient/<id>
+Content-Type: application/json
+If-Match: W/"<versionId you read>"
+
+{ ...resource... }
+```
+
+If the stored version still matches, the update proceeds. If it changed in the meantime, Aidbox returns `412 Precondition Failed`, so you can re-read and retry instead of silently overwriting.
+
 ### ETag Cache
 
 {% hint style="danger" %}
