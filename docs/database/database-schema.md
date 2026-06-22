@@ -24,6 +24,10 @@ All resource tables have the same structure:
 * `status`: Resource status (enum)
 * `resource`: The actual resource data (jsonb)
 
+{% hint style="info" %}
+To store a resource type in a table you name, or to turn history on or off per resource type, see [Storage and API configuration](../configuration/storage-and-api-configuration.md).
+{% endhint %}
+
 ## More details
 
 * **`txid`**: Aidbox tracks version IDs using PostgreSQL sequence `transaction_id_seq`. This sequence is shared between all resource tables, functioning as a global counter incremented for each new resource version.

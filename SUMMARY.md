@@ -154,6 +154,7 @@
 * [External Secrets](configuration/secret-files.md)
 * [Init Bundle](configuration/init-bundle.md)
 * [Migrations](configuration/migrations.md)
+* [Storage and API configuration](configuration/storage-and-api-configuration.md)
 
 ## API
 
