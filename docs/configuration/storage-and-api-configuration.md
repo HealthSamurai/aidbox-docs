@@ -4,6 +4,10 @@ description: Configure how Aidbox stores each FHIR resource type and which REST 
 
 # Storage and API configuration
 
+{% hint style="info" %}
+This functionality is available starting from Aidbox version **2606**.
+{% endhint %}
+
 Aidbox keeps resource persistence and resource APIs in two layers you can configure independently:
 
 * A **storage** defines how a resource type's data is stored in PostgreSQL and lets you configure it: the table name, whether history is kept, and the name of the history table. The `default` storage type uses the table layout described in [Database schema](../database/database-schema.md).
