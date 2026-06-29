@@ -207,6 +207,19 @@ Each migration has a `status` field:
 | `to-run` | Migration is queued for execution |
 | `done` | Migration completed successfully |
 
+## Comparison with POST /db/migrations
+
+Aidbox also exposes a [`POST /db/migrations`](../api/rest-api/other/sql-endpoints.md#sql-migrations) endpoint that accepts a plain `[{id, sql}]` array. The two approaches serve different use cases:
+
+| | `AidboxMigration` + Init Bundle | `POST /db/migrations` |
+|---|---|---|
+| When it runs | At Aidbox startup, before serving traffic | Any time, called by an external client |
+| External client required | No | Yes (needs credentials and a healthy Aidbox) |
+| Idempotency | Built-in via `ifNoneExist` | Built-in via migration id tracking |
+| FHIR package installs | Yes | No |
+
+Use `AidboxMigration` when you want zero-touch migrations on boot. Use `POST /db/migrations` when you need to apply migrations on demand from deployment scripts.
+
 ## See also
 
 {% content-ref url="init-bundle.md" %}
