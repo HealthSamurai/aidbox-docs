@@ -286,7 +286,7 @@
   * [FHIR Schema Validator](modules/profiling-and-validation/fhir-schema-validator/README.md)
     * [Setup Aidbox with FHIR Schema validation engine](modules/profiling-and-validation/fhir-schema-validator/setup-aidbox-with-fhir-schema-validation-engine.md)
   * [Skip validation of references in resource using request header](modules/profiling-and-validation/skip-validation-of-references-in-resource-using-request-header.md)
-  * [Asynchronous resource validation](modules/profiling-and-validation/asynchronous-resource-validation.md)
+  * [Batch resource validation](modules/profiling-and-validation/asynchronous-resource-validation.md)
 * [Observability](modules/observability/README.md)
   * [Getting started](modules/observability/getting-started/README.md)
     * [Run Aidbox with OpenTelemetry locally](modules/observability/getting-started/run-aidbox-with-opentelemetry-locally.md)
