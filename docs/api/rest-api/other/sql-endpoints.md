@@ -182,5 +182,5 @@ GET /db/migrations
 {% hint style="info" %}
 `POST /db/migrations` is designed for post-boot use: it requires Aidbox to be healthy and an authenticated client to call it. If you want migrations to run automatically on startup without any external tooling, use the `AidboxMigration` resource combined with an Init Bundle instead.
 
-See [Migrations](../../../../configuration/migrations.md) for the startup-based approach.
+See [Migrations](../../../configuration/migrations.md) for the startup-based approach.
 {% endhint %}
