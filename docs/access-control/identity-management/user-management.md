@@ -119,6 +119,14 @@ When the user opens the reset link, Aidbox renders an HTML page that walks them 
 
 Once the new password is saved, Aidbox signs the user out everywhere and the link stops working.
 
+Add an optional `redirect_to` to the reset link to override where the page sends the user after a successful reset (default `/auth/login`):
+
+```http
+GET /auth/reset-password?token=<reset-token>&redirect_to=L3Vp
+```
+
+Base64-encoded path, preserved across the 2FA step. The decoded value must start with `/`, otherwise Aidbox falls back to `/auth/login`.
+
 If you build your own UI instead of relying on the built-in page, the JSON endpoints behind that flow look like this.
 
 For users without 2FA, the new password is submitted directly:
