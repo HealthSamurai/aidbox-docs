@@ -259,7 +259,7 @@ Prefer: respond-async
 
 ## Parameters
 
-The `$export` operation accepts several parameters to customize the export: **query parameters on GET**, or the same parameters inside a **FHIR Parameters resource** when you use **POST** on patient- and group-level exports (see [POST with a Parameters body](#post-with-a-parameters-body-patient-and-group)). Supported parameter names are `_outputFormat`, `_since`, `_until`, `_type`, `_typeFilter`, `patient`, and `onPatientError`.
+The `$export` operation accepts several parameters to customize the export: **query parameters on GET**, or the same parameters inside a **FHIR Parameters resource** when you use **POST** on patient- and group-level exports (see [POST with a Parameters body](#post-with-a-parameters-body-patient-and-group)). Supported parameter names are `_outputFormat`, `_since`, `_until`, `_type`, `_typeFilter`, `_elements`, `patient`, and `onPatientError`.
 
 Aidbox extensions add more parameters where they apply: `consentStrategy` / `consentProfile` / `organizationIdentifierSystem` for [consent-based patient filtering](#consent-based-patient-filtering) (group level), and `_aidbox.*` for [overriding storage per request](#overriding-storage-per-request) (all levels).
 
@@ -270,6 +270,7 @@ Aidbox extensions add more parameters where they apply: `consentStrategy` / `con
 | `_since`        | Includes only resources whose **last modification time** is **after** the given instant (`ts > _since`). ISO 8601 format. |
 | `_until`        | Includes only resources whose **last modification time** is **before** the given instant (`ts < _until`). ISO 8601 format. Together with `_since`, this defines an open window on the modification timestamp. |
 | `_typeFilter`   | Restricts exported rows using FHIR search criteria **per resource type**, in the form `ResourceType?searchParams` (same idea as the [FHIR Bulk Data `_typeFilter`](https://hl7.org/fhir/uv/bulkdata/export.html) parameter). You may repeat `_typeFilter` multiple times. Multiple filters for the **same** resource type are combined with **OR**. If `_type` is present, every type used in `_typeFilter` must also appear in `_type`; types listed in `_type` but without a filter are exported in full. Standard FHIR search parameters such as `_id` are allowed. Not allowed inside the search part: `_sort`, `_count`, `_page`, `_total`, `_summary`, `_elements`, `_include`, `_revinclude`, `_has`, `_assoc`, `_with`. |
+| `_elements`     | Restricts each exported resource to the listed elements plus mandatory ones (`resourceType`, `id`, `meta`). Filtered resources are tagged with `SUBSETTED` in `meta.tag`. Elements use the form `ElementName` (applies to all resource types) or `ResourceType.ElementName` (applies only to that type). By default only root-level elements are allowed; nested paths such as `name.given` can be enabled with a setting (see [Nested elements](#nested-elements)). You can combine forms. Repeat the parameter or use comma-separated values. See [Element filtering](#element-filtering). |
 | `patient`       | Restricts the export to specific patients. **GET:** comma-separated patient **ids** (not full references), e.g. `patient=pt-1,pt-2`. Supported only on **patient-level** GET. **POST:** repeat a `parameter` named `patient`, each with `valueReference.reference` set to `Patient/{id}`. Supported on **patient-level** and **group-level** POST; for group export, every listed patient must exist and be a **member** of that group. |
 | `onPatientError` | Controls behavior when a `patient` reference is malformed, points at a non-existent Patient, or names a Patient that is not a member of the requested Group. `fail` (default): abort with **422**. `ignore`: drop the offending refs, proceed with the rest, and record each dropped ref as an inline `OperationOutcome` warning in `BulkExportStatus.params.patient-errors`. See [Lenient patient handling](#lenient-patient-handling). |
 
@@ -292,6 +293,7 @@ Each parameter uses the same name as its query-string counterpart. The value typ
 | `_until`        | `valueInstant`   |
 | `_type`         | `valueString`    |
 | `_typeFilter`   | `valueString`    |
+| `_elements`     | `valueString`    |
 | `patient`       | `valueReference` |
 | `onPatientError` | `valueCode`     |
 
@@ -740,3 +742,87 @@ Prefer: respond-async
 {% endtabs %}
 
 The status `error[]` array is **not** used here. Per the Bulk Data spec it is reserved for links to NDJSON files of `OperationOutcome` resources produced during the export — a separate channel from per-request validation warnings.
+
+## Element filtering
+
+{% hint style="info" %}
+Available since version 2606.
+{% endhint %}
+
+The `_elements` parameter limits which elements each exported resource contains. By default only root-level elements are accepted; [nested elements](#nested-elements) can be enabled with a setting. Aidbox keeps three mandatory elements (`resourceType`, `id`, `meta`) regardless of what you request, and tags every filtered resource with `SUBSETTED` in `meta.tag` per the FHIR specification.
+
+### Element forms
+
+Elements accept two forms:
+
+| Form | Example | Scope |
+| ---- | ------- | ----- |
+| Unqualified | `name` | Applies to every exported resource type where the element exists |
+| Qualified | `Patient.name` | Applies only to the specified resource type |
+
+You can combine both forms in one request. An unqualified element and a qualified element for the same name are additive.
+
+### GET example
+
+```http
+GET /fhir/Group/grp-1/$export?_type=Patient&_elements=name,gender
+Accept: application/fhir+json
+Prefer: respond-async
+```
+
+### POST example
+
+```http
+POST /fhir/Group/grp-1/$export
+Accept: application/fhir+json
+Content-Type: application/fhir+json
+Prefer: respond-async
+```
+
+```json
+{
+  "resourceType": "Parameters",
+  "parameter": [
+    { "name": "_type", "valueString": "Patient,Observation" },
+    { "name": "_elements", "valueString": "Patient.name,identifier" }
+  ]
+}
+```
+
+In this example, exported Patient resources contain `name` and `identifier` (plus mandatory elements). Exported Observation resources contain only `identifier` (plus mandatory elements), because `Patient.name` applies only to Patient.
+
+### Multiple values
+
+You can provide `_elements` as a comma-separated list, or repeat the parameter. These are equivalent:
+
+- `_elements=name,gender`
+- Two parameters: `_elements=name` and `_elements=gender`
+
+### Behavior with unqualified elements across resource types
+
+Unqualified elements apply to all resource types in the export. If an element name does not exist on a resource type, that type still gets filtered to mandatory elements only. For example, `_elements=name` on an export that includes both Patient and Observation produces Patient resources with `name` included, and Observation resources with only `resourceType`, `id`, and `meta` (since Observation has no `name` element).
+
+When only qualified elements are specified (e.g., `_elements=Observation.code`), resource types without any matching qualified prefix are exported in full — no element filtering is applied and no `SUBSETTED` tag is added.
+
+### Nested elements
+
+By default `_elements` only accepts root-level elements, as recommended by the [FHIR Bulk Data specification](https://hl7.org/fhir/uv/bulkdata/export.html). Enable the `fhir.bulk-data.export.nested-elements` setting to also accept nested element paths:
+
+| Form | Example | Meaning |
+| ---- | ------- | ------- |
+| Nested | `name.given` | Keep only `given` under `name` for every resource type that has a `name` element |
+| Qualified nested | `Patient.name.given` | Keep only `given` under `name`, for `Patient` only |
+
+A less specific path subsumes more specific ones for the same element. Requesting `name,name.family` keeps **all** of `name` (the bare `name` wins), regardless of the order the paths are listed.
+
+```http
+GET /fhir/Group/grp-1/$export?_type=Patient&_elements=name.given
+Accept: application/fhir+json
+Prefer: respond-async
+```
+
+Each exported Patient keeps only `given` inside `name`, dropping `family` and every other nested field, plus the mandatory elements.
+
+{% hint style="warning" %}
+When the `fhir.bulk-data.export.nested-elements` setting is disabled (the default), a request that contains a nested `_elements` path is rejected at kickoff with `400 Bad Request` and an `OperationOutcome` describing the offending paths. Root-level and qualified-root forms (`name`, `Patient.name`) are always allowed.
+{% endhint %}
