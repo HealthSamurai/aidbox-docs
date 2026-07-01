@@ -6,9 +6,38 @@ description: >-
 
 # Release Notes
 
-## June 2026 _`edge`_
+## July 2026 _`edge`_
 
-## May 2026 _`latest, 2605, LTS`_
+## June 2026 _`latest, 2606`_
+
+*   Aidbox FHIR server
+
+    **Features**
+
+    * Published a public [performance benchmark](https://www.health-samurai.io/articles/performance-at-scale-baseline).
+    * Added support for the [Streamable HTTP](https://www.health-samurai.io/docs/aidbox/modules/other-modules/mcp#direct-connection-streamable-http) MCP transport, enabling direct connections from modern MCP clients such as ChatGPT and Claude.
+    * Added [resource-level Storage and API configuration](https://www.health-samurai.io/docs/aidbox/configuration/storage-and-api-configuration#example-disable-history-for-a-resource-type) — enable or disable the REST API and history per resource type.
+    * Published a [supply chain security](https://www.health-samurai.io/docs/aidbox/overview/supply-chain-security) overview — Aidbox Docker images are now signed with cosign and shipped with SBOMs.
+    * **SQLView in the Analytics UI** — a new `SQLView` (SQL on FHIR) `Library` profile, surfaced in a unified `/analytics` list alongside ViewDefinition and SQLQuery, with create/edit pages, dependency resolution, lineage, and a new `sql-view` notebook cell.
+    * **Chart visualization** of query results in the SQL Console, Notebooks, and SQL Query views.
+    * **[`_elements` parameter for `$export`](../api/bulk-api/export.md)** — bulk export can now be limited to specified elements (unqualified `name` or type-qualified `Patient.name`); filtered resources include the mandatory `resourceType`, `id`, and `meta`, and are tagged `SUBSETTED`. Supported via GET query params and the POST `Parameters` body. Nested paths (e.g. `Patient.name.family`) are supported via the opt-in [`fhir.bulk-data.export.nested-elements`](../reference/all-settings.md) setting.
+
+    **Bug fixes and improvements**
+
+    * Fixed `/fhir/metadata` `CapabilityStatement.implementationGuide` emitting non-absolute canonical URLs; packages without a canonical URL are now omitted.
+    * Added support for [system-level bulk export](../api/bulk-api/export.md#system-level-export).
+    * **Version-based caching** — reworked the cache layer to improve performance and memory usage and to fix cases where caches could return stale data after underlying resources changed.
+    * Search requests with an unsupported search parameter now return a clear error instead of failing with an internal error.
+    * The `SearchParameter` metadata cache is now invalidated on update and delete, so custom search parameter changes take effect immediately.
+    * The JWT cache is now cleared for a specific user when a new role is created for them, so newly granted access applies without waiting for cache expiry.
+
+    **Changes and deprecations**
+
+    * Removed MPI `$match` and related functionality from Aidbox; patient matching is now available in [MDMbox](https://www.health-samurai.io/mdmbox).
+    * **Legacy engine cleanup** — removed Zen validation and the Entity/Attribute framework, the legacy FHIR Terminology Repository (FTR), and the Zen-based repository, indexes, and search implementation. [FHIR Schema validation](../modules/profiling-and-validation/fhir-schema-validator/README.md) is now the only validation mode. The `BOX_FHIR_SCHEMA_VALIDATION` setting has been removed and has no effect — validation can no longer be disabled.
+
+
+## May 2026 _`stable, 2605, LTS`_
 
 *   Aidbox FHIR server
 
@@ -55,7 +84,7 @@ description: >-
   * Improved Azure Blob Storage integration for file attachment uploads.
   * Enhanced multilingual form support by automatically loading the default language from the configuration.
 
-## April 2026 _`stable, 2604`_
+## April 2026 _`2604`_
 
 *   Aidbox FHIR server
 
