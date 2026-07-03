@@ -8,23 +8,14 @@ description: >-
 # Batch resource validation
 
 {% hint style="info" %}
-Available in Aidbox starting from version **2606**.
-{% endhint %}
-
-{% hint style="danger" %}
-**Breaking change.** Batch validation is a **resource-type-level FHIR operation**, `POST /fhir/<type>/$batch-validate`, following the FHIR Async pattern (like `$purge`). If you used the earlier `BatchValidationRun` API:
-
-* `BatchValidationRun` and its operations (`$run`, `$result`, `$offenders`, `$clear`) are **removed**.
-* There is **no validate-all-types** operation. You validate one resource type per call (scope further with `_since`/`_until`).
-* **Incremental validation** (`incremental`/`configId`) and **`errorsThreshold`** are removed.
-* The `batch-validation-max-batch-size` / `batch-validation-max-refs-in-flight` **settings** are removed. They are now per-request parameters (`max-batch-size` / `max-ref-size`).
+Available in Aidbox starting from version **2607**.
 {% endhint %}
 
 ## Overview
 
 Batch validation checks resources **already in the database** against the active FHIR schemas and an optional set of profiles. Use it when you loaded data with validation off, or when you publish a new profile version and want to know **how many existing resources are non-compliant and why**.
 
-`$batch-validate` runs against **one resource type**. Aidbox splits the table into id-range **chunks**, validates them in parallel, and aggregates the results into a compact, offender-indexed form (see [How results are stored](#how-results-are-stored)).
+`$batch-validate` runs against **one resource type**. Aidbox hash-partitions it into a **fixed number of tasks** (`number-of-chunks`, default `12`), each task validating its `mod(hash(id), N)` slice, and aggregates the results into a compact, offender-indexed form (see [How results are stored](#how-results-are-stored)).
 
 It works two ways, chosen by the `Prefer` header:
 
@@ -36,7 +27,9 @@ It works two ways, chosen by the `Prefer` header:
 Both paths produce the same result under a **`task-id`** and persist it the same way, so you drill into a synchronous run the same as an asynchronous one.
 
 {% hint style="info" %}
-Synchronous validation blocks the request until it finishes. That suits a type scoped by a narrow `_since`/`_until` window; for a large type, use `Prefer: respond-async`. Both paths run chunks in parallel on a local pool sized by `scheduler-executors` (`BOX_SCHEDULER_EXECUTORS`, default `4`); the async path also distributes chunks across nodes via the task scheduler.
+Synchronous validation blocks the request until it finishes. That suits a type scoped by a narrow `_since`/`_until` window; for a large type, use `Prefer: respond-async`. The synchronous path runs the N tasks on a local pool sized by `scheduler-executors` (`BOX_SCHEDULER_EXECUTORS`, default `4`); the async path schedules them on the task scheduler, which spreads them across nodes.
+
+Each task scans the window once for its hash slice, so total scan work grows with the task count. More chunks means more parallelism (the async path spreads them across nodes) but more scans; fewer chunks means fewer scans but less parallelism. The default of `12` balances the two — raise `number-of-chunks` to parallelize a large type further.
 {% endhint %}
 
 ## Start a validation
@@ -55,9 +48,8 @@ parameter:
   - {name: _until, valueInstant: '2025-06-09T00:00:00Z'}
   # validate against these profiles (conjunctive, see Profiles)
   - {name: profile, valueCanonical: 'http://hl7.org/fhir/us/core/StructureDefinition/us-core-observation-lab'}
-  # memory tuning (optional)
-  - {name: max-batch-size, valuePositiveInt: 256}
-  - {name: max-ref-size,   valuePositiveInt: 2000}
+  # tuning (optional): number of parallel tasks (default 12, max 256)
+  - {name: number-of-chunks, valuePositiveInt: 24}
 ```
 
 | Parameter | Type | Meaning |
@@ -65,11 +57,10 @@ parameter:
 | `_since` **(required)** | `instant` | Only resources whose `meta.lastUpdated >= _since` (inclusive). Required so that a run declares a window instead of scanning a whole type (see [Filtering by date](#filtering-by-date)). |
 | `_until` | `instant` | Upper bound: `meta.lastUpdated < _until` (exclusive). |
 | `profile` (repeatable) | `canonical` | Validate every resource against these profile URLs (in addition to its base schema), conjunctively (see [Profiles](#profiles)). |
-| `max-batch-size` (default `256`) | `positiveInt` | Resources read and validated in memory at once. Bounds heap per executor. |
-| `max-ref-size` (default `20000`) | `positiveInt` | References pooled before a batched existence check. The binding heap constraint for reference-dense types. |
+| `number-of-chunks` (default `12`, max `256`) | `positiveInt` | Number of hash-partitioned tasks the run is split into. More parallelizes a large type (across nodes when async) at the cost of more scans; each task streams its slice, so heap stays bounded regardless. A value above `256` is rejected with `422`. |
 
 {% hint style="warning" %}
-The body must be a valid `Parameters` resource. Each parameter must use the **exact** `value[x]` type above (`profile` as `valueCanonical`, `_since` as `valueInstant`, the sizes as `valuePositiveInt`). Aidbox rejects an unknown parameter, a wrong value type, or a missing `_since` with `422` and an `OperationOutcome` that names the offending parameter.
+The body must be a valid `Parameters` resource. Each parameter must use the **exact** `value[x]` type above (`profile` as `valueCanonical`, `_since`/`_until` as `valueInstant`, `number-of-chunks` as `valuePositiveInt`). Aidbox rejects an unknown parameter, a wrong value type, or a missing `_since` with `422` and an `OperationOutcome` that names the offending parameter.
 {% endhint %}
 
 ## Synchronous response
@@ -119,9 +110,10 @@ Poll the `Content-Location`:
 GET /fhir/$batch-validate/<task-id>
 ```
 
-* **In progress** → `202 Accepted` with an `X-Progress` header (resources scanned so far).
+* **In progress** → `202 Accepted` with an `X-Progress` header (percent of tasks completed, e.g. `45%`).
 * **Complete** → `200` with the same `Parameters` summary as the synchronous response.
-* **Cancelled** → `200` `OperationOutcome` (`cancelled`); **failed** → `200` `OperationOutcome`.
+* **Cancelled** → `200` `OperationOutcome` (`cancelled`).
+* **Failed** → `200` with the partial `Parameters` summary from the tasks that completed, plus a `status: failed` parameter; if no task completed, a `200` `OperationOutcome`.
 * **Unknown task** → `404`.
 
 ## Drill into the offending resources
@@ -177,7 +169,7 @@ The `fullUrl` is **version-specific** (`/_history/<version>`), so a vread resolv
 DELETE /fhir/$batch-validate/<task-id>
 ```
 
-Responds `202 Accepted`. Cancellation removes the run's **pending** chunks and marks it **cancelled** (a later poll reports `cancelled`). Aidbox does not interrupt a chunk already running, and keeps partial results.
+Responds `202 Accepted`. Cancellation removes the run's **pending** tasks and marks it **cancelled** (a later poll reports `cancelled`). Aidbox does not interrupt a task already running, and keeps partial results.
 
 ## Profiles
 
@@ -214,8 +206,8 @@ Aidbox stores results in an **aggregated, compact** form, so validating 100 GB o
 | Table | Holds |
 | --- | --- |
 | `issue` | one row per distinct error **pattern** (no per-resource rows) |
-| `offender` | a tiny `(issue_id, resource_id, version_id)` row per offending resource: ids and versions only |
-| `run_stat` | the `scanned` counter |
+| `invalid_resource` | a tiny `(issue_id, resource_id, version_id)` row per offending resource: ids and versions only |
+| `chunk_stat` | per-task progress: `validated`/`invalid` counts and completion, one row per task |
 
 A **pattern** is the aggregation key: `profile`, `resource_type`, index-normalized `path` (`identifier[2].system` → `identifier.system`), `code`, and `constraint_key`. All occurrences that share these collapse into one issue; the issue's **count is the number of offender rows** (distinct resources). Invariant issues also keep the validator's `human` description.
 
@@ -229,4 +221,4 @@ The `invalid-resources` response is a `Parameters` resource rather than a `Bundl
 
 ## Terminology
 
-Coded-binding and slice validation may call the configured terminology server. If it is unreachable or errors, Aidbox records the affected resource with a `terminology-unavailable` finding (which names the server) and the run still completes. Point `fhir.terminology.service-base-url` at a reachable server (a local or hybrid engine works best) for accurate, fast coded validation.
+Coded-binding and slice validation may call the configured terminology server. Bindings that resolve **locally** (local code systems, or a hybrid engine with local content) validate offline and surface invalid codes as ordinary `terminology-binding-error` issues. But if validation needs the configured terminology server and it is **unreachable or errors**, the validator cannot complete and the **whole run fails**: a synchronous call returns `422` (`OperationOutcome`, "Batch validation failed…"), an asynchronous run reports `failed`. Point `fhir.terminology.service-base-url` at a reachable server (a local or hybrid engine works best) so coded validation is accurate and does not fail the run.

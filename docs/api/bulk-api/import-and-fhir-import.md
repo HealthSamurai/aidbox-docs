@@ -18,7 +18,7 @@ Keep in mind that $import **does not validate** inserted resources for the sake 
 {% endhint %}
 
 {% hint style="info" %}
-Please consider using [Asynchronous validation API](../../modules/profiling-and-validation/asynchronous-resource-validation.md) to validate data after $import
+Please consider using [Batch validation API](../../modules/profiling-and-validation/batch-resource-validation.md) to validate data after $import
 {% endhint %}
 
 ## Example
