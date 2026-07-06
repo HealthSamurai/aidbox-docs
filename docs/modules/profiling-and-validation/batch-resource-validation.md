@@ -11,6 +11,10 @@ description: >-
 Available in Aidbox starting from version **2607**.
 {% endhint %}
 
+{% hint style="warning" %}
+**Breaking change.** `$batch-validate` **replaces** the previous batch-validation API, which is **removed**. The `aidbox.validation/batch-validation`, `aidbox.validation/batch-validation-result`, `aidbox.validation/clear-batch-validation`, and `aidbox.validation/resources-batch-validation-task` RPCs no longer exist, and a run no longer produces `BatchValidationRun` / `BatchValidationError` resources — results now live in the aggregated `aidbox_batch_validation` schema (see [How results are stored](#how-results-are-stored)). Migrate to the `$batch-validate` operation described below.
+{% endhint %}
+
 ## Overview
 
 Batch validation checks resources **already in the database** against the active FHIR schemas and an optional set of profiles. Use it when you loaded data with validation off, or when you publish a new profile version and want to know **how many existing resources are non-compliant and why**.
@@ -57,7 +61,7 @@ parameter:
 | `_since` **(required)** | `instant` | Only resources whose `meta.lastUpdated >= _since` (inclusive). Required so that a run declares a window instead of scanning a whole type (see [Filtering by date](#filtering-by-date)). |
 | `_until` | `instant` | Upper bound: `meta.lastUpdated < _until` (exclusive). |
 | `profile` (repeatable) | `canonical` | Validate every resource against these profile URLs (in addition to its base schema), conjunctively (see [Profiles](#profiles)). |
-| `number-of-chunks` (default `12`, max `256`) | `positiveInt` | Number of hash-partitioned tasks the run is split into. More parallelizes a large type (across nodes when async) at the cost of more scans; each task streams its slice, so heap stays bounded regardless. A value above `256` is rejected with `422`. |
+| `number-of-chunks` (default `12`, max `256`) | `positiveInt` | Number of hash-partitioned tasks the run is split into. More parallelizes a large type (across nodes when async) at the cost of more scans; each task pages through its slice, so heap stays bounded regardless. A value above `256` is rejected with `422`. |
 
 {% hint style="warning" %}
 The body must be a valid `Parameters` resource. Each parameter must use the **exact** `value[x]` type above (`profile` as `valueCanonical`, `_since`/`_until` as `valueInstant`, `number-of-chunks` as `valuePositiveInt`). Aidbox rejects an unknown parameter, a wrong value type, or a missing `_since` with `422` and an `OperationOutcome` that names the offending parameter.
@@ -65,7 +69,7 @@ The body must be a valid `Parameters` resource. Each parameter must use the **ex
 
 ## Synchronous response
 
-A `Parameters` resource holds the `task-id`, the headline counts, a link to the offending resources, and one `issue` per distinct error pattern (each with its own filtered drill-down link).
+A `Parameters` resource holds the `task-id`, the headline counts, a link to the offending resources, and one `issue` per distinct error (each with its own filtered drill-down link).
 
 ```yaml
 status: 200
@@ -81,7 +85,6 @@ parameter:
     part:
       - {name: id,                valueString: '5b4b07e4…'}   # issue-id (for drill-down)
       - {name: invalid-resources, valueUrl: 'http://localhost:8765/fhir/$batch-validate/<task-id>/invalid-resources?_issue=5b4b07e4…'}
-      - {name: severity,    valueCode: error}
       - {name: code,        valueCode: invalid-slice-cardinality}
       - {name: expression,  valueString: category}      # the element
       - {name: profile,     valueString: 'http://hl7.org/fhir/us/core/StructureDefinition/us-core-observation-lab'}
@@ -90,9 +93,10 @@ parameter:
       - {name: diagnostics, valueString: '…human-readable message…'}
 ```
 
-* **`count`** is the number of **distinct offending resources** for the pattern, derived from the offender index.
+* **`count`** is the number of **distinct offending resources** for the issue, derived from the offender index.
 * For **invariant** issues, the `constraint` part carries the constraint key and `diagnostics` carries the validator's human-readable description.
 * Each `issue` carries its own `invalid-resources` link, pre-filtered to that issue.
+* The summary lists at most **10,000** distinct issues, worst first. If a run produces more, it lists the worst 10,000 and adds `issues-total` (the true count) and `issues-truncated: true`, so a truncated list is not mistaken for the whole.
 * On failure the response is an `OperationOutcome`.
 
 ## Asynchronous response
@@ -118,7 +122,7 @@ GET /fhir/$batch-validate/<task-id>
 
 ## Drill into the offending resources
 
-The summary tells you which patterns fail and how many resources hit each. To get the **offending resources**, each linked to the version that was validated and carrying its full `OperationOutcome`, call `invalid-resources`:
+The summary tells you which issues occur and how many resources hit each. To get the **offending resources**, each linked to the version that was validated and carrying its full `OperationOutcome`, call `invalid-resources`:
 
 ```
 GET /fhir/$batch-validate/<task-id>/invalid-resources
@@ -128,7 +132,7 @@ GET /fhir/$batch-validate/<task-id>/invalid-resources
 | Query parameter | Meaning |
 | --- | --- |
 | `_issue` (repeatable) | Restrict to offenders of these issue(s). Omit for **all** offending resources. |
-| `_count` / `_page` | Page size (default `50`) and 1-based page number. |
+| `_count` / `_page` | Page size (default `50`, max `1000`) and 1-based page number. |
 | `_fullurl-only` (default `false`) | When `true`, return only the `fullUrl` of each offender (omit the body and outcome). |
 
 The response is a **`Parameters` report** rather than a Bundle (see [why](#why-a-parameters-report)): a `total`, flat paging links, and one repeated `resource` parameter per offending resource.
@@ -150,7 +154,7 @@ parameter:
         resource:
           resourceType: OperationOutcome
           issue:
-            - {severity: error, code: structure, expression: [Observation.category],
+            - {severity: fatal, code: invalid, expression: [Observation.category],
                diagnostics: '…', details: {coding: [{code: invalid-slice-cardinality}]}}
 ```
 
@@ -205,11 +209,11 @@ Aidbox stores results in an **aggregated, compact** form, so validating 100 GB o
 
 | Table | Holds |
 | --- | --- |
-| `issue` | one row per distinct error **pattern** (no per-resource rows) |
+| `issue` | one row per distinct error (no per-resource rows) |
 | `invalid_resource` | a tiny `(issue_id, resource_id, version_id)` row per offending resource: ids and versions only |
 | `chunk_stat` | per-task progress: `validated`/`invalid` counts and completion, one row per task |
 
-A **pattern** is the aggregation key: `profile`, `resource_type`, index-normalized `path` (`identifier[2].system` → `identifier.system`), `code`, and `constraint_key`. All occurrences that share these collapse into one issue; the issue's **count is the number of offender rows** (distinct resources). Invariant issues also keep the validator's `human` description.
+The aggregation key is `profile`, `resource_type`, index-normalized `path` (`identifier[2].system` → `identifier.system`), `code`, and `constraint_key`. All occurrences that share these collapse into one issue; the issue's **count is the number of offender rows** (distinct resources). Invariant issues also keep the validator's `human` description.
 
 Aidbox does **not** store the invalid resource bodies or their `OperationOutcome`s. The drill-down re-reads the body from history at the validated version and reconstructs the `OperationOutcome` from the stored machine fields (`code`, `expression`, `constraint`, `human`).
 
