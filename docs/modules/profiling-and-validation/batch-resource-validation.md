@@ -80,11 +80,11 @@ parameter:
   - {name: validated, valueUnsignedInt: 1804646}   # resources validated
   - {name: valid,     valueUnsignedInt: 1317494}    # resources with no issues
   - {name: invalid,   valueUnsignedInt: 487152}     # distinct resources with ≥1 issue
-  - {name: invalid-resources, valueUrl: 'http://localhost:8765/fhir/$batch-validate/<task-id>/invalid-resources'}
+  - {name: invalid-resources, valueUrl: '/fhir/$batch-validate/<task-id>/invalid-resources'}
   - name: issue
     part:
       - {name: id,                valueString: '5b4b07e4…'}   # issue-id (for drill-down)
-      - {name: invalid-resources, valueUrl: 'http://localhost:8765/fhir/$batch-validate/<task-id>/invalid-resources?_issue=5b4b07e4…'}
+      - {name: invalid-resources, valueUrl: '/fhir/$batch-validate/<task-id>/invalid-resources?_issue=5b4b07e4…'}
       - {name: code,        valueCode: invalid-slice-cardinality}
       - {name: expression,  valueString: category}      # the element
       - {name: profile,     valueString: 'http://hl7.org/fhir/us/core/StructureDefinition/us-core-observation-lab'}
@@ -103,7 +103,7 @@ parameter:
 
 ```
 status: 202 Accepted
-Content-Location: http://localhost:8765/fhir/$batch-validate/<task-id>
+Content-Location: /fhir/$batch-validate/<task-id>
 ```
 
 The endpoints below are **system-level**, keyed by `task-id` alone (no resource type in the path).
@@ -135,19 +135,19 @@ GET /fhir/$batch-validate/<task-id>/invalid-resources
 | `_count` / `_page` | Page size (default `50`, max `1000`) and 1-based page number. |
 | `_fullurl-only` (default `false`) | When `true`, return only the `fullUrl` of each offender (omit the body and outcome). |
 
-The response is a **`Parameters` report** rather than a Bundle (see [why](#why-a-parameters-report)): a `total`, flat paging links, and one repeated `resource` parameter per offending resource.
+The response is a **`Parameters` report** rather than a Bundle (see [Response format](#response-format)): a `total`, flat paging links, and one repeated `resource` parameter per offending resource.
 
 ```yaml
 resourceType: Parameters
 parameter:
   - {name: total, valueUnsignedInt: 1114}
   # paging: flat links. first/previous appear past page 1; next/last before the last page
-  - {name: self, valueUrl: 'http://localhost:8765/fhir/$batch-validate/<task-id>/invalid-resources?_count=50&_page=1'}
-  - {name: next, valueUrl: 'http://localhost:8765/fhir/$batch-validate/<task-id>/invalid-resources?_count=50&_page=2'}
-  - {name: last, valueUrl: 'http://localhost:8765/fhir/$batch-validate/<task-id>/invalid-resources?_count=50&_page=23'}
+  - {name: self, valueUrl: '/fhir/$batch-validate/<task-id>/invalid-resources?_count=50&_page=1'}
+  - {name: next, valueUrl: '/fhir/$batch-validate/<task-id>/invalid-resources?_count=50&_page=2'}
+  - {name: last, valueUrl: '/fhir/$batch-validate/<task-id>/invalid-resources?_count=50&_page=23'}
   - name: resource
     part:
-      - {name: fullUrl, valueUrl: 'http://localhost:8765/Observation/<id>/_history/<version>'}
+      - {name: fullUrl, valueUrl: '/Observation/<id>/_history/<version>'}
       - name: resource                                  # omitted when _fullurl-only=true
         resource: {resourceType: Observation, meta: {versionId: '<version>'}, …}
       - name: outcome                                   # omitted when _fullurl-only=true
@@ -219,9 +219,9 @@ Aidbox does **not** store the invalid resource bodies or their `OperationOutcome
 
 Both synchronous and asynchronous runs persist these tables under the run's `task-id`, so you poll and drill into either until you cancel it.
 
-## Why a Parameters report
+## Response format
 
-The `invalid-resources` response is a `Parameters` resource rather than a `Bundle`. A `searchset`/`collection` Bundle cannot carry a `total`, **version-specific** links, a per-offender `OperationOutcome`, and the invalid resource bodies while staying FHIR-valid: Bundle invariants forbid a version-specific `fullUrl`, restrict `total` and `entry.response` by Bundle type, and the FHIR validator validates embedded resources in full. A `Parameters` report avoids those constraints, keeps the versioned drill-down links, and embeds each `OperationOutcome` without trouble. The embedded resource bodies are the report's payload: the invalid data under review.
+The `invalid-resources` response is a `Parameters` resource rather than a `Bundle`. A `searchset` or `collection` Bundle cannot carry a `total`, version-specific links, a per-offender `OperationOutcome`, and the invalid resource bodies together while remaining FHIR-valid: Bundle invariants prohibit a version-specific `fullUrl`, permit `total` and `entry.response` only on certain Bundle types, and require each embedded resource to be valid in its own right — which the intentionally invalid bodies are not. A `Parameters` resource is subject to none of these constraints: it preserves the version-specific drill-down links and embeds each `OperationOutcome` beside the resource it describes. The invalid resource bodies are the report's content — the data under review.
 
 ## Terminology
 
