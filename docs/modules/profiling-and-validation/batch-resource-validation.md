@@ -36,6 +36,10 @@ Synchronous validation blocks the request until it finishes. That suits a type s
 Each task scans the window once for its hash slice, so total scan work grows with the task count. More chunks means more parallelism (the async path spreads them across nodes) but more scans; fewer chunks means fewer scans but less parallelism. The default of `12` balances the two — raise `number-of-chunks` to parallelize a large type further.
 {% endhint %}
 
+{% hint style="warning" %}
+**PostgreSQL connections.** Running tasks each use their own PostgreSQL connections, so a run with many parallel tasks (a high `number-of-chunks` together with a high `scheduler-executors`) raises connection use. Make sure PostgreSQL `max_connections` (and any external pooler) has the headroom, or tasks will fail to acquire a connection.
+{% endhint %}
+
 ## Start a validation
 
 `POST /fhir/<type>/$batch-validate` with a FHIR `Parameters` body:
@@ -61,7 +65,7 @@ parameter:
 | `_since` **(required)** | `instant` | Only resources whose `meta.lastUpdated >= _since` (inclusive). Required so that a run declares a window instead of scanning a whole type (see [Filtering by date](#filtering-by-date)). |
 | `_until` | `instant` | Upper bound: `meta.lastUpdated < _until` (exclusive). |
 | `profile` (repeatable) | `canonical` | Validate every resource against these profile URLs (in addition to its base schema), conjunctively (see [Profiles](#profiles)). |
-| `number-of-chunks` (default `12`, max `256`) | `positiveInt` | Number of hash-partitioned tasks the run is split into. More parallelizes a large type (across nodes when async) at the cost of more scans; each task pages through its slice, so heap stays bounded regardless. A value above `256` is rejected with `422`. |
+| `number-of-chunks` (default `12`, max `256`) | `positiveInt` | Number of hash-partitioned tasks the run is split into. More parallelizes a large type (across nodes when async) at the cost of more scans; each task streams its slice, so heap stays bounded regardless. A value above `256` is rejected with `422`. |
 
 {% hint style="warning" %}
 The body must be a valid `Parameters` resource. Each parameter must use the **exact** `value[x]` type above (`profile` as `valueCanonical`, `_since`/`_until` as `valueInstant`, `number-of-chunks` as `valuePositiveInt`). Aidbox rejects an unknown parameter, a wrong value type, or a missing `_since` with `422` and an `OperationOutcome` that names the offending parameter.
