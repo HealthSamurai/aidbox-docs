@@ -56,8 +56,10 @@ parameter:
   - {name: _until, valueInstant: '2025-06-09T00:00:00Z'}
   # validate against these profiles (conjunctive, see Profiles)
   - {name: profile, valueCanonical: 'http://hl7.org/fhir/us/core/StructureDefinition/us-core-observation-lab'}
-  # tuning (optional): number of parallel tasks (default 12, max 256)
+  # tuning (optional): number of parallel tasks (default 12, max 10000)
   - {name: number-of-chunks, valuePositiveInt: 24}
+  # validator options (optional): override the box's validation settings for this run
+  - {name: disable-terminology-validation, valueBoolean: true}
 ```
 
 | Parameter | Type | Meaning |
@@ -65,11 +67,28 @@ parameter:
 | `_since` **(required)** | `instant` | Only resources whose `meta.lastUpdated >= _since` (inclusive). Required so that a run declares a window instead of scanning a whole type (see [Filtering by date](#filtering-by-date)). |
 | `_until` | `instant` | Upper bound: `meta.lastUpdated < _until` (exclusive). |
 | `profile` (repeatable) | `canonical` | Validate every resource against these profile URLs (in addition to its base schema), conjunctively (see [Profiles](#profiles)). |
-| `number-of-chunks` (default `12`, max `256`) | `positiveInt` | Number of hash-partitioned tasks the run is split into. More parallelizes a large type (across nodes when async) at the cost of more scans; each task streams its slice, so heap stays bounded regardless. A value above `256` is rejected with `422`. |
+| `number-of-chunks` (default `12`, max `10000`) | `positiveInt` | Number of hash-partitioned tasks the run is split into. More parallelizes a large type (across nodes when async) at the cost of more scans; each task streams its slice, so heap stays bounded regardless. A value above `10000` is rejected with `422`. |
+| `disable-terminology-validation` | `boolean` | Skip coded-binding / terminology checks. |
+| `disable-primitive-validation` | `boolean` | Skip primitive type & format checks. |
+| `disable-slicing-validation` | `boolean` | Skip slice validation. |
+| `disable-constraint-validation` | `boolean` | Blanket switch for FHIRPath invariants: `true` skips **all** of them; `false` checks **all** (see [Validator options](#validator-options)). |
+| `disable-constraint` (repeatable) | `string` | Skip specific invariants by key (e.g. `us-core-8`). |
+| `strict-profile-resolution` | `boolean` | Treat an unresolved `profile` / `meta.profile` canonical as an error instead of silently skipping it. |
+| `strict-extension-resolution` | `boolean` | Treat an unresolved extension as an error. |
 
 {% hint style="warning" %}
-The body must be a valid `Parameters` resource. Each parameter must use the **exact** `value[x]` type above (`profile` as `valueCanonical`, `_since`/`_until` as `valueInstant`, `number-of-chunks` as `valuePositiveInt`). Aidbox rejects an unknown parameter, a wrong value type, or a missing `_since` with `422` and an `OperationOutcome` that names the offending parameter.
+The body must be a valid `Parameters` resource. Each parameter must use the **exact** `value[x]` type above (`profile` as `valueCanonical`, `_since`/`_until` as `valueInstant`, `number-of-chunks` as `valuePositiveInt`, the `disable-*`/`strict-*` flags as `valueBoolean`, `disable-constraint` as `valueString`). Aidbox rejects an unknown parameter, a wrong value type, or a missing `_since` with `422` and an `OperationOutcome` that names the offending parameter.
 {% endhint %}
+
+## Validator options
+
+The `disable-*` and `strict-*` parameters tune what the validator checks, **for this run only**. Each is three-state: **omit it to keep the box's configured setting**, or pass it to override that setting (`true`/`false`). Use them to trade completeness for speed on a huge type (e.g. skip the terminology and slicing passes for a structural-only sweep), or to tighten a run beyond the box defaults (e.g. `strict-profile-resolution` to surface resources whose declared profiles don't resolve — which otherwise read as compliant).
+
+Constraints (FHIRPath invariants) have two controls that compose:
+
+* `disable-constraint-validation` is the blanket switch — `true` skips **every** invariant, `false` checks **every** invariant (including any the box normally mutes).
+* `disable-constraint` names specific invariants to skip (repeat it per key).
+* When both are given, the blanket wins: `true` skips everything (the list is moot); with `false`, only the listed keys are skipped and all others are checked. With the blanket omitted, the listed keys are skipped **on top of** the box's defaults.
 
 ## Synchronous response
 
