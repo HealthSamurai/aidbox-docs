@@ -103,6 +103,7 @@ parameter:
   - {name: validated, valueUnsignedInt: 1804646}   # resources validated
   - {name: valid,     valueUnsignedInt: 1317494}    # resources with no issues
   - {name: invalid,   valueUnsignedInt: 487152}     # distinct resources with ≥1 issue
+  - {name: bytes,     valueDecimal: 5242880000}     # total bytes of resource JSON processed
   - {name: invalid-resources, valueUrl: '/fhir/$batch-validate/<task-id>/invalid-resources'}
   - name: issue
     part:
@@ -116,6 +117,7 @@ parameter:
       - {name: diagnostics, valueString: '…human-readable message…'}
 ```
 
+* **`bytes`** is the total size of the resource JSON the run processed — a `decimal` because the total overflows `unsignedInt` at scale.
 * **`count`** is the number of **distinct offending resources** for the issue, derived from the offender index.
 * For **invariant** issues, the `constraint` part carries the constraint key and `diagnostics` carries the validator's human-readable description.
 * Each `issue` carries its own `invalid-resources` link, pre-filtered to that issue.
@@ -234,7 +236,7 @@ Aidbox stores results in an **aggregated, compact** form, so validating 100 GB o
 | --- | --- |
 | `issue` | one row per distinct error (no per-resource rows) |
 | `invalid_resource` | a tiny `(issue_id, resource_id, version_id)` row per offending resource: ids and versions only |
-| `chunk_stat` | per-task progress: `validated`/`invalid` counts and completion, one row per task |
+| `chunk_stat` | one row per task, written once when the task finishes: its `validated`/`invalid`/`bytes` tallies |
 
 The aggregation key is `profile`, `resource_type`, index-normalized `path` (`identifier[2].system` → `identifier.system`), `code`, and `constraint_key`. All occurrences that share these collapse into one issue; the issue's **count is the number of offender rows** (distinct resources). Invariant issues also keep the validator's `human` description.
 
