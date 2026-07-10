@@ -56,7 +56,7 @@ parameter:
   - {name: _until, valueInstant: '2025-06-09T00:00:00Z'}
   # validate against these profiles (conjunctive, see Profiles)
   - {name: profile, valueCanonical: 'http://hl7.org/fhir/us/core/StructureDefinition/us-core-observation-lab'}
-  # tuning (optional): number of parallel tasks (default 12, max 10000)
+  # tuning (optional): number of parallel tasks (default 12)
   - {name: number-of-chunks, valuePositiveInt: 24}
   # validator options (optional): override the box's validation settings for this run
   - {name: disable-terminology-validation, valueBoolean: true}
@@ -67,7 +67,7 @@ parameter:
 | `_since` **(required)** | `instant` | Only resources whose `meta.lastUpdated >= _since` (inclusive). Required so that a run declares a window instead of scanning a whole type (see [Filtering by date](#filtering-by-date)). |
 | `_until` | `instant` | Upper bound: `meta.lastUpdated < _until` (exclusive). |
 | `profile` (repeatable) | `canonical` | Validate every resource against these profile URLs (in addition to its base schema), conjunctively (see [Profiles](#profiles)). |
-| `number-of-chunks` (default `12`, max `10000`) | `positiveInt` | Number of hash-partitioned tasks the run is split into. More parallelizes a large type (across nodes when async) at the cost of more scans; each task streams its slice, so heap stays bounded regardless. A value above `10000` is rejected with `422`. |
+| `number-of-chunks` (default `12`) | `positiveInt` | Number of hash-partitioned tasks the run is split into. More parallelizes a large type (across nodes when async) at the cost of more scans; each task streams its slice, so heap stays bounded regardless. No fixed maximum: a sync run streams the tasks through a bounded thread pool (heap stays proportional to the executor count, not the task count), and an async run writes one scheduler row per task — so a very large value costs task rows and scans, not memory. |
 | `disable-terminology-validation` | `boolean` | Skip coded-binding / terminology checks. |
 | `disable-primitive-validation` | `boolean` | Skip primitive type & format checks. |
 | `disable-slicing-validation` | `boolean` | Skip slice validation. |
