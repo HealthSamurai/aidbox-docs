@@ -509,6 +509,8 @@ For `opt-in`, all of the following are required — missing any returns **422**:
 - `organizationIdentifierSystem`
 - A JWT token with `extensions.hl7-b2b.organization_id` (identifies the **recipient/calling** payer)
 - `Group.managingEntity` pointing to an Organization whose identifier matches the JWT `organization_id`
+
+The B2B claims are only carried by **JWT** access tokens. A `client_credentials` client issues **opaque** tokens by default, so opt-in export fails with `422 Token must contain extensions.hl7-b2b.organization_id for opt-in consent strategy` even when the `client-hl7B2b` extension is present. Set `token_format: "jwt"` in the client's `client_credentials` auth settings — see [UDAP B2B token configuration](#udap-b2b-token-configuration).
 {% endhint %}
 
 ### Consent resource requirements
