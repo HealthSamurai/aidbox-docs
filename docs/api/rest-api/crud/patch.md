@@ -401,6 +401,39 @@ PATCH /fhir/Patient/pt1
 }
 ```
 
+#### Upsert with delete + add
+
+**replace** fails when the element is missing, and **add** duplicates it when present. To set an element whether or not it exists, send **delete** and **add** in one request: operations apply in order, and deleting a missing element does nothing.
+
+```json
+PATCH /fhir/Patient/pt-1
+
+{
+  "resourceType": "Parameters",
+  "parameter": [
+    {
+      "name": "operation",
+      "part": [
+        {"name": "type", "valueCode": "delete"},
+        {"name": "path", "valueString": "Patient.extension.where(url = 'http://example.org/my-extension')"}
+      ]
+    },
+    {
+      "name": "operation",
+      "part": [
+        {"name": "type", "valueCode": "add"},
+        {"name": "path", "valueString": "Patient"},
+        {"name": "name", "valueString": "extension"},
+        {"name": "value", "valueExtension": {
+          "url": "http://example.org/my-extension",
+          "valueString": "new-value"
+        }}
+      ]
+    }
+  ]
+}
+```
+
 #### Move
 
 The **move** operation allows you to relocate an element within a collection from one index to another
