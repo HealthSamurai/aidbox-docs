@@ -119,7 +119,8 @@ parameter:
 
 * **`bytes`** is the total size of the resource JSON the run processed — a `decimal` because the total overflows `unsignedInt` at scale.
 * **`count`** is the number of **distinct offending resources** for the issue, derived from the offender index.
-* For **invariant** issues, the `constraint` part carries the constraint key and `diagnostics` carries the validator's human-readable description.
+* For **invariant** issues, the `constraint` part carries the constraint key. The `diagnostics` part is a **generated** summary keyed off the issue `code` (for an invariant, `<expression>: constraint <key> is not satisfied`) — it is not the validator's original message text, which is not stored (see [How results are stored](#how-results-are-stored)).
+* Other issue kinds add a type-specific part: `slice` (the slice name) for slice issues, `binding` (the value-set URL) for terminology-binding issues, and `unknown-profile` (the unresolved canonical) for an unresolved `profile` / `meta.profile`. A part with no value is omitted.
 * Each `issue` carries its own `invalid-resources` link, pre-filtered to that issue.
 * The summary lists at most **10,000** distinct issues, worst first. If a run produces more, it lists the worst 10,000 and adds `issues-total` (the true count) and `issues-truncated: true`, so a truncated list is not mistaken for the whole.
 * On failure the response is an `OperationOutcome`.
@@ -141,7 +142,7 @@ GET /fhir/$batch-validate/<task-id>
 
 * **In progress** → `202 Accepted` with an `X-Progress` header (percent of tasks completed, e.g. `45%`).
 * **Complete** → `200` with the same `Parameters` summary as the synchronous response.
-* **Cancelled** → `200` `OperationOutcome` (`cancelled`).
+* **Cancelled** → `200`, an informational `OperationOutcome` (issue code `informational`).
 * **Failed** → `200` with the partial `Parameters` summary from the tasks that completed, plus a `status: failed` parameter; if no task completed, a `200` `OperationOutcome`.
 * **Unknown task** → `404`.
 
@@ -238,9 +239,9 @@ Aidbox stores results in an **aggregated, compact** form, so validating 100 GB o
 | `invalid_resource` | a tiny `(issue_id, resource_id, version_id)` row per offending resource: ids and versions only |
 | `chunk_stat` | one row per task, written once when the task finishes: its `validated`/`invalid`/`bytes` tallies |
 
-The aggregation key is `profile`, `resource_type`, index-normalized `path` (`identifier[2].system` → `identifier.system`), `code`, and `constraint_key`. All occurrences that share these collapse into one issue; the issue's **count is the number of offender rows** (distinct resources). Invariant issues also keep the validator's `human` description.
+The aggregation key is `profile`, `resource_type`, index-normalized `path` (`identifier[2].system` → `identifier.system`), `code`, `constraint_key`, and — where they apply — the slice name, binding value set, and unresolved profile canonical. All occurrences that share these collapse into one issue; the issue's **count is the number of offender rows** (distinct resources).
 
-Aidbox does **not** store the invalid resource bodies or their `OperationOutcome`s. The drill-down re-reads the body from history at the validated version and reconstructs the `OperationOutcome` from the stored machine fields (`code`, `expression`, `constraint`, `human`).
+Aidbox does **not** store the invalid resource bodies, their `OperationOutcome`s, or the validator's original message text. The drill-down re-reads the body from history at the validated version and reconstructs the `OperationOutcome` from the stored machine fields (`code`, `expression`, `constraint`, and the type-specific parts), synthesizing the `diagnostics` message from the `code`.
 
 Both synchronous and asynchronous runs persist these tables under the run's `task-id`, so you poll and drill into either until you cancel it.
 
