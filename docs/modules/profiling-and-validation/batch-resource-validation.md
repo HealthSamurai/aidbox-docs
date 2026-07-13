@@ -12,7 +12,7 @@ Available in Aidbox starting from version **2607**.
 {% endhint %}
 
 {% hint style="warning" %}
-**Breaking change.** `$batch-validate` **replaces** the previous batch-validation API, which is **removed**. The `aidbox.validation/batch-validation`, `aidbox.validation/batch-validation-result`, `aidbox.validation/clear-batch-validation`, and `aidbox.validation/resources-batch-validation-task` RPCs no longer exist, and a run no longer produces `BatchValidationRun` / `BatchValidationError` resources — results now live in the aggregated `aidbox_batch_validation` schema (see [How results are stored](#how-results-are-stored)). Migrate to the `$batch-validate` operation described below.
+**Breaking change.** `$batch-validate` **replaces** the previous batch-validation API, which is **removed**. The `aidbox.validation/batch-validation`, `aidbox.validation/batch-validation-result`, `aidbox.validation/clear-batch-validation`, and `aidbox.validation/resources-batch-validation-task` RPCs no longer exist, and a run no longer produces `BatchValidationRun` / `BatchValidationError` resources. Results now live in the aggregated `aidbox_batch_validation` schema (see [How results are stored](#how-results-are-stored)). Migrate to the `$batch-validate` operation described below.
 {% endhint %}
 
 ## Overview
@@ -33,7 +33,7 @@ Both paths produce the same result under a **`task-id`** and persist it the same
 {% hint style="info" %}
 Synchronous validation blocks the request until it finishes. That suits a type scoped by a narrow `_since`/`_until` window; for a large type, use `Prefer: respond-async`. The synchronous path runs the N tasks on a local pool sized by `scheduler-executors` (`BOX_SCHEDULER_EXECUTORS`, default `4`); the async path schedules them on the task scheduler, which spreads them across nodes.
 
-Each task scans the window once for its hash slice, so total scan work grows with the task count. More chunks means more parallelism (the async path spreads them across nodes) but more scans; fewer chunks means fewer scans but less parallelism. The default of `12` balances the two — raise `number-of-chunks` to parallelize a large type further.
+Each task scans the window once for its hash slice, so total scan work grows with the task count. More chunks means more parallelism (the async path spreads them across nodes) but more scans; fewer chunks means fewer scans but less parallelism. The default of `12` balances the two. Raise `number-of-chunks` to parallelize a large type further.
 {% endhint %}
 
 {% hint style="warning" %}
@@ -67,13 +67,13 @@ parameter:
 | `_since` **(required)** | `instant` | Only resources whose `meta.lastUpdated >= _since` (inclusive). Required so that a run declares a window instead of scanning a whole type (see [Filtering by date](#filtering-by-date)). |
 | `_until` | `instant` | Upper bound: `meta.lastUpdated < _until` (exclusive). |
 | `profile` (repeatable) | `canonical` | Validate every resource against these profile URLs (in addition to its base schema), conjunctively (see [Profiles](#profiles)). |
-| `number-of-chunks` (default `12`) | `positiveInt` | Number of hash-partitioned tasks the run is split into. More parallelizes a large type (across nodes when async) at the cost of more scans; each task streams its slice, so heap stays bounded regardless. No fixed maximum: a sync run streams the tasks through a bounded thread pool (heap stays proportional to the executor count, not the task count), and an async run writes one scheduler row per task — so a very large value costs task rows and scans, not memory. |
+| `number-of-chunks` (default `12`) | `positiveInt` | Number of hash-partitioned tasks the run is split into. More parallelizes a large type (across nodes when async) at the cost of more scans; each task streams its slice, so heap stays bounded regardless. No fixed maximum: a sync run streams the tasks through a bounded thread pool (heap stays proportional to the executor count, not the task count), and an async run writes one scheduler row per task, so a very large value costs task rows and scans, not memory. |
 | `disable-terminology-validation` | `boolean` | Skip coded-binding / terminology checks. |
 | `disable-primitive-validation` | `boolean` | Skip primitive type & format checks. |
 | `disable-slicing-validation` | `boolean` | Skip slice validation. |
 | `disable-constraint-validation` | `boolean` | Blanket switch for FHIRPath invariants: `true` skips **all** of them; `false` checks **all** (see [Validator options](#validator-options)). |
 | `disable-constraint` (repeatable) | `string` | Skip specific invariants by key (e.g. `us-core-8`). |
-| `strict-profile-resolution` | `boolean` | Treat an unresolved `profile` / `meta.profile` canonical as an error instead of silently skipping it. |
+| `strict-profile-resolution` | `boolean` | Treat an unresolved `profile` / `meta.profile` canonical as an error instead of skipping it. |
 | `strict-extension-resolution` | `boolean` | Treat an unresolved extension as an error. |
 
 {% hint style="warning" %}
@@ -82,11 +82,11 @@ The body must be a valid `Parameters` resource. Each parameter must use the **ex
 
 ## Validator options
 
-The `disable-*` and `strict-*` parameters tune what the validator checks, **for this run only**. Each is three-state: **omit it to keep the box's configured setting**, or pass it to override that setting (`true`/`false`). Use them to trade completeness for speed on a huge type (e.g. skip the terminology and slicing passes for a structural-only sweep), or to tighten a run beyond the box defaults (e.g. `strict-profile-resolution` to surface resources whose declared profiles don't resolve — which otherwise read as compliant).
+The `disable-*` and `strict-*` parameters tune what the validator checks, **for this run only**. Each is three-state: **omit it to keep the box's configured setting** (see [FHIR Schema Validator](fhir-schema-validator/README.md)), or pass it to override that setting (`true`/`false`). Use them to trade completeness for speed on a huge type (e.g. skip the terminology and slicing passes for a structural-only sweep), or to tighten a run beyond the box defaults (e.g. `strict-profile-resolution` to surface resources whose declared profiles don't resolve, which otherwise read as compliant).
 
 Constraints (FHIRPath invariants) have two controls that compose:
 
-* `disable-constraint-validation` is the blanket switch — `true` skips **every** invariant, `false` checks **every** invariant (including any the box normally mutes).
+* `disable-constraint-validation` is the blanket switch: `true` skips **every** invariant, `false` checks **every** invariant (including any the box normally mutes).
 * `disable-constraint` names specific invariants to skip (repeat it per key).
 * When both are given, the blanket wins: `true` skips everything (the list is moot); with `false`, only the listed keys are skipped and all others are checked. With the blanket omitted, the listed keys are skipped **on top of** the box's defaults.
 
@@ -117,9 +117,9 @@ parameter:
       - {name: diagnostics, valueString: '…human-readable message…'}
 ```
 
-* **`bytes`** is the total size of the resource JSON the run processed — a `decimal` because the total overflows `unsignedInt` at scale.
+* **`bytes`** is the total size of the resource JSON the run processed, a `decimal` because the total overflows `unsignedInt` at scale.
 * **`count`** is the number of **distinct offending resources** for the issue, derived from the offender index.
-* For **invariant** issues, the `constraint` part carries the constraint key. The `diagnostics` part is a **generated** summary keyed off the issue `code` (for an invariant, `<expression>: constraint <key> is not satisfied`) — it is not the validator's original message text, which is not stored (see [How results are stored](#how-results-are-stored)).
+* For **invariant** issues, the `constraint` part carries the constraint key. The `diagnostics` part is a **generated** summary keyed off the issue `code` (for an invariant, `<expression>: constraint <key> is not satisfied`). It is not the validator's original message text, which is not stored (see [How results are stored](#how-results-are-stored)).
 * Other issue kinds add a type-specific part: `slice` (the slice name) for slice issues, `binding` (the value-set URL) for terminology-binding issues, and `unknown-profile` (the unresolved canonical) for an unresolved `profile` / `meta.profile`. A part with no value is omitted.
 * Each `issue` carries its own `invalid-resources` link, pre-filtered to that issue.
 * The summary lists at most **10,000** distinct issues, worst first. If a run produces more, it lists the worst 10,000 and adds `issues-total` (the true count) and `issues-truncated: true`, so a truncated list is not mistaken for the whole.
@@ -127,7 +127,7 @@ parameter:
 
 ## Asynchronous response
 
-```
+```http
 status: 202 Accepted
 Content-Location: /fhir/$batch-validate/<task-id>
 ```
@@ -136,7 +136,7 @@ The endpoints below are **system-level**, keyed by `task-id` alone (no resource 
 
 Poll the `Content-Location`:
 
-```yaml
+```http
 GET /fhir/$batch-validate/<task-id>
 ```
 
@@ -150,7 +150,7 @@ GET /fhir/$batch-validate/<task-id>
 
 The summary tells you which issues occur and how many resources hit each. To get the **offending resources**, each linked to the version that was validated and carrying its full `OperationOutcome`, call `invalid-resources`:
 
-```
+```http
 GET /fhir/$batch-validate/<task-id>/invalid-resources
     ?_issue=<issue-id>&_issue=<issue-id2>&_count=50&_page=1&_fullurl-only=false
 ```
@@ -195,7 +195,7 @@ The `fullUrl` is **version-specific** (`/_history/<version>`), so a vread resolv
 
 ## Cancel
 
-```
+```http
 DELETE /fhir/$batch-validate/<task-id>
 ```
 
@@ -239,7 +239,7 @@ Aidbox stores results in an **aggregated, compact** form, so validating 100 GB o
 | `invalid_resource` | a tiny `(issue_id, resource_id, version_id)` row per offending resource: ids and versions only |
 | `chunk_stat` | one row per task, written once when the task finishes: its `validated`/`invalid`/`bytes` tallies |
 
-The aggregation key is `profile`, `resource_type`, index-normalized `path` (`identifier[2].system` → `identifier.system`), `code`, `constraint_key`, and — where they apply — the slice name, binding value set, and unresolved profile canonical. All occurrences that share these collapse into one issue; the issue's **count is the number of offender rows** (distinct resources).
+The aggregation key is `profile`, `resource_type`, index-normalized `path` (`identifier[2].system` → `identifier.system`), `code`, `constraint_key`, and (where they apply) the slice name, binding value set, and unresolved profile canonical. All occurrences that share these collapse into one issue; the issue's **count is the number of offender rows** (distinct resources).
 
 Aidbox does **not** store the invalid resource bodies, their `OperationOutcome`s, or the validator's original message text. The drill-down re-reads the body from history at the validated version and reconstructs the `OperationOutcome` from the stored machine fields (`code`, `expression`, `constraint`, and the type-specific parts), synthesizing the `diagnostics` message from the `code`.
 
@@ -247,7 +247,7 @@ Both synchronous and asynchronous runs persist these tables under the run's `tas
 
 ## Response format
 
-The `invalid-resources` response is a `Parameters` resource rather than a `Bundle`. A `searchset` or `collection` Bundle cannot carry a `total`, version-specific links, a per-offender `OperationOutcome`, and the invalid resource bodies together while remaining FHIR-valid: Bundle invariants prohibit a version-specific `fullUrl`, permit `total` and `entry.response` only on certain Bundle types, and require each embedded resource to be valid in its own right — which the intentionally invalid bodies are not. A `Parameters` resource is subject to none of these constraints: it preserves the version-specific drill-down links and embeds each `OperationOutcome` beside the resource it describes. The invalid resource bodies are the report's content — the data under review.
+The `invalid-resources` response is a `Parameters` resource rather than a `Bundle`. A `searchset` or `collection` Bundle cannot carry a `total`, version-specific links, a per-offender `OperationOutcome`, and the invalid resource bodies together while remaining FHIR-valid: Bundle invariants prohibit a version-specific `fullUrl`, permit `total` and `entry.response` only on certain Bundle types, and require each embedded resource to be valid in its own right, which the invalid bodies are not. A `Parameters` resource is subject to none of these constraints: it preserves the version-specific drill-down links and embeds each `OperationOutcome` beside the resource it describes. The invalid resource bodies are the report's content: the data under review.
 
 ## Terminology
 
