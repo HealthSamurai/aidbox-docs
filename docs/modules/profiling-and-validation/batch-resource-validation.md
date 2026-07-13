@@ -90,6 +90,36 @@ Constraints (FHIRPath invariants) have two controls that compose:
 * `disable-constraint` names specific invariants to skip (repeat it per key).
 * When both are given, the blanket wins: `true` skips everything (the list is moot); with `false`, only the listed keys are skipped and all others are checked. With the blanket omitted, the listed keys are skipped **on top of** the box's defaults.
 
+## Indexing the hash partition
+
+Each task validates its `mod(abs(hashtextextended(id, 0)), N)` slice of the type, where `N` is `number-of-chunks`. `N` stays fixed for a run, so the partition predicate is a constant expression that a PostgreSQL expression index can cover. Without such an index, every task scans the whole table to find its slice, so a run with `N` tasks costs `N` full scans (the scan cost the `number-of-chunks` note above describes). With a matching index, each task reads only its slice through the index.
+
+The gain grows as the slice shrinks, so an index matters most for a large type validated with a high `number-of-chunks`. Build it on the resource's storage table (named after the lowercased resource type) with the **same modulus** as the `number-of-chunks` the run passes:
+
+```sql
+-- Observation, validated in 10000 chunks
+CREATE INDEX CONCURRENTLY observation_batch_validate_10000
+  ON observation (mod(abs(hashtextextended(id, 0)), 10000));
+```
+
+Then run with the matching `number-of-chunks`:
+
+```yaml
+POST /fhir/Observation/$batch-validate
+resourceType: Parameters
+parameter:
+  - {name: _since, valueInstant: '1970-01-01T00:00:00Z'}
+  - {name: number-of-chunks, valuePositiveInt: 10000}
+```
+
+{% hint style="warning" %}
+The index modulus must equal `number-of-chunks`. A different value is a different expression, so PostgreSQL skips the index and the run falls back to per-task scans. Check the plan with `EXPLAIN` on one task's query before relying on the index.
+{% endhint %}
+
+{% hint style="info" %}
+`CREATE INDEX CONCURRENTLY` builds the index without blocking writes to the table. The index costs disk and slows writes, so drop it after a one-off sweep: `DROP INDEX observation_batch_validate_10000`.
+{% endhint %}
+
 ## Synchronous response
 
 A `Parameters` resource holds the `task-id`, the headline counts, a link to the offending resources, and one `issue` per distinct error (each with its own filtered drill-down link).
