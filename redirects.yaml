@@ -375,7 +375,8 @@ redirects:
   modules-1/observability/traces/how-to-use-tracing: modules/observability/traces/how-to-use-tracing.md
   modules-1/observability/traces/otel-traces-exporter-parameters: modules/observability/traces/otel-traces-exporter-parameters.md
   modules-1/other-modules/mcp: modules/other-modules/mcp.md
-  modules-1/profiling-and-validation/asynchronous-resource-validation: modules/profiling-and-validation/asynchronous-resource-validation.md
+  modules-1/profiling-and-validation/asynchronous-resource-validation: modules/profiling-and-validation/batch-resource-validation.md
+  modules/profiling-and-validation/asynchronous-resource-validation: modules/profiling-and-validation/batch-resource-validation.md
   modules-1/profiling-and-validation/fhir-schema-validator/setup-aidbox-with-fhir-schema-validation-engine: modules/profiling-and-validation/fhir-schema-validator/setup-aidbox-with-fhir-schema-validation-engine.md
   modules-1/profiling-and-validation/fhir-schema-validator/tutorials/how-to-create-fhir-npm-package: tutorials/artifact-registry-tutorials/how-to-create-fhir-npm-package.md
   modules-1/profiling-and-validation/skip-validation-of-references-in-resource-using-request-header: modules/profiling-and-validation/skip-validation-of-references-in-resource-using-request-header.md

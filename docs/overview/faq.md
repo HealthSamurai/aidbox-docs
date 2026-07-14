@@ -660,7 +660,7 @@ Learn more:
 
 For large datasets, enable async validation to process resources in the background without blocking API responses.
 
-Learn more: [Asynchronous Resource Validation](../modules/profiling-and-validation/asynchronous-resource-validation.md)
+Learn more: [Batch resource validation](../modules/profiling-and-validation/batch-resource-validation.md)
 
 ## Terminology & ValueSets
 
