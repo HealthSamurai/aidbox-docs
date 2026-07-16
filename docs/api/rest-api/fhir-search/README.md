@@ -78,15 +78,16 @@ Example response:
 }
 ```
 
-Note: using the `X-Original-Uri` header allows for complete overwrite of the content of the URL parameter. Aidbox will automatically add a page param to your link, or replace it if it exists. `x-original-uri: https://example.com/fhir/Patient?page=4` will produce:
+Note: using the `X-Original-Uri` HTTP header allows for complete overwrite of the content of the URL parameter. Aidbox will automatically add a page param to your link.
+`x-original-uri: https://example.com/loc` will produce:
 
 ```yaml
 ...
 link:
   - relation: first
-    url: https://example.com/fhir/Patient?page=1
+    url: https://example.com/loc?page=1
   - relation: self
-    url: https://example.com/fhir/Patient?page=4
+    url: https://example.com/loc?page=1
 ...
 ```
 
