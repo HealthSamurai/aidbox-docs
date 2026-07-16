@@ -355,6 +355,21 @@ error:
 {% endtab %}
 {% endtabs %}
 
+## Authenticated sources
+
+`$import` fetches each `inputs[].url` with a plain, unauthenticated HTTP GET. There is no way to attach an `Authorization` header, bearer token, or other credential to the request — the `url` field is the only thing Aidbox sends.
+
+This means the URL must be either:
+
+* publicly/anonymously readable, or
+* a **pre-signed URL** that carries its credentials in the query string, e.g. an Azure [SAS token](../../file-storage/azure-blob-storage.md) or an S3/GCS presigned URL.
+
+{% hint style="warning" %}
+If the source returns a non-2xx response (401, 403, etc.), Aidbox reports it as a generic `Can't open connection for uri` error rather than surfacing the actual status code. If you see this error, check that the URL is public or properly pre-signed before assuming a network or DNS issue.
+{% endhint %}
+
+For Azure Blob Storage, generate a SAS URL for each blob (see [Azure Blob Storage](../../file-storage/azure-blob-storage.md)) and use that signed URL — with the `sv`/`sig` query parameters included — as the `url` value. A bearer token obtained separately (e.g. via `az` CLI) cannot be used here, since there is no header to put it in.
+
 ## Import local file
 
 Sometimes you want to import local file into local Aidbox. Possible solutions for local development:
