@@ -75,6 +75,23 @@ Aidbox will apply it if the `BOX_INIT_BUNDLE` is set to:
 BOX_INIT_BUNDLE=file:///tmp/bundle.json
 ```
 
+## Delivering the bundle to the pod
+
+`BOX_INIT_BUNDLE` points at a `file://` path inside the container or an `https://` URL, so deploying an init bundle comes down to getting that file to the container. Common options:
+
+| Method                          | How                                                                                                                 | Pros                                                                                                                                           | Cons                                                                                                                        |
+| ------------------------------- | ------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------- |
+| **Bake into a custom image**    | `FROM healthsamurai/aidboxone`, `COPY bundle.json` into the image, set `BOX_INIT_BUNDLE=file:///…`                  | Immutable, versioned artifact; atomic deploy and rollback by image tag; no boot-time external dependency | Rebuild and push the image on every bundle change                                                                           |
+| **Mounted volume / ConfigMap**  | Mount the file into the stock image (a Kubernetes `ConfigMap` or a volume); `BOX_INIT_BUNDLE=file://<mount>`        | Stock image; change the bundle without rebuilding (GitOps-friendly)                                                                            | A `ConfigMap` is text-only and limited to ~1 MiB, so large bundles hit the limit |
+| **Init container / sidecar**    | An init container builds or downloads the bundle into a shared volume that the Aidbox container reads via `file://` | Stock image; can fetch from private storage using the pod's identity                                    | An extra container and its wiring to operate                                                                                |
+| **Remote URL (object storage)** | Upload the bundle to object storage (GCS, S3, Azure Blob); `BOX_INIT_BUNDLE=https://…`                              | Stock image; fully decoupled; per-environment is a different URL; versioned in the bucket                                                      | Startup depends on storage availability and access                    |
+
+**Secrets and private storage.** A bundle baked into an image layer or served from a public URL exposes any secret it contains. Keep secrets out of the static bundle and inject them at container start. See [How to inject env variables into init bundle](../deployment-and-maintenance/deploy-aidbox/how-to-inject-env-variables-into-init-bundle.md). `BOX_INIT_BUNDLE` fetches an `https://` URL with a plain HTTP `GET` and does not authenticate with cloud IAM, so for a **private** bucket either put a pre-signed URL (S3 pre-signed URL, Azure SAS) in `BOX_INIT_BUNDLE`, or let an init container or a CSI volume driver (Azure Blob CSI or GCS FUSE with workload identity) fetch the object using the pod's identity and expose it to Aidbox as a `file://` path.
+
+## Bundling a local FHIR package
+
+If the init bundle installs a local FHIR package with [`$fhir-package-install`](../reference/package-registry-api.md), it references the package as a `.tgz` tarball on a `file://` path. That tarball is a second file, so it has to reach the container the same way the bundle does: bake it into the image, place it on the shared volume, or serve it from an `https://` URL. A `ConfigMap` is text-only and cannot hold it.
+
 ## Hints
 
 1. First, check that Aidbox handles the Bundle as it should using `POST /fhir`. Try to post it several times to make sure it is idempotent. Then add it to `BOX_INIT_BUNDLE`.
@@ -98,23 +115,6 @@ BOX_INIT_BUNDLE=file:///tmp/bundle.json
    ```
 
    To change configuration of an already-created destination, delete it manually and let the next bundle run recreate it. See [Updating a TopicDestination](../modules/topic-based-subscriptions/aidbox-topic-based-subscriptions.md#updating-a-topicdestination).
-
-## Delivering the bundle to the pod
-
-`BOX_INIT_BUNDLE` points at a `file://` path inside the container or an `https://` URL, so deploying an init bundle comes down to getting that file to the container. Common options:
-
-| Method                          | How                                                                                                                 | Pros                                                                                                                                           | Cons                                                                                                                        |
-| ------------------------------- | ------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------- |
-| **Bake into a custom image**    | `FROM healthsamurai/aidboxone`, `COPY bundle.json` into the image, set `BOX_INIT_BUNDLE=file:///…`                  | Immutable, versioned artifact; atomic deploy and rollback by image tag; no boot-time external dependency | Rebuild and push the image on every bundle change                                                                           |
-| **Mounted volume / ConfigMap**  | Mount the file into the stock image (a Kubernetes `ConfigMap` or a volume); `BOX_INIT_BUNDLE=file://<mount>`        | Stock image; change the bundle without rebuilding (GitOps-friendly)                                                                            | A `ConfigMap` is text-only and limited to ~1 MiB, so large bundles hit the limit |
-| **Init container / sidecar**    | An init container builds or downloads the bundle into a shared volume that the Aidbox container reads via `file://` | Stock image; can fetch from private storage using the pod's identity                                    | An extra container and its wiring to operate                                                                                |
-| **Remote URL (object storage)** | Upload the bundle to object storage (GCS, S3, Azure Blob); `BOX_INIT_BUNDLE=https://…`                              | Stock image; fully decoupled; per-environment is a different URL; versioned in the bucket                                                      | Startup depends on storage availability and access                    |
-
-**Secrets and private storage.** A bundle baked into an image layer or served from a public URL exposes any secret it contains. Keep secrets out of the static bundle and inject them at container start. See [How to inject env variables into init bundle](../deployment-and-maintenance/deploy-aidbox/how-to-inject-env-variables-into-init-bundle.md). `BOX_INIT_BUNDLE` fetches an `https://` URL with a plain HTTP `GET` and does not authenticate with cloud IAM, so for a **private** bucket either put a pre-signed URL (S3 pre-signed URL, Azure SAS) in `BOX_INIT_BUNDLE`, or let an init container or a CSI volume driver (Azure Blob CSI or GCS FUSE with workload identity) fetch the object using the pod's identity and expose it to Aidbox as a `file://` path.
-
-## Bundling a local FHIR package
-
-If the init bundle installs a local FHIR package with [`$fhir-package-install`](../reference/package-registry-api.md), it references the package as a `.tgz` tarball on a `file://` path. That tarball is a second file, so it has to reach the container the same way the bundle does: bake it into the image, place it on the shared volume, or serve it from an `https://` URL. A `ConfigMap` is text-only and cannot hold it.
 
 ## See also
 
