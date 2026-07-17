@@ -92,6 +92,28 @@ BOX_INIT_BUNDLE=file:///tmp/bundle.json
 
 If the init bundle installs a local FHIR package with [`$fhir-package-install`](../reference/package-registry-api.md), it references the package as a `.tgz` tarball on a `file://` path. That tarball is a second file, so it has to reach the container the same way the bundle does: bake it into the image, place it on the shared volume, or serve it from an `https://` URL. A `ConfigMap` is text-only and cannot hold it.
 
+Add the install as a bundle entry that `POST`s the tarball path to `$fhir-package-install`:
+
+```json
+{
+  "request": {
+    "method": "POST",
+    "url": "$fhir-package-install"
+  },
+  "resource": {
+    "resourceType": "Parameters",
+    "parameter": [
+      {
+        "name": "package",
+        "valueString": "file:///tmp/ig/custom-ig.tgz"
+      }
+    ]
+  }
+}
+```
+
+Put this entry before the resources that depend on the package (profiles, custom types), so the package is loaded by the time they apply. For a full working setup, see the [init-bundle-from-directories example](https://github.com/Aidbox/examples/tree/main/aidbox-features/init-bundle-from-directories).
+
 ## Hints
 
 1. First, check that Aidbox handles the Bundle as it should using `POST /fhir`. Try to post it several times to make sure it is idempotent. Then add it to `BOX_INIT_BUNDLE`.
