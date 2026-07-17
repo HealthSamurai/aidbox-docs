@@ -101,7 +101,7 @@ BOX_INIT_BUNDLE=file:///tmp/bundle.json
 
 ## Delivering the bundle to the pod
 
-`BOX_INIT_BUNDLE` points at a `file://` path inside the container or an `https://` URL, so deploying an init bundle comes down to getting that file to the container. Common options:
+`BOX_INIT_BUNDLE` points at a `file://` path inside the container or an `https://` URL, so deploying an init bundle comes down to getting that file to the container. If the bundle installs a local FHIR package (a `.tgz` tarball referenced by a `file://` path, see [`$fhir-package-install`](../reference/package-registry-api.md)), that tarball has to reach the container too, so the notes below call out where each method leaves it. Common options:
 
 | Method                          | How                                                                                                                 | Pros                                                                                                                                           | Cons                                                                                                                        |
 | ------------------------------- | ------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------- |
@@ -112,7 +112,7 @@ BOX_INIT_BUNDLE=file:///tmp/bundle.json
 
 Two things apply across all of them:
 
-- **A local package `.tgz` travels with the bundle.** If the bundle installs a local FHIR package via [`$fhir-package-install`](../reference/package-registry-api.md) with a `file://` path, that tarball must reach the container too: bake it into the image, place it on the same volume, or reference it by `https://`. A `ConfigMap` cannot hold it.
+- **A local package `.tgz` travels with the bundle.** Bake it into the image, place it on the same volume, or reference it by `https://`. A `ConfigMap` cannot hold it.
 - **Secrets and private storage.** A bundle baked into an image layer or served from a public URL exposes any secret it contains. Keep secrets out of the static bundle and inject them at container start. See [How to inject env variables into init bundle](../deployment-and-maintenance/deploy-aidbox/how-to-inject-env-variables-into-init-bundle.md). `BOX_INIT_BUNDLE` fetches an `https://` URL with a plain HTTP `GET` and does not authenticate with cloud IAM, so for a **private** bucket either put a pre-signed URL (S3 pre-signed URL, Azure SAS) in `BOX_INIT_BUNDLE`, or let an init container or a CSI volume driver (Azure Blob CSI or GCS FUSE with workload identity) fetch the object using the pod's identity and expose it to Aidbox as a `file://` path.
 
 ## See also
