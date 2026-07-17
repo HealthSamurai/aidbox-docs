@@ -662,16 +662,6 @@ Sets the timeout for GraphQL queries in seconds. Default value is `60`.
 BOX_FEATURES_GRAPHQL_TIMEOUT=<integer>
 ```
 
-### Warmup
-
-By default, Aidbox does an in-memory index cache warmup when the first request comes in.
-
-You can change it to warmup cache on startup.
-
-```
-BOX_FEATURES_GRAPHQL_WARMUP__ON__STARTUP=true
-```
-
 ### Revincludes with any type
 
 For the sake of performance, Aidbox does not provide revincludes for references of type `Reference(Any)`, e.g. for `Task.for`.
