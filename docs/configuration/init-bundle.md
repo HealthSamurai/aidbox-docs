@@ -21,12 +21,12 @@ It is equivalent to executing [Bundle](../api/batch-transaction.md) in Aidbox us
 
 ## Why Init Bundle instead of a seed service
 
-A common alternative is a self-written seed service: a sidecar, an init container, or a script that waits for Aidbox to boot and then `POST`s the configuration resources to `/fhir`. Init Bundle removes the problems that approach carries, because it runs inside Aidbox before the HTTP server opens.
+A common alternative is a self-written seed service: a sidecar, an init container, or a script that waits for Aidbox to boot and then `POST`s the configuration resources to `/fhir`. Init Bundle runs inside Aidbox before the HTTP server opens, which removes the problems that approach carries.
 
-- **No race window.** A seed service `POST`s after Aidbox already listens and reports healthy, so the orchestrator can route traffic to an instance that lacks its `AccessPolicy`, `Client`, `SearchParameter`, or subscription resources. Init Bundle finishes before the HTTP server starts and before `/health` responds, so a green health check guarantees the configuration resources exist.
-- **Fail-fast on a bad bundle.** A failed transaction init bundle stops Aidbox from starting, so the pod never becomes ready and the orchestrator holds back traffic or rolls the deployment back. A seed service that fails leaves Aidbox running and serving with missing configuration, and the failure lands out of band where it is easy to miss.
-- **No bootstrap credentials.** A seed service authenticates against `/fhir`, so it needs a `Client` and an `AccessPolicy` before it can write the very `Client` and `AccessPolicy` you want to seed. Init Bundle runs inside Aidbox before authentication serves, so it creates those resources with no external credentials.
-- **Nothing extra to operate.** Init Bundle is one environment variable and one file. You drop the additional container or process and the monitoring, logging, and retry logic it would need.
+- **No race window.** A seed service `POST`s after Aidbox reports healthy, so the orchestrator can route traffic before the configuration lands. Init Bundle finishes before `/health` responds, so a green health check guarantees it applied.
+- **Fail-fast on a bad bundle.** A failed transaction init bundle stops Aidbox from starting, so the orchestrator holds back traffic or rolls the deployment back. A failed seed service leaves Aidbox serving with missing configuration.
+- **No bootstrap credentials.** A seed service needs a `Client` and `AccessPolicy` before it can write the ones you want to seed. Init Bundle runs before authentication serves, so it needs no external credentials.
+- **Nothing extra to operate.** Init Bundle is one environment variable and one file, with no additional container or process to monitor and retry.
 
 ## Usage
 
