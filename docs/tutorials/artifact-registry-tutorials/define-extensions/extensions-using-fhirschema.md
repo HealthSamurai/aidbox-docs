@@ -4,13 +4,19 @@ description: Define FHIR extensions in Aidbox using FHIRSchema format for extend
 
 # Extensions using FHIRSchema
 
+{% hint style="danger" %}
+**Removed in the July 2026 release.** The `POST /fhir/FHIRSchema` and `PUT /fhir/FHIRSchema` endpoints have been removed, including `FHIRSchema` entries in transaction bundles and [init bundles](../../../configuration/init-bundle.md). The instructions below apply only to Aidbox versions 2606 and earlier.
+
+Define extensions with [StructureDefinition](extensions-using-structuredefinition.md) instead.
+{% endhint %}
+
 When Aidbox is configured with [FHIRSchema mode](../../../modules/profiling-and-validation/fhir-schema-validator/), it is possible to define Extension in [FHIRSchema format](https://fhir-schema.github.io/fhir-schema/).
 
 See also [Extensions using StructureDefinition](extensions-using-structuredefinition.md).
 
 ## Example
 
-To create the extension, use `POST /fhir/FHIRSchema` endpoint.
+In Aidbox versions 2606 and earlier, to create the extension, use `POST /fhir/FHIRSchema` endpoint.
 
 ```http
 POST /fhir/FHIRSchema

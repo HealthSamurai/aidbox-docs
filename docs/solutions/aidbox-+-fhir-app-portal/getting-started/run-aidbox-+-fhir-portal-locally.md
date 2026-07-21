@@ -360,32 +360,58 @@ Create `initBundleDeveloper.json` file in the same folder alongside with `docker
   "entry": [
     {
       "resource": {
-        "resourceType": "FHIRSchema",
+        "resourceType": "StructureDefinition",
         "url": "http://aidbox.app/StructureDefinition/Client/created-by",
         "id": "client-created-by",
-        "base": "Extension",
         "name": "client-created-by",
+        "status": "active",
+        "abstract": false,
         "kind": "complex-type",
         "type": "Extension",
-        "version": "0.0.1",
-        "elements": {
-          "url": {
-            "fixed": "http://aidbox.app/StructureDefinition/Client/created-by"
-          },
-          "value": {
-            "choices": ["valueReference"]
-          },
-          "valueReference": {
-            "type": "Reference",
-            "refers": ["User"],
-            "choiceOf": "value"
+        "context": [
+          {
+            "type": "element",
+            "expression": "Client"
           }
-        },
-        "derivation": "constraint"
+        ],
+        "baseDefinition": "http://hl7.org/fhir/StructureDefinition/Extension",
+        "version": "0.0.1",
+        "derivation": "constraint",
+        "differential": {
+          "element": [
+            {
+              "id": "Extension",
+              "path": "Extension",
+              "min": 0,
+              "max": "1"
+            },
+            {
+              "id": "Extension.url",
+              "path": "Extension.url",
+              "min": 1,
+              "max": "1",
+              "fixedUri": "http://aidbox.app/StructureDefinition/Client/created-by"
+            },
+            {
+              "id": "Extension.value[x]",
+              "path": "Extension.value[x]",
+              "min": 1,
+              "max": "1",
+              "type": [
+                {
+                  "code": "Reference",
+                  "targetProfile": [
+                    "http://health-samurai.io/fhir/core/StructureDefinition/User"
+                  ]
+                }
+              ]
+            }
+          ]
+        }
       },
       "request": {
         "method": "PUT",
-        "url": "FHIRSchema/client-created-by"
+        "url": "StructureDefinition/client-created-by"
       }
     },
     {
@@ -408,37 +434,63 @@ Create `initBundleDeveloper.json` file in the same folder alongside with `docker
     },
     {
       "resource": {
-        "resourceType": "FHIRSchema",
+        "resourceType": "StructureDefinition",
         "url": "http://aidbox.app/StructureDefinition/Client/status",
         "id": "client-status",
-        "base": "Extension",
         "name": "client-status",
+        "status": "active",
+        "abstract": false,
         "kind": "complex-type",
         "type": "Extension",
-        "version": "0.0.2",
-        "elements": {
-          "url": {
-            "fixed": "http://aidbox.app/StructureDefinition/Client/status"
-          },
-          "value": {
-            "choices": ["valueCode"]
-          },
-          "valueCode": {
-            "type": "code",
-            "choiceOf": "value",
-            "constraints": {
-              "enum-client-status": {
-                "severity": "error",
-                "expression": "%context.subsetOf('draft' | 'review' | 'active' | 'rejected')"
-              }
-            }
+        "context": [
+          {
+            "type": "element",
+            "expression": "Client"
           }
-        },
-        "derivation": "constraint"
+        ],
+        "baseDefinition": "http://hl7.org/fhir/StructureDefinition/Extension",
+        "version": "0.0.2",
+        "derivation": "constraint",
+        "differential": {
+          "element": [
+            {
+              "id": "Extension",
+              "path": "Extension",
+              "min": 0,
+              "max": "1"
+            },
+            {
+              "id": "Extension.url",
+              "path": "Extension.url",
+              "min": 1,
+              "max": "1",
+              "fixedUri": "http://aidbox.app/StructureDefinition/Client/status"
+            },
+            {
+              "id": "Extension.value[x]",
+              "path": "Extension.value[x]",
+              "min": 1,
+              "max": "1",
+              "type": [
+                {
+                  "code": "code"
+                }
+              ],
+              "constraint": [
+                {
+                  "key": "enum-client-status",
+                  "severity": "error",
+                  "human": "Status should be 'draft', 'review', 'active' or 'rejected'",
+                  "expression": "%context.subsetOf('draft' | 'review' | 'active' | 'rejected')"
+                }
+              ]
+            }
+          ]
+        }
       },
       "request": {
         "method": "PUT",
-        "url": "FHIRSchema/client-status"
+        "url": "StructureDefinition/client-status"
       }
     },
     {
@@ -1009,32 +1061,58 @@ Create `initBundleAdmin.json` file in the same folder alongside with `docker-com
   "entry": [
     {
       "resource": {
-        "resourceType": "FHIRSchema",
+        "resourceType": "StructureDefinition",
         "url": "http://aidbox.app/StructureDefinition/Client/created-by",
         "id": "client-created-by",
-        "base": "Extension",
         "name": "client-created-by",
+        "status": "active",
+        "abstract": false,
         "kind": "complex-type",
         "type": "Extension",
-        "version": "0.0.1",
-        "elements": {
-          "url": {
-            "fixed": "http://aidbox.app/StructureDefinition/Client/created-by"
-          },
-          "value": {
-            "choices": ["valueReference"]
-          },
-          "valueReference": {
-            "type": "Reference",
-            "refers": ["User"],
-            "choiceOf": "value"
+        "context": [
+          {
+            "type": "element",
+            "expression": "Client"
           }
-        },
-        "derivation": "constraint"
+        ],
+        "baseDefinition": "http://hl7.org/fhir/StructureDefinition/Extension",
+        "version": "0.0.1",
+        "derivation": "constraint",
+        "differential": {
+          "element": [
+            {
+              "id": "Extension",
+              "path": "Extension",
+              "min": 0,
+              "max": "1"
+            },
+            {
+              "id": "Extension.url",
+              "path": "Extension.url",
+              "min": 1,
+              "max": "1",
+              "fixedUri": "http://aidbox.app/StructureDefinition/Client/created-by"
+            },
+            {
+              "id": "Extension.value[x]",
+              "path": "Extension.value[x]",
+              "min": 1,
+              "max": "1",
+              "type": [
+                {
+                  "code": "Reference",
+                  "targetProfile": [
+                    "http://health-samurai.io/fhir/core/StructureDefinition/User"
+                  ]
+                }
+              ]
+            }
+          ]
+        }
       },
       "request": {
         "method": "PUT",
-        "url": "FHIRSchema/client-created-by"
+        "url": "StructureDefinition/client-created-by"
       }
     },
     {
@@ -1057,37 +1135,63 @@ Create `initBundleAdmin.json` file in the same folder alongside with `docker-com
     },
     {
       "resource": {
-        "resourceType": "FHIRSchema",
+        "resourceType": "StructureDefinition",
         "url": "http://aidbox.app/StructureDefinition/Client/status",
         "id": "client-status",
-        "base": "Extension",
         "name": "client-status",
+        "status": "active",
+        "abstract": false,
         "kind": "complex-type",
         "type": "Extension",
-        "version": "0.0.2",
-        "elements": {
-          "url": {
-            "fixed": "http://aidbox.app/StructureDefinition/Client/status"
-          },
-          "value": {
-            "choices": ["valueCode"]
-          },
-          "valueCode": {
-            "type": "code",
-            "choiceOf": "value",
-            "constraints": {
-              "enum-client-status": {
-                "severity": "error",
-                "expression": "%context.subsetOf('draft' | 'review' | 'active' | 'rejected')"
-              }
-            }
+        "context": [
+          {
+            "type": "element",
+            "expression": "Client"
           }
-        },
-        "derivation": "constraint"
+        ],
+        "baseDefinition": "http://hl7.org/fhir/StructureDefinition/Extension",
+        "version": "0.0.2",
+        "derivation": "constraint",
+        "differential": {
+          "element": [
+            {
+              "id": "Extension",
+              "path": "Extension",
+              "min": 0,
+              "max": "1"
+            },
+            {
+              "id": "Extension.url",
+              "path": "Extension.url",
+              "min": 1,
+              "max": "1",
+              "fixedUri": "http://aidbox.app/StructureDefinition/Client/status"
+            },
+            {
+              "id": "Extension.value[x]",
+              "path": "Extension.value[x]",
+              "min": 1,
+              "max": "1",
+              "type": [
+                {
+                  "code": "code"
+                }
+              ],
+              "constraint": [
+                {
+                  "key": "enum-client-status",
+                  "severity": "error",
+                  "human": "Status should be 'draft', 'review', 'active' or 'rejected'",
+                  "expression": "%context.subsetOf('draft' | 'review' | 'active' | 'rejected')"
+                }
+              ]
+            }
+          ]
+        }
       },
       "request": {
         "method": "PUT",
-        "url": "FHIRSchema/client-status"
+        "url": "StructureDefinition/client-status"
       }
     },
     {
@@ -1381,55 +1485,6 @@ Create `initBundleAdmin.json` file in the same folder alongside with `docker-com
       "request": {
         "method": "PUT",
         "url": "DocumentReference/smartbox-privacy"
-      }
-    },
-    {
-      "resource": {
-        "resourceType": "FHIRSchema",
-        "url": "http://smartbox.hs/StructureDefinition/AwsAccount",
-        "id": "AwsAccount",
-        "name": "AwsAccount",
-        "type": "AwsAccount",
-        "kind": "resource",
-        "derivation": "specialization",
-        "elements": {
-          "region": {
-            "type": "string"
-          },
-          "access-key-id": {
-            "type": "string"
-          },
-          "secret-access-key": {
-            "type": "string"
-          }
-        }
-      },
-      "request": {
-        "method": "PUT",
-        "url": "FHIRSchema/AwsAccount"
-      }
-    },
-    {
-      "resource": {
-        "resourceType": "FHIRSchema",
-        "url": "http://smartbox.hs/StructureDefinition/GcpServiceAccount",
-        "id": "GcpServiceAccount",
-        "name": "GcpServiceAccount",
-        "type": "GcpServiceAccount",
-        "kind": "resource",
-        "derivation": "specialization",
-        "elements": {
-          "private-key": {
-            "type": "string"
-          },
-          "service-account-email": {
-            "type": "string"
-          }
-        }
-      },
-      "request": {
-        "method": "PUT",
-        "url": "FHIRSchema/GcpServiceAccount"
       }
     },
     {

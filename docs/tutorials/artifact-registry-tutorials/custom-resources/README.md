@@ -28,4 +28,4 @@ Use FHIR StructureDefinition or FHIR Schema to define a custom resource. Althoug
 \
 Aidbox provides the following mechanisms to create custom resource types:
 - [Using StructureDefnition](./custom-resources-using-structuredefinition.md) FHIR resource.
-- [Using FHIRSchema](./custom-resources-using-fhir-schema.md) custom Aidbox resource.
+- [Using FHIRSchema](./custom-resources-using-fhir-schema.md) custom Aidbox resource — available in Aidbox versions 2606 and earlier; the `POST/PUT /fhir/FHIRSchema` endpoints were removed in the July 2026 release.
