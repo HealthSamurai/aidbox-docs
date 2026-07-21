@@ -13,7 +13,7 @@ This functionality is available in Aidbox versions 2605 and later.
 
 SQL on FHIR provides the `$sqlquery-run` operation to execute a SQLQuery Library synchronously against ViewDefinition tables. The operation resolves dependencies declared in `relatedArtifact` and exposes each one to SQL as a table named after its `label`, binds input parameters to `:name` placeholders in SQL, runs the query, and streams the result in the requested format.
 
-SQL on FHIR specification [defines $sqlquery-run operation](https://build.fhir.org/ig/FHIR/sql-on-fhir-v2/OperationDefinition-SQLQueryRun.html).
+SQL on FHIR specification [defines $sqlquery-run operation](https://build.fhir.org/ig/HL7/sql-on-fhir/OperationDefinition-SQLQueryRun.html).
 
 ## SQLQuery Library
 
@@ -23,7 +23,7 @@ SQLQuery is a profile on `Library` that bundles SQL, dependencies, and parameter
 - **`type`** — fixed coding `https://sql-on-fhir.org/ig/CodeSystem/LibraryTypesCodes#sql-query`.
 - **`parameter`** — declared input parameters. Each parameter has `name`, `use = "in"`, and FHIR `type` (`string`, `integer`, `boolean`, `decimal`, `date`, `dateTime`).
 - **`relatedArtifact`** — dependencies of `type = "depends-on"`. The `resource` is a canonical URL pointing to a ViewDefinition or another SQLQuery Library; the `label` becomes the table name used in SQL.
-- **`content`** — one or more SQL attachments. `content.contentType` starts with `application/sql`; `content.data` is the base64-encoded SQL. The optional [sql-text](https://build.fhir.org/ig/FHIR/sql-on-fhir-v2/StructureDefinition-sql-text.html) extension carries a plain-text copy for human readability. When several attachments are provided, Aidbox prefers `application/sql;dialect=postgresql` and falls back to `application/sql`.
+- **`content`** — one or more SQL attachments. `content.contentType` starts with `application/sql`; `content.data` is the base64-encoded SQL. The optional [sql-text](https://build.fhir.org/ig/HL7/sql-on-fhir/StructureDefinition-sql-text.html) extension carries a plain-text copy for human readability. When several attachments are provided, Aidbox prefers `application/sql;dialect=postgresql` and falls back to `application/sql`.
 
 A minimal SQLQuery Library looks like this:
 

@@ -5,7 +5,7 @@ description: Async bulk export of a ViewDefinition's materialized rows to a back
 # $viewdefinition-export operation
 
 {% hint style="info" %}
-Available in Aidbox versions **2605** and later. Requires **fhir-schema mode**. Implements [SQL-on-FHIR v2 `$viewdefinition-export`](https://build.fhir.org/ig/FHIR/sql-on-fhir-v2/OperationDefinition-ViewDefinitionExport.html).
+Available in Aidbox versions **2605** and later. Requires **fhir-schema mode**. Implements [SQL-on-FHIR v2 `$viewdefinition-export`](https://build.fhir.org/ig/HL7/sql-on-fhir/OperationDefinition-ViewDefinitionExport.html).
 {% endhint %}
 
 Exports ViewDefinition results to a destination. Use `kind` to choose the Aidbox module backend.

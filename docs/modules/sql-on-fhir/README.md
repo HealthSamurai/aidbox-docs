@@ -8,7 +8,7 @@ description: Create flat SQL views from FHIR resources using ViewDefinitions for
 Starting from version **2604**, SQL on FHIR requires **fhir-schema mode** (`fhir.validation.fhir-schema-validation=true`). ViewDefinitions are stored in the FHIR Artifact Registry (FAR), which is only available in fhir-schema mode. Without it, ViewDefinition CRUD, `$run`, `$sql`, and `$materialize` operations will not work.
 {% endhint %}
 
-Performing analysis on FHIR data requires extracting data from deeply nested structures of resources, which may be cumbersome in some cases. To address this problem, Aidbox implements [SQL on FHIR](https://build.fhir.org/ig/FHIR/sql-on-fhir-v2/index.html) specification allowing users to create flat views of their resources in a simple, straightforward way
+Performing analysis on FHIR data requires extracting data from deeply nested structures of resources, which may be cumbersome in some cases. To address this problem, Aidbox implements [SQL on FHIR](https://build.fhir.org/ig/HL7/sql-on-fhir/index.html) specification allowing users to create flat views of their resources in a simple, straightforward way
 
 ## Create View Definitions
 

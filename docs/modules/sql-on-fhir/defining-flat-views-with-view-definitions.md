@@ -61,7 +61,7 @@ View definitions you've created can be viewed in a menu in the right part of the
 
 You can use the _Run_ button or `Ctrl+Enter` to preview your view. To save a View Definition and materialize it as a view in the database, press _Save_. _The delete_ button deletes both a View Definition and the corresponding view in the database.
 
-Note that a ViewDefinition resource used in Aidbox may differ from [SQL on FHIR specification](https://build.fhir.org/ig/FHIR/sql-on-fhir-v2/StructureDefinition-ViewDefinition.html). To see how Aidbox's ViewDefinition is structured, consult the [reference.md](reference.md) page.
+Note that a ViewDefinition resource used in Aidbox may differ from [SQL on FHIR specification](https://build.fhir.org/ig/HL7/sql-on-fhir/StructureDefinition-ViewDefinition.html). To see how Aidbox's ViewDefinition is structured, consult the [reference.md](reference.md) page.
 
 ### With REST API
 

@@ -284,7 +284,7 @@ See also:
 
 ### SQL-on-FHIR
 
-Healthcare analytics and reporting often require complex queries that go beyond what FHIR search can express - aggregating data across multiple resources, performing statistical analysis, or generating custom reports. Aidbox implements the [SQL-on-FHIR specification](https://build.fhir.org/ig/FHIR/sql-on-fhir-v2/), which bridges this gap by allowing you to write SQL queries directly against FHIR data, treating resources as relational tables while maintaining FHIR's semantic structure.
+Healthcare analytics and reporting often require complex queries that go beyond what FHIR search can express - aggregating data across multiple resources, performing statistical analysis, or generating custom reports. Aidbox implements the [SQL-on-FHIR specification](https://build.fhir.org/ig/HL7/sql-on-fhir/), which bridges this gap by allowing you to write SQL queries directly against FHIR data, treating resources as relational tables while maintaining FHIR's semantic structure.
 
 ```mermaid
 graph LR
@@ -309,12 +309,12 @@ graph LR
 
 The SQL-on-FHIR implementation provides flat views of FHIR resources that can be queried using standard SQL, making it possible to write complex analytical queries using familiar SQL syntax. For example, you can join Patient and Observation resources to analyze lab trends, aggregate medication data across populations, or generate custom reports that combine data from multiple resource types. This approach enables seamless integration with **existing analytical tools** and **BI platforms** that expect SQL interfaces.
 
-Aidbox uses [ViewDefinition](https://build.fhir.org/ig/FHIR/sql-on-fhir-v2/StructureDefinition-ViewDefinition.html) resources to define these flat views, automatically creating and maintaining them to ensure they stay synchronized with the underlying FHIR data while providing the performance benefits of PostgreSQL's query optimizer.
+Aidbox uses [ViewDefinition](https://build.fhir.org/ig/HL7/sql-on-fhir/StructureDefinition-ViewDefinition.html) resources to define these flat views, automatically creating and maintaining them to ensure they stay synchronized with the underlying FHIR data while providing the performance benefits of PostgreSQL's query optimizer.
 
 See also:
 
 * [SQL-on-FHIR](../modules/sql-on-fhir/)
-* [SQL-on-FHIR Specification](https://build.fhir.org/ig/FHIR/sql-on-fhir-v2/)
+* [SQL-on-FHIR Specification](https://build.fhir.org/ig/HL7/sql-on-fhir/)
 
 ### SQL APIs
 
