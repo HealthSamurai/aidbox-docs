@@ -20,7 +20,7 @@ From here, you can use your flat views however you like. Popular use cases inclu
 
 ### Get all patients diagnosed with COVID after a specified date
 
-ViewDefinitions do not directly implement [joins](https://build.fhir.org/ig/FHIR/sql-on-fhir-v2/StructureDefinition-ViewDefinition.html#joins-with-resource-and-reference-keys) across resources. Therefore, to find all patients who was born after or in 1970 and who were diagnosed with COVID after or in 2021, you'll need to define 2 views.
+ViewDefinitions do not directly implement [joins](https://build.fhir.org/ig/HL7/sql-on-fhir/StructureDefinition-ViewDefinition.html#joins-with-resource-and-reference-keys) across resources. Therefore, to find all patients who was born after or in 1970 and who were diagnosed with COVID after or in 2021, you'll need to define 2 views.
 
 {% tabs %}
 {% tab title="Patient View" %}

@@ -642,7 +642,7 @@ Minor updates:
   * Introduced dynamic [Topic-based subscriptions](../modules/topic-based-subscriptions/aidbox-topic-based-subscriptions.md) and supported [Kafka (OSS and AWS)](../tutorials/subscriptions-tutorials/kafka-aidboxtopicdestination.md) as delivery channels
   * Released a [demo of publishing a completed QuestionnaireResponse to Kafka topic](https://github.com/Aidbox/examples/tree/main/aidbox-features/aidbox-subscriptions-to-kafka)
   * Added an option to connect a self-hosted Aidbox instance to the [ViewDefinition builder](https://sqlonfhir.aidbox.app/?utm_source=aidbox-docs\&utm_medium=release-notes)
-  * Enhanced [SQL on FHIR spec coverage](https://fhir.github.io/sql-on-fhir-v2)
+  * Enhanced [SQL on FHIR spec coverage](https://sql-on-fhir.org/extra/impls.html)
   * Supported [Audit logging](../access-control/audit-and-logging.md) using external identity providers
 * [Aidbox Forms](https://www.health-samurai.io/docs/formbox)
   * UI builder updates (FHIR Questionnaire-based):
@@ -722,7 +722,7 @@ Minor updates:
 ## March 2024 _`2403`_
 
 * SQL on FHIR engine
-  * Enhanced [SQL on FHIR® (v2.0) spec](https://build.fhir.org/ig/FHIR/sql-on-fhir-v2/index.html) test coverage. The SQL on FHIR coverage report is available[ here](https://fhir.github.io/sql-on-fhir-v2).
+  * Enhanced [SQL on FHIR® (v2.0) spec](https://build.fhir.org/ig/HL7/sql-on-fhir/index.html) test coverage. The SQL on FHIR coverage report is available[ here](https://sql-on-fhir.org/extra/impls.html).
 * Validation
   * Released [FHIR schema validation engine](../modules/profiling-and-validation/fhir-schema-validator/) (alpha). This validation engine is set to replace the existing [Zen Schema](../deprecated/deprecated/zen-related/profiling-with-zen-lang/) and JSON Schema validation engines.
   * Launched FHIR IGs Repository (alpha). Aidbox now lets you introspect and load FHIR IGs directly from a mirrored version of **packages2.fhir.org** into your Aidbox instance, either through the UI or configuration files
@@ -772,7 +772,7 @@ Minor updates:
 ## January 2024 _`2401`_
 
 * Data API
-  * Supported [ViewDefinition resource structure](https://build.fhir.org/ig/FHIR/sql-on-fhir-v2/StructureDefinition-ViewDefinition.html) according to the latest [SQL on FHIR specification](https://build.fhir.org/ig/FHIR/sql-on-fhir-v2/index.html). These changes don’t affect existing views. Please check [this guide](../modules/sql-on-fhir/migrate-to-the-spec-compliant-viewdefinition-format.md) to update ViewDefinitions
+  * Supported [ViewDefinition resource structure](https://build.fhir.org/ig/HL7/sql-on-fhir/StructureDefinition-ViewDefinition.html) according to the latest [SQL on FHIR specification](https://build.fhir.org/ig/HL7/sql-on-fhir/index.html). These changes don’t affect existing views. Please check [this guide](../modules/sql-on-fhir/migrate-to-the-spec-compliant-viewdefinition-format.md) to update ViewDefinitions
 * SDK
   * Added basic FHIR Profiles support to [Python SDK](https://github.com/Aidbox/aidbox-python)
 * Security and access control

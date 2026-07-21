@@ -15,7 +15,7 @@ This article explains how Aidbox stores and manages healthcare data using Postgr
 
 * **FHIR resource storage** - How Aidbox uses PostgreSQL's JSONB columns for efficient hierarchical data storage
 * **CRUD operations** - Creating, reading, updating, and deleting resources with automatic history tracking
-* **Data querying** - Three approaches: [FHIR search](https://www.hl7.org/fhir/search.html), direct SQL, and [SQL on FHIR](https://build.fhir.org/ig/FHIR/sql-on-fhir-v2/)
+* **Data querying** - Three approaches: [FHIR search](https://www.hl7.org/fhir/search.html), direct SQL, and [SQL on FHIR](https://build.fhir.org/ig/HL7/sql-on-fhir/)
 * **PostgreSQL requirements** - Supported versions and deployment options
 
 Whether you're implementing clinical workflows, building analytics dashboards, or optimizing database performance, this guide provides the technical foundation you need to work effectively with Aidbox's database layer.
@@ -428,7 +428,7 @@ See also:
 
 ## How to query data?
 
-Healthcare data analysis requires flexible querying capabilities that can handle both clinical workflows and analytical use cases. Aidbox provides three primary approaches for data access: FHIR search for clinical operations, direct SQL for complex queries, and [SQL on FHIR](https://build.fhir.org/ig/FHIR/sql-on-fhir-v2/) for analytics workflows.
+Healthcare data analysis requires flexible querying capabilities that can handle both clinical workflows and analytical use cases. Aidbox provides three primary approaches for data access: FHIR search for clinical operations, direct SQL for complex queries, and [SQL on FHIR](https://build.fhir.org/ig/HL7/sql-on-fhir/) for analytics workflows.
 
 This section explains how each approach works, when to use them, and how they leverage PostgreSQL's JSONB capabilities to provide efficient data access across millions of healthcare records.
 
@@ -552,7 +552,7 @@ See also:
 
 ### SQL on FHIR
 
-[SQL on FHIR](https://build.fhir.org/ig/FHIR/sql-on-fhir-v2/) is a FHIR specification that defines how to 
+[SQL on FHIR](https://build.fhir.org/ig/HL7/sql-on-fhir/) is a FHIR specification that defines how to 
 transform nested FHIR resources into flat, tabular views optimized for analytics. 
 Aidbox implements this specification using ViewDefinition resources that create PostgreSQL views.
 
