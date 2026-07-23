@@ -14,7 +14,7 @@ Aidbox uses [FHIR](https://www.hl7.org/fhir/overview.html) as a foundation and p
 * [FHIR REST API](api/api-overview.md) with GraphQL, reactive API & subscriptions
 * User management, access control, and audit log
 * Built-in FHIR, ICD-10, SNOMED, RxNorm, LOINC, and US NPI terminologies with the ability to load your terminologies and value sets
-* Custom resources & operations; first-class extensions
+* Custom resources & operations
 * HL7 v.2, X12, and Apple HealthKit Medical Records adapters
 * Plugins extensibility with the use of your favorite technology
 * Bulk API and analytics tools integrations that include Tableau, Power BI, and Jupyter
@@ -48,7 +48,7 @@ Aidbox implements most of the [FHIR specification](https://www.hl7.org/fhir/) an
 
 * Aidbox stores Resources in [Aidbox format](architecture.md#aidbox-and-fhir-formats), which is isomorphic to FHIR, but not the same.
 * Aidbox serves two sets of API: **Aidbox API** from "/" and **FHIR API** from "/fhir\*\*"\*\*. Aidbox API works with Aidbox format, and FHIR API works with FHIR format. When you interact with FHIR endpoints, Aidbox does on-the-fly conversion between these two formats.
-* Aidbox offers **First-Class Extensions** and **Custom Resources**, which FHIR doesn't support, but these additions are very handy for designing real-world systems.
+* Aidbox offers **Custom Resources**, which FHIR doesn't support, but they are very handy for designing real-world systems.
 * Aidbox uses [FHIR Schema](modules/profiling-and-validation/fhir-schema-validator/) for validation and profiling. The legacy Entity/Attribute and AidboxProfile framework has been replaced by FHIR StructureDefinitions and FHIR Schema.
 
 ### Resources
