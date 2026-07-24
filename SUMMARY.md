@@ -178,6 +178,7 @@
     * [Aidbox and FHIR formats](api/rest-api/other/aidbox-and-fhir-formats.md)
     * [Capability Statement](api/rest-api/other/capability-statement.md)
     * [$document](api/rest-api/other/document.md)
+    * [SMART Health Cards](api/rest-api/other/smart-health-cards.md)
     * [Observation/$lastn](api/rest-api/other/observation-lastn.md)
     * [$validate](api/rest-api/other/validate.md)
     * [SQL endpoints](api/rest-api/other/sql-endpoints.md)
