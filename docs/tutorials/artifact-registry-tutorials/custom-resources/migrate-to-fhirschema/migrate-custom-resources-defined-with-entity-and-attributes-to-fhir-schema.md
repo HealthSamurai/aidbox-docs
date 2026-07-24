@@ -466,13 +466,9 @@ to Aidbox, follow these steps.\
 Ensure that your Aidbox is configured to run with the\
 FHIRSchema validation engine. Here's[a guide describing how to achieve that](../../../../modules/profiling-and-validation/fhir-schema-validator/).
 
-**Single FHIRSchema Delivery**
+**Delivering Schemas as a Package**
 
-If you have only one FHIRSchema that replaces your custom-defined Entity/Attributes, follow [this guide](../custom-resources-using-fhir-schema.md) to deliver a single FHIRSchema to Aidbox.
-
-**Multiple Schemas as a Package**
-
-If you have multiple schemas replacing a set of resources and want to work with this set of entities as a package (ImplementationGuide), refer to this guide on how to create your own FHIR NPM package with ImplementationGuide entities.
+Package the resulting schemas as a FHIR NPM package (ImplementationGuide) and load it into Aidbox. Refer to this guide on how to create your own FHIR NPM package with ImplementationGuide entities.
 
 {% content-ref url="../../how-to-create-fhir-npm-package.md" %}
 [how-to-create-fhir-npm-package.md](../../how-to-create-fhir-npm-package.md)

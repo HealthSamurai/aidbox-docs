@@ -264,7 +264,7 @@ redirects:
   modules-1/custom-resources/custom-resources-using-structuredefinition: tutorials/artifact-registry-tutorials/custom-resources/custom-resources-using-structuredefinition.md
   modules-1/custom-resources/migrate-to-fhirschema/migrate-custom-resources-defined-with-entity-and-attributes-to-fhir-schema: tutorials/artifact-registry-tutorials/custom-resources/migrate-to-fhirschema/migrate-custom-resources-defined-with-entity-and-attributes-to-fhir-schema.md
   modules-1/custom-resources/migrate-to-fhirschema/migrate-custom-resources-defined-with-zen-to-fhir-schema: tutorials/artifact-registry-tutorials/custom-resources/migrate-to-fhirschema/migrate-custom-resources-defined-with-zen-to-fhir-schema.md
-  modules-1/define-extensions/extensions-using-fhirschema: tutorials/artifact-registry-tutorials/define-extensions/extensions-using-fhirschema.md
+  modules-1/define-extensions/extensions-using-fhirschema: tutorials/artifact-registry-tutorials/define-extensions/extensions-using-structuredefinition.md
   modules-1/define-extensions/extensions-using-structuredefinition: tutorials/artifact-registry-tutorials/define-extensions/extensions-using-structuredefinition.md
   modules-1/eprescription/directory/addproviderlocation-message: modules/eprescription/directory/addproviderlocation-message.md
   modules-1/eprescription/directory/directorydownload-message: modules/eprescription/directory/directorydownload-message.md
@@ -554,7 +554,7 @@ redirects:
   modules-1/topic-based-subscriptions/setup-subscriptiontopic: deprecated/deprecated/zen-related/topic-based-subscriptions/set-up-subscriptiontopic.md
   modules-1/workflow-engine/services: deprecated/deprecated/zen-related/workflow-engine/README.md
   modules/aidbox-forms/aidbox-code-editor/how-to-create-a-dynamic-form: deprecated/deprecated/forms/aidbox-code-editor/dynamic-form-creation.md
-  modules/custom-resources/custom-resources-using-fhir-schema: tutorials/artifact-registry-tutorials/custom-resources/custom-resources-using-fhir-schema.md
+  modules/custom-resources/custom-resources-using-fhir-schema: tutorials/artifact-registry-tutorials/custom-resources/custom-resources-using-structuredefinition.md
   modules/eprescription/tutorials/list-of-metrics: modules/eprescription/reference/list-of-metrics.md
   modules/integration-toolkit/ccda-converter/sections/admissiondiagnosissectionv3: modules/integration-toolkit/ccda-converter/sections/admission-diagnosis-section-docs-v3.md
   modules/integration-toolkit/ccda-converter/sections/medicalequipmentsectionv2: modules/integration-toolkit/ccda-converter/sections/medical-equipment-section-docs-v2.md
@@ -827,7 +827,7 @@ redirects:
   # storage-1/*
   storage-1/aidboxdb-image/migrate-to-aidboxdb-16: deprecated/deprecated/aidboxdb/migrate-to-aidboxdb-16.md
   storage-1/custom-resources: tutorials/artifact-registry-tutorials/custom-resources/README.md
-  storage-1/custom-resources/custom-resources-using-fhirschema: tutorials/artifact-registry-tutorials/custom-resources/custom-resources-using-fhir-schema.md
+  storage-1/custom-resources/custom-resources-using-fhirschema: tutorials/artifact-registry-tutorials/custom-resources/custom-resources-using-structuredefinition.md
   storage-1/ha-aidboxdb: deprecated/deprecated/aidboxdb/ha-aidboxdb.md
   storage-1/index-management: deployment-and-maintenance/indexes/README.md
   storage-1/indexes: deployment-and-maintenance/indexes/README.md
@@ -846,6 +846,8 @@ redirects:
 
   # tutorials/*
   tutorials/tutorials/hl7-v2-pipeline-with-patient-mapping: deprecated/deprecated/other/other-deprecated-tutorials/hl7-v2-pipeline-with-patient-mapping.md
+  tutorials/artifact-registry-tutorials/custom-resources/custom-resources-using-fhir-schema: tutorials/artifact-registry-tutorials/custom-resources/custom-resources-using-structuredefinition.md
+  tutorials/artifact-registry-tutorials/define-extensions/extensions-using-fhirschema: tutorials/artifact-registry-tutorials/define-extensions/extensions-using-structuredefinition.md
 
   # modules-1/security-and-access-control/how-to-guides/* (no clear match)
   modules-1/security-and-access-control/how-to-guides/research-possible-security-issues: access-control/access-control.md

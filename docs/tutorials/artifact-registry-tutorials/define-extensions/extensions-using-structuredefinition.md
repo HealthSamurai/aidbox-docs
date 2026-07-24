@@ -6,8 +6,6 @@ description: Create FHIR extensions using StructureDefinition resources in Aidbo
 
 Aidbox supports defining extensions using [StructureDefinition](https://build.fhir.org/structuredefinition.html) FHIR resource. This is possible when Aidbox is configured with [FHIRSchema mode](../../../modules/profiling-and-validation/fhir-schema-validator/).
 
-See also [Extensions using FHIRSchema](extensions-using-fhirschema.md).
-
 ## Example
 
 To create the Extension, simply `PUT` or `POST` the StructureDefinition with `Extension` type to the `/fhir/StructureDefinition` endpoint.
