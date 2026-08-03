@@ -210,9 +210,22 @@ Under [organization-based access control](../../../access-control/authorization/
 POST /Organization/<orgid>/fhir/Patient/<patient-id>/$health-cards-issue
 ```
 
-It issues a card only from data in that organization. The target `Patient` and every internal read run inside the organization's compartment, so a `Patient` that belongs to another organization is not visible and the request returns `403`. The `resourceLink.hostedResource` URLs are scoped to the same `/Organization/<orgid>/fhir` base.
+It issues a card only from the organization's data: the target `Patient` and every internal read run inside the organization's compartment, so a `Patient` from another organization returns `403`. `hostedResource` URLs use the same `/Organization/<orgid>/fhir` base.
 
-Access Policies still apply: the organization compartment restricts the data to the organization, but it does not by itself grant access, and Aidbox denies a request that no policy allows. The `FhirSearch` / `FhirRead` examples above are for the global `/fhir/...` route; under an organization the internal reads run as the `orgbac-fhir-read` and `orgbac-fhir-search` operations, so operation-linked policies target those instead.
+Access Policies still apply (the compartment restricts data but does not grant access). The internal reads run as the `orgbac-fhir-read` / `orgbac-fhir-search` operations, so link org policies to those rather than `FhirSearch` / `FhirRead`:
+
+```json
+{
+  "resourceType": "AccessPolicy",
+  "id": "health-cards-org-issuer-search",
+  "engine": "matcho",
+  "link": [{ "reference": "Operation/orgbac-fhir-search" }],
+  "matcho": {
+    "client": { "id": "my-client-id" },
+    "params": { "resource/type": { "$enum": ["Immunization", "Observation"] } }
+  }
+}
+```
 
 ## Errors
 
