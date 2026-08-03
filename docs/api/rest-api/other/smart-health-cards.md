@@ -212,7 +212,7 @@ POST /Organization/<orgid>/fhir/Patient/<patient-id>/$health-cards-issue
 
 It issues a card only from data in that organization. The target `Patient` and every internal read run inside the organization's compartment, so a `Patient` that belongs to another organization is not visible and the request returns `403`. The `resourceLink.hostedResource` URLs are scoped to the same `/Organization/<orgid>/fhir` base.
 
-The organization compartment is the access gate here, so the `FhirSearch` / `FhirRead` policies above are not needed on this path; they apply to the global `/fhir/...` route. Under an organization the internal reads run as the `orgbac-fhir-read` and `orgbac-fhir-search` operations, so any operation-linked policy targets those instead.
+Access Policies still apply: the organization compartment restricts the data to the organization, but it does not by itself grant access, and Aidbox denies a request that no policy allows. The `FhirSearch` / `FhirRead` examples above are for the global `/fhir/...` route; under an organization the internal reads run as the `orgbac-fhir-read` and `orgbac-fhir-search` operations, so operation-linked policies target those instead.
 
 ## Errors
 
