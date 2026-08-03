@@ -14,13 +14,13 @@ Aidbox publishes the verification public key at a JWKS endpoint, so any SMART He
 
 The operation signs cards with an issuer **EC P-256 private key**, set as a PEM in `module.health-cards-links.issuer-private-key` (env `BOX_MODULE_HEALTH_CARDS_LINKS_ISSUER_PRIVATE_KEY`); the public key and JWKS are derived from it. Until it is set the operation returns `422` and the JWKS endpoint `404`.
 
-Generate a key with OpenSSL and set it as the issuer key:
+Generate a key with OpenSSL:
 
 ```bash
 openssl genpkey -algorithm EC -pkeyopt ec_paramgen_curve:P-256 -out issuer.pem
-
-export BOX_MODULE_HEALTH_CARDS_LINKS_ISSUER_PRIVATE_KEY="$(cat issuer.pem)"
 ```
+
+Put the PEM contents into `BOX_MODULE_HEALTH_CARDS_LINKS_ISSUER_PRIVATE_KEY` in your deployment (for example the `environment` section of your Docker Compose file).
 
 {% hint style="warning" %}
 Keep the private key secret and back it up. Rotating it changes the `kid`, so cards signed with the previous key stop verifying against the published JWKS.
