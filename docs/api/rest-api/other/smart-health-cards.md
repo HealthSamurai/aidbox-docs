@@ -12,7 +12,7 @@ Aidbox publishes the verification public key at a JWKS endpoint, so any SMART He
 
 ## Configuration
 
-The operation signs cards with an issuer **EC P-256 private key**, set as a PEM (PKCS#8) in `module.health-cards-links.issuer-private-key` (env `BOX_MODULE_HEALTH_CARDS_LINKS_ISSUER_PRIVATE_KEY`). You configure only the private key; Aidbox derives the public key, its `kid` ([RFC 7638](https://www.rfc-editor.org/rfc/rfc7638) JWK thumbprint) and the JWKS from it. Until it is set the operation returns `422` and the JWKS endpoint `404`.
+The operation signs cards with an issuer **EC P-256 private key**, set as a PEM in `module.health-cards-links.issuer-private-key` (env `BOX_MODULE_HEALTH_CARDS_LINKS_ISSUER_PRIVATE_KEY`); the public key and JWKS are derived from it. Until it is set the operation returns `422` and the JWKS endpoint `404`.
 
 Generate a key with OpenSSL:
 
