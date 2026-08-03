@@ -107,11 +107,9 @@ The operation accepts any FHIR resource type in the Patient compartment, such as
 
 `credentialType` is required (at least one). Aidbox combines multiple values with logical AND: the card carries every requested type the patient has. Aidbox rejects a missing or unsupported `credentialType` with `400`.
 
-Every issued card's `vc.type` array includes `https://smarthealth.cards#health-card`. The deprecated type URIs `#covid19`, `#immunization`, and `#laboratory` also work.
-
 ### credentialValueSet
 
-Keeps only resources whose clinical code is a member of the given ValueSet. For example, supply a ValueSet of COVID-19 vaccine codes to include only COVID-19 immunizations. Aidbox validates each resource's code (`Immunization.vaccineCode`, `Observation.code`, `MedicationRequest.medicationCodeableConcept`, `*.type`) against the ValueSet with [`$validate-code`](validate.md), so the ValueSet must be resolvable by the terminology (installed in a package). An unresolvable ValueSet fails the request with `400`.
+Keeps only resources whose clinical code is a member of the given ValueSet. For example, supply a ValueSet of COVID-19 vaccine codes to include only COVID-19 immunizations. Aidbox validates the resource's coded fields (`vaccineCode`, `code`, `medicationCodeableConcept`, and `type`) against the ValueSet with [`$validate-code`](validate.md), so the ValueSet must be loaded into Aidbox's terminology. An unresolvable ValueSet fails the request with `400`.
 
 For example, a COVID-19-only immunization card:
 
@@ -130,7 +128,7 @@ For example, a COVID-19-only immunization card:
 
 Passing several `credentialValueSet` parameters combines them as a card-level logical AND: a resource is kept if it matches at least one, and the card is issued only when every ValueSet matched some resource (otherwise `404`). So passing a COVID-19 vaccine ValueSet and an mpox vaccine ValueSet requests a card that carries a vaccine from each.
 
-Any ValueSet that Aidbox's terminology can resolve works. The SMART Health Cards project publishes a [standard set of Health Card value sets](https://terminology.smarthealth.cards/artifacts.html); install the `terminology.smarthealth.cards` package to use them. The common ones, under `https://terminology.smarthealth.cards/ValueSet/`:
+Any ValueSet that Aidbox's terminology can resolve works. The standard SMART Health Cards value sets reference external code systems (CVX, SNOMED CT, LOINC), so validating their codes needs those code systems available to Aidbox's terminology, not just the value set definitions. For reference, the SMART Health Cards project publishes a [standard set of Health Card value sets](https://terminology.smarthealth.cards/artifacts.html); the common ones, under `https://terminology.smarthealth.cards/ValueSet/`:
 
 | ValueSet | Contents |
 | --- | --- |
@@ -183,14 +181,27 @@ A verifier picks the right key by the `kid` in the card's JWS header. The card's
 
 ## Access control
 
-A caller must be allowed to **invoke the operation** and to **read the patient's data**. The operation re-dispatches its reads through the regular pipeline, so your [Access Policies](../../../access-control/authorization/access-policies.md) gate them; a read the caller may not perform stops the card (for example `403`). The `credentialValueSet` terminology check (`$validate-code`) runs in-process and needs no policy.
+A caller needs both permission to **invoke the operation** and permission for the **internal reads** it issues. The operation re-dispatches those reads through the regular pipeline, so your [Access Policies](../../../access-control/authorization/access-policies.md) gate them; a read the caller may not perform stops the card (for example `403`). The `credentialValueSet` terminology check (`$validate-code`) runs in-process and needs no policy.
 
-For a single call, the operation issues these internal requests, each authorized against the caller's policies:
+For a single call the operation issues these authorized requests:
 
+- `POST /fhir/Patient/{id}/$health-cards-issue`, the operation itself (`fhir-patient-health-cards-issue`).
 - `GET /fhir/Patient/{id}?_elements=name,birthDate` reads the identity claims as `FhirRead` (skipped when `includeIdentityClaim` is `false`; `_elements` lists the requested claim fields).
-- `GET /fhir/{type}?{compartment-param}=Patient/{id}` searches each requested `credentialType` as `FhirSearch`, using the type's Patient-compartment search parameter (`patient` for `Immunization`, `subject` for `Observation` and `Condition`, and so on) and following `next` links to page through every match. Adds `&_lastUpdated=ge{_since}` when `_since` is set.
+- `GET /fhir/{type}?{compartment-param}=Patient/{id}` searches each requested `credentialType` as `FhirSearch`, using the type's Patient-compartment parameter (`patient` for `Immunization`, `subject` for `Observation` and `Condition`, and so on) and following `next` links to page through every match. Adds `&_lastUpdated=ge{_since}` when `_since` is set.
 
-The type searches run as `FhirSearch`. Link an [AccessPolicy](../../../access-control/authorization/access-policies.md) to `Operation/FhirSearch` and restrict it to the resource types inside `matcho`:
+Each policy links to an operation. First, allow invoking the operation itself:
+
+```json
+{
+  "resourceType": "AccessPolicy",
+  "id": "health-cards-issuer-op",
+  "engine": "matcho",
+  "link": [{ "reference": "Operation/fhir-patient-health-cards-issue" }],
+  "matcho": { "client": { "id": "my-client-id" } }
+}
+```
+
+Next, allow the type searches. Link to `FhirSearch` and, with `$one-of`, match the compartment parameter each requested type uses so the policy only permits patient-scoped searches:
 
 ```json
 {
@@ -201,15 +212,16 @@ The type searches run as `FhirSearch`. Link an [AccessPolicy](../../../access-co
   "matcho": {
     "client": { "id": "my-client-id" },
     "params": {
-      "resource/type": {
-        "$enum": ["Immunization", "Observation"]
-      }
+      "$one-of": [
+        { "resource/type": "Immunization", "patient": "present?" },
+        { "resource/type": { "$enum": ["Observation", "Condition"] }, "subject": "present?" }
+      ]
     }
   }
 }
 ```
 
-Add each resource type you request to the `$enum`. For the `Patient` read, add a policy linked to `Operation/FhirRead`:
+List the resource types you request under the compartment parameter each one uses (`patient` for `Immunization`, `subject` for `Observation` and `Condition`). Finally, allow the `Patient` read:
 
 ```json
 {
@@ -234,7 +246,17 @@ POST /Organization/<orgid>/fhir/Patient/<patient-id>/$health-cards-issue
 
 It issues a card only from the organization's data: the target `Patient` and every internal read run inside the organization's compartment, so a `Patient` from another organization returns `403`. `hostedResource` URLs use the same `/Organization/<orgid>/fhir` base.
 
-Access Policies still apply (the compartment restricts data but does not grant access). The internal reads run as the `orgbac-fhir-read` / `orgbac-fhir-search` operations, so link org policies to those rather than `FhirSearch` / `FhirRead`:
+Access Policies still apply (the compartment restricts data but does not grant access). Under OrgBAC the operation and its reads run as the org-scoped operations `orgbac-fhir-health-cards-issue`, `orgbac-fhir-read`, and `orgbac-fhir-search` (kebab-case route ids, not the camel-case `FhirRead` / `FhirSearch`), so link the org policies to those. The three policies mirror the ones above with the ids swapped:
+
+```json
+{
+  "resourceType": "AccessPolicy",
+  "id": "health-cards-org-issuer-op",
+  "engine": "matcho",
+  "link": [{ "reference": "Operation/orgbac-fhir-health-cards-issue" }],
+  "matcho": { "client": { "id": "my-client-id" } }
+}
+```
 
 ```json
 {
@@ -244,7 +266,25 @@ Access Policies still apply (the compartment restricts data but does not grant a
   "link": [{ "reference": "Operation/orgbac-fhir-search" }],
   "matcho": {
     "client": { "id": "my-client-id" },
-    "params": { "resource/type": { "$enum": ["Immunization", "Observation"] } }
+    "params": {
+      "$one-of": [
+        { "resource/type": "Immunization", "patient": "present?" },
+        { "resource/type": { "$enum": ["Observation", "Condition"] }, "subject": "present?" }
+      ]
+    }
+  }
+}
+```
+
+```json
+{
+  "resourceType": "AccessPolicy",
+  "id": "health-cards-org-issuer-read",
+  "engine": "matcho",
+  "link": [{ "reference": "Operation/orgbac-fhir-read" }],
+  "matcho": {
+    "client": { "id": "my-client-id" },
+    "params": { "resource/type": "Patient" }
   }
 }
 ```
