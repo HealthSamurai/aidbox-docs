@@ -128,7 +128,11 @@ For example, a COVID-19-only immunization card:
 
 Passing several `credentialValueSet` parameters combines them as a card-level logical AND: a resource is kept if it matches at least one, and the card is issued only when every ValueSet matched some resource (otherwise `404`). So passing a COVID-19 vaccine ValueSet and an mpox vaccine ValueSet requests a card that carries a vaccine from each.
 
-Any ValueSet that Aidbox's terminology can resolve works. The standard SMART Health Cards value sets reference external code systems (CVX, SNOMED CT, LOINC), so validating their codes needs those code systems available to Aidbox's terminology, not just the value set definitions. For reference, the SMART Health Cards project publishes a [standard set of Health Card value sets](https://terminology.smarthealth.cards/artifacts.html); the common ones, under `https://terminology.smarthealth.cards/ValueSet/`:
+Any ValueSet that Aidbox's terminology can resolve works. The standard SMART Health Cards value sets are published by the [SMART Health Cards terminology IG](https://terminology.smarthealth.cards/artifacts.html) (each downloadable as a `ValueSet` resource at `https://terminology.smarthealth.cards/ValueSet-<id>.json`, or together in the IG's `package.tgz`; source on GitHub at [dvci/shc-terminology](https://github.com/dvci/shc-terminology)). They are not in the public FHIR package registries, so `BOX_BOOTSTRAP_FHIR_PACKAGES` cannot fetch them by name; load the value sets into Aidbox yourself, for example with `PUT /fhir/ValueSet/<id>`.
+
+Loading a value set alone is not enough to validate a code: these value sets reference external code systems (CVX, SNOMED CT, LOINC), so Aidbox needs those code systems too. Run the [terminology engine](../../../terminology-module/aidbox-terminology-module/hybrid.md) in `hybrid` mode against a terminology server that provides them. Under the `local` engine with only the value set loaded, `$validate-code` returns `false` with a "code system not found" issue, so the card comes back empty (`404`).
+
+The common value sets, under `https://terminology.smarthealth.cards/ValueSet/`:
 
 | ValueSet | Contents |
 | --- | --- |
