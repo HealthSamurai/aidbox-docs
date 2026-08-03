@@ -212,6 +212,8 @@ POST /Organization/<orgid>/fhir/Patient/<patient-id>/$health-cards-issue
 
 It issues a card only from data in that organization. The target `Patient` and every internal read run inside the organization's compartment, so a `Patient` that belongs to another organization is not visible and the request returns `403`. The `resourceLink.hostedResource` URLs are scoped to the same `/Organization/<orgid>/fhir` base.
 
+The organization compartment is the access gate here, so the `FhirSearch` / `FhirRead` policies above are not needed on this path; they apply to the global `/fhir/...` route. Under an organization the internal reads run as the `orgbac-fhir-read` and `orgbac-fhir-search` operations, so any operation-linked policy targets those instead.
+
 ## Errors
 
 The operation returns every error as an `OperationOutcome`.
