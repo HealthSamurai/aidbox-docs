@@ -109,13 +109,9 @@ Every issued card's `vc.type` array includes `https://smarthealth.cards#health-c
 
 ### credentialValueSet
 
-Restricts the card's resources to members of the given ValueSet(s). Aidbox checks each resource's clinical code (`Immunization.vaccineCode`, `Observation.code`, `MedicationRequest.medicationCodeableConcept`, `*.type`) with [`$validate-code`](validate.md).
+Keeps only resources whose clinical code is a member of the given ValueSet. For example, supply a ValueSet of COVID-19 vaccine codes to include only COVID-19 immunizations. Aidbox validates each resource's code (`Immunization.vaccineCode`, `Observation.code`, `MedicationRequest.medicationCodeableConcept`, `*.type`) against the ValueSet with [`$validate-code`](validate.md), so the ValueSet must be resolvable by the terminology (installed in a package). An unresolvable ValueSet fails the request with `400`.
 
-Multiple `credentialValueSet` parameters apply as a **card-level logical AND**: Aidbox keeps a resource when it belongs to at least one supplied ValueSet, and issues the card only when the kept resources cover **every** supplied ValueSet. If some ValueSet has no matching resource, Aidbox cannot satisfy the request and returns `404`. Use this to request, for example, a card that holds both a COVID-19 vaccine **and** an mpox vaccine.
-
-{% hint style="info" %}
-Aidbox's terminology must resolve the ValueSet. A non-member code is filtered out; a ValueSet that cannot be resolved fails the request with `400` rather than a misleading empty result.
-{% endhint %}
+Passing several `credentialValueSet` parameters combines them as a card-level logical AND: a resource is kept if it matches at least one, and the card is issued only when every ValueSet matched some resource (otherwise `404`). So `[covid-vaccines, mpox-vaccines]` requests a card that carries both a COVID-19 and an mpox vaccine.
 
 ### includeIdentityClaim
 
@@ -166,20 +162,7 @@ For a single call, the operation issues these internal requests, each authorized
 - `GET /fhir/Patient/{id}?_elements=name,birthDate` reads the identity claims as `FhirRead` (skipped when `includeIdentityClaim` is `false`; `_elements` lists the requested claim fields).
 - `GET /fhir/{type}?{compartment-param}=Patient/{id}` searches each requested `credentialType` as `FhirSearch`, using the type's Patient-compartment search parameter (`patient` for `Immunization`, `subject` for `Observation` and `Condition`, and so on) and following `next` links to page through every match. Adds `&_lastUpdated=ge{_since}` when `_since` is set.
 
-You can grant this at two levels.
-
-**Simplest** — one policy for the client, which covers the operation call and every read:
-
-```json
-{
-  "resourceType": "AccessPolicy",
-  "id": "health-cards-issuer",
-  "engine": "allow",
-  "link": [{ "reference": "Client/my-client-id" }]
-}
-```
-
-**Granular** — a policy per operation. The type searches run as `FhirSearch`:
+The type searches run as `FhirSearch`. Link an [AccessPolicy](../../../access-control/authorization/access-policies.md) to `Operation/FhirSearch` and restrict it to the resource types inside `matcho`:
 
 ```json
 {
