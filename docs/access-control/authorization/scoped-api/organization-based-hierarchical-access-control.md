@@ -291,6 +291,16 @@ GET <AIDBOX_BASE_URL>/Organization/<org-id>/fhir/Composition/$document
 
 See also [$document endpoint](../../../api/rest-api/other/document.md)
 
+### $health-cards-issue
+
+```
+POST <AIDBOX_BASE_URL>/Organization/<org-id>/fhir/Patient/<patient-id>/$health-cards-issue
+```
+
+Issues a SMART Health Card scoped to the organization: the target `Patient` and every internal read run inside the organization's compartment. Available starting from version 2607.
+
+See also [SMART Health Cards](../../../api/rest-api/other/smart-health-cards.md)
+
 ### History
 
 Resource full history

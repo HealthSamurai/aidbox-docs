@@ -188,6 +188,7 @@
     * [$meta](api/rest-api/other/meta.md)
     * [$meta-add](api/rest-api/other/meta-add.md)
     * [$meta-delete](api/rest-api/other/meta-delete.md)
+    * [SMART Health Cards](api/rest-api/other/smart-health-cards.md)
 * [Bulk API](api/bulk-api/README.md)
   * [Configure Access Policies for Bulk API](api/bulk-api/configure-access-policies-for-bulk-api.md)
   * [$dump](api/bulk-api/dump.md)
