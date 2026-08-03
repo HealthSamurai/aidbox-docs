@@ -6,7 +6,7 @@ description: >-
 
 # SMART Health Cards
 
-Since the 2607 version, Aidbox can issue [SMART Health Cards](https://smarthealth.cards/): verifiable health credentials packaged as a signed, compact JSON Web Signature (JWS) that a patient presents as a QR code or file. The [`$health-cards-issue`](https://spec.smarthealth.cards/#via-fhir-health-cards-issue-operation) operation gathers the patient's clinical resources, minifies them into a `verifiableCredential` Bundle, and signs it with the issuer's ES256 key.
+Since the 2608 version, Aidbox can issue [SMART Health Cards](https://smarthealth.cards/): verifiable health credentials packaged as a signed, compact JSON Web Signature (JWS) that a patient presents as a QR code or file. The [`$health-cards-issue`](https://spec.smarthealth.cards/#via-fhir-health-cards-issue-operation) operation gathers the patient's clinical resources, minifies them into a `verifiableCredential` Bundle, and signs it with the issuer's ES256 key.
 
 Aidbox publishes the verification public key at a JWKS endpoint, so any SMART Health Cards verifier can validate the cards.
 
