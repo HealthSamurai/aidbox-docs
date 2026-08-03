@@ -12,15 +12,17 @@ Aidbox publishes the verification public key at a JWKS endpoint, so any SMART He
 
 ## Configuration
 
-The operation signs cards with an issuer **EC P-256 private key**, set as a PEM in `module.health-cards-links.issuer-private-key` (env `BOX_MODULE_HEALTH_CARDS_LINKS_ISSUER_PRIVATE_KEY`); the public key and JWKS are derived from it.
+The operation signs cards with an issuer **EC P-256 private key**, set as a PEM in `module.health-cards-links.issuer-private-key`; the public key and JWKS are derived from it.
 
-Generate a key with OpenSSL:
+Generate a key with OpenSSL and set it as the issuer key:
 
 ```bash
 openssl genpkey -algorithm EC -pkeyopt ec_paramgen_curve:P-256 -out issuer.pem
 ```
 
-Put the PEM contents into `BOX_MODULE_HEALTH_CARDS_LINKS_ISSUER_PRIVATE_KEY` in your deployment (for example the `environment` section of your Docker Compose file).
+```
+BOX_MODULE_HEALTH_CARDS_LINKS_ISSUER_PRIVATE_KEY=<your-key>
+```
 
 {% hint style="warning" %}
 Keep the private key secret and back it up. Rotating it changes the `kid`, so cards signed with the previous key stop verifying against the published JWKS.
@@ -103,9 +105,9 @@ POST /fhir/Patient/pt-1/$health-cards-issue
 
 The operation accepts any FHIR resource type in the Patient compartment, such as `Immunization`, `Observation`, or `Condition`. It searches the patient's compartment for that type and adds the matching resources to the card.
 
-Per the [spec](https://spec.smarthealth.cards/), `credentialType` is required (at least one). Aidbox combines multiple values with logical AND: the card carries every requested type the patient has. Aidbox rejects a missing or unsupported `credentialType` with `400`.
+`credentialType` is required (at least one). Aidbox combines multiple values with logical AND: the card carries every requested type the patient has. Aidbox rejects a missing or unsupported `credentialType` with `400`.
 
-Every issued card's `vc.type` array includes `https://smarthealth.cards#health-card`. The deprecated type URIs `#covid19`, `#immunization`, and `#laboratory` still work; see [Legacy credential types](smart-health-cards.md#legacy-credential-types).
+Every issued card's `vc.type` array includes `https://smarthealth.cards#health-card`. The deprecated type URIs `#covid19`, `#immunization`, and `#laboratory` also work.
 
 ### credentialValueSet
 
@@ -126,7 +128,7 @@ For example, a COVID-19-only immunization card:
 }
 ```
 
-Passing several `credentialValueSet` parameters combines them as a card-level logical AND: a resource is kept if it matches at least one, and the card is issued only when every ValueSet matched some resource (otherwise `404`). So `[covid-vaccines, mpox-vaccines]` requests a card that carries both a COVID-19 and an mpox vaccine.
+Passing several `credentialValueSet` parameters combines them as a card-level logical AND: a resource is kept if it matches at least one, and the card is issued only when every ValueSet matched some resource (otherwise `404`). So passing a COVID-19 vaccine ValueSet and an mpox vaccine ValueSet requests a card that carries a vaccine from each.
 
 Any ValueSet that Aidbox's terminology can resolve works. The SMART Health Cards project publishes a [standard set of Health Card value sets](https://terminology.smarthealth.cards/artifacts.html); install the `terminology.smarthealth.cards` package to use them. The common ones, under `https://terminology.smarthealth.cards/ValueSet/`:
 
