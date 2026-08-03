@@ -128,6 +128,17 @@ For example, a COVID-19-only immunization card:
 
 Passing several `credentialValueSet` parameters combines them as a card-level logical AND: a resource is kept if it matches at least one, and the card is issued only when every ValueSet matched some resource (otherwise `404`). So `[covid-vaccines, mpox-vaccines]` requests a card that carries both a COVID-19 and an mpox vaccine.
 
+Any ValueSet that Aidbox's terminology can resolve works. The SMART Health Cards project publishes a [standard set of Health Card value sets](https://terminology.smarthealth.cards/artifacts.html); install the `terminology.smarthealth.cards` package to use them. The common ones, under `https://terminology.smarthealth.cards/ValueSet/`:
+
+| ValueSet | Contents |
+| --- | --- |
+| `immunization-covid-all` | COVID-19 vaccines (CVX, SNOMED CT, ICD-11) |
+| `immunization-covid-cvx` | COVID-19 vaccines (CVX) |
+| `immunization-orthopoxvirus-all` | mpox / orthopoxvirus vaccines |
+| `immunization-all-cvx` | All CVX vaccine codes |
+| `lab-qualitative-test-covid` | Qualitative COVID-19 lab tests (LOINC) |
+| `lab-qualitative-result` | Qualitative infectious-disease lab results |
+
 ### includeIdentityClaim
 
 Controls which `Patient` identity fields the card carries:
