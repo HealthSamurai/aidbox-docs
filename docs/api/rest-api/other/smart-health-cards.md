@@ -111,6 +111,21 @@ Every issued card's `vc.type` array includes `https://smarthealth.cards#health-c
 
 Keeps only resources whose clinical code is a member of the given ValueSet. For example, supply a ValueSet of COVID-19 vaccine codes to include only COVID-19 immunizations. Aidbox validates each resource's code (`Immunization.vaccineCode`, `Observation.code`, `MedicationRequest.medicationCodeableConcept`, `*.type`) against the ValueSet with [`$validate-code`](validate.md), so the ValueSet must be resolvable by the terminology (installed in a package). An unresolvable ValueSet fails the request with `400`.
 
+For example, a COVID-19-only immunization card:
+
+```json
+{
+  "resourceType": "Parameters",
+  "parameter": [
+    { "name": "credentialType", "valueUri": "Immunization" },
+    {
+      "name": "credentialValueSet",
+      "valueUri": "https://terminology.smarthealth.cards/ValueSet/immunization-covid-cvx"
+    }
+  ]
+}
+```
+
 Passing several `credentialValueSet` parameters combines them as a card-level logical AND: a resource is kept if it matches at least one, and the card is issued only when every ValueSet matched some resource (otherwise `404`). So `[covid-vaccines, mpox-vaccines]` requests a card that carries both a COVID-19 and an mpox vaccine.
 
 ### includeIdentityClaim
