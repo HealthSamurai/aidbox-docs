@@ -12,7 +12,7 @@ Aidbox publishes the verification public key at a JWKS endpoint, so any SMART He
 
 ## Configuration
 
-The operation signs cards with an issuer **EC P-256 private key**, set as a PEM in `module.health-cards-links.issuer-private-key` (env `BOX_MODULE_HEALTH_CARDS_LINKS_ISSUER_PRIVATE_KEY`); the public key and JWKS are derived from it. Until it is set the operation returns `422` and the JWKS endpoint `404`.
+The operation signs cards with an issuer **EC P-256 private key**, set as a PEM in `module.health-cards-links.issuer-private-key` (env `BOX_MODULE_HEALTH_CARDS_LINKS_ISSUER_PRIVATE_KEY`); the public key and JWKS are derived from it.
 
 Generate a key with OpenSSL:
 
@@ -95,7 +95,7 @@ POST /fhir/Patient/pt-1/$health-cards-issue
 }
 ```
 
-`verifiableCredential.valueString` is the signed SMART Health Card JWS: a raw-DEFLATE-compressed (`zip:"DEF"`) payload signed with ES256, whose protected header carries the issuer `kid`. Each `resourceLink` maps a bundled resource (`resource:N`) to its source Aidbox resource (`hostedResource`).
+`verifiableCredential.valueString` is the signed SMART Health Card (a compact JWS). Each `resourceLink` maps a bundled resource (`resource:N`) to its source Aidbox resource (`hostedResource`).
 
 ## Input parameters
 
@@ -124,7 +124,7 @@ Controls which `Patient` identity fields the card carries:
 | Value                                                       | Effect                                                                          |
 | ----------------------------------------------------------- | ------------------------------------------------------------------------------- |
 | omitted or `true`                                           | Default claims: `Patient.name` (family and given only) and `Patient.birthDate`. |
-| a list of strings, e.g. `Patient.name`, `Patient.birthDate` | Only the named fields.                                                          |
+| `Patient.name`, `Patient.gender` (one `valueString` each)   | Only the named fields.                                                          |
 | `false`                                                     | Omit the `Patient` from the card entirely.                                      |
 
 ### \_since
@@ -155,18 +155,31 @@ GET /health-cards/.well-known/jwks.json
 }
 ```
 
-The `kid` matches the `kid` in the JWS protected header, so a verifier can select the right key. The card issuer identifier (the `iss` claim) is `<base-url>/health-cards`, and per the SMART Health Cards spec its key set lives at `<iss>/.well-known/jwks.json`. The endpoint returns `404` while the issuer key is not configured.
+A verifier picks the right key by the `kid` in the card's JWS header. The card's issuer (`iss`) is `<base-url>/health-cards`, and its key set lives at `<iss>/.well-known/jwks.json`. Returns `404` until the issuer key is configured.
 
 ## Access control
 
-`$health-cards-issue` reads the patient's data by re-dispatching internal FHIR requests through the regular request pipeline, so Aidbox enforces the caller's [Access Policies](../../../access-control/authorization/access-policies.md). It never issues a card for data the caller may not read, and propagates a denied internal read verbatim (for example `403`).
+A caller must be allowed to **invoke the operation** and to **read the patient's data**. The operation re-dispatches its reads through the regular pipeline, so your [Access Policies](../../../access-control/authorization/access-policies.md) gate them; a read the caller may not perform stops the card (for example `403`). The `credentialValueSet` terminology check (`$validate-code`) runs in-process and needs no policy.
 
 For a single call, the operation issues these internal requests, each authorized against the caller's policies:
 
 - `GET /fhir/Patient/{id}?_elements=name,birthDate` reads the identity claims as `FhirRead` (skipped when `includeIdentityClaim` is `false`; `_elements` lists the requested claim fields).
 - `GET /fhir/{type}?{compartment-param}=Patient/{id}` searches each requested `credentialType` as `FhirSearch`, using the type's Patient-compartment search parameter (`patient` for `Immunization`, `subject` for `Observation` and `Condition`, and so on) and following `next` links to page through every match. Adds `&_lastUpdated=ge{_since}` when `_since` is set.
 
-Grant the caller a policy for each. For the type searches, link an [AccessPolicy](../../../access-control/authorization/access-policies.md) to `Operation/FhirSearch` and restrict it inside `matcho`. For example, to let one client build cards from `Immunization` and `Observation`:
+You can grant this at two levels.
+
+**Simplest** — one policy for the client, which covers the operation call and every read:
+
+```json
+{
+  "resourceType": "AccessPolicy",
+  "id": "health-cards-issuer",
+  "engine": "allow",
+  "link": [{ "reference": "Client/my-client-id" }]
+}
+```
+
+**Granular** — a policy per operation. The type searches run as `FhirSearch`:
 
 ```json
 {
@@ -200,6 +213,8 @@ Add each resource type you request to the `$enum`. For the `Patient` read, add a
 }
 ```
 
+Both examples allow any search or read on those types. To tighten them, add `"request-method": "get"` to `matcho`; for per-patient control (only the caller's own patients) use a `sql` or `complex` engine.
+
 See [more AccessPolicy examples](../../../tutorials/security-access-control-tutorials/accesspolicy-examples.md).
 
 ### Organization scope (OrgBAC)
@@ -224,6 +239,19 @@ Access Policies still apply (the compartment restricts data but does not grant a
     "client": { "id": "my-client-id" },
     "params": { "resource/type": { "$enum": ["Immunization", "Observation"] } }
   }
+}
+```
+
+The response is the same `Parameters`, with each `hostedResource` under the organization:
+
+```json
+{
+  "name": "resourceLink",
+  "part": [
+    { "name": "vcIndex", "valueInteger": 0 },
+    { "name": "bundledResource", "valueUri": "resource:1" },
+    { "name": "hostedResource", "valueUri": "https://<base>/Organization/<orgid>/fhir/Immunization/imm-1" }
+  ]
 }
 ```
 
