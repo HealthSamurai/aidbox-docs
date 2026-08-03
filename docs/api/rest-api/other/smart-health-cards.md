@@ -211,10 +211,6 @@ Add each resource type you request to the `$enum`. For the `Patient` read, add a
 }
 ```
 
-Both examples allow any search or read on those types. To tighten them, add `"request-method": "get"` to `matcho`; for per-patient control (only the caller's own patients) use a `sql` or `complex` engine.
-
-See [more AccessPolicy examples](../../../tutorials/security-access-control-tutorials/accesspolicy-examples.md).
-
 ### Organization scope (OrgBAC)
 
 Under [organization-based access control](../../../access-control/authorization/scoped-api/organization-based-hierarchical-access-control.md), the operation is also served at:
