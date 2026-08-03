@@ -6,7 +6,7 @@ description: >-
 
 # SMART Health Cards
 
-Since the 2608 version, Aidbox can issue [SMART Health Cards](https://smarthealth.cards/): verifiable health credentials packaged as a signed, compact JSON Web Signature (JWS) that a patient presents as a QR code or file. The [`$health-cards-issue`](https://spec.smarthealth.cards/#via-fhir-health-cards-issue-operation) operation gathers the patient's clinical resources, minifies them into a `verifiableCredential` Bundle, and signs it with the issuer's ES256 key.
+Since the 2608 version, Aidbox can issue [SMART Health Cards](https://smarthealth.cards/): verifiable health credentials packaged as a signed, compact JSON Web Signature (JWS) that a patient presents as a QR code or file. The [`$health-cards-issue`](https://spec.smarthealth.cards/#via-fhir-health-cards-issue-operation) operation issues a signed card from the patient's clinical resources.
 
 Aidbox publishes the verification public key at a JWKS endpoint, so any SMART Health Cards verifier can validate the cards.
 
@@ -14,10 +14,12 @@ Aidbox publishes the verification public key at a JWKS endpoint, so any SMART He
 
 The operation signs cards with an issuer **EC P-256 private key**, set as a PEM in `module.health-cards-links.issuer-private-key` (env `BOX_MODULE_HEALTH_CARDS_LINKS_ISSUER_PRIVATE_KEY`); the public key and JWKS are derived from it. Until it is set the operation returns `422` and the JWKS endpoint `404`.
 
-Generate a key with OpenSSL:
+Generate a key with OpenSSL and set it as the issuer key:
 
 ```bash
 openssl genpkey -algorithm EC -pkeyopt ec_paramgen_curve:P-256 -out issuer.pem
+
+export BOX_MODULE_HEALTH_CARDS_LINKS_ISSUER_PRIVATE_KEY="$(cat issuer.pem)"
 ```
 
 {% hint style="warning" %}
@@ -94,24 +96,6 @@ POST /fhir/Patient/pt-1/$health-cards-issue
 ```
 
 `verifiableCredential.valueString` is the signed SMART Health Card JWS: a raw-DEFLATE-compressed (`zip:"DEF"`) payload signed with ES256, whose protected header carries the issuer `kid`. Each `resourceLink` maps a bundled resource (`resource:N`) to its source Aidbox resource (`hostedResource`).
-
-### Repeatable parameters
-
-`credentialType`, `credentialValueSet`, and `includeIdentityClaim` take one `parameter` entry per value. This request asks for a card carrying both immunizations and observations (`credentialType` as a logical AND), limits the identity claim to the name, and skips resources modified before a cutoff:
-
-```json
-{
-  "resourceType": "Parameters",
-  "parameter": [
-    { "name": "credentialType", "valueUri": "Immunization" },
-    { "name": "credentialType", "valueUri": "Observation" },
-    { "name": "includeIdentityClaim", "valueString": "Patient.name" },
-    { "name": "_since", "valueInstant": "2024-01-01T00:00:00Z" }
-  ]
-}
-```
-
-Add a `credentialValueSet` entry the same way to filter the kept resources, for example `https://terminology.smarthealth.cards/ValueSet/immunization-covid-cvx`.
 
 ## Input parameters
 
