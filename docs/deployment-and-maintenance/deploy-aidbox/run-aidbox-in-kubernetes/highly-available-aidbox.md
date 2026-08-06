@@ -8,9 +8,6 @@ description: Configure highly available Aidbox on Kubernetes with multiple repli
 Run parallel Aidbox replicas supported from **2208** version
 {% endhint %}
 
-{% hint style="warning" %}
-**License `max-instances`** — every replica counts as one Aidbox instance against your license. Set `max-instances` on [aidbox.app](https://aidbox.app) to at least the number of replicas you run, or you will see a [concurrent instances warning](../../../overview/licensing-and-support.md#concurrent-instances-warning) on every API response (the warning is informational and does not block operations). Read-only PostgreSQL replicas do not count.
-{% endhint %}
 
 ### Concept
 
