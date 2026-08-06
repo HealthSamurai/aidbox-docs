@@ -34,8 +34,8 @@ description: >-
     **Changes and deprecations**
 
     * Removed the `/fhir/FHIRSchema` endpoint. Define FHIR profiles with [StructureDefinition](../modules/profiling-and-validation/fhir-schema-validator/README.md) resources instead.
-    * **Zen seed removal** — removed the Zen `seed` and `seed-v2` engines along with the `SeedImport` resource type. Load configuration resources at startup with [Init Bundle](../configuration/init-bundle.md) instead. The default OAuth2 and SMART scopes now ship as built-in auth module resources, so Aidbox no longer seeds them. Existing `seedimport` tables are left in place, since they hold only seed bookkeeping.
-    * **C-CDA converter moved out of Aidbox** — the built-in C-CDA / FHIR converter module is removed, and the `/ccda/*` endpoints (`to-fhir`, `to-ccda`, `persist`, `validate`, `fhir-validate`) are no longer served by Aidbox. The converter now ships separately, with its own release cycle, and runs as a standalone container or an Aidbox app.
+    * **Zen seed removal** — removed the Zen `seed` and `seed-v2` engines along with the `SeedImport` resource type. Load configuration resources at startup with [Init Bundle](../configuration/init-bundle.md) instead.
+    * **C-CDA converter moved out of Aidbox** — the built-in C-CDA / FHIR converter module is removed, and the `/ccda/*` endpoints (`to-fhir`, `to-ccda`, `persist`, `validate`, `fhir-validate`) are no longer served by Aidbox. Use [Interbox](https://www.health-samurai.io/docs/interbox) for running the converter.
 
 ## June 2026 _`stable, 2606`_
 
@@ -682,7 +682,7 @@ Minor updates:
     * [Added the SDC config resource for general settings](https://www.health-samurai.io/docs/formbox)
     * [Provided the ability to restrict the type of attached file](https://www.health-samurai.io/docs/formbox)
     * Supported cqf-expression to provide prefilling the value in the display field
-    * [Integrated the Termbox server with Aidbox Forms for using external terminologies](https://www.health-samurai.io/docs/formbox)
+      * [Integrated the Termbox server with Aidbox Forms for using external terminologies](https://www.health-samurai.io/docs/formbox)
     * [Added an ability to embed forms as web-component](https://www.health-samurai.io/docs/formbox)
     * [Provided the ability to display an attached image on the form](https://www.health-samurai.io/docs/formbox)
   * [C-CDA / FHIR converter](../modules/integration-toolkit/ccda-converter/)
