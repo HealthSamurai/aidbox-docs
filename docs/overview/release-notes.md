@@ -6,9 +6,36 @@ description: >-
 
 # Release Notes
 
-## July 2026 _`edge`_
+## August 2026 _`edge`_
 
-## June 2026 _`latest, 2606`_
+## July 2026 _`latest, 2607`_
+
+*   Aidbox FHIR server
+
+    **Features**
+
+    * **[SMART Health Cards](../api/rest-api/other/smart-health-cards.md)** — the `$health-cards-issue` operation issues verifiable health credentials signed as a compact JWS, which a patient presents as a QR code or file. Aidbox publishes the verification public key at a JWKS endpoint, so any SMART Health Cards verifier can validate the cards.
+    * **[Reworked batch validation](../modules/profiling-and-validation/batch-resource-validation.md)** — the new resource-level `$batch-validate` operation validates resources already stored in the database against their schemas and FHIR profiles, synchronously or asynchronously, and stores offender-indexed results you can drill into.
+    * Performance improvements in [FHIR Bundle](../api/rest-api/bundle.md) processing.
+    * Performance improvements in the [`aidbox.bulk/load-from-bucket`](../api/bulk-api/bulk-import-from-an-s3-bucket.md) API.
+
+    **Bug fixes and improvements**
+
+    * Fixed patient filtering in [consent-aware bulk export](../api/bulk-api/export.md#consent-based-patient-filtering).
+    * Fixed validation of [FHIR Bundles](../api/rest-api/bundle.md).
+    * Fixed Resource Browser validating extensions inside `BackboneElement`s incorrectly.
+    * Fixed settings handling in Multibox.
+    * Fixed how FHIR [topic-based subscriptions](../modules/topic-based-subscriptions/fhir-topic-based-subscriptions.md) treat `backport-filter-criteria`.
+    * Improved the [AccessPolicy debug tool](../tutorials/security-access-control-tutorials/debug-access-control.md) in Aidbox UI.
+    * Improved support for the [`X-Original-Uri`](../api/rest-api/fhir-search/README.md) HTTP header.
+    * Added the [`execution-type`](../configuration/migrations.md#run-sql-outside-a-transaction) parameter to `AidboxMigration`, which runs the migration SQL outside a transaction. Use it for statements PostgreSQL forbids inside a transaction block, such as `CREATE INDEX CONCURRENTLY`.
+    * Bug fixes in the [Aidbox Metrics server](../modules/observability/metrics/monitoring/use-aidbox-metrics-server.md).
+
+    **Changes and deprecations**
+
+    * Removed the `/fhir/FHIRSchema` endpoint. Define FHIR profiles with [StructureDefinition](../modules/profiling-and-validation/fhir-schema-validator/README.md) resources instead.
+
+## June 2026 _`stable, 2606`_
 
 *   Aidbox FHIR server
 
@@ -37,7 +64,7 @@ description: >-
     * **Legacy engine cleanup** — removed Zen validation and the Entity/Attribute framework, the legacy FHIR Terminology Repository (FTR), and the Zen-based repository, indexes, and search implementation. [FHIR Schema validation](../modules/profiling-and-validation/fhir-schema-validator/README.md) is now the only validation mode. The `BOX_FHIR_SCHEMA_VALIDATION` setting has been removed and has no effect — validation can no longer be disabled.
 
 
-## May 2026 _`stable, 2605, LTS`_
+## May 2026 _`2605, LTS`_
 
 *   Aidbox FHIR server
 

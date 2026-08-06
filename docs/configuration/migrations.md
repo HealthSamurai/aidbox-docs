@@ -123,6 +123,100 @@ After execution, the migration status changes to `done` and `result.valueBoolean
 Invalid SQL causes the migration to fail with a 422 error. In a transaction bundle, this rolls back the entire transaction and prevents Aidbox from starting.
 {% endhint %}
 
+### Run SQL outside a transaction
+
+{% hint style="info" %}
+Available since the 2607 release.
+{% endhint %}
+
+By default Aidbox wraps the migration SQL in a transaction. PostgreSQL forbids some statements inside a transaction block, among them `CREATE INDEX CONCURRENTLY`, `DROP INDEX CONCURRENTLY`, `REINDEX CONCURRENTLY`, and `VACUUM`. Add the `execution-type` parameter with the value `not-in-transaction` to run the SQL with autocommit on:
+
+```json
+{
+  "resourceType": "AidboxMigration",
+  "id": "create-encounter-index-concurrently",
+  "action": "aidbox-migration-run-sql",
+  "status": "to-run",
+  "params": {
+    "resourceType": "Parameters",
+    "parameter": [
+      {
+        "name": "sql",
+        "valueString": "CREATE INDEX CONCURRENTLY IF NOT EXISTS encounter_subject_id ON encounter ((resource #>> '{subject, id}'));"
+      },
+      {
+        "name": "execution-type",
+        "valueCode": "not-in-transaction"
+      }
+    ]
+  }
+}
+```
+
+| `execution-type` | Behavior |
+|---|---|
+| `in-transaction` | Default, also applied when the parameter is absent. Aidbox runs the SQL inside a transaction and rolls it back on failure. |
+| `not-in-transaction` | Aidbox runs the SQL with autocommit on, outside any transaction. |
+
+A migration that runs outside a transaction cannot be part of a FHIR **transaction** bundle, because the bundle itself is one atomic transaction. Post it in one of these ways instead:
+
+| How you send it | `execution-type: not-in-transaction` |
+|---|---|
+| `POST /fhir/AidboxMigration` | Runs outside a transaction |
+| `POST /AidboxMigration` (Aidbox format) | Runs outside a transaction |
+| Entry in a `batch` bundle | Runs outside a transaction |
+| Entry in a `transaction` bundle | Rejected with a 422 error |
+
+Init Bundle examples on this page use `"type": "transaction"`. To run a non-transactional migration on startup, set the bundle type to `batch`:
+
+```json
+{
+  "type": "batch",
+  "resourceType": "Bundle",
+  "entry": [
+    {
+      "request": {
+        "method": "POST",
+        "url": "AidboxMigration",
+        "ifNoneExist": "id=create-encounter-index-concurrently"
+      },
+      "resource": {
+        "resourceType": "AidboxMigration",
+        "id": "create-encounter-index-concurrently",
+        "action": "aidbox-migration-run-sql",
+        "status": "to-run",
+        "params": {
+          "resourceType": "Parameters",
+          "parameter": [
+            {
+              "name": "sql",
+              "valueString": "CREATE INDEX CONCURRENTLY IF NOT EXISTS encounter_subject_id ON encounter ((resource #>> '{subject, id}'));"
+            },
+            {
+              "name": "execution-type",
+              "valueCode": "not-in-transaction"
+            }
+          ]
+        }
+      }
+    }
+  ]
+}
+```
+
+{% hint style="warning" %}
+Aidbox does not roll back a migration that runs outside a transaction. A failed `CREATE INDEX CONCURRENTLY` leaves an invalid index behind, and PostgreSQL does not use it for queries. Write the statement with `IF NOT EXISTS`, drop the invalid index, and run the migration again.
+
+Find invalid indexes with:
+
+```sql
+SELECT c.relname
+FROM pg_index i
+JOIN pg_class c ON c.oid = i.indexrelid
+WHERE NOT i.indisvalid;
+```
+{% endhint %}
+
 ## Using with Init Bundle
 
 Set the `BOX_INIT_BUNDLE` environment variable to load migrations on startup:
@@ -217,6 +311,7 @@ Aidbox also exposes a [`POST /db/migrations`](../api/rest-api/other/sql-endpoint
 | External client required | No | Yes (needs credentials and a healthy Aidbox) |
 | Idempotency | Built-in via `ifNoneExist` | Built-in via migration id tracking |
 | FHIR package installs | Yes | No |
+| SQL outside a transaction | Yes, via [`execution-type`](#run-sql-outside-a-transaction) in a batch bundle or a direct POST | No, use [`$psql`](../api/rest-api/other/sql-endpoints.md#execution-headers) with `Aidbox-Sql-Autocommit: true` |
 
 Use `AidboxMigration` when you want zero-touch migrations on boot. Use `POST /db/migrations` when you need to apply migrations on demand from deployment scripts.
 

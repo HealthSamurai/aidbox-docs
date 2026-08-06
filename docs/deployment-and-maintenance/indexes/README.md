@@ -166,6 +166,18 @@ params:
 [get-suggested-indexes.md](get-suggested-indexes.md)
 {% endcontent-ref %}
 
+## Applying an index
+
+Index DDL usually uses `CREATE INDEX CONCURRENTLY`, which builds the index without blocking writes to the table. PostgreSQL refuses to run it inside a transaction block, so pick a route that runs it with autocommit on:
+
+| Route | How |
+|---|---|
+| [`POST /$psql`](../../api/rest-api/other/sql-endpoints.md#execution-headers) | Send `Aidbox-Sql-Autocommit: true`. Add `Aidbox-Sql-Async: true` to get a `202` back while PostgreSQL keeps building. |
+| SQL Console in Aidbox UI | Switch transaction mode to `Autocommit`. |
+| [`AidboxMigration`](../../configuration/migrations.md#run-sql-outside-a-transaction) | Set the `execution-type` parameter to `not-in-transaction`, in a batch bundle or a direct POST. Use this to apply the index on startup as a one-time migration. |
+
+A `CREATE INDEX CONCURRENTLY` that fails leaves an invalid index behind, and PostgreSQL ignores it when planning queries. Drop it and run the statement again.
+
 ## Usage statistics
 
 Aidbox tracks how often each SearchParameter is queried and exposes the numbers via RPCs. Use them to rank "hot" parameters, decide which suggested indexes are worth creating, and confirm a created index is actually being used. Available since Aidbox 2605.
