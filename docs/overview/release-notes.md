@@ -34,6 +34,8 @@ description: >-
     **Changes and deprecations**
 
     * Removed the `/fhir/FHIRSchema` endpoint. Define FHIR profiles with [StructureDefinition](../modules/profiling-and-validation/fhir-schema-validator/README.md) resources instead.
+    * **Zen seed removal** — removed the Zen `seed` and `seed-v2` engines along with the `SeedImport` resource type. Load configuration resources at startup with [Init Bundle](../configuration/init-bundle.md) instead. The default OAuth2 and SMART scopes now ship as built-in auth module resources, so Aidbox no longer seeds them. Existing `seedimport` tables are left in place, since they hold only seed bookkeeping.
+    * **C-CDA converter moved out of Aidbox** — the built-in C-CDA / FHIR converter module is removed, and the `/ccda/*` endpoints (`to-fhir`, `to-ccda`, `persist`, `validate`, `fhir-validate`) are no longer served by Aidbox. The converter now ships separately, with its own release cycle, and runs as a standalone container or an Aidbox app.
 
 ## June 2026 _`stable, 2606`_
 
