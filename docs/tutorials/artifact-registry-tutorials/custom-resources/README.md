@@ -1,5 +1,5 @@
 ---
-description: Define custom FHIR resources in Aidbox using StructureDefinition or FHIR Schema for non-standard healthcare data.
+description: Define custom FHIR resources in Aidbox using StructureDefinition for non-standard healthcare data.
 ---
 
 # Custom Resources
@@ -23,9 +23,6 @@ Using this approach, you create your own storage and runtime for custom resource
 
 ## Define custom resources using FHIR abstractions
 
-Use FHIR StructureDefinition or FHIR Schema to define a custom resource. Although resources defined this way will not be interoperable across different FHIR servers, within the bounds of your application, you can use all available utilities and the regular interface for interactions with these resources. This includes validation, search parameters, CRUD operations, and more.
+Use FHIR StructureDefinition to define a custom resource. Although resources defined this way will not be interoperable across different FHIR servers, within the bounds of your application, you can use all available utilities and the regular interface for interactions with these resources. This includes validation, search parameters, CRUD operations, and more.
 
-\
-Aidbox provides the following mechanisms to create custom resource types:
-- [Using StructureDefnition](./custom-resources-using-structuredefinition.md) FHIR resource.
-- [Using FHIRSchema](./custom-resources-using-fhir-schema.md) custom Aidbox resource — available in Aidbox versions 2606 and earlier; the `POST/PUT /fhir/FHIRSchema` endpoints were removed in the July 2026 release.
+See [Custom resources using StructureDefinition](./custom-resources-using-structuredefinition.md).

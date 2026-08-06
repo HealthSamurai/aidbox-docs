@@ -691,7 +691,7 @@ Minor updates:
 ## July 2024 _`2407`_
 
 * Aidbox
-  * Introduced support for [custom resources using FHIR StructureDefinitions](../tutorials/artifact-registry-tutorials/custom-resources/custom-resources-using-structuredefinition.md) and [custom resources using FHIR schemas](../tutorials/artifact-registry-tutorials/custom-resources/custom-resources-using-fhir-schema.md)
+  * Introduced support for [custom resources using FHIR StructureDefinitions](../tutorials/artifact-registry-tutorials/custom-resources/custom-resources-using-structuredefinition.md) and custom resources using FHIR schemas (removed in the July 2026 release)
   * Published [JavaScript app example](https://github.com/Aidbox/examples/tree/main/aidbox-features/aidbox-notify-via-custom-resources) demonstrating custom resources with a typical notification flow: requesting a notification, locking it for sending, and sending it (placeholder)
   * Supported [enabling Audit Log using an environment variable](../reference/all-settings.md)
 * [Aidbox Forms](https://www.health-samurai.io/docs/formbox)
