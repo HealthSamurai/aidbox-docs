@@ -45,6 +45,6 @@ docker compose up
 
 ## Explore canonicals
 
-All imported canonical resources are available in the FHIR Packages tab
+Open the **FAR** ([FHIR Artifact Registry](../../artifact-registry/artifact-registry-overview.md)) section in the Aidbox UI sidebar and select the `hl7.fhir.r6.core#6.0.0-ballot3` package. Its tabs list all imported canonical resources: Profiles, Operations, Extensions, FHIRSchemas, SearchParameters, ValueSets, and CodeSystems.
 
-<figure><img src="../../../assets/0f985882-6f3a-4709-b05e-e2790647eb37.avif" alt="FHIR Packages tab showing imported canonical resources from R6"><figcaption></figcaption></figure>
+<figure><img src="../../../assets/far-r6-core-package.avif" alt="FAR section of the Aidbox UI showing the hl7.fhir.r6.core package"><figcaption></figcaption></figure>
