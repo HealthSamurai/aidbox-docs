@@ -84,7 +84,7 @@ Every header below is optional. Defaults match a single-transaction read-write r
 
 | Header | Value | Effect |
 |---|---|---|
-| `Aidbox-Sql-Autocommit` | `true` | Run outside a transaction. Required for `VACUUM`, `CREATE INDEX CONCURRENTLY`, `REINDEX CONCURRENTLY`. Rejected when [`db.pass-auth-vars`](../../../reference/all-settings.md#db.pass-auth-vars) is on **and** the request carries a resolvable identity — autocommit would drop the SQL identity injection that RLS relies on. |
+| `Aidbox-Sql-Autocommit` | `true` | Run outside a transaction. Required for `VACUUM`, `CREATE INDEX CONCURRENTLY`, `REINDEX CONCURRENTLY`. To run such a statement as a one-time migration instead, see [`AidboxMigration` outside a transaction](../../../configuration/migrations.md#run-sql-outside-a-transaction). Rejected when [`db.pass-auth-vars`](../../../reference/all-settings.md#db.pass-auth-vars) is on **and** the request carries a resolvable identity — autocommit would drop the SQL identity injection that RLS relies on. |
 | `Aidbox-Sql-Timeout` | seconds, 1..86400 | Per-query `statement_timeout`. Empty / non-numeric / negative / out-of-range values are ignored. |
 | `Aidbox-Sql-Read-Only` | `true` | Run as read-only. Writes raise `ERROR: cannot execute … in a read-only transaction`. |
 | `Aidbox-Sql-Query-Id` | UUID | Tags the PG session via `application_name = aidbox-psql:<uuid>`. The same UUID is used to cancel via `/$psql-cancel`. |
