@@ -10,7 +10,7 @@ This functionality is available starting from Aidbox version **2606**.
 
 Aidbox keeps resource persistence and resource APIs in two layers you can configure independently:
 
-* A **storage** defines how a resource type's data is stored in PostgreSQL and lets you configure it: the table name, whether history is kept, and the name of the history table. The `default` storage type uses the table layout described in [Database schema](../database/database-schema.md).
+* A **storage** defines how a resource type's data is stored in PostgreSQL and lets you configure it: the table name, whether history is kept, and the name of the history table. The `default` storage type uses the table layout described in [Database schema](../../database/database-schema.md).
 * An **API** connects a storage to a FHIR REST endpoint. It exposes the resource type at `/fhir/{resourceType}` and governs which [FHIR interactions](https://build.fhir.org/http.html) (read, create, update, search, history) are available.
 
 A resource type can have several storages, but only one is active at a time: the storage an API points to. `/fhir/metadata` lists only the resource types and interactions that have an active API.
@@ -19,7 +19,7 @@ You manage both layers through FHIR operations that accept and return a `Paramet
 
 ## API auto-mount
 
-The [`enable-api-auto-mount`](../reference/all-settings.md#enable-api-auto-mount) setting controls whether Aidbox exposes resource types for you.
+The [`enable-api-auto-mount`](../../reference/all-settings.md#enable-api-auto-mount) setting controls whether Aidbox exposes resource types for you.
 
 * `true` (default): Aidbox generates a storage and an API for every resource type that has a `StructureDefinition`, together with its `SearchParameter`s. `/fhir/Patient` and `/fhir/Patient?active=true` work without any configuration. This matches how Aidbox behaved before storages and APIs became configurable.
 * `false`: Aidbox mounts only its essential system resources (such as `User`, `Client`, `AccessPolicy`). To expose any other resource type, create a storage and an API for it with the operations below.
@@ -200,18 +200,25 @@ Deleting a storage does not drop its table. The data remains, and you can reatta
 
 An API record carries these parameters:
 
-| Parameter      | Type   | Required | Description                                                                             |
-|----------------|--------|----------|-----------------------------------------------------------------------------------------|
-| `resourceType` | string | yes      | FHIR resource type exposed at `/fhir/{resourceType}`. One active API per resource type. |
-| `storageId`    | string | yes      | Storage the API reads from and writes to.                                               |
-| `apiTemplate`  | string | yes      | `pre-2604`.                                                                             |
-| `apiId`        | string | output   | Server-generated identifier. Pass it to `$configure-api` and `$delete-api`.             |
+| Parameter                      | Type   | Required | Description                                                                                                                                     |
+|--------------------------------|--------|----------|--------------------------------------------------------------------------------------------------------------------------------------------------|
+| `resourceType`                 | string | yes      | FHIR resource type exposed at `/fhir/{resourceType}`. One active API per resource type.                                                         |
+| `storageId`                    | string | yes      | Storage the API reads from and writes to.                                                                                                       |
+| `apiTemplate`                  | string | yes      | `pre-2604`.                                                                                                                                     |
+| `dataOffloadToExternalStorage` | parts  | no       | Store `base64Binary` element values in external storage. See [Offload base64Binary data to external storage](offload-base64binary-to-external-storage.md). |
+| `apiId`                        | string | output   | Server-generated identifier. Pass it to `$configure-api` and `$delete-api`.                                                                     |
 
 `pre-2604` is the only template available, and it is required. It enables the full FHIR REST interaction set (read, vread, create, update, patch, delete, history, search), reproducing the default behavior of Aidbox APIs before this feature. Future releases add more templates. They also let an API turn individual interactions on and off without a template.
 
 ### $create-api
 
 Connects a resource type to a storage. The resource type starts serving requests at `/fhir/{resourceType}` and appears in `/fhir/metadata`.
+
+With the optional `dataOffloadToExternalStorage` parameter, the API keeps `base64Binary` element values out of PostgreSQL and stores them in external blob storage:
+
+{% content-ref %}
+[Offload base64Binary data to external storage](offload-base64binary-to-external-storage.md)
+{% endcontent-ref %}
 
 {% tabs %}
 {% tab title="Request" %}

@@ -1,4 +1,5 @@
 redirects:
+  configuration/storage-and-api-configuration: configuration/storage-and-api-configuration/README.md
   tutorials/security-access-control-tutorials/access-policy-dev-tool: deprecated/deprecated/other/access-policy-dev-tool.md
   contact-us: overview/contact-us.md
   access-control/authentication/access-to-aidboxui: access-control/authentication/README.md

@@ -155,7 +155,8 @@
 * [External Secrets](configuration/secret-files.md)
 * [Init Bundle](configuration/init-bundle.md)
 * [Migrations](configuration/migrations.md)
-* [Storage and API configuration](configuration/storage-and-api-configuration.md)
+* [Storage and API configuration](configuration/storage-and-api-configuration/README.md)
+  * [Offload base64Binary data to external storage](configuration/storage-and-api-configuration/offload-base64binary-to-external-storage.md)
 
 ## API
 
@@ -190,6 +191,7 @@
     * [$meta-add](api/rest-api/other/meta-add.md)
     * [$meta-delete](api/rest-api/other/meta-delete.md)
     * [SMART Health Cards](api/rest-api/other/smart-health-cards.md)
+    * [Binary resource](api/rest-api/other/binary.md)
 * [Bulk API](api/bulk-api/README.md)
   * [Configure Access Policies for Bulk API](api/bulk-api/configure-access-policies-for-bulk-api.md)
   * [$dump](api/bulk-api/dump.md)

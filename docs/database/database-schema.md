@@ -25,7 +25,7 @@ All resource tables have the same structure:
 * `resource`: The actual resource data (jsonb)
 
 {% hint style="info" %}
-To store a resource type in a table you name, or to turn history on or off per resource type, see [Storage and API configuration](../configuration/storage-and-api-configuration.md).
+To store a resource type in a table you name, or to turn history on or off per resource type, see [Storage and API configuration](../configuration/storage-and-api-configuration/README.md).
 {% endhint %}
 
 ## More details

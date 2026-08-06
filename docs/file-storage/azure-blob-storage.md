@@ -389,3 +389,11 @@ This allows you to directly reference the Aidbox endpoint in HTML:
 <!-- Workload identity -->
 <img src="/azure/workload-identity/storage/<storage-account>/<container>/<blob-path>?redirect=true" alt="Image" />
 ```
+
+## See also
+
+Aidbox can also store `base64Binary` element values of FHIR resources in Blob Storage instead of PostgreSQL:
+
+{% content-ref %}
+[Offload base64Binary data to external storage](../configuration/storage-and-api-configuration/offload-base64binary-to-external-storage.md)
+{% endcontent-ref %}
