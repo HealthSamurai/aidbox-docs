@@ -752,9 +752,15 @@ See tutorials:
 * [Multilingual search](../../../tutorials/crud-search-tutorials/search-tutorials/multilingual-search-tutorial.md)
 * [Change sort order by locale collation](../../../tutorials/crud-search-tutorials/search-tutorials/change-sort-order-by-locale-collation.md)
 
-See also [Aidbox Search page](../aidbox-search.md):
+## Aidbox Search
 
-* [Aidbox special search parameters](../aidbox-search.md#aidbox-special-search-parameters)
-* [Search resource](../aidbox-search.md#search-resource)
-* [dot-expressions](../aidbox-search.md#dot-expressions)
-* [AidboxQuery](../aidbox-search.md#aidboxquery)
+When SearchParameters are not enough, Aidbox has custom APIs to search for resources:
+
+* [Search resource](../aidbox-search.md#search-resource) - use SQL to define `where` and `order-by` parts of SQL statements. Combines with other SearchParameters.
+* [AidboxQuery](../aidbox-search.md#aidboxquery) - use DSL to define search criteria. Does not combine with other SearchParameters.
+* [Dot expressions](../aidbox-search.md#dot-expressions) - an easy way to search without using SearchParameters at all.
+* [Aidbox special search parameters](../aidbox-search.md#aidbox-special-search-parameters) - Aidbox-specific parameters, such as `_explain`, `_timeout`, `_createdAt` and `_result`.
+
+{% content-ref url="../aidbox-search.md" %}
+[aidbox-search.md](../aidbox-search.md)
+{% endcontent-ref %}
