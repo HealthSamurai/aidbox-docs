@@ -5,7 +5,7 @@ description: Read and write FHIR Binary resources as JSON or as raw binary conte
 # Binary resource
 
 {% hint style="info" %}
-This functionality is available starting from Aidbox version **2608**.
+This functionality is available starting from Aidbox version **2607**.
 {% endhint %}
 
 The FHIR [Binary](https://www.hl7.org/fhir/binary.html) resource carries raw content such as documents and images: a `contentType` and the base64-encoded `data`. Aidbox follows the [FHIR rules for handling Binary resources over REST](https://www.hl7.org/fhir/binary.html#rest): the same endpoint returns the resource as JSON or as the decoded content, and accepts raw uploads without a JSON wrapper.
