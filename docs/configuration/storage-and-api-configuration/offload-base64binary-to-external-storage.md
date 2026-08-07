@@ -12,7 +12,7 @@ FHIR resources carry binary payloads in `base64Binary` elements. `Binary.data`, 
 
 Data offload moves the payloads out of the database. On create and update, Aidbox uploads the decoded bytes to external blob storage and stores the resource with a pointer to the blob in place of the data. On read, Aidbox downloads the bytes and returns the resource with the data inlined, so API clients work with the resource as if nothing was offloaded.
 
-Offload is a property of an [API](README.md#apis). You configure it with the `dataOffloadToExternalStorage` parameter of [`$create-api`](README.md#usdcreate-api) or [`$configure-api`](README.md#usdconfigure-api). [Azure Blob Storage](#azure-blob-storage) is the storage provider supported today.
+Offload is a property of an [API](README.md#apis). You configure it with the `dataOffloadToExternalStorage` parameter of [`$create-api`](README.md#usdcreate-api) or [`$configure-api`](README.md#usdconfigure-api). [Azure Blob Storage](#azure-blob-storage) and [AWS S3](#aws-s3) are the storage providers supported today.
 
 ## How it works
 
@@ -68,8 +68,10 @@ Pass the `dataOffloadToExternalStorage` parameter to `$create-api` or `$configur
 | Part                            | Type                        | Required                            | Description                                                                 |
 |---------------------------------|-----------------------------|-------------------------------------|-----------------------------------------------------------------------------|
 | `fhirpathToBase64BinaryElement` | string                      | yes, repeatable                     | Path to a `base64Binary` element to offload. See the expression rules below. |
-| `storageProvider`               | code                        | yes                                 | Storage provider that receives the data. See [Storage providers](#storage-providers). |
+| `storageProvider`               | code                        | yes                                 | `azure` or `aws`. See [Storage providers](#storage-providers).               |
 | `azureContainer`                | Reference(`AzureContainer`) | when `storageProvider` is `azure`   | Container that receives the blobs.                                           |
+| `awsAccount`                    | Reference(`AwsAccount`)     | when `storageProvider` is `aws`     | Account with the credentials and region for S3 access.                       |
+| `awsBucket`                     | string                      | when `storageProvider` is `aws`     | Bucket that receives the objects.                                            |
 
 ### Element path expressions
 
@@ -83,11 +85,11 @@ Pass the `dataOffloadToExternalStorage` parameter to `$create-api` or `$configur
 | `content.attachment.data` | `data` of every `DocumentReference.content` item.                           |
 | `extension.valueBase64Binary` | `base64Binary` values of top-level extensions.                          |
 
-When a path segment names an array and carries no index, the expression matches every item. Elements missing from the resource are skipped.
+When a path segment names an array and carries no index, the expression matches every item. Missing and empty elements are skipped.
 
 ## Storage providers
 
-`storageProvider` selects where the blobs go, and each provider brings its own configuration parts and prerequisites. `azure` is the provider available today. Future releases add more.
+`storageProvider` selects where the blobs go, and each provider brings its own configuration parts and prerequisites.
 
 ### Azure Blob Storage
 
@@ -122,6 +124,37 @@ Content-Type: application/json
   "account": { "id": "my-account", "resourceType": "AzureAccount" },
   "storage": "mystorageaccount",
   "container": "my-container"
+}
+```
+
+### AWS S3
+
+Set `storageProvider` to `aws`, reference an [AwsAccount](../../reference/system-resources-reference/core-module-resources.md#awsaccount) resource in the `awsAccount` part, and name the bucket in `awsBucket`. Objects land in that bucket, and the `location` sub-extension records them as `s3://{bucket}/{object-name}`.
+
+Offload uses the same `AwsAccount` resource as the [AWS S3](../../file-storage/aws-s3.md) file storage integration. The `region` field is required. Pass `access-key-id` and `secret-access-key` for explicit credentials, or omit them so Aidbox uses the [default credentials provider chain](https://docs.aws.amazon.com/sdk-for-java/latest/developer-guide/credentials-chain.html) (environment variables, instance profile, or pod identity).
+
+```http
+PUT /fhir/AwsAccount/my-aws-account
+Content-Type: application/json
+
+{
+  "region": "us-east-1",
+  "access-key-id": "<access-key-id>",
+  "secret-access-key": "<secret-access-key>"
+}
+```
+
+The examples below configure Azure. For AWS, the offload parameter carries `awsAccount` and `awsBucket` instead of `azureContainer`:
+
+```json
+{
+  "name": "dataOffloadToExternalStorage",
+  "part": [
+    { "name": "fhirpathToBase64BinaryElement", "valueString": "data" },
+    { "name": "storageProvider", "valueCode": "aws" },
+    { "name": "awsAccount", "valueReference": { "reference": "AwsAccount/my-aws-account" } },
+    { "name": "awsBucket", "valueString": "my-bucket" }
+  ]
 }
 ```
 
@@ -309,14 +342,16 @@ Content-Type: application/json
 
 ## Behavior and limitations
 
-* Offload runs on the FHIR REST create (`POST`) and update (`PUT`) interactions. Transaction bundle entries, conditional update, and PATCH store the data inline.
-* Aidbox restores data on instance read. Search, history, and version read responses return the stored form: the element is absent and the extension holds the location.
-* When the upload to the external storage fails, the request fails with a `500` `OperationOutcome` and the resource is not written.
+* Offload runs on the FHIR REST create (`POST`) and update (`PUT`) interactions, and on the entries of transaction bundles. When a transaction fails, its blobs never become visible in the storage. Conditional update and PATCH store the data inline.
+* Aidbox restores data on instance read and version read. Search and history responses return the stored form: the element is absent and the extension holds the location.
+* When the upload to the external storage fails, the request fails with a `500` `OperationOutcome` and the resource is not written. When the download fails on read, the request fails with a `500` `OperationOutcome` as well.
+* A configured element whose value is not valid base64 fails the write with `422`.
 * Aidbox does not delete blobs. Deleting a resource leaves its blob in the storage, and updating a resource uploads a new blob while the old one stays.
-* On read, Aidbox resolves the storage from the current API configuration, and the blob name comes from the stored `location`. Repointing the API at a different container makes data offloaded through the old one unreadable.
+* On read, Aidbox resolves the storage from the current API configuration, and the blob name comes from the stored `location`. Repointing the API at a different container or bucket makes data offloaded through the old one unreadable.
 
 ## See also
 
 * [Storage and API configuration](README.md)
 * [Binary resource](../../api/rest-api/other/binary.md)
 * [Azure Blob Storage](../../file-storage/azure-blob-storage.md)
+* [AWS S3](../../file-storage/aws-s3.md)

@@ -225,3 +225,9 @@ use-ssl: false
 - [AWS S3 presigned URLs](https://docs.aws.amazon.com/AmazonS3/latest/userguide/using-presigned-url.html)
 - [EKS Pod Identity](https://docs.aws.amazon.com/eks/latest/userguide/pod-identities.html)
 - [Default credentials provider chain](https://docs.aws.amazon.com/sdk-for-java/latest/developer-guide/credentials-chain.html)
+
+Aidbox can also store `base64Binary` element values of FHIR resources in S3 instead of PostgreSQL:
+
+{% content-ref %}
+[Offload base64Binary data to external storage](../configuration/storage-and-api-configuration/offload-base64binary-to-external-storage.md)
+{% endcontent-ref %}
