@@ -5,7 +5,7 @@ description: Store base64Binary element values in external blob storage instead 
 # Offload base64Binary data to external storage
 
 {% hint style="info" %}
-This functionality is available starting from Aidbox version **2608**.
+This functionality is available starting from Aidbox version **2607**.
 {% endhint %}
 
 FHIR resources carry binary payloads in `base64Binary` elements. `Binary.data`, `DocumentReference.content.attachment.data`, and `Patient.photo.data` are common examples, many other resource types have such elements, and extensions with a `valueBase64Binary` value can appear on any element. Stored inline, these payloads grow the resource tables and everything built on top of them: history, backups, replication.

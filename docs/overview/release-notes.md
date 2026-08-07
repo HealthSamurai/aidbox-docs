@@ -16,6 +16,7 @@ description: >-
 
     * **[SMART Health Cards](../api/rest-api/other/smart-health-cards.md)** — the `$health-cards-issue` operation issues verifiable health credentials signed as a compact JWS, which a patient presents as a QR code or file. Aidbox publishes the verification public key at a JWKS endpoint, so any SMART Health Cards verifier can validate the cards.
     * **[Reworked batch validation](../modules/profiling-and-validation/batch-resource-validation.md)** — the new resource-level `$batch-validate` operation validates resources already stored in the database against their schemas and FHIR profiles, synchronously or asynchronously, and stores offender-indexed results you can drill into.
+    * **[Offload base64Binary data to external storage](../configuration/storage-and-api-configuration/offload-base64binary-to-external-storage.md)** — the `dataOffloadToExternalStorage` parameter of `$create-api` and `$configure-api` moves `base64Binary` payloads such as `Binary.data` or `Patient.photo.data` out of PostgreSQL. On create and update, Aidbox uploads the decoded bytes to the External Object Storage and stores a hash and blob location in their place; on instance read it fetches the blob and returns the data inlined.
     * Performance improvements in [FHIR Bundle](../api/rest-api/bundle.md) processing.
     * Performance improvements in the [`aidbox.bulk/load-from-bucket`](../api/bulk-api/bulk-import-from-an-s3-bucket.md) API.
 
