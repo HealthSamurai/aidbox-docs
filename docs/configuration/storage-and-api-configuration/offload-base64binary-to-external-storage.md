@@ -12,7 +12,7 @@ FHIR resources carry binary payloads in `base64Binary` elements. `Binary.data`, 
 
 Data offload moves the payloads out of the database. On create and update, Aidbox uploads the decoded bytes to external blob storage and stores the resource with a pointer to the blob in place of the data. On read, Aidbox downloads the bytes and returns the resource with the data inlined, so API clients work with the resource as if nothing was offloaded.
 
-Offload is a property of an [API](README.md#apis). You configure it with the `dataOffloadToExternalStorage` parameter of [`$create-api`](README.md#usdcreate-api) or [`$configure-api`](README.md#usdconfigure-api). [Azure Blob Storage](#azure-blob-storage) and [AWS S3](#aws-s3) are the storage providers supported today.
+Offload is a property of an [API](README.md#apis). You configure it with the `dataOffloadToExternalStorage` parameter of [`$create-api`](README.md#usdcreate-api) or [`$configure-api`](README.md#usdconfigure-api). [Azure Blob Storage](#azure-blob-storage), [AWS S3](#aws-s3), and [GCP Cloud Storage](#gcp-cloud-storage) are the storage providers supported today.
 
 ## How it works
 
@@ -68,10 +68,12 @@ Pass the `dataOffloadToExternalStorage` parameter to `$create-api` or `$configur
 | Part                            | Type                        | Required                            | Description                                                                 |
 |---------------------------------|-----------------------------|-------------------------------------|-----------------------------------------------------------------------------|
 | `fhirpathToBase64BinaryElement` | string                      | yes, repeatable                     | Path to a `base64Binary` element to offload. See the expression rules below. |
-| `storageProvider`               | code                        | yes                                 | `azure` or `aws`. See [Storage providers](#storage-providers).               |
+| `storageProvider`               | code                        | yes                                 | `azure`, `aws`, or `gcp`. See [Storage providers](#storage-providers).        |
 | `azureContainer`                | Reference(`AzureContainer`) | when `storageProvider` is `azure`   | Container that receives the blobs.                                           |
 | `awsAccount`                    | Reference(`AwsAccount`)     | when `storageProvider` is `aws`     | Account with the credentials and region for S3 access.                       |
 | `awsBucket`                     | string                      | when `storageProvider` is `aws`     | Bucket that receives the objects.                                            |
+| `gcpServiceAccount`             | Reference(`GcpServiceAccount`) | when `storageProvider` is `gcp`  | Service account with the credentials for Cloud Storage access.               |
+| `gcpBucket`                     | string                      | when `storageProvider` is `gcp`     | Bucket that receives the objects.                                            |
 
 ### Element path expressions
 
@@ -154,6 +156,40 @@ The examples below configure Azure. For AWS, the offload parameter carries `awsA
     { "name": "storageProvider", "valueCode": "aws" },
     { "name": "awsAccount", "valueReference": { "reference": "AwsAccount/my-aws-account" } },
     { "name": "awsBucket", "valueString": "my-bucket" }
+  ]
+}
+```
+
+### GCP Cloud Storage
+
+Set `storageProvider` to `gcp`, reference a [GcpServiceAccount](../../reference/system-resources-reference/core-module-resources.md#gcpserviceaccount) resource in the `gcpServiceAccount` part, and name the bucket in `gcpBucket`. Objects land in that bucket, and the `location` sub-extension records them as `gs://{bucket}/{object-name}`.
+
+Offload uses the same `GcpServiceAccount` resource as the [GCP Cloud Storage](../../file-storage/gcp-cloud-storage.md) file storage integration. Pass `service-account-email` and `private-key` for explicit credentials, or create the resource without them so Aidbox falls back to [Application Default Credentials](https://cloud.google.com/docs/authentication/application-default-credentials), which picks up Workload Identity in GKE and Cloud Run.
+
+```http
+PUT /fhir/GcpServiceAccount/my-gcp-account
+Content-Type: application/json
+
+{
+  "service-account-email": "storage-access@my-project.iam.gserviceaccount.com",
+  "private-key": "-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----\n"
+}
+```
+
+The service account needs read and write access to the objects in the bucket, including multipart uploads. `roles/storage.objectAdmin` on the bucket covers all of them.
+
+With explicit credentials, Aidbox takes the GCP project from `service-account-email`: the part between `@` and the first dot. With Application Default Credentials, the project comes from the runtime environment.
+
+For GCP, the offload parameter carries `gcpServiceAccount` and `gcpBucket` instead of `azureContainer`:
+
+```json
+{
+  "name": "dataOffloadToExternalStorage",
+  "part": [
+    { "name": "fhirpathToBase64BinaryElement", "valueString": "data" },
+    { "name": "storageProvider", "valueCode": "gcp" },
+    { "name": "gcpServiceAccount", "valueReference": { "reference": "GcpServiceAccount/my-gcp-account" } },
+    { "name": "gcpBucket", "valueString": "my-bucket" }
   ]
 }
 ```
@@ -355,3 +391,4 @@ Content-Type: application/json
 * [Binary resource](../../api/rest-api/other/binary.md)
 * [Azure Blob Storage](../../file-storage/azure-blob-storage.md)
 * [AWS S3](../../file-storage/aws-s3.md)
+* [GCP Cloud Storage](../../file-storage/gcp-cloud-storage.md)

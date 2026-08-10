@@ -242,3 +242,11 @@ filename: data.txt
 ```
 
 The URL expires in 30 minutes (1800 seconds).
+
+## See also
+
+Aidbox can also store `base64Binary` element values of FHIR resources in Cloud Storage instead of PostgreSQL:
+
+{% content-ref %}
+[Offload base64Binary data to external storage](../configuration/storage-and-api-configuration/offload-base64binary-to-external-storage.md)
+{% endcontent-ref %}
