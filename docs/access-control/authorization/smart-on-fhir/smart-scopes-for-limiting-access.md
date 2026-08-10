@@ -43,7 +43,7 @@ To enable scope checking in the Access Control layer, the JWT access token must 
 | ----------------- | ----------- | ----------------------------------------------------------- |
 | `atv` \*          | fixed value | <p>Access Token Version<br>Fixed value - <code>2</code></p> |
 | `scope` \*        | valueString | String with scopes separated by space.                      |
-| `context.patient` | valueString | Patient ID.                                                 |
+| `context.patient` | valueString or array | Patient ID. Since 2607 an array of `{"id": ...}` and `{"url": ...}` entries is also accepted, see [Patient context](#patient-context). |
 
 \* - required claim
 
@@ -68,6 +68,39 @@ Parsed valid JWT access token:
   "iat": 1733234648
 }
 ```
+
+### Patient context
+
+`context.patient` holds the patient the token is scoped to. Aidbox uses it to decide which resources belong to the patient compartment when `patient/` scopes are granted.
+
+A plain string is the patient ID:
+
+```json
+"context": {
+  "patient": "pt1"
+}
+```
+
+Since 2607 the claim also accepts an array of references. Each entry is either `{"id": ...}` or `{"url": ...}`, and any number of entries is permitted:
+
+```json
+"context": {
+  "patient": [
+    {"id": "pt1"},
+    {"url": "https://example.com/partner/pluto/Patient/pt1"}
+  ]
+}
+```
+
+Use the `url` form when resources store the patient reference as an absolute URL, for example:
+
+```yaml
+resourceType: Basic
+subject:
+  reference: https://example.com/partner/pluto/Patient/pt1
+```
+
+A resource belongs to the compartment if it matches **any** of the listed entries: an `id` entry matches a relative reference like `Patient/pt1`, a `url` entry matches an absolute reference equal to that URL. URLs are compared as exact strings — the scheme, host, path and trailing slash must match the stored reference.
 
 Denied request based on allowed scopes:
 
