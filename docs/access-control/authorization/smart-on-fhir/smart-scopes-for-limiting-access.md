@@ -87,7 +87,7 @@ Since 2607 the claim also accepts an array of references. Each entry is either `
 "context": {
   "patient": [
     {"id": "pt1"},
-    {"url": "https://example.com/partner/pluto/Patient/pt1"}
+    {"url": "https://example.com/some/path/Patient/pt1"}
   ]
 }
 ```
@@ -97,7 +97,7 @@ Use the `url` form when resources store the patient reference as an absolute URL
 ```yaml
 resourceType: Basic
 subject:
-  reference: https://example.com/partner/pluto/Patient/pt1
+  reference: https://example.com/some/path/Patient/pt1
 ```
 
 A resource belongs to the compartment if it matches **any** of the listed entries: an `id` entry matches a relative reference like `Patient/pt1`, a `url` entry matches an absolute reference equal to that URL. URLs are compared as exact strings — the scheme, host, path and trailing slash must match the stored reference.
