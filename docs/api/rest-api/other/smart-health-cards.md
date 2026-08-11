@@ -318,7 +318,7 @@ The operation returns every error as an `OperationOutcome`.
 
 ## Legacy credential types
 
-Before v1.4.0, SMART Health Cards classified a card by a top-level type URI. The framework deprecated these in favor of classifying a card by its contents, but Aidbox accepts them as `credentialType` values:
+Since the 2608 version, Aidbox also accepts the legacy top-level type URIs as `credentialType` values. Before v1.4.0, SMART Health Cards classified a card by such a URI; the framework has since deprecated them in favor of classifying a card by its contents:
 
 | Value                                    | Meaning                                                                |
 | ---------------------------------------- | ---------------------------------------------------------------------- |
