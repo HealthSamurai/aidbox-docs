@@ -315,3 +315,15 @@ The operation returns every error as an `OperationOutcome`.
 | `400`  | A requested `credentialValueSet` could not be resolved.         |
 | `404`  | No resources match the requested credential type or value sets. |
 | `403`  | An Access Policy denies reading the patient's data.             |
+
+## Legacy credential types
+
+Since the 2608 version, Aidbox also accepts the legacy top-level type URIs as `credentialType` values. Before v1.4.0, SMART Health Cards classified a card by such a URI; the framework has since deprecated them in favor of classifying a card by its contents:
+
+| Value                                    | Meaning                                                                |
+| ---------------------------------------- | ---------------------------------------------------------------------- |
+| `https://smarthealth.cards#covid19`      | COVID-19 `Immunization`s only, filtered to COVID-19 CVX vaccine codes. |
+| `https://smarthealth.cards#immunization` | All `Immunization`s.                                                   |
+| `https://smarthealth.cards#laboratory`   | `Observation`s.                                                        |
+
+Aidbox also stamps these URIs into the card's `vc.type` from its contents: `#immunization` when the card carries immunizations, `#covid19` for COVID-19 immunizations, and `#laboratory` when it carries observations. A card built only from other resource types carries just `#health-card`.
