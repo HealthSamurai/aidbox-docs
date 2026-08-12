@@ -64,12 +64,5 @@ Step-by-step tutorials for specific providers:
 * [Microsoft AD FS](../../tutorials/security-access-control-tutorials/microsoft-ad-fs.md)
 * [GitHub](../../tutorials/security-access-control-tutorials/github.md)
 * [Sign in with Apple](../../tutorials/security-access-control-tutorials/apple.md)
+* [Another Aidbox instance](../../tutorials/security-access-control-tutorials/aidbox.md)
 * [Auto-create a User from a foreign token](../../tutorials/security-access-control-tutorials/keycloak-auto-create-user.md)
-
-{% content-ref url="../../tutorials/security-access-control-tutorials/apple.md" %}
-[apple.md](../../tutorials/security-access-control-tutorials/apple.md)
-{% endcontent-ref %}
-
-{% content-ref url="../../tutorials/security-access-control-tutorials/aidbox.md" %}
-[aidbox.md](../../tutorials/security-access-control-tutorials/aidbox.md)
-{% endcontent-ref %}
