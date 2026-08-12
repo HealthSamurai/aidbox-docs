@@ -10,6 +10,8 @@ The OAuth 2.0 authorization framework enables a third-party application to obtai
 
 More details can be found in the [OAuth 2.0 Authorization Framework RFC](https://tools.ietf.org/html/rfc6749).
 
+FHIR client applications usually reach these flows through [SMART on FHIR](../authorization/smart-on-fhir/README.md), which profiles them for healthcare: it fixes the parameters, adds launch context, and constrains access with [SMART scopes](../authorization/smart-on-fhir/smart-scopes-for-limiting-access.md).
+
 ## Client Credentials Grant
 
 ```mermaid fullWidth="true"
@@ -30,6 +32,8 @@ sequenceDiagram
 This flow is for trusted apps that need to access their resources on a server, not a user’s. The app uses its ID and secret (like a username and password for the app) to ask the authorization server for an access token. Once it gets the token, the app can use it to access the resources. It’s like the app saying, _“It’s me, let me in!”_ No user is involved here — just the app proving who it is.
 
 Use this flow with **Backend/Server applications** that are capable of securely storing secrets.
+
+[SMART Backend Services](../authorization/smart-on-fhir/smart-client-authorization/smart-backend-services.md) is this grant profiled for FHIR: the client proves its identity with a signed JWT assertion (`client_assertion`) instead of a client secret.
 
 {% content-ref url="../../tutorials/security-access-control-tutorials/client-credentials-grant.md" %}
 [client-credentials-grant.md](../../tutorials/security-access-control-tutorials/client-credentials-grant.md)
@@ -61,6 +65,8 @@ sequenceDiagram
 The Authorization Code grant is used by **server-side applications** that are capable of securely storing secrets or by **native** applications. This is a two-step process. First, the user is redirected to the authorization server, logs in, and grants access to the app. The server gives the app a special code. Then, the app trades this code (plus its own ID and secret) for an access token. It’s safer because the token stays hidden from the user’s browser. Think of it as the user saying, _“I trust this app—give it a code,”_ and the app swaps it for the key.
 
 Since this is a redirection-based flow, the client must be capable of interacting with the resource owner's user-agent (typically a web browser) and capable of receiving incoming requests (via redirection) from the authorization server.
+
+[SMART App Launch](../authorization/smart-on-fhir/smart-client-authorization/smart-app-launch.md) is this grant profiled for FHIR: it adds PKCE, an `aud` parameter pointing at the FHIR endpoint, a `launch` parameter carrying the EHR context, and SMART scopes.
 
 {% content-ref url="../../tutorials/security-access-control-tutorials/authorization-code-grant.md" %}
 [authorization-code-grant.md](../../tutorials/security-access-control-tutorials/authorization-code-grant.md)
