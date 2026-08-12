@@ -27,7 +27,7 @@ What a token may do, down to search parameters and a single patient.
 ## Examples
 
 {% cards %}
-{% card icon="rocket" title="Aidbox and Keycloak" href="example-smart-app-launch-using-aidbox-and-keycloak.md" %}
+{% card icon="assets/brand-icons/keycloak.svg" title="Aidbox and Keycloak" href="example-smart-app-launch-using-aidbox-and-keycloak.md" %}
 EHR and standalone launch with a demo launcher.
 {% endcard %}
 {% card icon="box" title="Smartbox and Keycloak" href="example-smart-app-launch-using-smartbox-and-keycloak.md" %}
