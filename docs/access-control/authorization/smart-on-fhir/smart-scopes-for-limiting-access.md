@@ -19,41 +19,6 @@ And [version 2](https://build.fhir.org/ig/HL7/smart-app-launch/scopes-and-launch
 
 If a requested operation is not permitted by the scopes, Aidbox will deny access. If access is granted, Aidbox will retrieve and return only the data allowed by the specified scopes and context.
 
-## Scopes with search parameters
-
-{% hint style="info" %}
-This functionality is available starting from version 2509.
-{% endhint %}
-
-SMART on FHIR v2 supports [finer-grained access control](https://build.fhir.org/ig/HL7/smart-app-launch/scopes-and-launch-context.html#finer-grained-resource-constraints-using-search-parameters) by allowing FHIR search parameters to be embedded in scopes. In Aidbox, you can append a query string to a scope to restrict what a client can read/search.
-
-### Example
-
-`patient/Observation.rs?status=final` - Grants read & search access only to `Observation` resources whose `status` is `final`. Any request such as `GET /fhir/Observation` (or other Observation searches) will be automatically filtered to include only `status=final` results.
-
-You can combine as many search parameters and scopes as you want using FHIR search syntax, except for complex search parameters like `_include`, `_revinclude`, `_has`, `_assoc`, `_with`.
-
-### Write permissions
-
-{% hint style="info" %}
-Search parameters in scopes with `create/update/delete` permissions are supported starting from version 2608. Earlier versions reject such scopes.
-{% endhint %}
-
-Search parameters constrain every interaction listed in the scope, not only read and search. For example, `patient/Basic.cruds?code=http://example.org|app-state` means:
-
-* **create** — the submitted resource must match the search parameters, otherwise the request is denied with `403`.
-* **update** — both the stored resource and the submitted one must match. A client can neither take over a resource that lies outside the scope, nor move a resource out of it.
-* **delete** — only resources matching the search parameters can be deleted.
-* **read**, **search** — results are filtered as described above.
-
-Search parameters are still not allowed in:
-
-* `system/` level scopes;
-* scopes with a wildcard resource type, such as `user/*.cruds?status=final`;
-* scopes with SMART v1 permissions — `read`, `write`, `*`.
-
-A scope that violates these rules makes Aidbox reject the whole token.
-
 ## Access Token
 
 To enable scope checking in the Access Control layer, the JWT access token must contain the following claims:
@@ -68,7 +33,7 @@ To enable scope checking in the Access Control layer, the JWT access token must 
 
 For scope checking, Aidbox accepts any valid JWT tokens issued by [external servers](../../../tutorials/security-access-control-tutorials/set-up-token-introspection.md) if they contain the specified scopes and Aidbox can issue its own JWT tokens with all the required claims.
 
-### Example
+### Example: parsed access token
 
 Parsed valid JWT access token:
 
@@ -88,7 +53,7 @@ Parsed valid JWT access token:
 }
 ```
 
-### Patient context
+## Patient context
 
 `context.patient` holds the patient the token is scoped to. Aidbox uses it to decide which resources belong to the patient compartment when `patient/` scopes are granted.
 
@@ -120,6 +85,10 @@ subject:
 ```
 
 A resource belongs to the compartment if it matches **any** of the listed entries: an `id` entry matches a relative reference like `Patient/pt1`, a `url` entry matches an absolute reference equal to that URL. URLs are compared as exact strings — the scheme, host, path and trailing slash must match the stored reference.
+
+## Scope enforcement
+
+A request is denied when no granted scope covers the requested resource type and interaction.
 
 Denied request based on allowed scopes:
 
@@ -197,11 +166,48 @@ Authorization: "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdHYiOjIsImF1ZCI6
 {% endtab %}
 {% endtabs %}
 
-## Bundle
+## Scopes with search parameters
+
+{% hint style="info" %}
+This functionality is available starting from version 2509.
+{% endhint %}
+
+SMART on FHIR v2 supports [finer-grained access control](https://build.fhir.org/ig/HL7/smart-app-launch/scopes-and-launch-context.html#finer-grained-resource-constraints-using-search-parameters) by allowing FHIR search parameters to be embedded in scopes. In Aidbox, you can append a query string to a scope to restrict what a client can read/search.
+
+### Example: filtering reads
+
+`patient/Observation.rs?status=final` - Grants read & search access only to `Observation` resources whose `status` is `final`. Any request such as `GET /fhir/Observation` (or other Observation searches) will be automatically filtered to include only `status=final` results.
+
+You can combine as many search parameters and scopes as you want using FHIR search syntax, except for complex search parameters like `_include`, `_revinclude`, `_has`, `_assoc`, `_with`.
+
+### Write permissions
+
+{% hint style="info" %}
+Search parameters in scopes with `create/update/delete` permissions are supported starting from version 2608. Earlier versions reject such scopes.
+{% endhint %}
+
+Search parameters constrain every interaction listed in the scope, not only read and search. For example, `patient/Basic.cruds?code=http://example.org|app-state` means:
+
+* **create** — the submitted resource must match the search parameters, otherwise the request is denied with `403`.
+* **update** — both the stored resource and the submitted one must match. A client can neither take over a resource that lies outside the scope, nor move a resource out of it.
+* **delete** — only resources matching the search parameters can be deleted.
+* **read**, **search** — results are filtered as described above.
+
+### Limitations
+
+Search parameters are not allowed in:
+
+* `system/` level scopes;
+* scopes with a wildcard resource type, such as `user/*.cruds?status=final`;
+* scopes with SMART v1 permissions — `read`, `write`, `*`.
+
+A scope that violates these rules makes Aidbox reject the whole token.
+
+## Scopes in transaction bundles
 
 SMART does not define specific scopes for [batch or transaction](https://hl7.org/fhir/smart-app-launch/scopes-and-launch-context.html#batches-and-transactions) interactions. Aidbox allows Bundle requests regardless of scopes and applies Access Control restrictions to each element within `Bundle.entry`. This means that while the Bundle as a whole is accepted, Aidbox enforces scope Access Control restrictions on each entry in the Bundle.
 
-### Example
+### Example: entry-level enforcement
 
 {% tabs %}
 {% tab title="Request" %}
@@ -293,7 +299,7 @@ Authorization: "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdHYiOjIsImF1ZCI6
 {% endtab %}
 {% endtabs %}
 
-## Patient data access API
+## Patient-level access with SMART scopes
 
 Patient-level access control in Aidbox enables restricting data access to resources associated with a specific patient. When users interact with the FHIR API, they can access only the resources that belong to that patient.
 
@@ -305,7 +311,13 @@ To achieve this behavior, the request must include:
 
 Aidbox will limit access and filter retrieved data based on [FHIR Patient CompartmentDefinition](https://hl7.org/fhir/r4/compartmentdefinition-patient.html).
 
-### Example
+Aidbox also restricts access to a single patient without SMART scopes, using a session bound to a patient or the `X-Patient-id` header. That mechanism is described on a separate page:
+
+{% content-ref url="../scoped-api/patient-data-access-api.md" %}
+[patient-data-access-api.md](../scoped-api/patient-data-access-api.md)
+{% endcontent-ref %}
+
+### Example: filtered search
 
 {% tabs %}
 {% tab title="Request" %}
