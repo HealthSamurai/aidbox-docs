@@ -13,7 +13,7 @@ Aidbox fully supports [version 1 ](https://www.hl7.org/fhir/smart-app-launch/1.0
 
 <figure><img src="../../../../assets/smart-scopes-v1.avif" alt="SMART scopes version 1 syntax showing scope patterns for user, patient, and system contexts"><figcaption><p>SMART scopes V1</p></figcaption></figure>
 
-And [version 2](https://build.fhir.org/ig/HL7/smart-app-launch/scopes-and-launch-context.html) of SMART on FHIR scopes with partial support of [search parameters](smart-scopes-for-limiting-access.md#scopes-with-search-parameters) in scopes:
+And [version 2](https://build.fhir.org/ig/HL7/smart-app-launch/scopes-and-launch-context.html) of SMART on FHIR scopes, including [search parameters](smart-scopes-for-limiting-access.md#scopes-with-search-parameters) in scopes on every interaction — see [limitations](smart-scopes-for-limiting-access.md#limitations):
 
 <figure><img src="../../../../assets/scope_v2.avif" alt="SMART scopes version 2 syntax showing enhanced scope patterns with granular permissions"><figcaption></figcaption></figure>
 
