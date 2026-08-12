@@ -21,15 +21,23 @@ If a requested operation is not permitted by the scopes, Aidbox will deny access
 
 ## Access Token
 
-To enable scope checking in the Access Control layer, the JWT access token must contain the following claims:
+For Aidbox to enforce scopes, the JWT access token must contain the following claims:
 
 | Claim name        | Value type  | Description                                                 |
 | ----------------- | ----------- | ----------------------------------------------------------- |
-| `atv` \*          | valueInteger | <p>Access Token Version.<br>Must be the number <code>2</code>.</p> |
+| `atv` \*          | valueInteger | Access Token Version. Aidbox enforces the `scope` claim only when this is `2`. |
 | `scope` \*        | valueString | String with scopes separated by space.                      |
 | `context.patient` | valueString or array | Patient ID. Since 2607 an array of `{"id": ...}` and `{"url": ...}` entries is also accepted, see [Patient context](#patient-context). |
 
 \* - required claim
+
+`atv` is the version of the Aidbox access token, not the version of the SMART scope syntax. Both v1 scopes (`patient/Observation.read`) and v2 scopes (`patient/Observation.rs`) are enforced when `atv` is `2`.
+
+{% hint style="warning" %}
+If `atv` is missing or holds any other value, Aidbox never reads the `scope` claim. The token is still accepted, but the request is decided by [Access Policies](../access-policies.md) alone and the scopes restrict nothing.
+
+Aidbox adds `atv` and `scope` to the tokens it issues for a Client of `type: smart-app`. An identity provider that issues tokens itself must add the `atv` claim on its own.
+{% endhint %}
 
 For scope checking, Aidbox accepts any valid JWT tokens issued by [external servers](../../../tutorials/security-access-control-tutorials/set-up-token-introspection.md) if they contain the specified scopes and Aidbox can issue its own JWT tokens with all the required claims.
 
