@@ -1,10 +1,10 @@
 ---
-description: This tutorial explains how to run Aidbox with FHIR 6.0.0-ballot3.
+description: This tutorial explains how to run Aidbox with FHIR 6.0.0-ballot5.
 ---
 
 # Run Aidbox with FHIR R6
 
-FHIR 6.0.0-ballot3 was published on **April 3, 2025**, introducing new resources, complex data types, and updated profiles.
+FHIR 6.0.0-ballot5 was published on **July 17, 2026**, introducing new resources, complex data types, and updated profiles.
 
 ## Run in Sandbox
 
@@ -15,7 +15,7 @@ FHIR 6.0.0-ballot3 was published on **April 3, 2025**, introducing new resources
 5. Set hosting type to "Sandbox"
 6. Choose "Edge" as the Aidbox version
 7. Enter Instance URL.
-8. Set FHIR Version to "6.0.0-ballot3"
+8. Set FHIR Version to "6.0.0-ballot5"
 
 ## Run locally
 
@@ -45,6 +45,6 @@ docker compose up
 
 ## Explore canonicals
 
-Open the **FAR** ([FHIR Artifact Registry](../../artifact-registry/artifact-registry-overview.md)) section in the Aidbox UI sidebar and select the `hl7.fhir.r6.core#6.0.0-ballot3` package. Its tabs list all imported canonical resources: Profiles, Operations, Extensions, FHIRSchemas, SearchParameters, ValueSets, and CodeSystems.
+Open the **FHIR packages** section in the Aidbox UI sidebar and find the `hl7.fhir.r6.core 6.0.0-ballot5` package. Select it to see the canonical resources it loaded into the [FHIR Artifact Registry](../../artifact-registry/artifact-registry-overview.md): Profiles, Operations, Extensions, FHIRSchemas, SearchParameters, ValueSets, and CodeSystems.
 
-<figure><img src="../../../assets/far-r6-core-package.avif" alt="FAR section of the Aidbox UI showing the hl7.fhir.r6.core package"><figcaption></figcaption></figure>
+<figure><img src="../../../assets/fhir-packages-r6-core.avif" alt="FHIR packages section of the Aidbox UI showing the hl7.fhir.r6.core package"><figcaption></figcaption></figure>
