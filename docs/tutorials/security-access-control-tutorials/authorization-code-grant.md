@@ -122,7 +122,7 @@ If users are not logged in, they will see the default login screen. You can pre-
 GET /auth/authorize?response_type=code&client_id=webapp&redirect_uri=http://myapp.app&login_hint=user@example.com
 ```
 
-The field remains editable — the user can change the value before submitting. This is useful in multi-customer setups or when the application already knows the user's email (e.g., from a previous session or an invitation link).
+The field remains editable: the user can change the value before submitting. This is useful in multi-customer setups or when the application already knows the user's email (e.g., from a previous session or an invitation link).
 
 If a client is not **first\_party** or the user has not yet granted permissions to the client, the user will see the grant page:
 

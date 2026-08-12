@@ -11,7 +11,7 @@ Test FHIR Schema Validator on public [demo page](https://fhir-validator.aidbox.a
 {% hint style="success" %}
 **Nothing to enable since 2606.** In the [2606 release](../../../overview/release-notes.md#june-2026-stable-2606) FHIR Schema became the only validation engine: the `BOX_FHIR_SCHEMA_VALIDATION` setting was removed and has no effect, and validation can no longer be turned off.
 
-In 2605 and earlier the engine is opt-in and off by default — there you do need `BOX_FHIR_SCHEMA_VALIDATION=true`.
+In 2605 and earlier the engine is opt-in and off by default, so there you do need `BOX_FHIR_SCHEMA_VALIDATION=true`.
 {% endhint %}
 
 This new validation engine is set to replace the existing [Zen Schema Validator](../../../reference/all-settings.md) and JSON Schema validators.\
