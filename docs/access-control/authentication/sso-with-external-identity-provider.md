@@ -20,7 +20,7 @@ Aidbox can connect to external identity providers (IdPs) like Google, Auth0, Okt
 
 Aidbox uses a custom `IdentityProvider` resource to configure and manage connections to external identity systems. This resource provides a unified way to integrate with various identity protocols.
 
-#### Aidbox IdentityProvider Resource
+### Aidbox IdentityProvider Resource
 
 The `IdentityProvider` resource allows Aidbox to connect with external authentication systems by configuring:
 
