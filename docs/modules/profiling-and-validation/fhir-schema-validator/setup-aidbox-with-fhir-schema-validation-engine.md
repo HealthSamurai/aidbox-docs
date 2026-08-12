@@ -14,6 +14,10 @@ To configure Aidbox to use FHIR Schema Validation Engine you need to:
 
 #### Enable the FHIR Schema Validation Engine
 
+{% hint style="info" %}
+Needed in 2605 and earlier only. Since 2606 this setting is removed and has no effect — FHIR Schema validation is always on.
+{% endhint %}
+
 To enable the FHIR Schema Validator engine, set the following environment variable:
 
 ```

@@ -8,6 +8,12 @@ description: FHIR resource validation and profiling with FHIR Schema Validator i
 Test FHIR Schema Validator on public [demo page](https://fhir-validator.aidbox.app).
 {% endhint %}
 
+{% hint style="success" %}
+**Nothing to enable since 2606.** In the [2606 release](../../../overview/release-notes.md#june-2026-stable-2606) FHIR Schema became the only validation engine: the `BOX_FHIR_SCHEMA_VALIDATION` setting was removed and has no effect, and validation can no longer be turned off.
+
+In 2605 and earlier the engine is opt-in and off by default — there you do need `BOX_FHIR_SCHEMA_VALIDATION=true`.
+{% endhint %}
+
 This new validation engine is set to replace the existing [Zen Schema Validator](../../../reference/all-settings.md) and JSON Schema validators.\
 \
 The primary objectives for this new validator are _enhanced performance_, _easy configuration_, and _straightforward interaction_. Internally, the new validator utilizes the [FHIR Schema](https://github.com/fhir-schema/fhir-schema) for the validation process. We believe that it has the potential to become a [community](https://chat.fhir.org/#narrow/stream/391879-FHIR-Schema/topic/early.20draft) standard, and we are actively working towards this goal.\
