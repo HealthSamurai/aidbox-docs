@@ -33,7 +33,26 @@ SMART on FHIR v2 supports [finer-grained access control](https://build.fhir.org/
 
 You can combine as many search parameters and scopes as you want using FHIR search syntax, except for complex search parameters like `_include`, `_revinclude`, `_has`, `_assoc`, `_with`.
 
-Also, Aidbox **forbids** using search parameters in scopes with `create/update/delete` (cud) permissions.
+### Write permissions
+
+{% hint style="info" %}
+Search parameters in scopes with `create/update/delete` permissions are supported starting from version 2608. Earlier versions reject such scopes.
+{% endhint %}
+
+Search parameters constrain every interaction listed in the scope, not only read and search. For example, `patient/Basic.cruds?code=http://example.org|app-state` means:
+
+* **create** — the submitted resource must match the search parameters, otherwise the request is denied with `403`.
+* **update** — both the stored resource and the submitted one must match. A client can neither take over a resource that lies outside the scope, nor move a resource out of it.
+* **delete** — only resources matching the search parameters can be deleted.
+* **read**, **search** — results are filtered as described above.
+
+Search parameters are still not allowed in:
+
+* `system/` level scopes;
+* scopes with a wildcard resource type, such as `user/*.cruds?status=final`;
+* scopes with SMART v1 permissions — `read`, `write`, `*`.
+
+A scope that violates these rules makes Aidbox reject the whole token.
 
 ## Access Token
 
