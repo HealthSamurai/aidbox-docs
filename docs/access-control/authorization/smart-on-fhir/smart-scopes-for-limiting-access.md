@@ -11,9 +11,9 @@ The [FHIR Schema Validator Engine](../../../modules/profiling-and-validation/fhi
 
 Aidbox fully supports [version 1 ](https://www.hl7.org/fhir/smart-app-launch/1.0.0/scopes-and-launch-context/index.html)of SMART on FHIR scopes:
 
-<figure><img src="../../../../assets/smart-scopes-v1.avif" alt="SMART scopes version 1 syntax showing scope patterns for user, patient, and system contexts"><figcaption><p>SMART scopes V1</p></figcaption></figure>
+<figure><img src="../../../../assets/smart-scopes-v1.avif" alt="SMART scopes version 1 syntax showing scope patterns for user, patient, and system contexts"><figcaption></figcaption></figure>
 
-And [version 2](https://build.fhir.org/ig/HL7/smart-app-launch/scopes-and-launch-context.html) of SMART on FHIR scopes, including [search parameters](smart-scopes-for-limiting-access.md#scopes-with-search-parameters) in scopes on every interaction — see [limitations](smart-scopes-for-limiting-access.md#limitations):
+And [version 2](https://build.fhir.org/ig/HL7/smart-app-launch/scopes-and-launch-context.html) of SMART on FHIR scopes, including [search parameters](smart-scopes-for-limiting-access.md#scopes-with-search-parameters) in scopes:
 
 <figure><img src="../../../../assets/scope_v2.avif" alt="SMART scopes version 2 syntax showing enhanced scope patterns with granular permissions"><figcaption></figcaption></figure>
 
@@ -85,6 +85,16 @@ subject:
 ```
 
 A resource belongs to the compartment if it matches **any** of the listed entries: an `id` entry matches a relative reference like `Patient/pt1`, a `url` entry matches an absolute reference equal to that URL. URLs are compared as exact strings — the scheme, host, path and trailing slash must match the stored reference.
+
+## Scopes and Access Policies
+
+Scopes do not replace [Access Policies](../access-policies.md). A request must pass both checks, in this order:
+
+1. **Scope check.** If the granted scopes do not cover the requested resource type and interaction, the request is denied with `403`.
+2. **Access Policy check.** Policies are evaluated as usual, and access is denied by default. If no policy grants the request, it is denied with `403` — scopes alone never grant access.
+3. **Data filtering.** For a granted request, the patient compartment and the scope search parameters are applied to the query, so only the allowed data is read or written.
+
+A common mistake is to issue a token with the right scopes and expect it to work on its own. Without an Access Policy that matches the request, every call returns `403`.
 
 ## Scope enforcement
 
