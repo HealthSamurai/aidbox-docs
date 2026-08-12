@@ -54,29 +54,17 @@ IdentityProvider fields `client.secret`, `client.private-key`, and `client.certi
 
 ## See Also
 
-{% content-ref url="../../tutorials/security-access-control-tutorials/managing-admin-access-to-the-aidbox-ui-using-okta-groups.md" %}
-[managing-admin-access-to-the-aidbox-ui-using-okta-groups.md](../../tutorials/security-access-control-tutorials/managing-admin-access-to-the-aidbox-ui-using-okta-groups.md)
-{% endcontent-ref %}
+Step-by-step tutorials for specific providers:
 
-{% content-ref url="../../tutorials/security-access-control-tutorials/keycloak.md" %}
-[keycloak.md](../../tutorials/security-access-control-tutorials/keycloak.md)
-{% endcontent-ref %}
-
-{% content-ref url="../../tutorials/security-access-control-tutorials/github.md" %}
-[github.md](../../tutorials/security-access-control-tutorials/github.md)
-{% endcontent-ref %}
-
-{% content-ref url="../../tutorials/security-access-control-tutorials/azure-ad.md" %}
-[azure-ad.md](../../tutorials/security-access-control-tutorials/azure-ad.md)
-{% endcontent-ref %}
-
-{% content-ref url="../../tutorials/security-access-control-tutorials/azure-ad-with-certificate-authentication.md" %}
-[azure-ad-with-certificate-authentication.md](../../tutorials/security-access-control-tutorials/azure-ad-with-certificate-authentication.md)
-{% endcontent-ref %}
-
-{% content-ref url="../../tutorials/security-access-control-tutorials/microsoft-ad-fs.md" %}
-[microsoft-ad-fs.md](../../tutorials/security-access-control-tutorials/microsoft-ad-fs.md)
-{% endcontent-ref %}
+* [Okta](../../tutorials/security-access-control-tutorials/okta.md)
+* [Okta groups for Aidbox UI admin access](../../tutorials/security-access-control-tutorials/managing-admin-access-to-the-aidbox-ui-using-okta-groups.md)
+* [Keycloak](../../tutorials/security-access-control-tutorials/keycloak.md)
+* [Azure AD](../../tutorials/security-access-control-tutorials/azure-ad.md)
+* [Azure AD with certificate authentication](../../tutorials/security-access-control-tutorials/azure-ad-with-certificate-authentication.md)
+* [Microsoft AD FS](../../tutorials/security-access-control-tutorials/microsoft-ad-fs.md)
+* [GitHub](../../tutorials/security-access-control-tutorials/github.md)
+* [Sign in with Apple](../../tutorials/security-access-control-tutorials/apple.md)
+* [Auto-create a User from a foreign token](../../tutorials/security-access-control-tutorials/keycloak-auto-create-user.md)
 
 {% content-ref url="../../tutorials/security-access-control-tutorials/apple.md" %}
 [apple.md](../../tutorials/security-access-control-tutorials/apple.md)
