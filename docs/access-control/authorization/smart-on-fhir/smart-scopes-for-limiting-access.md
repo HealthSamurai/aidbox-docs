@@ -25,7 +25,7 @@ To enable scope checking in the Access Control layer, the JWT access token must 
 
 | Claim name        | Value type  | Description                                                 |
 | ----------------- | ----------- | ----------------------------------------------------------- |
-| `atv` \*          | fixed value | <p>Access Token Version<br>Fixed value - <code>2</code></p> |
+| `atv` \*          | integer     | <p>Access Token Version.<br>Must be the number <code>2</code>.</p> |
 | `scope` \*        | valueString | String with scopes separated by space.                      |
 | `context.patient` | valueString or array | Patient ID. Since 2607 an array of `{"id": ...}` and `{"url": ...}` entries is also accepted, see [Patient context](#patient-context). |
 
@@ -109,7 +109,7 @@ GET /fhir/Appointment/my-appointment
 content-type: application/json
 accept: application/json
 // Token with "patient/Patient.read patient/Observation.read" scopes
-Authorization: "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdHYiOjIsImF1ZCI6Imh0dHBzOi8vZzEwdGVzdC5lZGdlLmFpZGJveC5hcHAvZmhpciIsInN1YiI6IjNkMGVmYjgwLTkwMTktNDdhMS1iMzYxLWUwNDUzOGQ4NzFmZSIsImlzcyI6Imh0dHBzOi8vYXV0aC5leGFtcGxlLmNvbSIsImV4cCI6MTczMzIzNDk0ODQsInNjb3BlIjoibGF1bmNoL3BhdGllbnQgb3BlbmlkIGZoaXJVc2VyIG9mZmxpbmVfYWNjZXNzIHBhdGllbnQvUGF0aWVudC5yZWFkIHBhdGllbnQvT2JzZXJ2YXRpb24ucmVhZCIsImp0aSI6IjUzZWQ1MTZhLTNjODEtNGRjZC05NTUxLTdlOTUzYTkzZmMwZSIsImNvbnRleHQiOnsicGF0aWVudCI6InRlc3QtcHQtMSJ9LCJpYXQiOjE3MzMyMzQ2NDh9.PsYalqkaN-6V0tBqLn_9pkDrR0cLmEg237W8xz5Ymdo"
+Authorization: "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdHYiOjIsImF1ZCI6Imh0dHBzOi8vZXhhbXBsZS5lZGdlLmFpZGJveC5hcHAvZmhpciIsInN1YiI6IjNkMGVmYjgwLTkwMTktNDdhMS1iMzYxLWUwNDUzOGQ4NzFmZSIsImlzcyI6Imh0dHBzOi8vYXV0aC5leGFtcGxlLmNvbSIsImV4cCI6MTczMzIzODI0OCwic2NvcGUiOiJsYXVuY2gvcGF0aWVudCBvcGVuaWQgZmhpclVzZXIgb2ZmbGluZV9hY2Nlc3MgcGF0aWVudC9QYXRpZW50LnJlYWQgcGF0aWVudC9PYnNlcnZhdGlvbi5yZWFkIiwianRpIjoiNTNlZDUxNmEtM2M4MS00ZGNkLTk1NTEtN2U5NTNhOTNmYzBlIiwiY29udGV4dCI6eyJwYXRpZW50IjoidGVzdC1wdC0xIn0sImlhdCI6MTczMzIzNDY0OH0.O0iNxkutQxAPgGmDSmNikVXlr8Tl9w9_FJdcINI7Cbw"
 ```
 {% endtab %}
 
@@ -144,7 +144,7 @@ GET /fhir/Patient/test-pt-1
 content-type: application/json
 accept: application/json
 // Token with "patient/Patient.read patient/Observation.read" scopes
-Authorization: "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdHYiOjIsImF1ZCI6Imh0dHBzOi8vZzEwdGVzdC5lZGdlLmFpZGJveC5hcHAvZmhpciIsInN1YiI6IjNkMGVmYjgwLTkwMTktNDdhMS1iMzYxLWUwNDUzOGQ4NzFmZSIsImlzcyI6Imh0dHBzOi8vYXV0aC5leGFtcGxlLmNvbSIsImV4cCI6MTczMzIzNDk0ODQsInNjb3BlIjoibGF1bmNoL3BhdGllbnQgb3BlbmlkIGZoaXJVc2VyIG9mZmxpbmVfYWNjZXNzIHBhdGllbnQvUGF0aWVudC5yZWFkIHBhdGllbnQvT2JzZXJ2YXRpb24ucmVhZCIsImp0aSI6IjUzZWQ1MTZhLTNjODEtNGRjZC05NTUxLTdlOTUzYTkzZmMwZSIsImNvbnRleHQiOnsicGF0aWVudCI6InRlc3QtcHQtMSJ9LCJpYXQiOjE3MzMyMzQ2NDh9.PsYalqkaN-6V0tBqLn_9pkDrR0cLmEg237W8xz5Ymdo"
+Authorization: "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdHYiOjIsImF1ZCI6Imh0dHBzOi8vZXhhbXBsZS5lZGdlLmFpZGJveC5hcHAvZmhpciIsInN1YiI6IjNkMGVmYjgwLTkwMTktNDdhMS1iMzYxLWUwNDUzOGQ4NzFmZSIsImlzcyI6Imh0dHBzOi8vYXV0aC5leGFtcGxlLmNvbSIsImV4cCI6MTczMzIzODI0OCwic2NvcGUiOiJsYXVuY2gvcGF0aWVudCBvcGVuaWQgZmhpclVzZXIgb2ZmbGluZV9hY2Nlc3MgcGF0aWVudC9QYXRpZW50LnJlYWQgcGF0aWVudC9PYnNlcnZhdGlvbi5yZWFkIiwianRpIjoiNTNlZDUxNmEtM2M4MS00ZGNkLTk1NTEtN2U5NTNhOTNmYzBlIiwiY29udGV4dCI6eyJwYXRpZW50IjoidGVzdC1wdC0xIn0sImlhdCI6MTczMzIzNDY0OH0.O0iNxkutQxAPgGmDSmNikVXlr8Tl9w9_FJdcINI7Cbw"
 ```
 {% endtab %}
 
@@ -226,7 +226,7 @@ POST /fhir
 content-type: application/json
 accept: application/json
 // Token with "patient/Patient.read patient/Observation.read" scopes
-Authorization: "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdHYiOjIsImF1ZCI6Imh0dHBzOi8vZzEwdGVzdC5lZGdlLmFpZGJveC5hcHAvZmhpciIsInN1YiI6IjNkMGVmYjgwLTkwMTktNDdhMS1iMzYxLWUwNDUzOGQ4NzFmZSIsImlzcyI6Imh0dHBzOi8vYXV0aC5leGFtcGxlLmNvbSIsImV4cCI6MTczMzIzNDk0ODQsInNjb3BlIjoibGF1bmNoL3BhdGllbnQgb3BlbmlkIGZoaXJVc2VyIG9mZmxpbmVfYWNjZXNzIHBhdGllbnQvUGF0aWVudC5yZWFkIHBhdGllbnQvT2JzZXJ2YXRpb24ucmVhZCIsImp0aSI6IjUzZWQ1MTZhLTNjODEtNGRjZC05NTUxLTdlOTUzYTkzZmMwZSIsImNvbnRleHQiOnsicGF0aWVudCI6InRlc3QtcHQtMSJ9LCJpYXQiOjE3MzMyMzQ2NDh9.PsYalqkaN-6V0tBqLn_9pkDrR0cLmEg237W8xz5Ymdo"
+Authorization: "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdHYiOjIsImF1ZCI6Imh0dHBzOi8vZXhhbXBsZS5lZGdlLmFpZGJveC5hcHAvZmhpciIsInN1YiI6IjNkMGVmYjgwLTkwMTktNDdhMS1iMzYxLWUwNDUzOGQ4NzFmZSIsImlzcyI6Imh0dHBzOi8vYXV0aC5leGFtcGxlLmNvbSIsImV4cCI6MTczMzIzODI0OCwic2NvcGUiOiJsYXVuY2gvcGF0aWVudCBvcGVuaWQgZmhpclVzZXIgb2ZmbGluZV9hY2Nlc3MgcGF0aWVudC9QYXRpZW50LnJlYWQgcGF0aWVudC9PYnNlcnZhdGlvbi5yZWFkIiwianRpIjoiNTNlZDUxNmEtM2M4MS00ZGNkLTk1NTEtN2U5NTNhOTNmYzBlIiwiY29udGV4dCI6eyJwYXRpZW50IjoidGVzdC1wdC0xIn0sImlhdCI6MTczMzIzNDY0OH0.O0iNxkutQxAPgGmDSmNikVXlr8Tl9w9_FJdcINI7Cbw"
 
 {
   "resourceType": "Bundle",
@@ -330,6 +330,24 @@ Aidbox also restricts access to a single patient without SMART scopes, using a s
 ### Example: filtered search
 
 {% tabs %}
+{% tab title="Token payload" %}
+```json
+{
+  "atv": 2,
+  "aud": "https://example.edge.aidbox.app/fhir",
+  "sub": "3d0efb80-9019-47a1-b361-e04538d871fe",
+  "iss": "https://auth.example.com",
+  "exp": 1733238248,
+  "scope": "launch/patient openid fhirUser offline_access patient/Patient.read patient/Observation.read",
+  "jti": "53ed516a-3c81-4dcd-9551-7e953a93fc0e",
+  "context": {
+    "patient": "test-pt-1"
+  },
+  "iat": 1733234648
+}
+```
+{% endtab %}
+
 {% tab title="Request" %}
 ```json
 // Search over all Observations
@@ -337,7 +355,7 @@ GET /fhir/Observation
 content-type: application/json
 accept: application/json
 // Token with "patient/Observation.read" scope and "context.patient" = "test-pt-1"
-Authorization: "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdHYiOjIsImF1ZCI6Imh0dHBzOi8vZzEwdGVzdC5lZGdlLmFpZGJveC5hcHAvZmhpciIsInN1YiI6IjNkMGVmYjgwLTkwMTktNDdhMS1iMzYxLWUwNDUzOGQ4NzFmZSIsImlzcyI6Imh0dHBzOi8vYXV0aC5leGFtcGxlLmNvbSIsImV4cCI6MTczMzIzNDk0ODQsInNjb3BlIjoibGF1bmNoL3BhdGllbnQgb3BlbmlkIGZoaXJVc2VyIG9mZmxpbmVfYWNjZXNzIHBhdGllbnQvUGF0aWVudC5yZWFkIHBhdGllbnQvT2JzZXJ2YXRpb24ucmVhZCIsImp0aSI6IjUzZWQ1MTZhLTNjODEtNGRjZC05NTUxLTdlOTUzYTkzZmMwZSIsImNvbnRleHQiOnsicGF0aWVudCI6InRlc3QtcHQtMSJ9LCJpYXQiOjE3MzMyMzQ2NDh9.PsYalqkaN-6V0tBqLn_9pkDrR0cLmEg237W8xz5Ymdo"
+Authorization: "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdHYiOjIsImF1ZCI6Imh0dHBzOi8vZXhhbXBsZS5lZGdlLmFpZGJveC5hcHAvZmhpciIsInN1YiI6IjNkMGVmYjgwLTkwMTktNDdhMS1iMzYxLWUwNDUzOGQ4NzFmZSIsImlzcyI6Imh0dHBzOi8vYXV0aC5leGFtcGxlLmNvbSIsImV4cCI6MTczMzIzODI0OCwic2NvcGUiOiJsYXVuY2gvcGF0aWVudCBvcGVuaWQgZmhpclVzZXIgb2ZmbGluZV9hY2Nlc3MgcGF0aWVudC9QYXRpZW50LnJlYWQgcGF0aWVudC9PYnNlcnZhdGlvbi5yZWFkIiwianRpIjoiNTNlZDUxNmEtM2M4MS00ZGNkLTk1NTEtN2U5NTNhOTNmYzBlIiwiY29udGV4dCI6eyJwYXRpZW50IjoidGVzdC1wdC0xIn0sImlhdCI6MTczMzIzNDY0OH0.O0iNxkutQxAPgGmDSmNikVXlr8Tl9w9_FJdcINI7Cbw"
 ```
 {% endtab %}
 
