@@ -31,6 +31,8 @@ For Aidbox to enforce scopes, the JWT access token must contain the following cl
 
 \* - required claim
 
+`atv` and `context.patient` are Aidbox-specific claims — the SMART App Launch specification does not define them. SMART passes the patient context as a `patient` parameter next to the access token in the token response, while Aidbox needs it inside the token itself so that scopes can be enforced no matter which server issued it.
+
 `atv` is the version of the Aidbox access token, not the version of the SMART scope syntax. Both v1 scopes (`patient/Observation.read`) and v2 scopes (`patient/Observation.rs`) are enforced when `atv` is `2`.
 
 {% hint style="warning" %}
