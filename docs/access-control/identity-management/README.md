@@ -11,7 +11,7 @@ Aidbox provides a comprehensive identity management system that handles both app
 ### [User Management](user-management.md)
 
 * Handle human user identities and authentication
-* Integration with external identity providers
+* Integration with [external identity providers](../authentication/sso-with-external-identity-provider.md) such as Okta, Google, or Azure AD
 * User profile and credential management
 
 ### [Application Management](application-client-management.md)
