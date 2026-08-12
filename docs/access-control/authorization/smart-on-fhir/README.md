@@ -14,13 +14,13 @@ Aidbox can take either side of it: it can be the authorization server that authe
 
 {% cards %}
 {% card icon="shield" title="Client authorization" href="smart-client-authorization/" %}
-How an application obtains a token. App Launch is for applications acting on behalf of a user, started either from an EHR or standalone. Backend Services is for server-to-server access with no user involved.
+How an application obtains a token: App Launch for user-facing apps, Backend Services for server-to-server access.
 {% endcard %}
 {% card icon="key" title="Client authentication" href="smart-client-authentication/" %}
-How a confidential client proves its identity when requesting a token: with a client secret (symmetric) or with a signed JWT (asymmetric). Backend Services requires the asymmetric method.
+How a confidential client proves its identity: a client secret or a signed JWT.
 {% endcard %}
 {% card icon="sliders" title="Scopes" href="smart-scopes-for-limiting-access.md" %}
-What a token is allowed to do once it is issued, including narrowing access with search parameters and limiting it to a single patient.
+What a token may do, down to search parameters and a single patient.
 {% endcard %}
 {% endcards %}
 
@@ -28,15 +28,15 @@ What a token is allowed to do once it is issued, including narrowing access with
 
 {% cards %}
 {% card icon="rocket" title="Aidbox and Keycloak" href="example-smart-app-launch-using-aidbox-and-keycloak.md" %}
-Run the EHR and standalone launch flows with a demo launcher and a growth chart application.
+EHR and standalone launch with a demo launcher.
 {% endcard %}
 {% card icon="box" title="Smartbox and Keycloak" href="example-smart-app-launch-using-smartbox-and-keycloak.md" %}
-The same EHR and patient launch flows, run with Smartbox.
+The same launch flows with Smartbox.
 {% endcard %}
 {% card icon="check" title="Inferno test kit" href="pass-inferno-tests-with-aidbox.md" %}
-Pass the Inferno SMART App Launch Test Kit with Aidbox.
+Pass the SMART App Launch Test Kit.
 {% endcard %}
 {% card icon="user" title="Patient Access API" href="../../../tutorials/security-access-control-tutorials/how-to-enable-smart-on-fhir-on-patient-access-api.md" %}
-Enable SMART on FHIR for the Patient Access API.
+Enable SMART on FHIR for patient-facing access.
 {% endcard %}
 {% endcards %}

@@ -8,16 +8,16 @@ Aidbox offers everything you need for secure identity, authentication, and audit
 
 {% cards %}
 {% card icon="users" title="Identity Management" href="identity-management/" %}
-Use Aidbox's built-in provider or plug in Google, Okta, or any OIDC-compliant service.
+Built-in provider, or Google, Okta, and any OIDC service.
 {% endcard %}
 {% card icon="key" title="Authentication" href="authentication/" %}
-Basic, OAuth 2.0 and OpenID Connect flows, JWT-based auth, and Single Sign-On through external OAuth 2.0 providers.
+Basic, OAuth 2.0, OpenID Connect, JWT, and SSO.
 {% endcard %}
 {% card icon="shield" title="Authorization" href="authorization/" %}
-Access Policies, SMART scopes, the Security Labels framework, and Scoped APIs (Patient API, Organization API, Compartments API).
+Access Policies, SMART scopes, Security Labels, and Scoped APIs.
 {% endcard %}
 {% card icon="doc" title="Audit and Logging" href="audit-and-logging.md" %}
-FHIR BALP (Basic Audit Logging Profile) for Audit Events and OpenTelemetry for structured logging.
+FHIR BALP audit events and OpenTelemetry logs.
 {% endcard %}
 {% endcards %}
 
