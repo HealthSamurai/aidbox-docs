@@ -13,10 +13,10 @@ This functionality is available starting from version 2411.
 Aidbox can take either side of it: it can be the authorization server that authenticates the user and issues the access token, or it can accept tokens issued by another server and enforce what they allow.
 
 {% cards %}
-{% card icon="key" title="Client authorization" href="smart-client-authorization/" %}
+{% card icon="shield" title="Client authorization" href="smart-client-authorization/" %}
 How an application obtains a token. App Launch is for applications acting on behalf of a user, started either from an EHR or standalone. Backend Services is for server-to-server access with no user involved.
 {% endcard %}
-{% card icon="shield" title="Client authentication" href="smart-client-authentication/" %}
+{% card icon="key" title="Client authentication" href="smart-client-authentication/" %}
 How a confidential client proves its identity when requesting a token: with a client secret (symmetric) or with a signed JWT (asymmetric). Backend Services requires the asymmetric method.
 {% endcard %}
 {% card icon="sliders" title="Scopes" href="smart-scopes-for-limiting-access.md" %}
