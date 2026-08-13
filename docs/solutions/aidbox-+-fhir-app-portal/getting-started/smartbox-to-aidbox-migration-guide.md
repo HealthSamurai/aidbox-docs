@@ -68,7 +68,7 @@ The Aidbox containers will reuse these same environment variables to connect to 
 
 ### 3. Download `us-core-extensions.legacy.aidbox.tar.gz`
 
-Place this file in the project root (same directory as docker-compose.yaml). Download this file [here](https://storage.googleapis.com/aidbox-public/smartbox/us-core-extensions.legacy.aidbox.tar.gz).
+Place this file in the project root (same directory as docker-compose.yaml). Download this file [here](https://storage.googleapis.com/payerbox-public/us-core-extensions.legacy.aidbox.tar.gz).
 
 ### 4. Create `docker-compose.yaml` (5-container setup)
 
