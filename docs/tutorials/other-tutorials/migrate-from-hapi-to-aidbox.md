@@ -31,7 +31,7 @@ Deploy Aidbox before moving any data, so you can load into a running, licensed i
 
 ## Migrate custom resources
 
-HAPI defines custom resources through `StructureDefinition`. Aidbox accepts the same approach, but its recommended path is FHIRSchema, which is simpler to write and faster to validate against.
+HAPI defines custom resources through `StructureDefinition`. Aidbox uses the same resource for this.
 
 {% content-ref url="../artifact-registry-tutorials/custom-resources/README.md" %}
 [README.md](../artifact-registry-tutorials/custom-resources/README.md)
@@ -39,10 +39,6 @@ HAPI defines custom resources through `StructureDefinition`. Aidbox accepts the 
 
 {% content-ref url="../artifact-registry-tutorials/custom-resources/custom-resources-using-structuredefinition.md" %}
 [custom-resources-using-structuredefinition.md](../artifact-registry-tutorials/custom-resources/custom-resources-using-structuredefinition.md)
-{% endcontent-ref %}
-
-{% content-ref url="../artifact-registry-tutorials/custom-resources/custom-resources-using-fhir-schema.md" %}
-[custom-resources-using-fhir-schema.md](../artifact-registry-tutorials/custom-resources/custom-resources-using-fhir-schema.md)
 {% endcontent-ref %}
 
 ## Migrate custom search parameters
