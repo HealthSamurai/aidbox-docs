@@ -192,6 +192,8 @@ Browse the complete list of Aidbox capabilities.
 * [ ] Data exported from HAPI and imported into Aidbox in a trial run
 * [ ] Imported data validated against your target StructureDefinitions
 * [ ] Indexes created for the search parameters your clients query
-* [ ] Client applications repointed and integrations retested
+* [ ] Client applications repointed to Aidbox
+* [ ] Integrations retested against Aidbox
 * [ ] Backup schedule configured on the new instance
-* [ ] Production data migrated and HAPI instance kept read-only as a fallback
+* [ ] Production data migrated to Aidbox
+* [ ] HAPI instance kept read-only as a fallback
