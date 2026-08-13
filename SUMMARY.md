@@ -118,6 +118,7 @@
     * [Run Aidbox with FHIR R6](tutorials/other-tutorials/run-aidbox-with-fhir-r6.md)
     * [Migrate from Multibox to Aidbox](tutorials/other-tutorials/migrate-from-multibox-to-aidbox.md)
     * [Migrate from Aidbox to Multibox](tutorials/other-tutorials/migrate-from-aidbox-to-multibox.md)
+    * [Migrate from HAPI to Aidbox](tutorials/other-tutorials/migrate-from-hapi-to-aidbox.md)
     * [SDC with Custom Resources](tutorials/other-tutorials/sdc-with-custom-resources.md)
     * [Migrate from legacy licence portal to Aidbox portal](tutorials/other-tutorials/migrate-from-legacy-licence-portal-to-aidbox-portal.md)
     * [Set up Aidbox with Postman](tutorials/other-tutorials/set-up-aidbox-with-postman.md)
