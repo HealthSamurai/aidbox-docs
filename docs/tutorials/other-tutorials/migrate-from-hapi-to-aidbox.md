@@ -164,6 +164,9 @@ Load Implementation Guides, manage custom FHIR packages, and version canonical r
 {% card icon="database" title="SQL on FHIR" href="../../modules/sql-on-fhir/README.md" %}
 Query FHIR data directly with SQL, including ViewDefinitions for BI and reporting.
 {% endcard %}
+{% card icon="terminal" title="AidboxQuery" href="../../api/rest-api/aidbox-search.md#aidboxquery" %}
+Turn a SQL query into its own REST endpoint for searches beyond what SearchParameters can express.
+{% endcard %}
 {% card icon="doc" title="Aidbox Forms" href="../../reference/aidbox-forms-reference/README.md" %}
 Build and render Questionnaires with Structured Data Capture (SDC).
 {% endcard %}
