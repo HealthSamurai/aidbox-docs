@@ -37,7 +37,7 @@ description: >-
 
     * Removed the `/fhir/FHIRSchema` endpoint. Define FHIR profiles with [StructureDefinition](../modules/profiling-and-validation/fhir-schema-validator/README.md) resources instead.
     * **Zen seed removal** — removed the Zen `seed` and `seed-v2` engines along with the `SeedImport` resource type. Load configuration resources at startup with [Init Bundle](../configuration/init-bundle.md) instead.
-    * **C-CDA converter moved out of Aidbox** — the built-in C-CDA / FHIR converter module is removed, and the `/ccda/*` endpoints (`to-fhir`, `to-ccda`, `persist`, `validate`, `fhir-validate`) are no longer served by Aidbox. Use [Interbox](https://www.health-samurai.io/docs/interbox) for running the converter.
+    * **C-CDA converter moved out of Aidbox** — the built-in C-CDA / FHIR converter module is removed, and the `/ccda/*` endpoints (`to-fhir`, `to-ccda`, `persist`, `validate`, `fhir-validate`) are no longer served by Aidbox.
 
 ## June 2026 _`stable, 2606`_
 
