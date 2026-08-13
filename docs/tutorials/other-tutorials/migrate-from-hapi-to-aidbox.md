@@ -10,6 +10,14 @@ HAPI FHIR and Aidbox both implement the FHIR spec, but they differ in how they s
 
 There is no one-click migration tool. Plan the migration in stages: map your configuration first, run a trial migration against a copy of your data, verify the result, then cut over.
 
+## Key differences
+
+* **Storage**: Aidbox stores each resource type as `jsonb` rows in PostgreSQL rather than a normalized relational schema, and does not index every search parameter by default. See [Create indexes](#create-indexes).
+* **Validation**: Aidbox validates against loaded StructureDefinitions instead of HAPI's interceptor-based validators. See [Migrate custom resources](#migrate-custom-resources).
+* **Subscriptions**: Aidbox's native topic-based subscriptions replace polling and webhook subscriptions built around the FHIR `Subscription` resource. See [Migrate subscriptions](#migrate-subscriptions).
+* **Access control**: Authorization is declarative access policies rather than Java interceptor code. See [Migrate access control rules](#migrate-access-control-rules).
+* **Terminology**: Aidbox's terminology module can serve codes from an external server, from resources loaded locally, or both at once. See [Migrate terminology](#migrate-terminology).
+
 ## Before you start
 
 * **Match your FHIR version.** Note which FHIR version your HAPI server runs (R4, R4B, or R5) and provision your Aidbox instance with the same version.
@@ -144,6 +152,34 @@ Before you point production traffic at the new instance, put a backup schedule i
 {% content-ref url="../../deployment-and-maintenance/backup-and-restore/README.md" %}
 [README.md](../../deployment-and-maintenance/backup-and-restore/README.md)
 {% endcontent-ref %}
+
+## Other Aidbox features
+
+Once your migration is running, these are worth a look. None of them are required for cutover.
+
+{% cards %}
+{% card icon="box" title="FHIR Artifact Registry" href="../../artifact-registry/artifact-registry-overview.md" %}
+Load Implementation Guides, manage custom FHIR packages, and version canonical resources.
+{% endcard %}
+{% card icon="database" title="SQL on FHIR" href="../../modules/sql-on-fhir/README.md" %}
+Query FHIR data directly with SQL, including ViewDefinitions for BI and reporting.
+{% endcard %}
+{% card icon="doc" title="Aidbox Forms" href="../../reference/aidbox-forms-reference/README.md" %}
+Build and render Questionnaires with Structured Data Capture (SDC).
+{% endcard %}
+{% card icon="chart" title="Observability" href="../../modules/observability/README.md" %}
+Monitor logs, metrics, and audit trails across your Aidbox instance.
+{% endcard %}
+{% card icon="users" title="Organization-based access control" href="../../access-control/authorization/scoped-api/organization-based-hierarchical-access-control.md" %}
+Scope access to resources by organization hierarchy, a lighter-weight alternative to running separate tenants.
+{% endcard %}
+{% card icon="code" title="SDKs" href="../../developer-experience/developer-experience-overview.md" %}
+Generic FHIR client libraries and Aidbox-specific, type-safe SDKs for your language.
+{% endcard %}
+{% card icon="sparkles" title="Full feature list" href="../../features.md" %}
+Browse the complete list of Aidbox capabilities.
+{% endcard %}
+{% endcards %}
 
 ## Checklist
 
