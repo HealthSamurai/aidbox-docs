@@ -63,6 +63,8 @@ services:
       AIDBOX_DB_PARAM_ENABLE_IAM_AUTH:    "true"
 
       # ... other Aidbox settings
+```
+
 
 Any other connector property works the same way. `AIDBOX_DB_PARAM_<UPPER_SNAKE>` becomes the JDBC parameter `<lowerCamel>`, so `AIDBOX_DB_PARAM_IP_TYPES=PRIVATE` sets `ipTypes=PRIVATE` (needed for private-IP instances) and `AIDBOX_DB_PARAM_CLOUD_SQL_REFRESH_STRATEGY=lazy` sets `cloudSqlRefreshStrategy=lazy` (recommended on Cloud Run and other serverless runtimes). See [AIDBOX\_DB\_PARAM](../../configuration/configure-aidbox-and-multibox.md) and the [connector properties](https://github.com/GoogleCloudPlatform/cloud-sql-jdbc-socket-factory/blob/main/docs/configuration.md).
 
