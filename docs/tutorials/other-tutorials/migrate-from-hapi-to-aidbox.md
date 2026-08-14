@@ -13,7 +13,7 @@ There is no one-click migration tool. Plan the migration in stages: map your con
 ## Key differences
 
 * **Storage**: Aidbox stores each resource type as `jsonb` rows in PostgreSQL rather than a normalized relational schema, and does not index every search parameter by default. See [Create indexes](#create-indexes).
-* **Validation**: Aidbox validates against loaded StructureDefinitions instead of HAPI's interceptor-based validators. See [Migrate custom resources](#migrate-custom-resources).
+* **Validation**: Aidbox validates against loaded StructureDefinitions and is stricter than HAPI's default validator, so expect data that was valid in HAPI to need fixes. See [Validate the migrated data](#validate-the-migrated-data).
 * **Subscriptions**: Aidbox's native topic-based subscriptions replace polling and webhook subscriptions built around the FHIR `Subscription` resource. See [Migrate subscriptions](#migrate-subscriptions).
 * **Access control**: Authorization is declarative access policies rather than Java interceptor code. See [Migrate access control rules](#migrate-access-control-rules).
 * **Terminology**: Aidbox's terminology module can serve codes from an external server, from resources loaded locally, or both at once. See [Migrate terminology](#migrate-terminology).
@@ -116,6 +116,10 @@ For a smaller dataset, a transactional bundle can be the better option: it valid
 ## Validate the migrated data
 
 Aidbox validates resources against loaded StructureDefinitions, which can be stricter about some constraints than HAPI's default validator. Run a validation pass over your imported data and fix any resources that fail before cutting over.
+
+{% hint style="warning" %}
+HAPI's default validator is more lenient than Aidbox's. Resources that loaded and passed validation in HAPI can fail against the same profile in Aidbox. Expect to find and fix a number of these during your trial migration rather than treating any failure as a bug.
+{% endhint %}
 
 {% content-ref url="../../modules/profiling-and-validation/README.md" %}
 [README.md](../../modules/profiling-and-validation/README.md)
