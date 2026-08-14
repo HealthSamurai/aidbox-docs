@@ -33,6 +33,18 @@ JAVA_OPTS="-Xms1024m -Xmx1024m"
 
 See also: [How to configure Aidbox to use a proxy](../tutorials/other-tutorials/how-to-configure-aidbox-to-use-proxy.md)
 
+### JAVA\_EXTRA\_PATH
+
+```
+JAVA_EXTRA_PATH="<string>"
+```
+
+Add entries to the Java runtime classpath.
+
+```
+JAVA_EXTRA_PATH="/extra/*"
+```
+
 ## Configure performance
 
 By default, Aidbox and Multibox runs with 8 web workers and 16 DB connection pool size.

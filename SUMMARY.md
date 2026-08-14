@@ -123,6 +123,7 @@
     * [Migrate from legacy licence portal to Aidbox portal](tutorials/other-tutorials/migrate-from-legacy-licence-portal-to-aidbox-portal.md)
     * [Set up Aidbox with Postman](tutorials/other-tutorials/set-up-aidbox-with-postman.md)
     * [How to run Aidbox in GCP Cloud Run](tutorials/other-tutorials/how-to-run-aidbox-in-gcp-cloud-run.md)
+    * [How to run Aidbox with Cloud SQL Java Connector](tutorials/other-tutorials/how-to-run-aidbox-with-cloud-sql-java-connector.md)
     * [How to run Aidbox in Azure Container Apps](tutorials/other-tutorials/how-to-run-aidbox-in-azure-container-apps.md)
     * [How to run Aidbox using different Java](tutorials/other-tutorials/how-to-run-aidbox-using-different-java.md)
     * [AI Prompts](tutorials/other-tutorials/ai-prompts.md)
