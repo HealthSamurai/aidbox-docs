@@ -77,3 +77,18 @@ Version read, `GET /fhir/Binary/{id}/_history/{vid}`, negotiates the same way an
 {% content-ref %}
 [Offload base64Binary data to external storage](../../../configuration/storage-and-api-configuration/offload-base64binary-to-external-storage.md)
 {% endcontent-ref %}
+
+### Streaming large files
+
+{% hint style="info" %}
+Streaming is available starting from Aidbox version **2608**.
+{% endhint %}
+
+With offload configured for the `data` element, Aidbox streams raw content between the client and the blob storage:
+
+* On raw upload, Aidbox copies the request body to the storage as it arrives, without the base64 round-trip and without buffering the whole payload.
+* On raw read, Aidbox pipes the blob from the storage into the response.
+
+Only a small buffer stays in memory at any moment, so you can upload and download files larger than the memory available to the Aidbox instance. The request body limit still applies to uploads: Aidbox rejects bodies over the [`web.max-body`](../../../reference/all-settings.md#web.max-body) setting with `413`. The default is 20 MB, raise it to accept larger files.
+
+Streaming covers raw content only. A Binary posted as FHIR JSON carries `data` as a base64 string, and a JSON read returns it the same way, so Aidbox handles the whole payload in memory on these paths.

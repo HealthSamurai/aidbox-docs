@@ -311,6 +311,8 @@ hello world
 {% endtab %}
 {% endtabs %}
 
+Starting from version 2608, Aidbox streams raw Binary uploads and raw reads between the client and the storage, so files larger than the memory available to the instance go through. The [`web.max-body`](../../reference/all-settings.md#web.max-body) setting still caps the upload size. See [Streaming large files](../../api/rest-api/other/binary.md#streaming-large-files).
+
 ## Example: offload Patient.photo.data
 
 Offload works for any resource type and any `base64Binary` element. This configuration offloads every `Patient.photo.data` value:
