@@ -22,6 +22,10 @@ This functionality requires [FHIR Schema](../profiling-and-validation/fhir-schem
 Examples below use the ≥ 2604 form. On older Aidbox, swap the `meta.profile` URL. The FHIR-native subscription destination ships with Aidbox core — no separate connector JAR.
 {% endhint %}
 
+{% hint style="info" %}
+The FHIR-native subscription destination does not support [correlation id propagation](aidbox-topic-based-subscriptions.md#correlation-id). Use an [Aidbox Topic-Based Subscriptions](aidbox-topic-based-subscriptions.md#currently-supported-channels) channel if you need it.
+{% endhint %}
+
 ## Overview
 
 Aidbox provides full support for the [FHIR Topic-Based Subscriptions Framework](https://build.fhir.org/subscriptions.html) according to the specification. This allows external systems to create and manage FHIR `Subscription` resources to receive notifications about data changes.

@@ -8,6 +8,12 @@ description: >-
 
 ## August 2026 _`edge`_
 
+*   Aidbox FHIR server
+
+    **Features**
+
+    * **[Correlation id in topic-based subscription notifications](../modules/topic-based-subscriptions/aidbox-topic-based-subscriptions.md#correlation-id)** — send a correlation id on a request, and Aidbox copies it into `AidboxSubscriptionStatus.notificationEvent.correlationId` on the resulting topic-based subscription notification. Configure the request header name with the `module.topics.correlation-id-header` setting. Every sender supports it, and NATS destinations also carry it as a native message header.
+
 ## July 2026 _`latest, 2607`_
 
 *   Aidbox FHIR server

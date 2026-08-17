@@ -581,6 +581,40 @@ When `includeVersionIdInFocusReference` is enabled, the `focus.reference` in eac
 
 Without this flag, the reference would be `Patient/123`.
 
+### Correlation id
+
+Send a correlation id on the request that creates, updates, or deletes a resource, and Aidbox copies it into the resulting notification. Use the `module.topics.correlation-id-header` setting to name the request header Aidbox reads (default: `x-topic-correlation-id`). Aidbox treats the value as an opaque string: it does not parse, validate, or generate one on your behalf.
+
+```json
+{
+  "notificationEvent": [
+    {
+      "eventNumber": 1,
+      "focus": {
+        "reference": "Patient/123"
+      },
+      "correlationId": "order-4711"
+    }
+  ]
+}
+```
+
+If the request carries no correlation id header, Aidbox omits `correlationId` from the notification.
+
+A single header covers every event the request produces. On a transaction bundle or a conditional delete that matches several resources, every resulting `notificationEvent` carries the same correlation id. The value survives redelivery: Aidbox persists it with the event before the first delivery attempt, so retries and catch-up deliveries after downtime carry the same id as the original.
+
+All `AidboxTopicDestination` channels support this: webhook, Kafka, GCP Pub/Sub, and both NATS destination kinds. On NATS, Aidbox also sets the correlation id as a native NATS message header, alongside the copy in `notificationEvent`. See [Message headers](../../tutorials/subscriptions-tutorials/aidboxtopicsubscription-nats-tutorial.md#message-headers) for details.
+
+There is no per-`AidboxTopicDestination` toggle for this feature: whether a notification carries a correlation id depends only on the triggering request.
+
+{% hint style="info" %}
+`x-topic-correlation-id` is unrelated to the `X-Correlation-Id` header Aidbox reads for request logging (see [Extending Aidbox logs](../observability/logs/extending-aidbox-logs.md)). Set `module.topics.correlation-id-header` if you want the two to share a value.
+{% endhint %}
+
+{% hint style="warning" %}
+The native FHIR `Subscription` sender does not emit `correlationId`. See [FHIR Topic-Based Subscriptions](fhir-topic-based-subscriptions.md).
+{% endhint %}
+
 ### Delivery logging
 
 When `enableLogging` is set to `true` on an `AidboxTopicDestination`, Aidbox logs the `AidboxSubscriptionStatus` resource after each delivery attempt. On successful delivery, the status is logged as-is. On failure, the status includes an `error` array.

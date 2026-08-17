@@ -302,6 +302,33 @@ In Aidbox, create [AidboxTopicDestination](../../modules/topic-based-subscriptio
     Acknowledged message
     ```
 
+## Message headers
+
+Aidbox publishes every message with a `content-type: application/json` header. Both `nats-core-best-effort` and `nats-jetstream-at-least-once` support this.
+
+Send a correlation id on the request that triggers the notification, and Aidbox adds it as a native NATS header named `correlation-id`, alongside the copy inside the JSON body's `notificationEvent`. Configure the request header name with the `module.topics.correlation-id-header` setting (default: `x-topic-correlation-id`).
+
+```
+POST /fhir/Patient
+x-topic-correlation-id: order-4711
+
+name:
+- family: smith
+```
+
+```
+Headers:
+
+  content-type: application/json
+  correlation-id: order-4711
+
+Data:
+
+{"topic":"patients.created","value":{"resourceType":"Bundle","type":"history","timestamp":"2025-05-05T10:57:54Z","entry":[{"resource":{"resourceType":"AidboxSubscriptionStatus","status":"active","type":"event-notification","notificationEvent":[{"eventNumber":1,"focus":{"reference":"Patient/598ef035-89f7-4b19-9ad7-fa4ad8f38681"},"correlationId":"order-4711"}],"topic":"patient-topic","topic-destination":{"reference":"AidboxTopicDestination/jetstream"}}},{"request":{"method":"POST","url":"/fhir/Patient"},"fullUrl":"http://localhost:8080/fhir/Patient/598ef035-89f7-4b19-9ad7-fa4ad8f38681","resource":{"name":[{"family":"smith"}],"id":"598ef035-89f7-4b19-9ad7-fa4ad8f38681","resourceType":"Patient","meta":{"lastUpdated":"2025-05-05T10:57:54.908063Z","versionId":"35","extension":[{"url":"https://aidbox.app/ex/createdAt","valueInstant":"2025-05-05T10:57:54.908063Z"}]}}}]}}
+```
+
+When the request carries no correlation id header, Aidbox omits the `correlation-id` NATS header and the `correlationId` field. See [Correlation id](../../modules/topic-based-subscriptions/aidbox-topic-based-subscriptions.md#correlation-id) for the full behavior across all destination kinds.
+
 ## Username/password authentication
 
 1. Turn off the previous nats-server (`Ctrl+C`).
