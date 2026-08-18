@@ -306,7 +306,7 @@ In Aidbox, create [AidboxTopicDestination](../../modules/topic-based-subscriptio
 
 Aidbox publishes every message with a `content-type: application/json` header. Both `nats-core-best-effort` and `nats-jetstream-at-least-once` support this.
 
-Send a correlation id on the request that triggers the notification, and Aidbox adds it as a native NATS header named `correlation-id`, alongside the copy inside the JSON body's `notificationEvent`. Configure the request header name with the `module.topics.correlation-id-header` setting (default: `x-topic-correlation-id`).
+Send a correlation id on the request that triggers the notification, and Aidbox adds it as a native NATS header named `correlation-id`, alongside the copy inside the JSON body's `notificationEvent`. Configure the request header name with the `module.topics.correlation-id-header` setting (default: `x-topic-correlation-id`). The NATS header name itself stays `correlation-id`: only the request-side header name is configurable.
 
 ```
 POST /fhir/Patient
