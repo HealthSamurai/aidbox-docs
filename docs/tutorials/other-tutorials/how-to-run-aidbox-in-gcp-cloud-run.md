@@ -164,6 +164,10 @@ CREATE EXTENSION unaccent;
     \
     See more about recommended Aidbox environment variables [here](../../configuration/configure-aidbox-and-multibox.md).
 
+{% hint style="info" %}
+These settings authenticate with a database password stored in an environment variable. To authenticate with short-lived IAM tokens and store no password, see [Connect through the Cloud SQL Java Connector](#connect-through-the-cloud-sql-java-connector) below.
+{% endhint %}
+
     <figure><img src="../../../assets/bc06953f-ef76-4c90-ac15-59f1f56d3794.avif" alt="Networking tab with VPC connector settings"><figcaption></figcaption></figure>
 8.  At the Networking tab, configure the outbound traffic to go to the **default** subnet.\\
 
@@ -178,9 +182,77 @@ CREATE EXTENSION unaccent;
 
 11. [Activate](../../getting-started/run-aidbox-locally.md#id-4.-activate-your-aidbox-instance) the Aidbox instance.
 
+## Connect through the Cloud SQL Java Connector
+
+The steps above reach Cloud SQL over private IP and authenticate with the `aidbox` user password. The [Cloud SQL Java Connector](how-to-run-aidbox-with-cloud-sql-java-connector.md) replaces that with an mTLS tunnel and a short-lived IAM token, so no database password is stored in the service configuration. Aidbox does not bundle the connector, so a Cloud Run deployment has to add the connector jars to the container and switch the connection settings.
+
+Read [How to run Aidbox with Cloud SQL Java Connector](how-to-run-aidbox-with-cloud-sql-java-connector.md) for the connection settings, the IAM database user name, and how to build the jar directory. The Cloud Run specific parts are below.
+
+{% hint style="info" %}
+The connector replaces the Cloud SQL Auth Proxy sidecar and the built-in Cloud Run Cloud SQL integration (`--add-cloudsql-instances`), which exposes a Unix socket at `/cloudsql/INSTANCE_CONNECTION_NAME`. Leave the built-in integration off: the connector opens its own connection, so keeping both configured adds a second unused path to the same instance.
+{% endhint %}
+
+### Grant the service account access
+
+The runtime service account supplies credentials through the metadata server, so `GOOGLE_APPLICATION_CREDENTIALS` is not needed. Grant it the `roles/cloudsql.client` and `roles/cloudsql.instanceUser` roles, and register it as an IAM database user on the instance. See [Cloud SQL roles and permissions](https://cloud.google.com/sql/docs/postgres/roles-and-permissions) and [Manage IAM database users](https://cloud.google.com/sql/docs/postgres/add-manage-iam-users).
+
+`roles/cloudsql.client` covers connectivity to the instance. `roles/cloudsql.instanceUser` carries the `cloudsql.instances.login` permission that IAM database authentication requires, so grant both.
+
+### Deliver the connector jars
+
+Cloud Run has no bind mount, so pick one of two ways to get the jar directory into the container. Both use the same `JAVA_EXTRA_PATH` value.
+
+Build a thin image on top of the Aidbox image:
+
+```docker
+FROM healthsamurai/aidboxone:edge
+COPY jars/ /jars/
+ENV JAVA_EXTRA_PATH=/jars/*
+```
+
+The classpath is fixed at build time and cold starts do no extra I/O. Rebuild the image to change the connector version. Use this for production.
+
+Or upload the jars to a Cloud Storage bucket and mount it as a volume:
+
+```sh
+gcloud storage cp jars/* gs://<BUCKET>/
+
+gcloud run services update <SERVICE> \
+  --region=<REGION> \
+  --execution-environment=gen2 \
+  --add-volume=name=jars,type=cloud-storage,bucket=<BUCKET>,readonly=true \
+  --add-volume-mount=volume=jars,mount-path=/jars \
+  --set-env-vars=JAVA_EXTRA_PATH='/jars/*'
+```
+
+The mount needs the second generation execution environment and `roles/storage.objectViewer` on the bucket for the runtime service account. Cloud Run reads the jars over the network on every cold start, which adds startup latency. Swapping connector versions means replacing the objects in the bucket with no image rebuild, which suits testing.
+
+### Replace the connection settings
+
+Keep the environment variables from step 7, change `BOX_DB_USER` to the IAM database user, and add the rest:
+
+```yaml
+# replaces the value from step 7
+- name: BOX_DB_USER
+  value: <IAM_DB_USER>
+- name: AIDBOX_DB_PARAM_SOCKET_FACTORY
+  value: com.google.cloud.sql.postgres.SocketFactory
+- name: AIDBOX_DB_PARAM_CLOUD_SQL_INSTANCE
+  value: <INSTANCE_CONNECTION_NAME>
+- name: AIDBOX_DB_PARAM_ENABLE_IAM_AUTH
+  value: true
+- name: AIDBOX_DB_PARAM_CLOUD_SQL_REFRESH_STRATEGY
+  value: lazy
+- name: JAVA_EXTRA_PATH
+  value: /jars/*
+```
+
+The connector resolves the instance address itself and ignores `BOX_DB_HOST` and `BOX_DB_PORT`, and it authenticates with an IAM token rather than `BOX_DB_PASSWORD`. Set all three to a non-empty value anyway. Aidbox treats `db.host`, `db.user`, `db.password` and `db.database` as required settings and refuses to start when one of them has no value. `cloudSqlRefreshStrategy=lazy` suits Cloud Run and other serverless runtimes, where instances are short-lived. For a private IP instance add `AIDBOX_DB_PARAM_IP_TYPES=PRIVATE` and keep the VPC egress configuration from step 8.
+
 ## What's next
 
 See more about different options for running Aidbox:
 
+* [How to run Aidbox with Cloud SQL Java Connector](how-to-run-aidbox-with-cloud-sql-java-connector.md)
 * [Deploy Aidbox with Helm charts](../../deployment-and-maintenance/deploy-aidbox/run-aidbox-in-kubernetes/deploy-aidbox-with-helm-charts.md)
 * [Run Aidbox locally](../../getting-started/run-aidbox-locally.md)
