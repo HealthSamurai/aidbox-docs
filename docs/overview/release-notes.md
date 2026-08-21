@@ -12,6 +12,7 @@ description: >-
 
     **Features**
 
+    * **[Cloud SQL Java Connector support](../tutorials/other-tutorials/how-to-run-aidbox-with-cloud-sql-java-connector.md)** — connect Aidbox to Google Cloud SQL for PostgreSQL through the Cloud SQL JDBC socket factory, with IAM database authentication instead of a stored database password.
     * **[Correlation id in topic-based subscription notifications](../modules/topic-based-subscriptions/aidbox-topic-based-subscriptions.md#correlation-id)** — send a correlation id on a request, and Aidbox copies it into `AidboxSubscriptionStatus.notificationEvent.correlationId` on the resulting topic-based subscription notification. Configure the request header name with the `module.topics.correlation-id-header` setting. Every sender supports it, and NATS destinations also carry it as a native message header.
 
 ## July 2026 _`latest, 2607`_
