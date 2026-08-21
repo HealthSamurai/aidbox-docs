@@ -41,11 +41,23 @@ A storage record carries these parameters:
 | `tableName`           | string    | yes         | Name of the main PostgreSQL table. At most 63 bytes (the PostgreSQL identifier limit).                       |
 | `history`             | boolean   | no          | Keep prior versions in a history table. Defaults to `false`.                                                 |
 | `historyTableName`    | string    | conditional | Name of the history table. Required when `history` is `true`, and must be omitted when `history` is `false`. |
-| `storageId`           | string    | output      | Server-generated identifier. Pass it to `$configure-storage` and `$delete-storage`.                          |
+| `storageId`           | string    | no          | Identifier of the storage. On `$create-storage` you may choose your own; when omitted, Aidbox generates a UUID. Pass it to `$configure-storage` and `$delete-storage`. |
+| `ifNoneExist`         | boolean   | no          | Only on `$create-storage`, and only together with `storageId`. When a storage with that `storageId` already exists, return it unchanged with `200` instead of `409`. Not stored. |
 
 ### $create-storage
 
-Creates a storage and its PostgreSQL table. If the table already exists, Aidbox reuses it. With `history` set to `true`, Aidbox also creates the history table. The response echoes the storage with its generated `storageId`.
+Creates a storage and its PostgreSQL table. If the table already exists, Aidbox reuses it. With `history` set to `true`, Aidbox also creates the history table. The response echoes the storage with its `storageId` and has status `201`.
+
+{% hint style="info" %}
+`storageId` and `ifNoneExist` on `$create-storage` are available starting from Aidbox version **2608**.
+{% endhint %}
+
+You can pass your own `storageId` instead of letting Aidbox generate one. A stable identifier lets you script the setup, reference the storage from `$create-api` without reading it back, and make the setup idempotent:
+
+* `storageId` is new: the storage is created, status `201`.
+* `storageId` already exists: status `409` with an `OperationOutcome`. Add `ifNoneExist` set to `true` to get the existing storage back unchanged with status `200` instead. The other parameters of the request are ignored in that case.
+
+`ifNoneExist` is only allowed together with `storageId`; without it the request fails validation with `422`.
 
 {% tabs %}
 {% tab title="Request" %}
@@ -80,6 +92,27 @@ Content-Type: application/json
 ```
 {% endtab %}
 {% endtabs %}
+
+#### Idempotent creation
+
+With `storageId` and `ifNoneExist`, the same request can be sent repeatedly, for example from every replica of a deployment or from an [init bundle](../init-bundle.md). The first call creates the storage (`201`), later calls return it (`200`):
+
+```http
+POST /fhir/$create-storage
+Content-Type: application/json
+
+{
+  "resourceType": "Parameters",
+  "parameter": [
+    { "name": "storageId", "valueString": "observation-main" },
+    { "name": "ifNoneExist", "valueBoolean": true },
+    { "name": "structureDefinition", "valueCanonical": "http://hl7.org/fhir/StructureDefinition/Observation|4.0.1" },
+    { "name": "storageType", "valueString": "default" },
+    { "name": "tableName", "valueString": "observation_main" },
+    { "name": "history", "valueBoolean": false }
+  ]
+}
+```
 
 ### $configure-storage
 
@@ -206,13 +239,20 @@ An API record carries these parameters:
 | `storageId`                    | string | yes      | Storage the API reads from and writes to.                                                                                                       |
 | `apiTemplate`                  | string | yes      | `pre-2604`.                                                                                                                                     |
 | `dataOffloadToExternalStorage` | parts  | no       | Store `base64Binary` element values in external storage. See [Offload base64Binary data to external storage](offload-base64binary-to-external-storage.md). |
-| `apiId`                        | string | output   | Server-generated identifier. Pass it to `$configure-api` and `$delete-api`.                                                                     |
+| `apiId`                        | string | no       | Identifier of the API. On `$create-api` you may choose your own; when omitted, Aidbox generates a UUID. Pass it to `$configure-api` and `$delete-api`. |
+| `ifNoneExist`                  | boolean | no      | Only on `$create-api`, and only together with `apiId`. When an API with that `apiId` already exists, return it unchanged with `200` instead of `409`. Not stored. |
 
 `pre-2604` is the only template available, and it is required. It enables the full FHIR REST interaction set (read, vread, create, update, patch, delete, history, search), reproducing the default behavior of Aidbox APIs before this feature. Future releases add more templates. They also let an API turn individual interactions on and off without a template.
 
 ### $create-api
 
-Connects a resource type to a storage. The resource type starts serving requests at `/fhir/{resourceType}` and appears in `/fhir/metadata`.
+Connects a resource type to a storage. The resource type starts serving requests at `/fhir/{resourceType}` and appears in `/fhir/metadata`. The response echoes the API with its `apiId` and has status `201`.
+
+`apiId` and `ifNoneExist` work the same way as `storageId` and `ifNoneExist` on [`$create-storage`](#usdcreate-storage): pass your own `apiId` to get a stable identifier; an existing `apiId` answers `409`, or `200` with the existing API unchanged when `ifNoneExist` is `true`. `ifNoneExist` requires `apiId`. Independently of that, creating a second API for a resource type that already has one answers `409`, because only one API per resource type is allowed.
+
+{% hint style="info" %}
+`apiId` and `ifNoneExist` on `$create-api` are available starting from Aidbox version **2608**.
+{% endhint %}
 
 With the optional `dataOffloadToExternalStorage` parameter, the API keeps `base64Binary` element values out of PostgreSQL and stores them in external blob storage:
 
@@ -251,6 +291,48 @@ Content-Type: application/json
 ```
 {% endtab %}
 {% endtabs %}
+
+#### Idempotent creation
+
+Together with a storage created with a known `storageId`, the whole setup becomes repeatable, for example in an [init bundle](../init-bundle.md) of type `transaction`:
+
+```json
+{
+  "resourceType": "Bundle",
+  "type": "transaction",
+  "entry": [
+    {
+      "request": { "method": "POST", "url": "/$create-storage" },
+      "resource": {
+        "resourceType": "Parameters",
+        "parameter": [
+          { "name": "storageId", "valueString": "observation-main" },
+          { "name": "ifNoneExist", "valueBoolean": true },
+          { "name": "structureDefinition", "valueCanonical": "http://hl7.org/fhir/StructureDefinition/Observation|4.0.1" },
+          { "name": "storageType", "valueString": "default" },
+          { "name": "tableName", "valueString": "observation_main" },
+          { "name": "history", "valueBoolean": false }
+        ]
+      }
+    },
+    {
+      "request": { "method": "POST", "url": "/$create-api" },
+      "resource": {
+        "resourceType": "Parameters",
+        "parameter": [
+          { "name": "apiId", "valueString": "observation-api" },
+          { "name": "ifNoneExist", "valueBoolean": true },
+          { "name": "resourceType", "valueString": "Observation" },
+          { "name": "storageId", "valueString": "observation-main" },
+          { "name": "apiTemplate", "valueString": "pre-2604" }
+        ]
+      }
+    }
+  ]
+}
+```
+
+Every start of every replica applies the bundle; the first one creates the storage and the API, the others find them in place. Later entries of the same bundle can already use the new API.
 
 ### $configure-api
 
