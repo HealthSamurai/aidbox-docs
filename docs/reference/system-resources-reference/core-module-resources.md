@@ -3227,6 +3227,14 @@ The status of an AidboxTopicDestination during notifications.
   "type" : "Reference",
   "desc" : "References related to the focus resource and/or context of this event. \n\n**Allowed references**: Resource"
 }, {
+  "path" : "notificationEvent.correlationId",
+  "name" : "correlationId",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "string",
+  "desc" : "Opaque correlation id echoed from the triggering request."
+}, {
   "path" : "status",
   "name" : "status",
   "lvl" : 0,
@@ -4822,192 +4830,6 @@ Reference to a specific Azure Blob Storage container used by Aidbox.
 ```
 
 
-## BatchValidationError
-
-Validation error resource for batch validation runs.
-
-```fhir-structure
-[ {
-  "path" : "errors",
-  "name" : "errors",
-  "lvl" : 0,
-  "min" : 0,
-  "max" : "*",
-  "type" : "Object",
-  "desc" : "List of validation errors found."
-}, {
-  "path" : "profiles",
-  "name" : "profiles",
-  "lvl" : 0,
-  "min" : 0,
-  "max" : "*",
-  "type" : "string",
-  "desc" : "Profiles against which the resource was validated."
-}, {
-  "path" : "resource",
-  "name" : "resource",
-  "lvl" : 0,
-  "min" : 1,
-  "max" : 1,
-  "type" : "BackboneElement",
-  "desc" : "Reference to the resource that failed validation."
-}, {
-  "path" : "resource.id",
-  "name" : "id",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "string",
-  "desc" : "Resource identifier."
-}, {
-  "path" : "resource.resourceType",
-  "name" : "resourceType",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "string",
-  "desc" : "Type of resource."
-}, {
-  "path" : "resource.display",
-  "name" : "display",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "string",
-  "desc" : "Human-readable display name for the resource."
-}, {
-  "path" : "run",
-  "name" : "run",
-  "lvl" : 0,
-  "min" : 0,
-  "max" : 1,
-  "type" : "BackboneElement",
-  "desc" : "Reference to the validation run that produced this error."
-}, {
-  "path" : "run.id",
-  "name" : "id",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "string",
-  "desc" : "Validation run identifier."
-}, {
-  "path" : "run.resourceType",
-  "name" : "resourceType",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "string",
-  "desc" : "Type of the validation run resource."
-}, {
-  "path" : "run.display",
-  "name" : "display",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "string",
-  "desc" : "Human-readable display name for the validation run."
-} ]
-```
-
-
-## BatchValidationRun
-
-Batch validation run resource for tracking validation processes.
-
-```fhir-structure
-[ {
-  "path" : "async",
-  "name" : "async",
-  "lvl" : 0,
-  "min" : 0,
-  "max" : 1,
-  "type" : "boolean",
-  "desc" : "Whether validation is performed asynchronously."
-}, {
-  "path" : "duration",
-  "name" : "duration",
-  "lvl" : 0,
-  "min" : 0,
-  "max" : 1,
-  "type" : "integer",
-  "desc" : "Duration of the validation run in milliseconds."
-}, {
-  "path" : "errorsThreshold",
-  "name" : "errorsThreshold",
-  "lvl" : 0,
-  "min" : 0,
-  "max" : 1,
-  "type" : "integer",
-  "desc" : "Maximum number of errors before stopping validation."
-}, {
-  "path" : "filter",
-  "name" : "filter",
-  "lvl" : 0,
-  "min" : 0,
-  "max" : 1,
-  "type" : "string",
-  "desc" : "Expression to filter resources for validation."
-}, {
-  "path" : "invalid",
-  "name" : "invalid",
-  "lvl" : 0,
-  "min" : 0,
-  "max" : 1,
-  "type" : "integer",
-  "desc" : "Count of invalid resources found."
-}, {
-  "path" : "limit",
-  "name" : "limit",
-  "lvl" : 0,
-  "min" : 0,
-  "max" : 1,
-  "type" : "integer",
-  "desc" : "Maximum number of resources to validate."
-}, {
-  "path" : "profiles",
-  "name" : "profiles",
-  "lvl" : 0,
-  "min" : 0,
-  "max" : "*",
-  "type" : "string",
-  "desc" : "FHIR profiles to validate against."
-}, {
-  "path" : "resource",
-  "name" : "resource",
-  "lvl" : 0,
-  "min" : 1,
-  "max" : 1,
-  "type" : "string",
-  "desc" : "Resource type to validate."
-}, {
-  "path" : "schemas",
-  "name" : "schemas",
-  "lvl" : 0,
-  "min" : 0,
-  "max" : "*",
-  "type" : "string",
-  "desc" : "List of schemas to validate against."
-}, {
-  "path" : "status",
-  "name" : "status",
-  "lvl" : 0,
-  "min" : 0,
-  "max" : 1,
-  "type" : "string",
-  "desc" : "Current status of the validation run. \n\n**Allowed values**: `in-progress` | `complete`"
-}, {
-  "path" : "valid",
-  "name" : "valid",
-  "lvl" : 0,
-  "min" : 0,
-  "max" : 1,
-  "type" : "integer",
-  "desc" : "Count of valid resources found."
-} ]
-```
-
-
 ## BigQueryAtLeastOnceProfile
 
 BigQuery at-least-once delivery profile for AidboxTopicDestination.
@@ -5445,6 +5267,30 @@ Profile for FHIR Bulk Data $export operation POST parameters. Based on https://b
   "min" : 0,
   "max" : 1,
   "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter:_elements",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : "*",
+  "type" : "",
+  "desc" : "Root element names to include in exported resources (experimental). Each entry is a comma-separated list of element names or a single element name."
+}, {
+  "path" : "parameter.name",
+  "name" : "name",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "string",
   "desc" : ""
 }, {
   "path" : "parameter",
@@ -5983,6 +5829,14 @@ Status and progress of a FHIR Bulk Export operation.
   "max" : "*",
   "type" : "string",
   "desc" : "List of patient IDs to export data for."
+}, {
+  "path" : "params.export-elements",
+  "name" : "export-elements",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : "*",
+  "type" : "string",
+  "desc" : "Element names requested via _elements. One element name per entry (not comma-separated)."
 }, {
   "path" : "params.patient-errors",
   "name" : "patient-errors",
@@ -7733,6 +7587,1594 @@ Concept mapping rule resource for terminology translations.
 ```
 
 
+## ConfigureApiProfile
+
+Input parameters for the $configure-api operation.
+
+```fhir-structure
+[ {
+  "path" : "parameter",
+  "name" : "parameter",
+  "lvl" : 0,
+  "min" : 1,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter:apiId",
+  "lvl" : 0,
+  "min" : 1,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.name",
+  "name" : "name",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 1,
+  "max" : 1,
+  "type" : "string",
+  "desc" : ""
+}, {
+  "path" : "parameter.resource",
+  "name" : "resource",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part",
+  "name" : "part",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter:apiTemplate",
+  "lvl" : 0,
+  "min" : 1,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.name",
+  "name" : "name",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 1,
+  "max" : 1,
+  "type" : "string",
+  "desc" : ""
+}, {
+  "path" : "parameter.resource",
+  "name" : "resource",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part",
+  "name" : "part",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter:dataOffloadToExternalStorage",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.name",
+  "name" : "name",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.resource",
+  "name" : "resource",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part",
+  "name" : "part",
+  "lvl" : 1,
+  "min" : 2,
+  "max" : "*",
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part",
+  "name" : "part:storageProvider",
+  "lvl" : 1,
+  "min" : 1,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part.name",
+  "name" : "name",
+  "lvl" : 2,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part.value[x]",
+  "name" : "value[x]",
+  "lvl" : 2,
+  "min" : 1,
+  "max" : 1,
+  "type" : "code",
+  "desc" : ""
+}, {
+  "path" : "parameter.part.resource",
+  "name" : "resource",
+  "lvl" : 2,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part.part",
+  "name" : "part",
+  "lvl" : 2,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part",
+  "name" : "part:azureContainer",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part.name",
+  "name" : "name",
+  "lvl" : 2,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part.value[x]",
+  "name" : "value[x]",
+  "lvl" : 2,
+  "min" : 1,
+  "max" : 1,
+  "type" : "Reference",
+  "desc" : "\n\n**Allowed references**: AzureContainer"
+}, {
+  "path" : "parameter.part.resource",
+  "name" : "resource",
+  "lvl" : 2,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part.part",
+  "name" : "part",
+  "lvl" : 2,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part",
+  "name" : "part:awsAccount",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part.name",
+  "name" : "name",
+  "lvl" : 2,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part.value[x]",
+  "name" : "value[x]",
+  "lvl" : 2,
+  "min" : 1,
+  "max" : 1,
+  "type" : "Reference",
+  "desc" : "\n\n**Allowed references**: AwsAccount"
+}, {
+  "path" : "parameter.part.resource",
+  "name" : "resource",
+  "lvl" : 2,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part.part",
+  "name" : "part",
+  "lvl" : 2,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part",
+  "name" : "part:awsBucket",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part.name",
+  "name" : "name",
+  "lvl" : 2,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part.value[x]",
+  "name" : "value[x]",
+  "lvl" : 2,
+  "min" : 1,
+  "max" : 1,
+  "type" : "string",
+  "desc" : ""
+}, {
+  "path" : "parameter.part.resource",
+  "name" : "resource",
+  "lvl" : 2,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part.part",
+  "name" : "part",
+  "lvl" : 2,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part",
+  "name" : "part:gcpServiceAccount",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part.name",
+  "name" : "name",
+  "lvl" : 2,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part.value[x]",
+  "name" : "value[x]",
+  "lvl" : 2,
+  "min" : 1,
+  "max" : 1,
+  "type" : "Reference",
+  "desc" : "\n\n**Allowed references**: GcpServiceAccount"
+}, {
+  "path" : "parameter.part.resource",
+  "name" : "resource",
+  "lvl" : 2,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part.part",
+  "name" : "part",
+  "lvl" : 2,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part",
+  "name" : "part:gcpBucket",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part.name",
+  "name" : "name",
+  "lvl" : 2,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part.value[x]",
+  "name" : "value[x]",
+  "lvl" : 2,
+  "min" : 1,
+  "max" : 1,
+  "type" : "string",
+  "desc" : ""
+}, {
+  "path" : "parameter.part.resource",
+  "name" : "resource",
+  "lvl" : 2,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part.part",
+  "name" : "part",
+  "lvl" : 2,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part",
+  "name" : "part:fhirpathToBase64BinaryElement",
+  "lvl" : 1,
+  "min" : 1,
+  "max" : "*",
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part.name",
+  "name" : "name",
+  "lvl" : 2,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part.value[x]",
+  "name" : "value[x]",
+  "lvl" : 2,
+  "min" : 1,
+  "max" : 1,
+  "type" : "string",
+  "desc" : ""
+}, {
+  "path" : "parameter.part.resource",
+  "name" : "resource",
+  "lvl" : 2,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part.part",
+  "name" : "part",
+  "lvl" : 2,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter:resourceType",
+  "lvl" : 0,
+  "min" : 1,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.name",
+  "name" : "name",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 1,
+  "max" : 1,
+  "type" : "string",
+  "desc" : ""
+}, {
+  "path" : "parameter.resource",
+  "name" : "resource",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part",
+  "name" : "part",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter:storageId",
+  "lvl" : 0,
+  "min" : 1,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.name",
+  "name" : "name",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 1,
+  "max" : 1,
+  "type" : "string",
+  "desc" : ""
+}, {
+  "path" : "parameter.resource",
+  "name" : "resource",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part",
+  "name" : "part",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+} ]
+```
+
+
+## ConfigureStorageProfile
+
+Input parameters for the $configure-storage operation.
+
+```fhir-structure
+[ {
+  "path" : "parameter",
+  "name" : "parameter",
+  "lvl" : 0,
+  "min" : 1,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter:history",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.name",
+  "name" : "name",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 1,
+  "max" : 1,
+  "type" : "boolean",
+  "desc" : ""
+}, {
+  "path" : "parameter.resource",
+  "name" : "resource",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part",
+  "name" : "part",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter:historyTableName",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.name",
+  "name" : "name",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 1,
+  "max" : 1,
+  "type" : "string",
+  "desc" : ""
+}, {
+  "path" : "parameter.resource",
+  "name" : "resource",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part",
+  "name" : "part",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter:storageId",
+  "lvl" : 0,
+  "min" : 1,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.name",
+  "name" : "name",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 1,
+  "max" : 1,
+  "type" : "string",
+  "desc" : ""
+}, {
+  "path" : "parameter.resource",
+  "name" : "resource",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part",
+  "name" : "part",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter:storageType",
+  "lvl" : 0,
+  "min" : 1,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.name",
+  "name" : "name",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 1,
+  "max" : 1,
+  "type" : "string",
+  "desc" : ""
+}, {
+  "path" : "parameter.resource",
+  "name" : "resource",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part",
+  "name" : "part",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter:structureDefinition",
+  "lvl" : 0,
+  "min" : 1,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.name",
+  "name" : "name",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 1,
+  "max" : 1,
+  "type" : "canonical",
+  "desc" : ""
+}, {
+  "path" : "parameter.resource",
+  "name" : "resource",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part",
+  "name" : "part",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter:tableName",
+  "lvl" : 0,
+  "min" : 1,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.name",
+  "name" : "name",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 1,
+  "max" : 1,
+  "type" : "string",
+  "desc" : ""
+}, {
+  "path" : "parameter.resource",
+  "name" : "resource",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part",
+  "name" : "part",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+} ]
+```
+
+
+## CreateApiProfile
+
+Input parameters for the $create-api operation.
+
+```fhir-structure
+[ {
+  "path" : "parameter",
+  "name" : "parameter",
+  "lvl" : 0,
+  "min" : 1,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter:apiId",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.name",
+  "name" : "name",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 1,
+  "max" : 1,
+  "type" : "string",
+  "desc" : ""
+}, {
+  "path" : "parameter.resource",
+  "name" : "resource",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part",
+  "name" : "part",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter:apiTemplate",
+  "lvl" : 0,
+  "min" : 1,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.name",
+  "name" : "name",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 1,
+  "max" : 1,
+  "type" : "string",
+  "desc" : ""
+}, {
+  "path" : "parameter.resource",
+  "name" : "resource",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part",
+  "name" : "part",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter:dataOffloadToExternalStorage",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.name",
+  "name" : "name",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.resource",
+  "name" : "resource",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part",
+  "name" : "part",
+  "lvl" : 1,
+  "min" : 2,
+  "max" : "*",
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part",
+  "name" : "part:storageProvider",
+  "lvl" : 1,
+  "min" : 1,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part.name",
+  "name" : "name",
+  "lvl" : 2,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part.value[x]",
+  "name" : "value[x]",
+  "lvl" : 2,
+  "min" : 1,
+  "max" : 1,
+  "type" : "code",
+  "desc" : ""
+}, {
+  "path" : "parameter.part.resource",
+  "name" : "resource",
+  "lvl" : 2,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part.part",
+  "name" : "part",
+  "lvl" : 2,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part",
+  "name" : "part:azureContainer",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part.name",
+  "name" : "name",
+  "lvl" : 2,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part.value[x]",
+  "name" : "value[x]",
+  "lvl" : 2,
+  "min" : 1,
+  "max" : 1,
+  "type" : "Reference",
+  "desc" : "\n\n**Allowed references**: AzureContainer"
+}, {
+  "path" : "parameter.part.resource",
+  "name" : "resource",
+  "lvl" : 2,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part.part",
+  "name" : "part",
+  "lvl" : 2,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part",
+  "name" : "part:awsAccount",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part.name",
+  "name" : "name",
+  "lvl" : 2,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part.value[x]",
+  "name" : "value[x]",
+  "lvl" : 2,
+  "min" : 1,
+  "max" : 1,
+  "type" : "Reference",
+  "desc" : "\n\n**Allowed references**: AwsAccount"
+}, {
+  "path" : "parameter.part.resource",
+  "name" : "resource",
+  "lvl" : 2,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part.part",
+  "name" : "part",
+  "lvl" : 2,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part",
+  "name" : "part:awsBucket",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part.name",
+  "name" : "name",
+  "lvl" : 2,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part.value[x]",
+  "name" : "value[x]",
+  "lvl" : 2,
+  "min" : 1,
+  "max" : 1,
+  "type" : "string",
+  "desc" : ""
+}, {
+  "path" : "parameter.part.resource",
+  "name" : "resource",
+  "lvl" : 2,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part.part",
+  "name" : "part",
+  "lvl" : 2,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part",
+  "name" : "part:gcpServiceAccount",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part.name",
+  "name" : "name",
+  "lvl" : 2,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part.value[x]",
+  "name" : "value[x]",
+  "lvl" : 2,
+  "min" : 1,
+  "max" : 1,
+  "type" : "Reference",
+  "desc" : "\n\n**Allowed references**: GcpServiceAccount"
+}, {
+  "path" : "parameter.part.resource",
+  "name" : "resource",
+  "lvl" : 2,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part.part",
+  "name" : "part",
+  "lvl" : 2,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part",
+  "name" : "part:gcpBucket",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part.name",
+  "name" : "name",
+  "lvl" : 2,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part.value[x]",
+  "name" : "value[x]",
+  "lvl" : 2,
+  "min" : 1,
+  "max" : 1,
+  "type" : "string",
+  "desc" : ""
+}, {
+  "path" : "parameter.part.resource",
+  "name" : "resource",
+  "lvl" : 2,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part.part",
+  "name" : "part",
+  "lvl" : 2,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part",
+  "name" : "part:fhirpathToBase64BinaryElement",
+  "lvl" : 1,
+  "min" : 1,
+  "max" : "*",
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part.name",
+  "name" : "name",
+  "lvl" : 2,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part.value[x]",
+  "name" : "value[x]",
+  "lvl" : 2,
+  "min" : 1,
+  "max" : 1,
+  "type" : "string",
+  "desc" : ""
+}, {
+  "path" : "parameter.part.resource",
+  "name" : "resource",
+  "lvl" : 2,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part.part",
+  "name" : "part",
+  "lvl" : 2,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter:ifNoneExist",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.name",
+  "name" : "name",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 1,
+  "max" : 1,
+  "type" : "boolean",
+  "desc" : ""
+}, {
+  "path" : "parameter.resource",
+  "name" : "resource",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part",
+  "name" : "part",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter:resourceType",
+  "lvl" : 0,
+  "min" : 1,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.name",
+  "name" : "name",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 1,
+  "max" : 1,
+  "type" : "string",
+  "desc" : ""
+}, {
+  "path" : "parameter.resource",
+  "name" : "resource",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part",
+  "name" : "part",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter:storageId",
+  "lvl" : 0,
+  "min" : 1,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.name",
+  "name" : "name",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 1,
+  "max" : 1,
+  "type" : "string",
+  "desc" : ""
+}, {
+  "path" : "parameter.resource",
+  "name" : "resource",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part",
+  "name" : "part",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+} ]
+```
+
+
+## CreateStorageProfile
+
+Input parameters for the $create-storage operation.
+
+```fhir-structure
+[ {
+  "path" : "parameter",
+  "name" : "parameter",
+  "lvl" : 0,
+  "min" : 1,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter:history",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.name",
+  "name" : "name",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 1,
+  "max" : 1,
+  "type" : "boolean",
+  "desc" : ""
+}, {
+  "path" : "parameter.resource",
+  "name" : "resource",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part",
+  "name" : "part",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter:historyTableName",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.name",
+  "name" : "name",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 1,
+  "max" : 1,
+  "type" : "string",
+  "desc" : ""
+}, {
+  "path" : "parameter.resource",
+  "name" : "resource",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part",
+  "name" : "part",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter:ifNoneExist",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.name",
+  "name" : "name",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 1,
+  "max" : 1,
+  "type" : "boolean",
+  "desc" : ""
+}, {
+  "path" : "parameter.resource",
+  "name" : "resource",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part",
+  "name" : "part",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter:storageId",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.name",
+  "name" : "name",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 1,
+  "max" : 1,
+  "type" : "string",
+  "desc" : ""
+}, {
+  "path" : "parameter.resource",
+  "name" : "resource",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part",
+  "name" : "part",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter:storageType",
+  "lvl" : 0,
+  "min" : 1,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.name",
+  "name" : "name",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 1,
+  "max" : 1,
+  "type" : "string",
+  "desc" : ""
+}, {
+  "path" : "parameter.resource",
+  "name" : "resource",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part",
+  "name" : "part",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter:structureDefinition",
+  "lvl" : 0,
+  "min" : 1,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.name",
+  "name" : "name",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 1,
+  "max" : 1,
+  "type" : "canonical",
+  "desc" : ""
+}, {
+  "path" : "parameter.resource",
+  "name" : "resource",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part",
+  "name" : "part",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter:tableName",
+  "lvl" : 0,
+  "min" : 1,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.name",
+  "name" : "name",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 1,
+  "max" : 1,
+  "type" : "string",
+  "desc" : ""
+}, {
+  "path" : "parameter.resource",
+  "name" : "resource",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part",
+  "name" : "part",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+} ]
+```
+
+
 ## CustomAWSSNSAtLeastOnceProfile
 
 Custom AWS SNS at-least-once delivery profile with bundle enrichment support.
@@ -9241,6 +10683,120 @@ Data Lakehouse at-least-once delivery profile for AidboxTopicDestination. Defaul
 ```
 
 
+## DeleteApiProfile
+
+Input parameters for the $delete-api operation.
+
+```fhir-structure
+[ {
+  "path" : "parameter",
+  "name" : "parameter",
+  "lvl" : 0,
+  "min" : 1,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter:apiId",
+  "lvl" : 0,
+  "min" : 1,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.name",
+  "name" : "name",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 1,
+  "max" : 1,
+  "type" : "string",
+  "desc" : ""
+}, {
+  "path" : "parameter.resource",
+  "name" : "resource",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part",
+  "name" : "part",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+} ]
+```
+
+
+## DeleteStorageProfile
+
+Input parameters for the $delete-storage operation.
+
+```fhir-structure
+[ {
+  "path" : "parameter",
+  "name" : "parameter",
+  "lvl" : 0,
+  "min" : 1,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter:storageId",
+  "lvl" : 0,
+  "min" : 1,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.name",
+  "name" : "name",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 1,
+  "max" : 1,
+  "type" : "string",
+  "desc" : ""
+}, {
+  "path" : "parameter.resource",
+  "name" : "resource",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part",
+  "name" : "part",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+} ]
+```
+
+
 ## DisabledIndex
 
 PostgreSQL index that has been disabled in Aidbox.
@@ -9827,47 +11383,6 @@ Status tracking resource for flat file imports.
   "max" : 1,
   "type" : "string",
   "desc" : "Current status of the import process. \n\n**Allowed values**: `in-progress` | `done` | `fail`"
-} ]
-```
-
-
-## FtrConfig
-
-FHIR Terminology Repository configuration resource.
-
-```fhir-structure
-[ {
-  "path" : "module",
-  "name" : "module",
-  "lvl" : 0,
-  "min" : 0,
-  "max" : 1,
-  "type" : "string",
-  "desc" : "Module that this configuration belongs to."
-}, {
-  "path" : "package-name",
-  "name" : "package-name",
-  "lvl" : 0,
-  "min" : 0,
-  "max" : 1,
-  "type" : "string",
-  "desc" : "Name of the FHIR terminology package."
-}, {
-  "path" : "tag",
-  "name" : "tag",
-  "lvl" : 0,
-  "min" : 0,
-  "max" : 1,
-  "type" : "string",
-  "desc" : "Tag for terminology resources."
-}, {
-  "path" : "tag-index",
-  "name" : "tag-index",
-  "lvl" : 0,
-  "min" : 0,
-  "max" : 1,
-  "type" : "",
-  "desc" : "Index of tags and their associations."
 } ]
 ```
 
@@ -11062,6 +12577,46 @@ Kafka at-least-once mock delivery profile for AidboxTopicDestination.
   "desc" : ""
 }, {
   "path" : "parameter",
+  "name" : "parameter:keyByResourceId",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.name",
+  "name" : "name",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 1,
+  "max" : 1,
+  "type" : "boolean",
+  "desc" : ""
+}, {
+  "path" : "parameter.resource",
+  "name" : "resource",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part",
+  "name" : "part",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter",
   "name" : "parameter:maxBlockMs",
   "lvl" : 0,
   "min" : 0,
@@ -11588,6 +13143,46 @@ Kafka at-least-once delivery profile for AidboxTopicDestination.
   "min" : 1,
   "max" : 1,
   "type" : "string",
+  "desc" : ""
+}, {
+  "path" : "parameter.resource",
+  "name" : "resource",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part",
+  "name" : "part",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter:keyByResourceId",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.name",
+  "name" : "name",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 1,
+  "max" : 1,
+  "type" : "boolean",
   "desc" : ""
 }, {
   "path" : "parameter.resource",
@@ -12232,6 +13827,46 @@ Kafka best-effort mock delivery profile for AidboxTopicDestination.
   "desc" : ""
 }, {
   "path" : "parameter",
+  "name" : "parameter:keyByResourceId",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.name",
+  "name" : "name",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 1,
+  "max" : 1,
+  "type" : "boolean",
+  "desc" : ""
+}, {
+  "path" : "parameter.resource",
+  "name" : "resource",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part",
+  "name" : "part",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter",
   "name" : "parameter:maxBlockMs",
   "lvl" : 0,
   "min" : 0,
@@ -12758,6 +14393,46 @@ Kafka best-effort delivery profile for AidboxTopicDestination.
   "min" : 1,
   "max" : 1,
   "type" : "string",
+  "desc" : ""
+}, {
+  "path" : "parameter.resource",
+  "name" : "resource",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part",
+  "name" : "part",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter:keyByResourceId",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.name",
+  "name" : "name",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 1,
+  "max" : 1,
+  "type" : "boolean",
   "desc" : ""
 }, {
   "path" : "parameter.resource",
@@ -14037,7 +15712,7 @@ Notebook resource for interactive documentation and code execution.
   "min" : 1,
   "max" : 1,
   "type" : "string",
-  "desc" : "Type of cell content. \n\n**Allowed values**: `rpc` | `rest` | `empty` | `markdown` | `sql` | `view-definition` | `sql-query`"
+  "desc" : "Type of cell content. \n\n**Allowed values**: `rpc` | `rest` | `empty` | `markdown` | `sql` | `view-definition` | `sql-query` | `sql-view`"
 }, {
   "path" : "cells.nb-title",
   "name" : "nb-title",
@@ -14377,6 +16052,14 @@ Custom operation definition resource for Aidbox.
   "max" : 1,
   "type" : "Object",
   "desc" : "Parameters for route matching."
+}, {
+  "path" : "scope",
+  "name" : "scope",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : "*",
+  "type" : "code",
+  "desc" : "Custom scopes that authorize access to this operation."
 }, {
   "path" : "transform",
   "name" : "transform",
@@ -14757,7 +16440,7 @@ versioning.
   "min" : 0,
   "max" : 1,
   "type" : "",
-  "desc" : "depends-on for ViewDefinition references"
+  "desc" : "depends-on for ViewDefinition or SQLView references"
 }, {
   "path" : "relatedArtifact.label",
   "name" : "label",
@@ -14772,8 +16455,8 @@ versioning.
   "lvl" : 1,
   "min" : 1,
   "max" : 1,
-  "type" : "",
-  "desc" : "Canonical URL of ViewDefinition"
+  "type" : "canonical",
+  "desc" : "Canonical URL of a ViewDefinition or SQLView"
 }, {
   "path" : "type",
   "name" : "type",
@@ -15055,6 +16738,98 @@ Parameters profile for $sqlquery-run at the system and type levels. Exactly one 
   "min" : 1,
   "max" : 1,
   "type" : "string",
+  "desc" : ""
+} ]
+```
+
+
+## SQLView
+
+The SQLView profile represents a reusable, named SQL query that other queries
+reference as a virtual table source, analogous to a SQL view. It bundles the
+SQL and its dependencies for sharing and versioning. Unlike SQLQuery, an
+SQLView cannot declare parameters.
+
+```fhir-structure
+[ {
+  "path" : "content",
+  "name" : "content",
+  "lvl" : 0,
+  "min" : 1,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "content.extension",
+  "name" : "extension:sqlText",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "Extension",
+  "desc" : "Plain-text SQL for readability"
+}, {
+  "path" : "content.contentType",
+  "name" : "contentType",
+  "lvl" : 1,
+  "min" : 1,
+  "max" : 1,
+  "type" : "",
+  "desc" : "application/sql or application/sql;dialect=..."
+}, {
+  "path" : "content.data",
+  "name" : "data",
+  "lvl" : 1,
+  "min" : 1,
+  "max" : 1,
+  "type" : "",
+  "desc" : "SQL view (base64-encoded)"
+}, {
+  "path" : "parameter",
+  "name" : "parameter",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : "Not permitted (views cannot be parameterised)"
+}, {
+  "path" : "relatedArtifact",
+  "name" : "relatedArtifact",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "relatedArtifact.type",
+  "name" : "type",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : "depends-on for ViewDefinition or SQLView references"
+}, {
+  "path" : "relatedArtifact.label",
+  "name" : "label",
+  "lvl" : 1,
+  "min" : 1,
+  "max" : 1,
+  "type" : "",
+  "desc" : "Table name used in SQL view"
+}, {
+  "path" : "relatedArtifact.resource",
+  "name" : "resource",
+  "lvl" : 1,
+  "min" : 1,
+  "max" : 1,
+  "type" : "canonical",
+  "desc" : "Canonical URL of a ViewDefinition or SQLView"
+}, {
+  "path" : "type",
+  "name" : "type",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
   "desc" : ""
 } ]
 ```
@@ -15503,77 +17278,6 @@ Contains the name of a secret defined in the vault config file. Used together wi
   "desc" : ""
 } ]
 ```
-
-
-## SeedImport
-
-Seed data import resource for initial data loading.
-
-```fhir-structure
-[ {
-  "path" : "filename",
-  "name" : "filename",
-  "lvl" : 0,
-  "min" : 0,
-  "max" : 1,
-  "type" : "string",
-  "desc" : "Name of the seed import file."
-}, {
-  "path" : "md5-hash",
-  "name" : "md5-hash",
-  "lvl" : 0,
-  "min" : 0,
-  "max" : 1,
-  "type" : "string",
-  "desc" : "MD5 hash of the import file for integrity verification."
-}, {
-  "path" : "resources",
-  "name" : "resources",
-  "lvl" : 0,
-  "min" : 0,
-  "max" : "*",
-  "type" : "BackboneElement",
-  "desc" : "Resources to be imported."
-}, {
-  "path" : "resources.resourceType",
-  "name" : "resourceType",
-  "lvl" : 1,
-  "min" : 1,
-  "max" : 1,
-  "type" : "string",
-  "desc" : "Type of resource."
-}, {
-  "path" : "resources.id",
-  "name" : "id",
-  "lvl" : 1,
-  "min" : 1,
-  "max" : 1,
-  "type" : "string",
-  "desc" : "Identifier for the resource."
-}, {
-  "path" : "resources.meta",
-  "name" : "meta",
-  "lvl" : 1,
-  "min" : 0,
-  "max" : 1,
-  "type" : "Object",
-  "desc" : "Metadata for the resource."
-}, {
-  "path" : "version",
-  "name" : "version",
-  "lvl" : 0,
-  "min" : 0,
-  "max" : 1,
-  "type" : "string",
-  "desc" : "Version of the seed import format. \n\n**Allowed values**: `v2`"
-} ]
-```
-
-### Search Parameters
-
-| SearchParameter | Type | Expression | Description |
-|---|---|---|---|
-| md5-hash | token | ``md5-hash`` | Search SeedImport by md5 hash |
 
 
 ## Session
