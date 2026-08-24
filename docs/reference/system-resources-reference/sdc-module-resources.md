@@ -245,6 +245,22 @@ Theme styling for SDC questionnaire forms including colors, fonts, and component
   "type" : "Object",
   "desc" : ""
 }, {
+  "path" : "button.next-text",
+  "name" : "next-text",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "string",
+  "desc" : "Text for Continue button (NHS design system)"
+}, {
+  "path" : "button.review-text",
+  "name" : "review-text",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "string",
+  "desc" : "Text for Continue button on the last question, which opens the review page (NHS design system)"
+}, {
   "path" : "button.accent-color",
   "name" : "accent-color",
   "lvl" : 1,
@@ -1371,6 +1387,262 @@ SMART on FHIR connection settings for external EHR integrations used by SDC.
   "desc" : "SMART scopes requested/expected for this connection"
 } ]
 ```
+
+
+## SDCVoiceAgent
+
+A voice agent that conducts a spoken interview over the phone. Binds an instruction prompt to the questionnaires it can administer, so a Task focused on one of those questionnaires can find its agent without referencing voice at all. Speech and language models are optional overrides on top of the deployment defaults.
+
+```fhir-structure
+[ {
+  "path" : "context",
+  "name" : "context",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : "*",
+  "type" : "BackboneElement",
+  "desc" : "Resources this agent needs to hold the conversation. Declared here, supplied to $call, and validated against this list before the call is placed — the same contract as sdc-questionnaire-launchContext."
+}, {
+  "path" : "context.name",
+  "name" : "name",
+  "lvl" : 1,
+  "min" : 1,
+  "max" : 1,
+  "type" : "code",
+  "desc" : "What this slot is called when passed to $call and when rendered into the prompt, e.g. patient, appointment, referrer. Distinguishes two slots of the same resource type."
+}, {
+  "path" : "context.type",
+  "name" : "type",
+  "lvl" : 1,
+  "min" : 1,
+  "max" : 1,
+  "type" : "code",
+  "desc" : "Resource type accepted in this slot, e.g. Patient, Appointment, Coverage. Any FHIR resource type is allowed."
+}, {
+  "path" : "context.label",
+  "name" : "label",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "string",
+  "desc" : "Human-readable name for the picker in the UI."
+}, {
+  "path" : "description",
+  "name" : "description",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "markdown",
+  "desc" : "What this agent is for."
+}, {
+  "path" : "extractorLlm",
+  "name" : "extractorLlm",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "Reference",
+  "desc" : "Model that turns the finished transcript into answers, as a Device. A separate call from the conversation, so it can be a cheaper or stricter model; falls back to llm. \n\n**Allowed references**: Device"
+}, {
+  "path" : "llm",
+  "name" : "llm",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "Reference",
+  "desc" : "Language model, as a Device. Falls back to the deployment default. \n\n**Allowed references**: Device"
+}, {
+  "path" : "maxAttempts",
+  "name" : "maxAttempts",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "integer",
+  "desc" : "How many times to redial when nobody picks up. Defaults to a single attempt."
+}, {
+  "path" : "maxDurationMinutes",
+  "name" : "maxDurationMinutes",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "integer",
+  "desc" : "Hard cap on a single conversation; the call is hung up when it is reached."
+}, {
+  "path" : "name",
+  "name" : "name",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "string",
+  "desc" : "Machine-readable name."
+}, {
+  "path" : "prompt",
+  "name" : "prompt",
+  "lvl" : 0,
+  "min" : 1,
+  "max" : 1,
+  "type" : "canonical",
+  "desc" : "SDCVoicePrompt lineage url. Version-less: the active revision is resolved when the call is placed."
+}, {
+  "path" : "questionnaire",
+  "name" : "questionnaire",
+  "lvl" : 0,
+  "min" : 1,
+  "max" : "*",
+  "type" : "canonical",
+  "desc" : "Questionnaires this agent administers. Array order is interview order; a Task focused on any of these can be routed here. At least one is required — an agent without a questionnaire has nothing to ask."
+}, {
+  "path" : "retryDelayMinutes",
+  "name" : "retryDelayMinutes",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "integer",
+  "desc" : "Gap between redial attempts, in minutes."
+}, {
+  "path" : "status",
+  "name" : "status",
+  "lvl" : 0,
+  "min" : 1,
+  "max" : 1,
+  "type" : "code",
+  "desc" : "draft | active | retired. Only active agents are selected for calls."
+}, {
+  "path" : "stt",
+  "name" : "stt",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "Reference",
+  "desc" : "Speech-to-text model, as a Device. Falls back to the deployment default. \n\n**Allowed references**: Device"
+}, {
+  "path" : "title",
+  "name" : "title",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "string",
+  "desc" : "Human-readable name, shown when picking an agent."
+}, {
+  "path" : "tts",
+  "name" : "tts",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "Reference",
+  "desc" : "Text-to-speech voice, as a Device. Falls back to the deployment default. \n\n**Allowed references**: Device"
+}, {
+  "path" : "url",
+  "name" : "url",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "uri",
+  "desc" : "Canonical identity of this agent."
+} ]
+```
+
+### Search Parameters
+
+| SearchParameter | Type | Expression | Description |
+|---|---|---|---|
+| questionnaire | uri | `questionnaire` | Find the voice agent that administers a given questionnaire |
+| status | token | `status` | Search SDCVoiceAgent by status |
+
+
+## SDCVoicePrompt
+
+Versioned instruction text for a voice agent. Separate from SDCVoiceAgent so the wording can be revised and rolled back on its own lineage; agents reference the lineage url and the current active version is resolved at call time.
+
+```fhir-structure
+[ {
+  "path" : "date",
+  "name" : "date",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "dateTime",
+  "desc" : "When this revision was authored."
+}, {
+  "path" : "description",
+  "name" : "description",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "markdown",
+  "desc" : "What this prompt is for, and what changed in this revision."
+}, {
+  "path" : "name",
+  "name" : "name",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "string",
+  "desc" : "Machine-readable name."
+}, {
+  "path" : "prompt",
+  "name" : "prompt",
+  "lvl" : 0,
+  "min" : 1,
+  "max" : 1,
+  "type" : "markdown",
+  "desc" : "The instruction text itself, sent as the system message."
+}, {
+  "path" : "publisher",
+  "name" : "publisher",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "string",
+  "desc" : "Who authored this revision."
+}, {
+  "path" : "role",
+  "name" : "role",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "code",
+  "desc" : "Which conversation stage this text drives: interviewer | summarizer | extractor."
+}, {
+  "path" : "status",
+  "name" : "status",
+  "lvl" : 0,
+  "min" : 1,
+  "max" : 1,
+  "type" : "code",
+  "desc" : "draft | active | retired. Only active revisions are picked up by agents."
+}, {
+  "path" : "title",
+  "name" : "title",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "string",
+  "desc" : "Human-readable name."
+}, {
+  "path" : "url",
+  "name" : "url",
+  "lvl" : 0,
+  "min" : 1,
+  "max" : 1,
+  "type" : "uri",
+  "desc" : "Canonical identity of the prompt lineage, stable across versions."
+}, {
+  "path" : "version",
+  "name" : "version",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "string",
+  "desc" : "Business version of this revision, e.g. 1.2.0."
+} ]
+```
+
+### Search Parameters
+
+| SearchParameter | Type | Expression | Description |
+|---|---|---|---|
+| status | token | `status` | Search SDCVoicePrompt by status |
+| url | uri | `url` | Search SDCVoicePrompt by canonical lineage url |
 
 
 ## SDCWorkflow
