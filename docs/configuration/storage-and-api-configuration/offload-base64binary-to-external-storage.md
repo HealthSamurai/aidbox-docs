@@ -25,7 +25,7 @@ graph LR
 
 On create (`POST`) and update (`PUT`), Aidbox finds the configured `base64Binary` elements in the incoming resource. For each element that has a value, Aidbox:
 
-1. Decodes the base64 value and uploads the bytes to the configured storage as a blob named by a random UUID.
+1. Decodes the base64 value and uploads the bytes to the configured storage as a blob named by a random UUID, placed under `blobNamePrefix` when the configuration sets one.
 2. Removes the element value from the resource.
 3. Adds an extension on the element (a primitive extension, in the `_data` form) that records the blob location and the hash of the data.
 
@@ -69,6 +69,7 @@ Pass the `dataOffloadToExternalStorage` parameter to `$create-api` or `$configur
 |---------------------------------|-----------------------------|-------------------------------------|-----------------------------------------------------------------------------|
 | `fhirpathToBase64BinaryElement` | string                      | yes, repeatable                     | Path to a `base64Binary` element to offload. See the expression rules below. |
 | `storageProvider`               | code                        | yes                                 | `azure`, `aws`, or `gcp`. See [Storage providers](#storage-providers).        |
+| `blobNamePrefix`                | string                      | no                                  | Common path for the blob names, such as `env-1/tenant-a`. Aidbox names each blob `{prefix}/{uuid}`. |
 | `azureContainer`                | Reference(`AzureContainer`) | when `storageProvider` is `azure`   | Container that receives the blobs.                                           |
 | `awsAccount`                    | Reference(`AwsAccount`)     | when `storageProvider` is `aws`     | Account with the credentials and region for S3 access.                       |
 | `awsBucket`                     | string                      | when `storageProvider` is `aws`     | Bucket that receives the objects.                                            |
@@ -155,7 +156,8 @@ The examples below configure Azure. For AWS, the offload parameter carries `awsA
     { "name": "fhirpathToBase64BinaryElement", "valueString": "data" },
     { "name": "storageProvider", "valueCode": "aws" },
     { "name": "awsAccount", "valueReference": { "reference": "AwsAccount/my-aws-account" } },
-    { "name": "awsBucket", "valueString": "my-bucket" }
+    { "name": "awsBucket", "valueString": "my-bucket" },
+    { "name": "blobNamePrefix", "valueString": "env-1/tenant-a" }
   ]
 }
 ```
