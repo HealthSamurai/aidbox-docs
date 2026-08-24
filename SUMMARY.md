@@ -252,6 +252,7 @@
     * [Example: SMART app launch using Smartbox and Keycloak](access-control/authorization/smart-on-fhir/example-smart-app-launch-using-smartbox-and-keycloak.md)
   * [Scoped API](access-control/authorization/scoped-api/README.md)
     * [Organization-based hierarchical access control](access-control/authorization/scoped-api/organization-based-hierarchical-access-control.md)
+    * [Organization purge](access-control/authorization/scoped-api/organization-purge.md)
     * [Compartments API](access-control/authorization/scoped-api/compartments-api.md)
     * [Patient data access API](access-control/authorization/scoped-api/patient-data-access-api.md)
   * [Label-based Access Control](access-control/authorization/label-based-access-control.md)

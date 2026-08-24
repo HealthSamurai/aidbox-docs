@@ -679,3 +679,7 @@ GET /Organization/org-b/fhir/Practitioner?_sort=id
 {% content-ref url="../../../tutorials/security-access-control-tutorials/how-to-enable-hierarchical-access-control.md" %}
 [how-to-enable-hierarchical-access-control.md](../../../tutorials/security-access-control-tutorials/how-to-enable-hierarchical-access-control.md)
 {% endcontent-ref %}
+
+{% content-ref url="organization-purge.md" %}
+[Organization purge](organization-purge.md)
+{% endcontent-ref %}
