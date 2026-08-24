@@ -214,6 +214,16 @@ Becomes required if FHIRSchema is enabled.
 
 <details><summary>Details</summary><table data-header-hidden="true"><thead><tr><th width="200"></th><th></th></tr></thead><tbody><tr><td>ID</td><td><code>fhir.compliant-mode</code></td></tr><tr><td>Type</td><td>Bool</td></tr><tr><td>Recommended value</td><td><code>true</code></td></tr><tr><td>Default value</td><td><code>false</code></td></tr><tr><td>Environment variable</td><td><code>BOX_FHIR_COMPLIANT_MODE</code></td></tr><tr><td>Deprecated environment variables</td><td><code>AIDBOX_FHIR_COMPLIANT_MODE</code> , <br /><code>BOX_COMPLIANT__MODE__ENABLED?</code> , <br /><code>AIDBOX_COMPLIANCE</code></td></tr><tr><td>Sensitive</td><td><code>false</code> — value will be visible in plaintext in Admin UI</td></tr><tr><td>Set via</td><td>Admin UI → Settings<br />Environment variables</td></tr><tr><td>Hot reload</td><td><code>true</code> — setting can be changed at runtime</td></tr></tbody></table></details>
 
+#### Enable Location header compliant mode<a href="#fhir.location-header-compliant-mode" id="fhir.location-header-compliant-mode"></a>
+
+```yaml
+BOX_FHIR_LOCATION_HEADER_COMPLIANT_MODE: true
+```
+
+When enabled, `Location` header will include base-url: `Location: [base]/[type]/[id]/_history/[vid]`
+
+<details><summary>Details</summary><table data-header-hidden="true"><thead><tr><th width="200"></th><th></th></tr></thead><tbody><tr><td>ID</td><td><code>fhir.location-header-compliant-mode</code></td></tr><tr><td>Type</td><td>Bool</td></tr><tr><td>Default value</td><td><code>true</code></td></tr><tr><td>Environment variable</td><td><code>BOX_FHIR_LOCATION_HEADER_COMPLIANT_MODE</code></td></tr><tr><td>Available from</td><td><code>2608</code></td></tr><tr><td>Sensitive</td><td><code>false</code> — value will be visible in plaintext in Admin UI</td></tr><tr><td>Set via</td><td>Admin UI → Settings<br />Environment variables</td></tr><tr><td>Hot reload</td><td><code>true</code> — setting can be changed at runtime</td></tr></tbody></table></details>
+
 #### Return 404 on deleting non-existent resources<a href="#fhir.return-404-on-empty-delete" id="fhir.return-404-on-empty-delete"></a>
 
 ```yaml
@@ -241,20 +251,6 @@ Sets the maximum (inclusive) isolation level for transactions. Can be overridden
 ### Validation
 
 Validation settings
-
-#### Enable FHIR Schema validation mode<a href="#fhir.validation.fhir-schema-validation" id="fhir.validation.fhir-schema-validation"></a>
-
-```yaml
-BOX_FHIR_SCHEMA_VALIDATION: true
-```
-
-Activates the FHIR Schema validation engine which replaces
-legacy ZEN and Entity/Attribute validation systems. Provides more
-comprehensive structure validation against the FHIR resource schemas,
-ensuring stronger conformance to FHIR specifications and more precise error
-reporting.
-
-<details><summary>Details</summary><table data-header-hidden="true"><thead><tr><th width="200"></th><th></th></tr></thead><tbody><tr><td>ID</td><td><code>fhir.validation.fhir-schema-validation</code></td></tr><tr><td>Type</td><td>Bool</td></tr><tr><td>Recommended value</td><td><code>true</code></td></tr><tr><td>Default value</td><td><code>false</code></td></tr><tr><td>Environment variable</td><td><code>BOX_FHIR_SCHEMA_VALIDATION</code></td></tr><tr><td>Deprecated environment variables</td><td><code>AIDBOX_FHIR_SCHEMA_VALIDATION</code></td></tr><tr><td>Sensitive</td><td><code>false</code> — value will be visible in plaintext in Admin UI</td></tr><tr><td>Set via</td><td>Admin UI → Settings<br />Environment variables</td></tr><tr><td>Hot reload</td><td><code>false</code> — setting requires system restart</td></tr></tbody></table></details>
 
 #### Enforce strict profile resolution<a href="#fhir.validation.strict-profile-resolution" id="fhir.validation.strict-profile-resolution"></a>
 
@@ -288,7 +284,6 @@ BOX_FHIR_BUNDLE_EXECUTION_VALIDATION_MODE: "limited"
 
 Define validation mode for FHIR Bundle execution (after POST on `/fhir` endpoint).
  Doesn't effect CRUD on Bundle resources.
- Doesn't effect if `fhir.validation.fhir-schema-validation` is disabled.
 
 <details><summary>Details</summary><table data-header-hidden="true"><thead><tr><th width="200"></th><th></th></tr></thead><tbody><tr><td>ID</td><td><code>fhir.bundle-execution-validation-mode</code></td></tr><tr><td>Type</td><td>Enum</td></tr><tr><td>Values</td><td><code>legacy</code> — Check only essential to execute bundle structure (default)<br /><code>limited</code> — Separated validation of the bundle structure (before execution) and resources in it (during execution)<br /><code>full</code> — Full bundle validation before execution (may cause performance issues due to double validation of resources</td></tr><tr><td>Recommended value</td><td><code>limited</code></td></tr><tr><td>Default value</td><td><code>legacy</code></td></tr><tr><td>Environment variable</td><td><code>BOX_FHIR_BUNDLE_EXECUTION_VALIDATION_MODE</code></td></tr><tr><td>Available from</td><td><code>2509</code></td></tr><tr><td>Sensitive</td><td><code>false</code> — value will be visible in plaintext in Admin UI</td></tr><tr><td>Set via</td><td>Admin UI → Settings<br />Environment variables</td></tr><tr><td>Hot reload</td><td><code>true</code> — setting can be changed at runtime</td></tr></tbody></table></details>
 
@@ -408,16 +403,6 @@ May require building additional indexes for optimal performance.
 
 <details><summary>Details</summary><table data-header-hidden="true"><thead><tr><th width="200"></th><th></th></tr></thead><tbody><tr><td>ID</td><td><code>fhir.search.chain.subselect</code></td></tr><tr><td>Type</td><td>Bool</td></tr><tr><td>Recommended value</td><td><code>true</code></td></tr><tr><td>Default value</td><td><code>false</code></td></tr><tr><td>Environment variable</td><td><code>BOX_FHIR_SEARCH_CHAIN_SUBSELECT</code></td></tr><tr><td>Deprecated environment variables</td><td><code>BOX_SEARCH_CHAIN_SUBSELECT</code></td></tr><tr><td>Sensitive</td><td><code>false</code> — value will be visible in plaintext in Admin UI</td></tr><tr><td>Set via</td><td>Admin UI → Settings<br />Environment variables</td></tr><tr><td>Hot reload</td><td><code>true</code> — setting can be changed at runtime</td></tr></tbody></table></details>
 
-#### Enable FHIR composite search parameters<a href="#fhir.search.composite-parameters" id="fhir.search.composite-parameters"></a>
-
-```yaml
-BOX_FHIR_SEARCH_COMPOSITE_PARAMETERS: false
-```
-
-Enable support for FHIR composite search parameters.
-
-<details><summary>Details</summary><table data-header-hidden="true"><thead><tr><th width="200"></th><th></th></tr></thead><tbody><tr><td>ID</td><td><code>fhir.search.composite-parameters</code></td></tr><tr><td>Type</td><td>Bool</td></tr><tr><td>Default value</td><td><code>false</code></td></tr><tr><td>Environment variable</td><td><code>BOX_FHIR_SEARCH_COMPOSITE_PARAMETERS</code></td></tr><tr><td>Deprecated environment variables</td><td><code>BOX_SEARCH_COMPOSITE__SEARCH</code></td></tr><tr><td>Sensitive</td><td><code>false</code> — value will be visible in plaintext in Admin UI</td></tr><tr><td>Set via</td><td>Admin UI → Settings<br />Environment variables</td></tr><tr><td>Hot reload</td><td><code>false</code> — setting requires system restart</td></tr></tbody></table></details>
-
 #### Use tstzmultirange for date search<a href="#fhir.search.date-multirange" id="fhir.search.date-multirange"></a>
 
 ```yaml
@@ -515,6 +500,43 @@ jsonknife:
 *using indexes makes performance approximately the same
 
 <details><summary>Details</summary><table data-header-hidden="true"><thead><tr><th width="200"></th><th></th></tr></thead><tbody><tr><td>ID</td><td><code>fhir.search.engine</code></td></tr><tr><td>Type</td><td>Enum</td></tr><tr><td>Values</td><td><code>knife</code> — Legacy engine. Uses custom Postgres module in Aidboxdb and SQL functions fallback in other Postgres instances. Being phased out. Has better performance for dates, number and quantity search parameters. Using indexes makes performance approximately the same<br /><code>jsonpath</code> — <ul><li>JSONpath language is available starting from PostgreSQL 12.</li><li>supported by PostgreSQL without external extensions, can be used with managed PostgreSQL, e.g. Azure PostgreSQL</li><li>better performance for string search parameters and all string-related search (e.g. :text modifier)*</li><li>will be supported as main engine</li></ul></td></tr><tr><td>Default value</td><td><code>knife</code></td></tr><tr><td>Environment variable</td><td><code>BOX_FHIR_SEARCH_ENGINE</code></td></tr><tr><td>Deprecated environment variables</td><td><code>BOX_SEARCH_ENGINE</code></td></tr><tr><td>Sensitive</td><td><code>false</code> — value will be visible in plaintext in Admin UI</td></tr><tr><td>Set via</td><td>Admin UI → Settings<br />Environment variables</td></tr><tr><td>Hot reload</td><td><code>false</code> — setting requires system restart</td></tr></tbody></table></details>
+
+#### Collect search parameter usage statistics<a href="#fhir.search.param-stats.enabled" id="fhir.search.param-stats.enabled"></a>
+
+```yaml
+BOX_FHIR_SEARCH_PARAM_STATS_ENABLED: true
+```
+
+Aidbox records which search parameter combinations are used,
+how often, and how long those searches take,
+and stores the counters in the `aidbox_stat.search_param_stats` table.
+
+These statistics power the search parameter usage view
+and index suggestions.
+
+When disabled, no new samples are recorded and nothing is written
+to the table. Already collected statistics are kept.
+
+<details><summary>Details</summary><table data-header-hidden="true"><thead><tr><th width="200"></th><th></th></tr></thead><tbody><tr><td>ID</td><td><code>fhir.search.param-stats.enabled</code></td></tr><tr><td>Type</td><td>Bool</td></tr><tr><td>Default value</td><td><code>true</code></td></tr><tr><td>Environment variable</td><td><code>BOX_FHIR_SEARCH_PARAM_STATS_ENABLED</code></td></tr><tr><td>Available from</td><td><code>2608</code></td></tr><tr><td>Sensitive</td><td><code>false</code> — value will be visible in plaintext in Admin UI</td></tr><tr><td>Set via</td><td>Admin UI → Settings<br />Environment variables</td></tr><tr><td>Hot reload</td><td><code>true</code> — setting can be changed at runtime</td></tr></tbody></table></details>
+
+#### Search parameter usage statistics flush interval<a href="#fhir.search.param-stats.flush-interval" id="fhir.search.param-stats.flush-interval"></a>
+
+```yaml
+BOX_FHIR_SEARCH_PARAM_STATS_FLUSH_INTERVAL: 60
+```
+
+How often (in seconds) buffered search parameter usage counters
+are written to the database.
+
+Samples are accumulated in memory and flushed on this interval,
+so a shorter interval makes statistics fresher at the cost of more
+writes, and a longer one means more counters are lost if Aidbox
+terminates abnormally.
+
+Allowed values: from 5 to 3600. The default is 60.
+To stop collecting statistics, use the fhir.search.param-stats.enabled setting.
+
+<details><summary>Details</summary><table data-header-hidden="true"><thead><tr><th width="200"></th><th></th></tr></thead><tbody><tr><td>ID</td><td><code>fhir.search.param-stats.flush-interval</code></td></tr><tr><td>Type</td><td>Int</td></tr><tr><td>Default value</td><td><code>60</code></td></tr><tr><td>Environment variable</td><td><code>BOX_FHIR_SEARCH_PARAM_STATS_FLUSH_INTERVAL</code></td></tr><tr><td>Available from</td><td><code>2608</code></td></tr><tr><td>Sensitive</td><td><code>false</code> — value will be visible in plaintext in Admin UI</td></tr><tr><td>Set via</td><td>Admin UI → Settings<br />Environment variables</td></tr><tr><td>Hot reload</td><td><code>true</code> — setting can be changed at runtime</td></tr></tbody></table></details>
 
 #### Enable support for multiple languages in search<a href="#fhir.search.multilingual.enable" id="fhir.search.multilingual.enable"></a>
 
@@ -661,6 +683,23 @@ BOX_FHIR_BULK_STORAGE_AZURE_CONTAINER: "<String>"
 Azure Container resource ID for `$export`
 
 <details><summary>Details</summary><table data-header-hidden="true"><thead><tr><th width="200"></th><th></th></tr></thead><tbody><tr><td>ID</td><td><code>fhir.bulk-storage.azure.container</code></td></tr><tr><td>Type</td><td>String</td></tr><tr><td>Default value</td><td>(no default)</td></tr><tr><td>Environment variable</td><td><code>BOX_FHIR_BULK_STORAGE_AZURE_CONTAINER</code></td></tr><tr><td>Deprecated environment variables</td><td><code>BOX_BULK__STORAGE_AZURE_CONTAINER</code></td></tr><tr><td>Sensitive</td><td><code>false</code> — value will be visible in plaintext in Admin UI</td></tr><tr><td>Set via</td><td>Admin UI → Settings<br />Environment variables</td></tr><tr><td>Hot reload</td><td><code>true</code> — setting can be changed at runtime</td></tr></tbody></table></details>
+
+#### Allow nested elements in $export _elements<a href="#fhir.bulk-data.export.nested-elements" id="fhir.bulk-data.export.nested-elements"></a>
+
+```yaml
+BOX_FHIR_BULK_DATA_EXPORT_NESTED_ELEMENTS: false
+```
+
+By default the FHIR Bulk Data spec only permits root elements in the `_elements`
+parameter of `$export` (e.g. `name`, `Patient.name`).
+
+Turn on this setting to allow nested element paths (e.g. `name.given`,
+`Patient.name.family`, `item.adjudication.amount`). A less specific path subsumes
+more specific ones: requesting `name,name.family` keeps all of `name`.
+
+When disabled, a `$export` request containing a nested `_elements` path is rejected.
+
+<details><summary>Details</summary><table data-header-hidden="true"><thead><tr><th width="200"></th><th></th></tr></thead><tbody><tr><td>ID</td><td><code>fhir.bulk-data.export.nested-elements</code></td></tr><tr><td>Type</td><td>Bool</td></tr><tr><td>Default value</td><td><code>false</code></td></tr><tr><td>Environment variable</td><td><code>BOX_FHIR_BULK_DATA_EXPORT_NESTED_ELEMENTS</code></td></tr><tr><td>Available from</td><td><code>2606</code></td></tr><tr><td>Sensitive</td><td><code>false</code> — value will be visible in plaintext in Admin UI</td></tr><tr><td>Set via</td><td>Admin UI → Settings<br />Environment variables</td></tr><tr><td>Hot reload</td><td><code>true</code> — setting can be changed at runtime</td></tr></tbody></table></details>
 
 ## Security and Access Control
 
@@ -1047,6 +1086,20 @@ If set, the emulator will be used instead of the real Pub/Sub service.
 
 <details><summary>Details</summary><table data-header-hidden="true"><thead><tr><th width="200"></th><th></th></tr></thead><tbody><tr><td>ID</td><td><code>module.subscriptions.pubsub.emulator-url</code></td></tr><tr><td>Type</td><td>String</td></tr><tr><td>Default value</td><td>(no default)</td></tr><tr><td>Environment variable</td><td><code>BOX_MODULE_SUBSCRIPTIONS_PUBSUB_EMULATOR_URL</code></td></tr><tr><td>Deprecated environment variables</td><td><code>BOX_SUBSCRIPTIONS_PUBSUB_EMULATOR__URL</code></td></tr><tr><td>Sensitive</td><td><code>false</code> — value will be visible in plaintext in Admin UI</td></tr><tr><td>Set via</td><td>Admin UI → Settings<br />Environment variables</td></tr><tr><td>Hot reload</td><td><code>false</code> — setting requires system restart</td></tr></tbody></table></details>
 
+### Topic Destinations
+
+Topic-based subscription destinations settings
+
+#### Correlation id header<a href="#module.topics.correlation-id-header" id="module.topics.correlation-id-header"></a>
+
+```yaml
+BOX_MODULE_TOPICS_CORRELATION_ID_HEADER: "x-topic-correlation-id"
+```
+
+HTTP header name whose value is echoed verbatim into topic-based-subscription notifications (AidboxSubscriptionStatus.notificationEvent.correlationId) as an opaque correlation id. Header is optional: when absent from the request, no correlationId is emitted. Defaults to a topic-specific header name (not `x-correlation-id`, which Aidbox already reads for request logging) to avoid silently repurposing an unrelated existing header.
+
+<details><summary>Details</summary><table data-header-hidden="true"><thead><tr><th width="200"></th><th></th></tr></thead><tbody><tr><td>ID</td><td><code>module.topics.correlation-id-header</code></td></tr><tr><td>Type</td><td>String</td></tr><tr><td>Default value</td><td><code>x-topic-correlation-id</code></td></tr><tr><td>Environment variable</td><td><code>BOX_MODULE_TOPICS_CORRELATION_ID_HEADER</code></td></tr><tr><td>Available from</td><td><code>2506</code></td></tr><tr><td>Sensitive</td><td><code>false</code> — value will be visible in plaintext in Admin UI</td></tr><tr><td>Set via</td><td>Admin UI → Settings<br />Environment variables</td></tr><tr><td>Hot reload</td><td><code>true</code> — setting can be changed at runtime</td></tr></tbody></table></details>
+
 ### Notebooks
 
 Aidbox notebooks settings
@@ -1369,20 +1422,6 @@ Link to access session logs
 
 <details><summary>Details</summary><table data-header-hidden="true"><thead><tr><th width="200"></th><th></th></tr></thead><tbody><tr><td>ID</td><td><code>module.smartbox.session-logs-link</code></td></tr><tr><td>Type</td><td>String</td></tr><tr><td>Default value</td><td>(no default)</td></tr><tr><td>Environment variable</td><td><code>BOX_MODULE_SMARTBOX_SESSION_LOGS_LINK</code></td></tr><tr><td>Deprecated environment variables</td><td><code>BOX_SMARTBOX_SESSION__LOGS__LINK</code></td></tr><tr><td>Sensitive</td><td><code>false</code> — value will be visible in plaintext in Admin UI</td></tr><tr><td>Set via</td><td>Admin UI → Settings<br />Environment variables</td></tr><tr><td>Hot reload</td><td><code>true</code> — setting can be changed at runtime</td></tr></tbody></table></details>
 
-### MDM
-
-MDM settings
-
-#### Default MDM model<a href="#module.mdm.default-patient-model" id="module.mdm.default-patient-model"></a>
-
-```yaml
-BOX_MODULE_DEFAULT_PATIENT_MODEL: "<String>"
-```
-
-The default MDM model used for `$match` operation. Will be used if no model is specified with the `model` query parameter.
-
-<details><summary>Details</summary><table data-header-hidden="true"><thead><tr><th width="200"></th><th></th></tr></thead><tbody><tr><td>ID</td><td><code>module.mdm.default-patient-model</code></td></tr><tr><td>Type</td><td>String</td></tr><tr><td>Default value</td><td>(no default)</td></tr><tr><td>Environment variable</td><td><code>BOX_MODULE_DEFAULT_PATIENT_MODEL</code></td></tr><tr><td>Deprecated environment variables</td><td><code>BOX_MDM_DEFAULT_PATIENT_MODEL</code></td></tr><tr><td>Sensitive</td><td><code>false</code> — value will be visible in plaintext in Admin UI</td></tr><tr><td>Set via</td><td>Admin UI → Settings<br />Environment variables</td></tr><tr><td>Hot reload</td><td><code>true</code> — setting can be changed at runtime</td></tr></tbody></table></details>
-
 ### MCP
 
 MCP settings
@@ -1421,6 +1460,76 @@ API key for OpenAI service
 
 <details><summary>Details</summary><table data-header-hidden="true"><thead><tr><th width="200"></th><th></th></tr></thead><tbody><tr><td>ID</td><td><code>module.sdc.openai-api-key</code></td></tr><tr><td>Type</td><td>String</td></tr><tr><td>Default value</td><td>(no default)</td></tr><tr><td>Environment variable</td><td><code>BOX_MODULE_SDC_OPENAI_API_KEY</code></td></tr><tr><td>Deprecated environment variables</td><td><code>BOX_SDC_OPENAI_API_KEY</code></td></tr><tr><td>Sensitive</td><td><code>true</code> — value will be masked in Admin UI</td></tr><tr><td>Set via</td><td>Environment variables</td></tr><tr><td>Hot reload</td><td><code>true</code> — setting can be changed at runtime</td></tr></tbody></table></details>
 
+#### OpenAI base URL<a href="#module.sdc.openai-base-url" id="module.sdc.openai-base-url"></a>
+
+```yaml
+BOX_MODULE_SDC_OPENAI_BASE_URL: "https://api.openai.com/v1"
+```
+
+Where OpenAI-compatible requests go; point it at a gateway or proxy to use one
+
+<details><summary>Details</summary><table data-header-hidden="true"><thead><tr><th width="200"></th><th></th></tr></thead><tbody><tr><td>ID</td><td><code>module.sdc.openai-base-url</code></td></tr><tr><td>Type</td><td>String</td></tr><tr><td>Default value</td><td><code>https://api.openai.com/v1</code></td></tr><tr><td>Environment variable</td><td><code>BOX_MODULE_SDC_OPENAI_BASE_URL</code></td></tr><tr><td>Deprecated environment variables</td><td><code>BOX_SDC_OPENAI_BASE_URL</code></td></tr><tr><td>Available from</td><td><code>2506</code></td></tr><tr><td>Sensitive</td><td><code>false</code> — value will be visible in plaintext in Admin UI</td></tr><tr><td>Set via</td><td>Environment variables</td></tr><tr><td>Hot reload</td><td><code>true</code> — setting can be changed at runtime</td></tr></tbody></table></details>
+
+#### ElevenLabs API key<a href="#module.sdc.elevenlabs-api-key" id="module.sdc.elevenlabs-api-key"></a>
+
+```yaml
+BOX_MODULE_SDC_ELEVENLABS_API_KEY: "<String>"
+```
+
+API key for ElevenLabs text-to-speech voices
+
+<details><summary>Details</summary><table data-header-hidden="true"><thead><tr><th width="200"></th><th></th></tr></thead><tbody><tr><td>ID</td><td><code>module.sdc.elevenlabs-api-key</code></td></tr><tr><td>Type</td><td>String</td></tr><tr><td>Default value</td><td>(no default)</td></tr><tr><td>Environment variable</td><td><code>BOX_MODULE_SDC_ELEVENLABS_API_KEY</code></td></tr><tr><td>Deprecated environment variables</td><td><code>BOX_SDC_ELEVENLABS_API_KEY</code></td></tr><tr><td>Available from</td><td><code>2506</code></td></tr><tr><td>Sensitive</td><td><code>true</code> — value will be masked in Admin UI</td></tr><tr><td>Set via</td><td>Environment variables</td></tr><tr><td>Hot reload</td><td><code>true</code> — setting can be changed at runtime</td></tr></tbody></table></details>
+
+#### Deepgram API key<a href="#module.sdc.deepgram-api-key" id="module.sdc.deepgram-api-key"></a>
+
+```yaml
+BOX_MODULE_SDC_DEEPGRAM_API_KEY: "<String>"
+```
+
+API key for Deepgram Flux STT and Aura TTS
+
+<details><summary>Details</summary><table data-header-hidden="true"><thead><tr><th width="200"></th><th></th></tr></thead><tbody><tr><td>ID</td><td><code>module.sdc.deepgram-api-key</code></td></tr><tr><td>Type</td><td>String</td></tr><tr><td>Default value</td><td>(no default)</td></tr><tr><td>Environment variable</td><td><code>BOX_MODULE_SDC_DEEPGRAM_API_KEY</code></td></tr><tr><td>Deprecated environment variables</td><td><code>BOX_SDC_DEEPGRAM_API_KEY</code></td></tr><tr><td>Available from</td><td><code>2506</code></td></tr><tr><td>Sensitive</td><td><code>true</code> — value will be masked in Admin UI</td></tr><tr><td>Set via</td><td>Environment variables</td></tr><tr><td>Hot reload</td><td><code>true</code> — setting can be changed at runtime</td></tr></tbody></table></details>
+
+#### Cartesia API key<a href="#module.sdc.cartesia-api-key" id="module.sdc.cartesia-api-key"></a>
+
+```yaml
+BOX_MODULE_SDC_CARTESIA_API_KEY: "<String>"
+```
+
+API key for Cartesia Ink STT and Sonic TTS
+
+<details><summary>Details</summary><table data-header-hidden="true"><thead><tr><th width="200"></th><th></th></tr></thead><tbody><tr><td>ID</td><td><code>module.sdc.cartesia-api-key</code></td></tr><tr><td>Type</td><td>String</td></tr><tr><td>Default value</td><td>(no default)</td></tr><tr><td>Environment variable</td><td><code>BOX_MODULE_SDC_CARTESIA_API_KEY</code></td></tr><tr><td>Deprecated environment variables</td><td><code>BOX_SDC_CARTESIA_API_KEY</code></td></tr><tr><td>Available from</td><td><code>2506</code></td></tr><tr><td>Sensitive</td><td><code>true</code> — value will be masked in Admin UI</td></tr><tr><td>Set via</td><td>Environment variables</td></tr><tr><td>Hot reload</td><td><code>true</code> — setting can be changed at runtime</td></tr></tbody></table></details>
+
+#### Twilio account SID<a href="#module.sdc.twilio-account-sid" id="module.sdc.twilio-account-sid"></a>
+
+```yaml
+BOX_MODULE_SDC_TWILIO_ACCOUNT_SID: "<String>"
+```
+
+Twilio account SID for outbound voice calls
+
+<details><summary>Details</summary><table data-header-hidden="true"><thead><tr><th width="200"></th><th></th></tr></thead><tbody><tr><td>ID</td><td><code>module.sdc.twilio-account-sid</code></td></tr><tr><td>Type</td><td>String</td></tr><tr><td>Default value</td><td>(no default)</td></tr><tr><td>Environment variable</td><td><code>BOX_MODULE_SDC_TWILIO_ACCOUNT_SID</code></td></tr><tr><td>Deprecated environment variables</td><td><code>BOX_SDC_TWILIO_ACCOUNT_SID</code></td></tr><tr><td>Available from</td><td><code>2506</code></td></tr><tr><td>Sensitive</td><td><code>false</code> — value will be visible in plaintext in Admin UI</td></tr><tr><td>Set via</td><td>Environment variables</td></tr><tr><td>Hot reload</td><td><code>true</code> — setting can be changed at runtime</td></tr></tbody></table></details>
+
+#### Twilio auth token<a href="#module.sdc.twilio-auth-token" id="module.sdc.twilio-auth-token"></a>
+
+```yaml
+BOX_MODULE_SDC_TWILIO_AUTH_TOKEN: "<String>"
+```
+
+Twilio auth token for outbound voice calls
+
+<details><summary>Details</summary><table data-header-hidden="true"><thead><tr><th width="200"></th><th></th></tr></thead><tbody><tr><td>ID</td><td><code>module.sdc.twilio-auth-token</code></td></tr><tr><td>Type</td><td>String</td></tr><tr><td>Default value</td><td>(no default)</td></tr><tr><td>Environment variable</td><td><code>BOX_MODULE_SDC_TWILIO_AUTH_TOKEN</code></td></tr><tr><td>Deprecated environment variables</td><td><code>BOX_SDC_TWILIO_AUTH_TOKEN</code></td></tr><tr><td>Available from</td><td><code>2506</code></td></tr><tr><td>Sensitive</td><td><code>true</code> — value will be masked in Admin UI</td></tr><tr><td>Set via</td><td>Environment variables</td></tr><tr><td>Hot reload</td><td><code>true</code> — setting can be changed at runtime</td></tr></tbody></table></details>
+
+#### Twilio from number<a href="#module.sdc.twilio-from-number" id="module.sdc.twilio-from-number"></a>
+
+```yaml
+BOX_MODULE_SDC_TWILIO_FROM_NUMBER: "<String>"
+```
+
+Caller ID in E.164 format, e.g. +15551234567
+
+<details><summary>Details</summary><table data-header-hidden="true"><thead><tr><th width="200"></th><th></th></tr></thead><tbody><tr><td>ID</td><td><code>module.sdc.twilio-from-number</code></td></tr><tr><td>Type</td><td>String</td></tr><tr><td>Default value</td><td>(no default)</td></tr><tr><td>Environment variable</td><td><code>BOX_MODULE_SDC_TWILIO_FROM_NUMBER</code></td></tr><tr><td>Deprecated environment variables</td><td><code>BOX_SDC_TWILIO_FROM_NUMBER</code></td></tr><tr><td>Available from</td><td><code>2506</code></td></tr><tr><td>Sensitive</td><td><code>false</code> — value will be visible in plaintext in Admin UI</td></tr><tr><td>Set via</td><td>Environment variables</td></tr><tr><td>Hot reload</td><td><code>true</code> — setting can be changed at runtime</td></tr></tbody></table></details>
+
 #### Gemini API key<a href="#modules.sdc.gemini-api-key" id="modules.sdc.gemini-api-key"></a>
 
 ```yaml
@@ -1429,7 +1538,7 @@ BOX_SDC_GEMINI_API_KEY: "<String>"
 
 API key for Gemini service
 
-<details><summary>Details</summary><table data-header-hidden="true"><thead><tr><th width="200"></th><th></th></tr></thead><tbody><tr><td>ID</td><td><code>modules.sdc.gemini-api-key</code></td></tr><tr><td>Type</td><td>String</td></tr><tr><td>Default value</td><td>(no default)</td></tr><tr><td>Environment variable</td><td><code>BOX_SDC_GEMINI_API_KEY</code></td></tr><tr><td>Sensitive</td><td><code>true</code> — value will be masked in Admin UI</td></tr><tr><td>Set via</td><td>Environment variables</td></tr><tr><td>Hot reload</td><td><code>true</code> — setting can be changed at runtime</td></tr></tbody></table></details>
+<details><summary>Details</summary><table data-header-hidden="true"><thead><tr><th width="200"></th><th></th></tr></thead><tbody><tr><td>ID</td><td><code>modules.sdc.gemini-api-key</code></td></tr><tr><td>Type</td><td>String</td></tr><tr><td>Default value</td><td>(no default)</td></tr><tr><td>Environment variable</td><td><code>BOX_SDC_GEMINI_API_KEY</code></td></tr><tr><td>Available from</td><td><code>2506</code></td></tr><tr><td>Sensitive</td><td><code>true</code> — value will be masked in Admin UI</td></tr><tr><td>Set via</td><td>Environment variables</td></tr><tr><td>Hot reload</td><td><code>true</code> — setting can be changed at runtime</td></tr></tbody></table></details>
 
 #### Default language for UI<a href="#module.sdc.language" id="module.sdc.language"></a>
 
@@ -1494,16 +1603,6 @@ Enable strict access control for operations(like populate/submit/reference-looku
 ### GraphQL
 
 GraphQL settings
-
-#### Warmup GraphQL cache on startup<a href="#module.graphql.warmup-on-startup" id="module.graphql.warmup-on-startup"></a>
-
-```yaml
-BOX_MODULE_GRAPHQL_WARMUP_ON_STARTUP: false
-```
-
-Warmup GraphQL API cache on startup. When false, cache will be warmed up on first request.
-
-<details><summary>Details</summary><table data-header-hidden="true"><thead><tr><th width="200"></th><th></th></tr></thead><tbody><tr><td>ID</td><td><code>module.graphql.warmup-on-startup</code></td></tr><tr><td>Type</td><td>Bool</td></tr><tr><td>Default value</td><td><code>false</code></td></tr><tr><td>Environment variable</td><td><code>BOX_MODULE_GRAPHQL_WARMUP_ON_STARTUP</code></td></tr><tr><td>Deprecated environment variables</td><td><code>BOX_FEATURES_GRAPHQL_WARMUP__ON__STARTUP</code></td></tr><tr><td>Sensitive</td><td><code>false</code> — value will be visible in plaintext in Admin UI</td></tr><tr><td>Set via</td><td>Admin UI → Settings<br />Environment variables</td></tr><tr><td>Hot reload</td><td><code>false</code> — setting requires system restart</td></tr></tbody></table></details>
 
 #### Allow reference to any resource<a href="#module.graphql.reference-any" id="module.graphql.reference-any"></a>
 
@@ -1601,6 +1700,20 @@ BOX_MODULE_WEBPUSH_JWT_MAIL: "<String>"
 If a push service needs to reach out to sender, it can find contact information from the JWT.
 
 <details><summary>Details</summary><table data-header-hidden="true"><thead><tr><th width="200"></th><th></th></tr></thead><tbody><tr><td>ID</td><td><code>module.webpush.jwt-mail</code></td></tr><tr><td>Type</td><td>String</td></tr><tr><td>Default value</td><td>(no default)</td></tr><tr><td>Environment variable</td><td><code>BOX_MODULE_WEBPUSH_JWT_MAIL</code></td></tr><tr><td>Deprecated environment variables</td><td><code>BOX_FEATURES_WEBPUSH_JWT_MAIL</code></td></tr><tr><td>Sensitive</td><td><code>false</code> — value will be visible in plaintext in Admin UI</td></tr><tr><td>Set via</td><td>Admin UI → Settings<br />Environment variables</td></tr><tr><td>Hot reload</td><td><code>true</code> — setting can be changed at runtime</td></tr></tbody></table></details>
+
+### Health Cards & Links
+
+SMART Health Cards & Links settings
+
+#### Issuer Private Key<a href="#module.health-cards-links.issuer-private-key" id="module.health-cards-links.issuer-private-key"></a>
+
+```yaml
+BOX_MODULE_HEALTH_CARDS_LINKS_ISSUER_PRIVATE_KEY: "<String>"
+```
+
+SMART Health Cards issuer private key (EC P-256, PEM PKCS#8). Signs issued cards; the public JWKS is derived from it.
+
+<details><summary>Details</summary><table data-header-hidden="true"><thead><tr><th width="200"></th><th></th></tr></thead><tbody><tr><td>ID</td><td><code>module.health-cards-links.issuer-private-key</code></td></tr><tr><td>Type</td><td>String</td></tr><tr><td>Default value</td><td>(no default)</td></tr><tr><td>Environment variable</td><td><code>BOX_MODULE_HEALTH_CARDS_LINKS_ISSUER_PRIVATE_KEY</code></td></tr><tr><td>Available from</td><td><code>2607</code></td></tr><tr><td>Sensitive</td><td><code>true</code> — value will be masked in Admin UI</td></tr><tr><td>Set via</td><td>Environment variables</td></tr><tr><td>Hot reload</td><td><code>true</code> — setting can be changed at runtime</td></tr></tbody></table></details>
 
 ## Database
 
@@ -1746,7 +1859,7 @@ Interval in milliseconds for refreshing database credentials. Used as token cach
 BOX_DB_INSTALL_PG_EXTENSIONS: true
 ```
 
-Automatically installs PostgreSQL extensions (pgcrypto, unaccent, pg_trgm, fuzzystrmatch) during server startup.
+Automatically installs PostgreSQL extensions (pgcrypto, unaccent, pg_trgm) during server startup.
 
 <details><summary>Details</summary><table data-header-hidden="true"><thead><tr><th width="200"></th><th></th></tr></thead><tbody><tr><td>ID</td><td><code>db.install-pg-extensions</code></td></tr><tr><td>Type</td><td>Bool</td></tr><tr><td>Default value</td><td><code>true</code></td></tr><tr><td>Environment variable</td><td><code>BOX_DB_INSTALL_PG_EXTENSIONS</code></td></tr><tr><td>Deprecated environment variables</td><td><code>AIDBOX_INSTALL_PG_EXTENSIONS</code></td></tr><tr><td>Sensitive</td><td><code>false</code> — value will be visible in plaintext in Admin UI</td></tr><tr><td>Set via</td><td>Environment variables</td></tr><tr><td>Hot reload</td><td><code>false</code> — setting requires system restart</td></tr></tbody></table></details>
 
@@ -2587,6 +2700,10 @@ Logs history size on telemetry $status endpoint
 
 <details><summary>Details</summary><table data-header-hidden="true"><thead><tr><th width="200"></th><th></th></tr></thead><tbody><tr><td>ID</td><td><code>observability.otel.logs-history-size</code></td></tr><tr><td>Type</td><td>Int</td></tr><tr><td>Default value</td><td><code>10</code></td></tr><tr><td>Environment variable</td><td><code>BOX_OBSERVABILITY_OTEL_LOGS_HISTORY_SIZE</code></td></tr><tr><td>Available from</td><td><code>2503</code></td></tr><tr><td>Sensitive</td><td><code>false</code> — value will be visible in plaintext in Admin UI</td></tr><tr><td>Set via</td><td>Admin UI → Settings<br />Environment variables</td></tr><tr><td>Hot reload</td><td><code>false</code> — setting requires system restart</td></tr></tbody></table></details>
 
+## Multibox
+
+Multibox cluster manager settings
+
 ## Zen Project
 
 Settings related to Zen Project for backward compatibility. Read [d͟e͟t͟a͟i͟l͟s͟](https://www.health-samurai.io/news/aidbox-transitions-to-the-fhir-schema-engine).
@@ -2620,30 +2737,6 @@ BOX_ZEN_PROJECT_LOAD: "<String>"
 Used to load a single namespace represented as EDN
 
 <details><summary>Details</summary><table data-header-hidden="true"><thead><tr><th width="200"></th><th></th></tr></thead><tbody><tr><td>ID</td><td><code>zen-project.load</code></td></tr><tr><td>Type</td><td>String</td></tr><tr><td>Default value</td><td>(no default)</td></tr><tr><td>Environment variable</td><td><code>BOX_ZEN_PROJECT_LOAD</code></td></tr><tr><td>Deprecated environment variables</td><td><code>AIDBOX_ZEN_LOAD</code></td></tr><tr><td>Sensitive</td><td><code>false</code> — value will be visible in plaintext in Admin UI</td></tr><tr><td>Set via</td><td>Environment variables</td></tr><tr><td>Hot reload</td><td><code>false</code> — setting requires system restart</td></tr></tbody></table></details>
-
-### URL or path to the zen project source<a href="#zen-project.paths" id="zen-project.paths"></a>
-
-```yaml
-BOX_ZEN_PROJECT_PATHS: "<String>"
-```
-
-Source of the zen project using the following syntax `<source>:<format>:<path>[,<source>:<format>:<path>]*`.
-
-`<source>` is either `url`, or `path`.
-* `url` is used to load project from remote location
-* `path` is used to load project from local location
-`<format>` is either `zip`, or `dir`, or `edn`.
-
-Table of sources and format compatibility:
-
-|               |       |       |       |
-| ------------- | ----- | ----- | ----- |
-| source/format | `zip` | `dir` | `edn` |
-| `url`         | ✓     |       | ✓     |
-| `path`        | ✓     | ✓     | ✓     |
-    
-
-<details><summary>Details</summary><table data-header-hidden="true"><thead><tr><th width="200"></th><th></th></tr></thead><tbody><tr><td>ID</td><td><code>zen-project.paths</code></td></tr><tr><td>Type</td><td>String</td></tr><tr><td>Default value</td><td>(no default)</td></tr><tr><td>Environment variable</td><td><code>BOX_ZEN_PROJECT_PATHS</code></td></tr><tr><td>Deprecated environment variables</td><td><code>AIDBOX_ZEN_PATHS</code></td></tr><tr><td>Sensitive</td><td><code>false</code> — value will be visible in plaintext in Admin UI</td></tr><tr><td>Set via</td><td>Environment variables</td></tr><tr><td>Hot reload</td><td><code>false</code> — setting requires system restart</td></tr></tbody></table></details>
 
 ### Zen project git protocol<a href="#zen-project.git.protocol" id="zen-project.git.protocol"></a>
 
@@ -2745,22 +2838,6 @@ BOX_ZEN_PROJECT_MANIFEST_TO_ZEN_MIGRATION: "<String>"
 
 <details><summary>Details</summary><table data-header-hidden="true"><thead><tr><th width="200"></th><th></th></tr></thead><tbody><tr><td>ID</td><td><code>zen-project.manifest-to-zen-migration</code></td></tr><tr><td>Type</td><td>String</td></tr><tr><td>Default value</td><td>(no default)</td></tr><tr><td>Environment variable</td><td><code>BOX_ZEN_PROJECT_MANIFEST_TO_ZEN_MIGRATION</code></td></tr><tr><td>Deprecated environment variables</td><td><code>BOX_FEATURES_MANIFEST__TO__ZEN__MIGRATION</code></td></tr><tr><td>Sensitive</td><td><code>false</code> — value will be visible in plaintext in Admin UI</td></tr><tr><td>Set via</td><td>Environment variables</td></tr><tr><td>Hot reload</td><td><code>false</code> — setting requires system restart</td></tr></tbody></table></details>
 
-### Enable zen-FHIR search parameters<a href="#zen-project.search.zen-fhir" id="zen-project.search.zen-fhir"></a>
-
-```yaml
-BOX_ZEN_PROJECT_SEARCH_ZEN_FHIR: "<Enum>"
-```
-
-Aidbox zen packages may contain search parameters.
-
-Enable this setting to load these search parameters into Aidbox.
-If disabled, only the pre-bundled and user-created search 
-parameters are available.
-
-This setting has no effect if FHIR-Schema validator is enabled.
-
-<details><summary>Details</summary><table data-header-hidden="true"><thead><tr><th width="200"></th><th></th></tr></thead><tbody><tr><td>ID</td><td><code>zen-project.search.zen-fhir</code></td></tr><tr><td>Type</td><td>Enum</td></tr><tr><td>Values</td><td><code>enable</code><br /><code>disable</code></td></tr><tr><td>Default value</td><td>(no default)</td></tr><tr><td>Environment variable</td><td><code>BOX_ZEN_PROJECT_SEARCH_ZEN_FHIR</code></td></tr><tr><td>Deprecated environment variables</td><td><code>BOX_SEARCH_ZEN__FHIR</code></td></tr><tr><td>Sensitive</td><td><code>false</code> — value will be visible in plaintext in Admin UI</td></tr><tr><td>Set via</td><td>Admin UI → Settings<br />Environment variables</td></tr><tr><td>Hot reload</td><td><code>false</code> — setting requires system restart</td></tr></tbody></table></details>
-
 ### Check bindings<a href="#zen-project.validation.value-set-mode" id="zen-project.validation.value-set-mode"></a>
 
 ```yaml
@@ -2770,20 +2847,6 @@ BOX_ZEN_PROJECT_VALIDATION_VALUE_SET_MODE: true
 Disable validation of FHIR terminology bindings
 
 <details><summary>Details</summary><table data-header-hidden="true"><thead><tr><th width="200"></th><th></th></tr></thead><tbody><tr><td>ID</td><td><code>zen-project.validation.value-set-mode</code></td></tr><tr><td>Type</td><td>Bool</td></tr><tr><td>Default value</td><td><code>true</code></td></tr><tr><td>Environment variable</td><td><code>BOX_ZEN_PROJECT_VALIDATION_VALUE_SET_MODE</code></td></tr><tr><td>Deprecated environment variables</td><td><code>AIDBOX_FEATURES_VALIDATION_VALUE__SET_MODE</code> , <br /><code>BOX_FEATURES_VALIDATION_VALUE__SET_MODE</code></td></tr><tr><td>Sensitive</td><td><code>false</code> — value will be visible in plaintext in Admin UI</td></tr><tr><td>Set via</td><td>Environment variables</td></tr><tr><td>Hot reload</td><td><code>false</code> — setting requires system restart</td></tr></tbody></table></details>
-
-### Use SQL backward-compatible with old zen search<a href="#zen-project.search.resource-compat" id="zen-project.search.resource-compat"></a>
-
-```yaml
-BOX_ZEN_PROJECT_SEARCH_RESOURCE_COMPAT: true
-```
-
-For some time zen-search generated slightly different
-SQL expressions.
-
-Turn on this feature if you use zen-search
-and do not wish to update indexes.
-
-<details><summary>Details</summary><table data-header-hidden="true"><thead><tr><th width="200"></th><th></th></tr></thead><tbody><tr><td>ID</td><td><code>zen-project.search.resource-compat</code></td></tr><tr><td>Type</td><td>Bool</td></tr><tr><td>Default value</td><td><code>true</code></td></tr><tr><td>Environment variable</td><td><code>BOX_ZEN_PROJECT_SEARCH_RESOURCE_COMPAT</code></td></tr><tr><td>Deprecated environment variables</td><td><code>BOX_SEARCH_RESOURCE__COMPAT</code></td></tr><tr><td>Sensitive</td><td><code>false</code> — value will be visible in plaintext in Admin UI</td></tr><tr><td>Set via</td><td>Admin UI → Settings<br />Environment variables</td></tr><tr><td>Hot reload</td><td><code>false</code> — setting requires system restart</td></tr></tbody></table></details>
 
 ### Enable terminology import<a href="#zen-project.terminology.import.enable" id="zen-project.terminology.import.enable"></a>
 
@@ -2804,53 +2867,3 @@ BOX_ZEN_PROJECT_TERMINOLOGY_IMPORT_SYNC: false
 Enable terminology sync.
 
 <details><summary>Details</summary><table data-header-hidden="true"><thead><tr><th width="200"></th><th></th></tr></thead><tbody><tr><td>ID</td><td><code>zen-project.terminology.import.sync</code></td></tr><tr><td>Type</td><td>Bool</td></tr><tr><td>Default value</td><td><code>false</code></td></tr><tr><td>Environment variable</td><td><code>BOX_ZEN_PROJECT_TERMINOLOGY_IMPORT_SYNC</code></td></tr><tr><td>Deprecated environment variables</td><td><code>BOX_FEATURES_TERMINOLOGY_IMPORT_SYNC</code></td></tr><tr><td>Sensitive</td><td><code>false</code> — value will be visible in plaintext in Admin UI</td></tr><tr><td>Set via</td><td>Admin UI → Settings<br />Environment variables</td></tr><tr><td>Hot reload</td><td><code>false</code> — setting requires system restart</td></tr></tbody></table></details>
-
-### Build FTR index on startup<a href="#zen-project.ftr.build-index-on-startup.enable" id="zen-project.ftr.build-index-on-startup.enable"></a>
-
-```yaml
-BOX_ZEN_PROJECT_FTR_BUILD_INDEX_ON_STARTUP_ENABLE: true
-```
-
-Build FTR index on startup.
-
-<details><summary>Details</summary><table data-header-hidden="true"><thead><tr><th width="200"></th><th></th></tr></thead><tbody><tr><td>ID</td><td><code>zen-project.ftr.build-index-on-startup.enable</code></td></tr><tr><td>Type</td><td>Bool</td></tr><tr><td>Default value</td><td><code>true</code></td></tr><tr><td>Environment variable</td><td><code>BOX_ZEN_PROJECT_FTR_BUILD_INDEX_ON_STARTUP_ENABLE</code></td></tr><tr><td>Deprecated environment variables</td><td><code>BOX_FEATURES_FTR_BUILD__INDEX__ON__STARTUP_ENABLE</code></td></tr><tr><td>Sensitive</td><td><code>false</code> — value will be visible in plaintext in Admin UI</td></tr><tr><td>Set via</td><td>Admin UI → Settings<br />Environment variables</td></tr><tr><td>Hot reload</td><td><code>false</code> — setting requires system restart</td></tr></tbody></table></details>
-
-### Sync FTR index on Aidbox start<a href="#zen-project.ftr.build-index-on-startup.sync" id="zen-project.ftr.build-index-on-startup.sync"></a>
-
-```yaml
-BOX_ZEN_PROJECT_FTR_BUILD_INDEX_ON_STARTUP_SYNC: false
-```
-
-Sync FTR index on Aidbox start.
-
-<details><summary>Details</summary><table data-header-hidden="true"><thead><tr><th width="200"></th><th></th></tr></thead><tbody><tr><td>ID</td><td><code>zen-project.ftr.build-index-on-startup.sync</code></td></tr><tr><td>Type</td><td>Bool</td></tr><tr><td>Default value</td><td><code>false</code></td></tr><tr><td>Environment variable</td><td><code>BOX_ZEN_PROJECT_FTR_BUILD_INDEX_ON_STARTUP_SYNC</code></td></tr><tr><td>Deprecated environment variables</td><td><code>BOX_FEATURES_FTR_BUILD__INDEX__ON__STARTUP_SYNC</code></td></tr><tr><td>Sensitive</td><td><code>false</code> — value will be visible in plaintext in Admin UI</td></tr><tr><td>Set via</td><td>Admin UI → Settings<br />Environment variables</td></tr><tr><td>Hot reload</td><td><code>false</code> — setting requires system restart</td></tr></tbody></table></details>
-
-### Enable incremental updates of the FTR index<a href="#zen-project.ftr.incremental-index-updates.enable" id="zen-project.ftr.incremental-index-updates.enable"></a>
-
-```yaml
-BOX_ZEN_PROJECT_FTR_INCREMENTAL_INDEX_UPDATES_ENABLE: true
-```
-
-Enable incremental updates of the FTR index
-
-<details><summary>Details</summary><table data-header-hidden="true"><thead><tr><th width="200"></th><th></th></tr></thead><tbody><tr><td>ID</td><td><code>zen-project.ftr.incremental-index-updates.enable</code></td></tr><tr><td>Type</td><td>Bool</td></tr><tr><td>Default value</td><td><code>true</code></td></tr><tr><td>Environment variable</td><td><code>BOX_ZEN_PROJECT_FTR_INCREMENTAL_INDEX_UPDATES_ENABLE</code></td></tr><tr><td>Deprecated environment variables</td><td><code>BOX_FEATURES_FTR_INCREMENTAL__INDEX__UPDATES_ENABLE</code></td></tr><tr><td>Sensitive</td><td><code>false</code> — value will be visible in plaintext in Admin UI</td></tr><tr><td>Set via</td><td>Admin UI → Settings<br />Environment variables</td></tr><tr><td>Hot reload</td><td><code>false</code> — setting requires system restart</td></tr></tbody></table></details>
-
-### Load FTR index into Aidbox DB<a href="#zen-project.ftr.pull.enable" id="zen-project.ftr.pull.enable"></a>
-
-```yaml
-BOX_ZEN_PROJECT_FTR_PULL_ENABLE: false
-```
-
-Load FTR index into Aidbox DB
-
-<details><summary>Details</summary><table data-header-hidden="true"><thead><tr><th width="200"></th><th></th></tr></thead><tbody><tr><td>ID</td><td><code>zen-project.ftr.pull.enable</code></td></tr><tr><td>Type</td><td>Bool</td></tr><tr><td>Default value</td><td><code>false</code></td></tr><tr><td>Environment variable</td><td><code>BOX_ZEN_PROJECT_FTR_PULL_ENABLE</code></td></tr><tr><td>Deprecated environment variables</td><td><code>BOX_FEATURES_FTR_PULL_ENABLE</code></td></tr><tr><td>Sensitive</td><td><code>false</code> — value will be visible in plaintext in Admin UI</td></tr><tr><td>Set via</td><td>Admin UI → Settings<br />Environment variables</td></tr><tr><td>Hot reload</td><td><code>false</code> — setting requires system restart</td></tr></tbody></table></details>
-
-### Load FTR index synchronously<a href="#zen-project.ftr.pull.sync" id="zen-project.ftr.pull.sync"></a>
-
-```yaml
-BOX_ZEN_PROJECT_FTR_PULL_SYNC: false
-```
-
-Block Aidbox start until FTR index is loaded into Aidbox DB.
-
-<details><summary>Details</summary><table data-header-hidden="true"><thead><tr><th width="200"></th><th></th></tr></thead><tbody><tr><td>ID</td><td><code>zen-project.ftr.pull.sync</code></td></tr><tr><td>Type</td><td>Bool</td></tr><tr><td>Default value</td><td><code>false</code></td></tr><tr><td>Environment variable</td><td><code>BOX_ZEN_PROJECT_FTR_PULL_SYNC</code></td></tr><tr><td>Deprecated environment variables</td><td><code>BOX_FEATURES_FTR_PULL_SYNC</code></td></tr><tr><td>Sensitive</td><td><code>false</code> — value will be visible in plaintext in Admin UI</td></tr><tr><td>Set via</td><td>Admin UI → Settings<br />Environment variables</td></tr><tr><td>Hot reload</td><td><code>false</code> — setting requires system restart</td></tr></tbody></table></details>
