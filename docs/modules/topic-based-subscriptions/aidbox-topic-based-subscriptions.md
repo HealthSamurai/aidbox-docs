@@ -243,7 +243,7 @@ Ensure that the resource metadata contains the kind-specific `AidboxTopicDestina
 Organization-based hierarchical filtering is available starting from version 2509.
 {% endhint %}
 
-Both `AidboxSubscriptionTopic` and `AidboxTopicDestination` support [organization-based hierarchical access control](../../access-control/authorization/scoped-api/organization-based-hierarchical-access-control.md).
+Both `AidboxSubscriptionTopic` and `AidboxTopicDestination` support [organization-based hierarchical access control](../../access-control/authorization/scoped-api/organization-based-hierarchical-access-control/README.md).
 
 ### How it works
 
@@ -251,7 +251,7 @@ The filtering mechanism uses organization extensions and works as consecutive fi
 
 1.  **Use organization extension**:
 
-    In organizational-based access control, both events (resources) and subscription resources (`AidboxSubscriptionTopic` and `AidboxTopicDestination`) are automatically marked with [organization extensions](../../access-control/authorization/scoped-api/organization-based-hierarchical-access-control.md#try-org-bac) when created through organization-specific APIs (`/Organization/<org-id>/fhir/...`).
+    In organizational-based access control, both events (resources) and subscription resources (`AidboxSubscriptionTopic` and `AidboxTopicDestination`) are automatically marked with [organization extensions](../../access-control/authorization/scoped-api/organization-based-hierarchical-access-control/README.md#try-org-bac) when created through organization-specific APIs (`/Organization/<org-id>/fhir/...`).
 2. **Consecutive filtering**: The filters work in sequence - first the topic filter is applied, then the destination filter.
 3. **Resources without organization extension**: If topic/destination resources are created without organization extension, they completely ignore organization information and work as before. All events will be caught by the topic if triggered (regardless of whether the event has organization extension or not).
 4. **Resources with organization extension**:

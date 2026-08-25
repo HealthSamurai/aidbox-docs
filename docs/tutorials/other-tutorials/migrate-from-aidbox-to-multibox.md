@@ -18,7 +18,7 @@ There is no automated migration tool for this direction. Use the steps below, an
 * Clients connect to a box through its own subdomain (`<box-id>.<cluster-domain>`), not through the standalone instance's URL. Plan to update client configuration once the box is live.
 
 {% hint style="info" %}
-Multibox gives each tenant a fully separate database, which is the right fit for strict data separation or tenants that need independent configuration and FHIR versions. If your tenants can share a database and configuration, [organization-based access control](../../access-control/authorization/scoped-api/organization-based-hierarchical-access-control.md) is a lighter-weight alternative worth considering before you migrate.
+Multibox gives each tenant a fully separate database, which is the right fit for strict data separation or tenants that need independent configuration and FHIR versions. If your tenants can share a database and configuration, [organization-based access control](../../access-control/authorization/scoped-api/organization-based-hierarchical-access-control/README.md) is a lighter-weight alternative worth considering before you migrate.
 {% endhint %}
 
 ## Set up Multibox

@@ -240,7 +240,7 @@ List the resource types you request under the compartment parameter each one use
 
 ### Organization scope (OrgBAC)
 
-Under [organization-based access control](../../../access-control/authorization/scoped-api/organization-based-hierarchical-access-control.md), the operation is also served at:
+Under [organization-based access control](../../../access-control/authorization/scoped-api/organization-based-hierarchical-access-control/README.md), the operation is also served at:
 
 ```http
 POST /Organization/<orgid>/fhir/Patient/<patient-id>/$health-cards-issue

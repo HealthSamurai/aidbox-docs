@@ -240,7 +240,7 @@ redirects:
   modules-1/access-control/authorization/access-policies: access-control/authorization/access-policies.md
   modules-1/access-control/authorization/label-based-access-control: access-control/authorization/label-based-access-control.md
   modules-1/access-control/authorization/scoped-api/compartments-api: access-control/authorization/scoped-api/compartments-api.md
-  modules-1/access-control/authorization/scoped-api/organization-based-hierarchical-access-control: access-control/authorization/scoped-api/organization-based-hierarchical-access-control.md
+  modules-1/access-control/authorization/scoped-api/organization-based-hierarchical-access-control: access-control/authorization/scoped-api/organization-based-hierarchical-access-control/README.md
   modules-1/access-control/authorization/scoped-api/patient-data-access-api: access-control/authorization/scoped-api/patient-data-access-api.md
   modules-1/access-control/authorization/smart-on-fhir/example-smart-app-launch-using-aidbox-and-keycloak: access-control/authorization/smart-on-fhir/example-smart-app-launch-using-aidbox-and-keycloak.md
   modules-1/access-control/authorization/smart-on-fhir/example-smart-app-launch-using-smartbox-and-keycloak: access-control/authorization/smart-on-fhir/example-smart-app-launch-using-smartbox-and-keycloak.md
@@ -506,7 +506,7 @@ redirects:
   modules/compliance/aidbox-+-fhir-app-portal/getting-started/run-aidbox-+-fhir-portal-locally: solutions/aidbox-+-fhir-app-portal/getting-started/run-aidbox-+-fhir-portal-locally.md
   modules/integration-toolkit/ccda-converter/sections/planoftreatmentsectionv2: modules/integration-toolkit/ccda-converter/sections/plan-of-treatment-section-docs-v2.md
   modules/profiling-and-validation/fhir-schema-validator/tutorials: tutorials/artifact-registry-tutorials/how-to-create-fhir-npm-package.md
-  modules/security-and-access-control/multitenancy/organization-based-hierarchical-access-control: access-control/authorization/scoped-api/organization-based-hierarchical-access-control.md
+  modules/security-and-access-control/multitenancy/organization-based-hierarchical-access-control: access-control/authorization/scoped-api/organization-based-hierarchical-access-control/README.md
   modules/security-and-access-control/security: access-control/authorization/access-policies.md
   modules/smartbox/how-to-guides/pass-inferno-visual-inspection-and-attestation: solutions/providers-or-onc-health-it-certification-program/g-10-standardized-api-for-patient-and-population-services/pass-inferno-visual-inspection-and-attestation.md
   modules/security-and-access-control/auth/basic-auth: access-control/authentication/basic-http-authentication.md
@@ -756,7 +756,7 @@ redirects:
   modules-1/monitoring/run-aidbox-locally-with-docker: getting-started/run-aidbox-locally.md
 
   # modules-1/multitenancy/*
-  modules-1/multitenancy/organization-based-hierarchical-access-control: access-control/authorization/scoped-api/organization-based-hierarchical-access-control.md
+  modules-1/multitenancy/organization-based-hierarchical-access-control: access-control/authorization/scoped-api/organization-based-hierarchical-access-control/README.md
 
   # modules-1/observability/*
   modules-1/observability/logging-and-audit/how-to-guides/elastic-logs-and-monitoring-integration: modules/observability/logs/how-to-guides/elastic-logs-and-monitoring-integration.md
@@ -771,8 +771,8 @@ redirects:
 
   # modules-1/security-and-access-control/*
   modules-1/security-and-access-control/how-to-guides/smart-on-fhir/smart-on-fhir-app-launch: deprecated/deprecated/other/how-to-guides/smart-on-fhir/get-a-smart-app-launched.md
-  modules-1/security-and-access-control/multitenancy/organization-based-hierarchical-access-control: access-control/authorization/scoped-api/organization-based-hierarchical-access-control.md
-  modules-1/security-and-access-control/security/multitenancy: access-control/authorization/scoped-api/organization-based-hierarchical-access-control.md
+  modules-1/security-and-access-control/multitenancy/organization-based-hierarchical-access-control: access-control/authorization/scoped-api/organization-based-hierarchical-access-control/README.md
+  modules-1/security-and-access-control/security/multitenancy: access-control/authorization/scoped-api/organization-based-hierarchical-access-control/README.md
 
   # modules-1/smartbox/*
   modules-1/smartbox/g-10-standardized-api-for-patient-and-population-services: solutions/providers-or-onc-health-it-certification-program/g-10-standardized-api-for-patient-and-population-services/README.md

@@ -177,7 +177,7 @@ Build and render Questionnaires with Structured Data Capture (SDC).
 {% card icon="chart" title="Observability" href="../../modules/observability/README.md" %}
 Monitor logs, metrics, and audit trails across your Aidbox instance.
 {% endcard %}
-{% card icon="users" title="Organization-based access control" href="../../access-control/authorization/scoped-api/organization-based-hierarchical-access-control.md" %}
+{% card icon="users" title="Organization-based access control" href="../../access-control/authorization/scoped-api/organization-based-hierarchical-access-control/README.md" %}
 Scope access to resources by organization hierarchy, a lighter-weight alternative to running separate tenants.
 {% endcard %}
 {% card icon="code" title="SDKs" href="../../developer-experience/developer-experience-overview.md" %}

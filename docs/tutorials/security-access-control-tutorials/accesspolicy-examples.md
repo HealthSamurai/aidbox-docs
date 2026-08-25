@@ -332,7 +332,7 @@ GET /Organization/org-a/fhir/Patient/pt-1
 
 **See also:**
 
-* [Organization-based hierarchical access control](../../access-control/authorization/scoped-api/organization-based-hierarchical-access-control.md)
+* [Organization-based hierarchical access control](../../access-control/authorization/scoped-api/organization-based-hierarchical-access-control/README.md)
 
 ## 11. Policy that allows all the requests with JWT issued by certain issuer
 

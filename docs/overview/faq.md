@@ -1270,7 +1270,7 @@ Aidbox supports two multi-tenancy approaches:
 - **Physical multi-tenancy (Multibox)** — separate databases for each tenant. Complete data isolation.
 
 Learn more:
-- [Organization-based Access Control](../access-control/authorization/scoped-api/organization-based-hierarchical-access-control.md)
+- [Organization-based Access Control](../access-control/authorization/scoped-api/organization-based-hierarchical-access-control/README.md)
 - [Run Multibox Locally](../tutorials/security-access-control-tutorials/run-multibox-locally.md)
 - [Migrate from Multibox to Aidbox](../tutorials/other-tutorials/migrate-from-multibox-to-aidbox.md)
 - [Multi-tenant FHIR API Design (blog)](https://www.health-samurai.io/articles/how-to-design-a-multi-tenant-fhir-api-for-an-existing-ehr-system)

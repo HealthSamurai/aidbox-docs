@@ -17,7 +17,7 @@ FHIR resources must be separated per organizations. Organizations can be nested.
 
 Let's consider the next organization structure. There are two independent organizations Org A & Org D, each of them has nested, dependent organizations. Org B & Org C are nested to Org A, and Org E is nested to Org D.
 
-<figure><img src="../../../../assets/d31fcf9c-4ae7-4932-87ac-0b725ce1c7a3.avif" alt="Organization hierarchy diagram showing nested organizations: Org A with child Org B and Org C, Org D with child Org E"><figcaption><p>Organization hierarchy structure</p></figcaption></figure>
+<figure><img src="../../../../../assets/d31fcf9c-4ae7-4932-87ac-0b725ce1c7a3.avif" alt="Organization hierarchy diagram showing nested organizations: Org A with child Org B and Org C, Org D with child Org E"><figcaption><p>Organization hierarchy structure</p></figcaption></figure>
 
 To achieve such a behavior, you may consider an Aidbox feature called organization-based access control.
 
@@ -75,13 +75,13 @@ The Organization-based FHIR API base url:
 <AIDBOX_BASE_URL>/Organization/<org-id>/fhir
 ```
 
-The Organization-based [Aidbox API](../../../api/rest-api/other/aidbox-and-fhir-formats.md) base url:
+The Organization-based [Aidbox API](../../../../api/rest-api/other/aidbox-and-fhir-formats.md) base url:
 
 ```
 <AIDBOX_BASE_URL>/Organization/<org-id>/aidbox
 ```
 
-<figure><img src="../../../../assets/4ec1a26c-d58c-4ff9-9d3b-87f4698f41d8.avif" alt="Diagram showing FHIR API endpoints for each organization in the hierarchy"><figcaption><p>FHIR APIs reflection in organization-based access control</p></figcaption></figure>
+<figure><img src="../../../../../assets/4ec1a26c-d58c-4ff9-9d3b-87f4698f41d8.avif" alt="Diagram showing FHIR API endpoints for each organization in the hierarchy"><figcaption><p>FHIR APIs reflection in organization-based access control</p></figcaption></figure>
 
 ### Try Org-BAC
 
@@ -155,7 +155,7 @@ If `SubsSubscription` resource is created using regular API (not Organization AP
 Organization-based hierarchical filtering is available starting from version 2509.
 {% endhint %}
 
-`AidboxSubscriptionTopic` and `AidboxTopicDestination` support organization-based hierarchical filtering. For more details, see [Aidbox Topic-Based Subscriptions](../../../modules/topic-based-subscriptions/aidbox-topic-based-subscriptions.md#organization-based-hierarchical-filtering).
+`AidboxSubscriptionTopic` and `AidboxTopicDestination` support organization-based hierarchical filtering. For more details, see [Aidbox Topic-Based Subscriptions](../../../../modules/topic-based-subscriptions/aidbox-topic-based-subscriptions.md#organization-based-hierarchical-filtering).
 
 ## FHIR API over Organization resources
 
@@ -225,7 +225,7 @@ Content-Type: application/fhir+json
 <pre><code><strong>PATCH &#x3C;AIDBOX_BASE_URL>/Organization/&#x3C;org-id>/fhir/&#x3C;resource-type>/&#x3C;id>?[_method={ json-patch | merge-patch | fhirpath-patch }]
 </strong></code></pre>
 
-All PATCH methods are supported under org-scoped API. See also [patch](../../../api/rest-api/crud/patch.md)
+All PATCH methods are supported under org-scoped API. See also [patch](../../../../api/rest-api/crud/patch.md)
 
 #### Conditional Patch
 
@@ -273,7 +273,7 @@ The search API does not support search parameters:
 * `_with`
 {% endhint %}
 
-Since 2505, [\_has search parameter](../../../api/rest-api/fhir-search/chaining.md) is supported.
+Since 2505, [\_has search parameter](../../../../api/rest-api/fhir-search/chaining.md) is supported.
 
 ### $everything
 
@@ -281,7 +281,7 @@ Since 2505, [\_has search parameter](../../../api/rest-api/fhir-search/chaining.
 GET <AIDBOX_BASE_URL>/Organization/<org-id>/fhir/Patient/$everything
 ```
 
-See also [$everything on Patient](../../../api/rest-api/everything-on-patient.md)
+See also [$everything on Patient](../../../../api/rest-api/everything-on-patient.md)
 
 ### $document
 
@@ -289,7 +289,7 @@ See also [$everything on Patient](../../../api/rest-api/everything-on-patient.md
 GET <AIDBOX_BASE_URL>/Organization/<org-id>/fhir/Composition/$document
 ```
 
-See also [$document endpoint](../../../api/rest-api/other/document.md)
+See also [$document endpoint](../../../../api/rest-api/other/document.md)
 
 ### $health-cards-issue
 
@@ -299,7 +299,7 @@ POST <AIDBOX_BASE_URL>/Organization/<org-id>/fhir/Patient/<patient-id>/$health-c
 
 Issues a SMART Health Card scoped to the organization: the target `Patient` and every internal read run inside the organization's compartment. Available starting from version 2607.
 
-See also [SMART Health Cards](../../../api/rest-api/other/smart-health-cards.md)
+See also [SMART Health Cards](../../../../api/rest-api/other/smart-health-cards.md)
 
 ### History
 
@@ -379,7 +379,7 @@ entry:
     id: 'pt-4'
 </code></pre>
 
-See also [Transactions page](../../../api/batch-transaction.md)
+See also [Transactions page](../../../../api/batch-transaction.md)
 
 #### Conditional Create with Bundle
 
@@ -475,7 +475,7 @@ GET <AIDBOX_BASE_URL>/Organization/<org-id>/fhir/metadata
 ### AidboxQuery
 
 {% hint style="info" %}
-[Learn more about AidboxQuery](../../../api/rest-api/aidbox-search.md#aidboxquery).
+[Learn more about AidboxQuery](../../../../api/rest-api/aidbox-search.md#aidboxquery).
 {% endhint %}
 
 To use `$query` endpoint under organization-based hierarchical access control, it is necessary to create explicitly `organization` param in `AidboxQuery`.
@@ -505,7 +505,7 @@ POST /Organization/<org-id>/aidbox/$graphql
 
 Since version 2503 GraphQL is supported in OrgBAC mode. Note that it can be accessed only on the non-FHIR endpoint, because our GraphQL implementation is slightly different from FHIR.
 
-See also: [graphql-api.md](../../../api/graphql-api.md)
+See also: [graphql-api.md](../../../../api/graphql-api.md)
 
 ### Group-level Export
 
@@ -533,7 +533,7 @@ DELETE <AIDBOX_BASE_URL>/Organization/<org-id>/fhir/$export-status/<export-id>
 
 Cancels an active export job for the specified organization.
 
-See also [$export](../../../api/bulk-api/export.md#group-level-export)
+See also [$export](../../../../api/bulk-api/export.md#group-level-export)
 
 ### System-level Export
 
@@ -561,7 +561,7 @@ DELETE <AIDBOX_BASE_URL>/Organization/<org-id>/fhir/$export-status/<export-id>
 
 Cancels an active export job for the specified organization.
 
-See also [$export](../../../api/bulk-api/export.md#system-level-export)
+See also [$export](../../../../api/bulk-api/export.md#system-level-export)
 
 ## Authentication
 
@@ -676,6 +676,10 @@ GET /Organization/org-b/fhir/Practitioner?_sort=id
 
 ## See also
 
-{% content-ref url="../../../tutorials/security-access-control-tutorials/how-to-enable-hierarchical-access-control.md" %}
-[how-to-enable-hierarchical-access-control.md](../../../tutorials/security-access-control-tutorials/how-to-enable-hierarchical-access-control.md)
+{% content-ref url="../../../../tutorials/security-access-control-tutorials/how-to-enable-hierarchical-access-control.md" %}
+[how-to-enable-hierarchical-access-control.md](../../../../tutorials/security-access-control-tutorials/how-to-enable-hierarchical-access-control.md)
+{% endcontent-ref %}
+
+{% content-ref url="organization-purge.md" %}
+[Organization purge](organization-purge.md)
 {% endcontent-ref %}

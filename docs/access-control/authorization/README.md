@@ -25,7 +25,7 @@ Scoped APIs are special APIs limited to resources within a specific compartment.
 
 * [Compartments API](scoped-api/compartments-api.md) - API for resources within a certain [FHIR compartment](https://www.hl7.org/fhir/compartmentdefinition.html)
 * [Patient Data API](scoped-api/patient-data-access-api.md) - API for patient-related resources that allows access to resources that belong to a specific patient
-* [Organization-based hierarchical access control](scoped-api/organization-based-hierarchical-access-control.md) - API to control access to resources within a specific organization. Supports hierarchical access control
+* [Organization-based hierarchical access control](scoped-api/organization-based-hierarchical-access-control/README.md) - API to control access to resources within a specific organization. Supports hierarchical access control
 
 ## Multibox
 
