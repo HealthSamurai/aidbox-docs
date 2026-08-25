@@ -7962,6 +7962,46 @@ Input parameters for the $configure-api operation.
   "desc" : ""
 }, {
   "path" : "parameter.part",
+  "name" : "part:blobNamePrefix",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part.name",
+  "name" : "name",
+  "lvl" : 2,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part.value[x]",
+  "name" : "value[x]",
+  "lvl" : 2,
+  "min" : 1,
+  "max" : 1,
+  "type" : "string",
+  "desc" : ""
+}, {
+  "path" : "parameter.part.resource",
+  "name" : "resource",
+  "lvl" : 2,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part.part",
+  "name" : "part",
+  "lvl" : 2,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part",
   "name" : "part:fhirpathToBase64BinaryElement",
   "lvl" : 1,
   "min" : 1,
@@ -8677,6 +8717,46 @@ Input parameters for the $create-api operation.
 }, {
   "path" : "parameter.part",
   "name" : "part:gcpBucket",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part.name",
+  "name" : "name",
+  "lvl" : 2,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part.value[x]",
+  "name" : "value[x]",
+  "lvl" : 2,
+  "min" : 1,
+  "max" : 1,
+  "type" : "string",
+  "desc" : ""
+}, {
+  "path" : "parameter.part.resource",
+  "name" : "resource",
+  "lvl" : 2,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part.part",
+  "name" : "part",
+  "lvl" : 2,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part",
+  "name" : "part:blobNamePrefix",
   "lvl" : 1,
   "min" : 0,
   "max" : 1,
