@@ -108,8 +108,8 @@ resource the tenant owned and then deleted has no current row, so its history st
 state, scheduler and migration bookkeeping, SDC documents, console state. The full list lives in the
 system resources reference.
 
-{% content-ref url="../../../reference/system-resources-reference/core-module-resources.md" %}
-[Core Module Resources](../../../reference/system-resources-reference/core-module-resources.md)
+{% content-ref url="../../../../reference/system-resources-reference/core-module-resources.md" %}
+[Core Module Resources](../../../../reference/system-resources-reference/core-module-resources.md)
 {% endcontent-ref %}
 
 On top of the system resources, `$purge` skips FHIR canonical resources. A canonical describes how

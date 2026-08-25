@@ -81,7 +81,7 @@ description: >-
 * Access control: [RBAC, ABAC](access-control/authorization/access-policies.md)
 * [Label-based Access Control](access-control/authorization/label-based-access-control.md) with [Security Labels](access-control/authorization/label-based-access-control.md#what-are-security-labels)
 * [Scoped APIs](access-control/authorization/scoped-api/)
-* Multitenancy: physical isolation (Multibox), [Organization-based hierarchical access control](access-control/authorization/scoped-api/organization-based-hierarchical-access-control.md)
+* Multitenancy: physical isolation (Multibox), [Organization-based hierarchical access control](access-control/authorization/scoped-api/organization-based-hierarchical-access-control/README.md)
 * [AuditEvent logging](access-control/audit-and-logging.md) with support for [external FHIR AuditRecord Repository](access-control/audit-and-logging.md#external-audit-record-repository-support)
 
 ### Terminology
