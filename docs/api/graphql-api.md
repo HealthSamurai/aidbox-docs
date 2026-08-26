@@ -229,6 +229,61 @@ data:
           name: CareTeam name
 ```
 
+#### Revinclude syntax: `field-per-path` vs. `unified`
+
+The revinclude field style is controlled by the setting
+`module.graphql.revinclude-syntax` (env `BOX_MODULE_GRAPHQL_REVINCLUDE_SYNTAX`,
+hot-reloadable). It accepts two values:
+
+* **`field-per-path`** (default) — the classic `<sourceResourceType>_as_<path_to_reference>`
+  fields described above. A field is generated for every possible reverse
+  reference, which can significantly bloat the schema.
+* **`unified`** — instead of per-path fields, a single
+  `_revinclude(path: "<ResourceType>.<element>")` field is generated on every
+  resource type. This keeps the schema compact.
+
+The following query is the `unified` equivalent of the example above:
+
+```graphql
+query {
+  PatientList(_sort: "_id") {
+    id
+    observation: _revinclude(path: "Observation.subject") {
+      ... on Observation {
+        id
+        status
+      }
+    }
+  }
+}
+```
+
+Use GraphQL field aliases to request several revincludes in a single query:
+
+```graphql
+query {
+  PatientList {
+    id
+    obs: _revinclude(path: "Observation.subject") {
+      ... on Observation { id }
+    }
+    enc: _revinclude(path: "Encounter.subject") {
+      ... on Encounter { id status }
+    }
+  }
+}
+```
+
+The `path` argument has the form `<ResourceType>.<element>`. An invalid resource
+type or an empty element path returns a `400` error for that field.
+
+{% hint style="info" %}
+In `unified` mode the `_revinclude` field does not yet accept search arguments
+(filtering, sorting, `_count`) on the included resources — it returns all
+matching references. Use `field-per-path` if you need to constrain the
+revincluded set.
+{% endhint %}
+
 ## Queries
 
 Aidbox generates three types of queries:
