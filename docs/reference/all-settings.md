@@ -1666,6 +1666,40 @@ that allow it to participate as a subgraph in a federated GraphQL architecture.
 
 <details><summary>Details</summary><table data-header-hidden="true"><thead><tr><th width="200"></th><th></th></tr></thead><tbody><tr><td>ID</td><td><code>module.graphql.federation-support</code></td></tr><tr><td>Type</td><td>Bool</td></tr><tr><td>Default value</td><td><code>false</code></td></tr><tr><td>Environment variable</td><td><code>BOX_MODULE_GRAPHQL_FEDERATION_SUPPORT</code></td></tr><tr><td>Available from</td><td><code>2601</code></td></tr><tr><td>Sensitive</td><td><code>false</code> — value will be visible in plaintext in Admin UI</td></tr><tr><td>Set via</td><td>Environment variables</td></tr><tr><td>Hot reload</td><td><code>true</code> — setting can be changed at runtime</td></tr></tbody></table></details>
 
+#### Syntax for revincludes in GraphQL<a href="#module.graphql.revinclude-syntax" id="module.graphql.revinclude-syntax"></a>
+
+```yaml
+BOX_MODULE_GRAPHQL_REVINCLUDE_SYNTAX: "field-per-path"
+```
+
+What syntax to use with GraphQL
+
+**field-per-path**: classic syntax, generates `<rt>s_as_path_to_reference` fields.
+The downside is it causes schema bloat.
+Example:
+```
+PatientList {
+  id
+  observations_as_subject {
+    id
+  }
+}
+```
+
+**unified**: generates more dense schema. Example:
+```
+PatientList {
+  id
+  observation: _revinclude(path: "Observation.subject") {
+    ... on Observation {
+      id
+    }
+  }
+}
+```
+
+<details><summary>Details</summary><table data-header-hidden="true"><thead><tr><th width="200"></th><th></th></tr></thead><tbody><tr><td>ID</td><td><code>module.graphql.revinclude-syntax</code></td></tr><tr><td>Type</td><td>Enum</td></tr><tr><td>Values</td><td><code>field-per-path</code> — Generate GraphQL field for each possible revinclude path<br /><code>unified</code> — Generate a single _revinclude field which covering all revincludes</td></tr><tr><td>Default value</td><td><code>field-per-path</code></td></tr><tr><td>Environment variable</td><td><code>BOX_MODULE_GRAPHQL_REVINCLUDE_SYNTAX</code></td></tr><tr><td>Available from</td><td><code>2608</code></td></tr><tr><td>Sensitive</td><td><code>false</code> — value will be visible in plaintext in Admin UI</td></tr><tr><td>Set via</td><td>Admin UI → Settings<br />Environment variables</td></tr><tr><td>Hot reload</td><td><code>true</code> — setting can be changed at runtime</td></tr></tbody></table></details>
+
 ### Webpush
 
 Webpush settings
