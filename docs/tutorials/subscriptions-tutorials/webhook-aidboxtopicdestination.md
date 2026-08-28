@@ -43,7 +43,7 @@ http://health-samurai.io/fhir/core/StructureDefinition/aidboxtopicdestination-we
 
 ### Available Parameters
 
-<table data-full-width="false"><thead><tr><th width="204">Parameter name</th><th width="192">Value type</th><th>Description</th></tr></thead><tbody><tr><td><code>endpoint</code> *</td><td>valueUrl</td><td>Webhook URL.</td></tr><tr><td><code>timeout</code></td><td>valueUnsignedInt</td><td>Timeout in seconds to attempt notification delivery (default: 30).</td></tr><tr><td><code>keepAlive</code></td><td>valueInteger</td><td>The time in seconds that the host will allow an idle connection to remain open before it is closed (default: 120, <code>-1</code> - disable).</td></tr><tr><td><code>maxMessagesInBatch</code></td><td>valueUnsignedInt</td><td>Maximum number of events that can be combined in a single notification (default: 20).</td></tr><tr><td><code>header</code></td><td>valueString</td><td>HTTP header for webhook request in the following format: <code>&#x3C;Name>: &#x3C;Value></code>. Zero or many. Supports <a href="../../configuration/secret-files.md">external secrets</a> — use <code>_valueString</code> with the secret reference extension to reference a vault secret whose file content is the full <code>Name: Value</code> string.</td></tr></tbody></table>
+<table data-full-width="false"><thead><tr><th width="204">Parameter name</th><th width="192">Value type</th><th>Description</th></tr></thead><tbody><tr><td><code>endpoint</code> *</td><td>valueUrl</td><td>Webhook URL. The one parameter you can change on an existing destination, see <a href="webhook-aidboxtopicdestination.md#update-the-endpoint">Update the endpoint</a>.</td></tr><tr><td><code>timeout</code></td><td>valueUnsignedInt</td><td>Timeout in seconds to attempt notification delivery (default: 30).</td></tr><tr><td><code>keepAlive</code></td><td>valueInteger</td><td>The time in seconds that the host will allow an idle connection to remain open before it is closed (default: 120, <code>-1</code> - disable).</td></tr><tr><td><code>maxMessagesInBatch</code></td><td>valueUnsignedInt</td><td>Maximum number of events that can be combined in a single notification (default: 20).</td></tr><tr><td><code>header</code></td><td>valueString</td><td>HTTP header for webhook request in the following format: <code>&#x3C;Name>: &#x3C;Value></code>. Zero or many. Supports <a href="../../configuration/secret-files.md">external secrets</a> — use <code>_valueString</code> with the secret reference extension to reference a vault secret whose file content is the full <code>Name: Value</code> string.</td></tr></tbody></table>
 
 \* required parameter.
 
@@ -149,6 +149,44 @@ accept: application/json
 {% endtabs %}
 
 See [External Secrets](../../configuration/secret-files.md) for vault config setup and secret rotation details.
+
+### Update the endpoint
+
+`AidboxTopicDestination` is [immutable](../../modules/topic-based-subscriptions/aidbox-topic-based-subscriptions.md#updating-a-topicdestination), with one exception: on a `webhook-at-least-once` destination, `PUT` succeeds when the request body and the stored resource differ in the `endpoint` parameter and nothing else. Every other element (`kind`, `topic`, `meta.profile`) and every other parameter (`timeout`, `keepAlive`, `maxMessagesInBatch`, `header`) must match the stored resource; adding or removing a parameter also counts as a change.
+
+Send a `PUT` with the same resource and a new `endpoint` value:
+
+```json
+PUT /fhir/AidboxTopicDestination/webhook-destination
+content-type: application/json
+accept: application/json
+
+{
+  "resourceType": "AidboxTopicDestination",
+  "meta": {
+    "profile": [
+      "http://health-samurai.io/fhir/core/StructureDefinition/aidboxtopicdestination-webhookAtLeastOnceProfile"
+    ]
+  },
+  "kind": "webhook-at-least-once",
+  "id": "webhook-destination",
+  "topic": "http://example.org/FHIR/R5/SubscriptionTopic/QuestionnaireResponse-topic",
+  "parameter": [
+    {
+      "name": "endpoint",
+      "valueUrl": "https://new-host.example.com/webhook"
+    }
+  ]
+}
+```
+
+On success Aidbox returns `200` and applies the new endpoint to the running sender, on every replica in a multi-replica deployment:
+
+* Delivery continues without a restart; the sender uses the new URL from the next batch on.
+* Events queued before the update are delivered to the new endpoint, so at-least-once delivery holds across the switch.
+* [`$status`](webhook-aidboxtopicdestination.md#status-introspection) counters keep their values; nothing resets.
+
+A `PUT` that changes anything besides `endpoint` returns `405 Method Not Allowed` with an `OperationOutcome` whose `diagnostics` names the changed elements and parameters, and leaves the stored resource and the running sender untouched. For those changes, use the DELETE+POST pattern described in [Updating a TopicDestination](../../modules/topic-based-subscriptions/aidbox-topic-based-subscriptions.md#updating-a-topicdestination).
 
 ## **Status Introspection**
 

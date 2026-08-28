@@ -114,13 +114,13 @@ To stop processing subscription data, delete the `AidboxTopicDestination` resour
 
 #### Updating a TopicDestination
 
-{% hint style="warning" %}
-`AidboxTopicDestination` is **immutable** — `PUT` and `PATCH` requests return `405 Method Not Allowed`. The same restriction applies inside transaction and batch bundles, including [init bundles](../../configuration/init-bundle.md).
+Each `AidboxTopicDestination` runs a live sender: a Kafka producer, a webhook delivery worker, a GCP Pub/Sub session. Aidbox builds the sender when you create the destination and cannot rebuild it from an edited resource. For this reason `PUT` and `PATCH` on a destination return `405 Method Not Allowed`, in direct requests and inside transaction and batch bundles, including [init bundles](../../configuration/init-bundle.md). (`AidboxSubscriptionTopic` carries no runtime state and supports `PUT` as usual.)
 
-This is by design: an `AidboxTopicDestination` owns long-lived resources (Kafka producers, webhook clients, GCP Pub/Sub sessions, etc.) that cannot be hot-reloaded.
-{% endhint %}
+Some destination kinds exempt specific parameters from this rule and accept a `PUT` that changes them alone. Each kind's page documents its exceptions, for example [the webhook endpoint](../../tutorials/subscriptions-tutorials/webhook-aidboxtopicdestination.md#update-the-endpoint).
 
-To change a destination's configuration, `DELETE` the existing resource and `POST` a new one. In an init bundle, use a `batch` bundle so the `DELETE` succeeds when the resource does not yet exist (returns `204`):
+To change anything else, recreate the destination: `DELETE` the existing resource and `POST` a new one with the same `id`. Undelivered events are dropped together with the old destination, so drain the queue first if they matter: watch `messagesQueued` in [`$status`](#status-status-and-ha-deployments) reach zero before the `DELETE`.
+
+In an init bundle, use a `batch` bundle for the recreate pattern, so the `DELETE` succeeds when the resource does not yet exist (returns `204`):
 
 ```json
 {
@@ -137,8 +137,6 @@ To change a destination's configuration, `DELETE` the existing resource and `POS
   ]
 }
 ```
-
-`AidboxSubscriptionTopic` does support `PUT`, so only the destination resource needs the DELETE+POST pattern.
 
 #### Status (`$status`) and HA deployments
 
