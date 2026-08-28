@@ -8,10 +8,6 @@ description: >-
 
 ## Update Docker Image
 
-{% hint style="info" %}
-This feature is available since 2107 Aidbox version
-{% endhint %}
-
 To begin using pre-configured Kibana and Grafana please clone [this repository](https://github.com/Aidbox/devbox) and execute `make up` operation in your shell.
 
 ## **Explore logs with Kibana**
