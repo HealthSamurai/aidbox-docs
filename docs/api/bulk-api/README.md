@@ -24,6 +24,9 @@ Bulk import FHIR resources asynchronously with progress monitoring.
 {% card icon="trash" title="$purge" href="purge.md" %}
 Permanently delete a Patient and all resources in their compartment.
 {% endcard %}
+{% card icon="trash" title="Group $purge" href="group-purge.md" %}
+Permanently delete every Patient member of a Group and their compartments.
+{% endcard %}
 {% endcards %}
 
 ## Read more
