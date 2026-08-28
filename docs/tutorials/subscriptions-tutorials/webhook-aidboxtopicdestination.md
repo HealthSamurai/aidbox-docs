@@ -152,6 +152,10 @@ See [External Secrets](../../configuration/secret-files.md) for vault config set
 
 ### Update the endpoint
 
+{% hint style="info" %}
+Available since the 2608 release.
+{% endhint %}
+
 `AidboxTopicDestination` is [immutable](../../modules/topic-based-subscriptions/aidbox-topic-based-subscriptions.md#updating-a-topicdestination), with one exception: on a `webhook-at-least-once` destination, `PUT` succeeds when the request body and the stored resource differ in the `endpoint` parameter and nothing else. Every other element (`kind`, `topic`, `meta.profile`) and every other parameter (`timeout`, `keepAlive`, `maxMessagesInBatch`, `header`) must match the stored resource; adding or removing a parameter also counts as a change.
 
 Send a `PUT` with the same resource and a new `endpoint` value:
