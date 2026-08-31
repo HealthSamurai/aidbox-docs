@@ -282,3 +282,7 @@ The `invalid-resources` response is a `Parameters` resource rather than a `Bundl
 ## Terminology
 
 Coded-binding and slice validation may call the configured terminology server. Bindings that resolve **locally** (local code systems, or a hybrid engine with local content) validate offline and surface invalid codes as ordinary `terminology-binding-error` issues. But if validation needs the configured terminology server and it is **unreachable or errors**, the validator cannot complete and the **whole run fails**: a synchronous call returns `422` (`OperationOutcome`, "Batch validation failed…"), an asynchronous run reports `failed`. Point `fhir.terminology.service-base-url` at a reachable server (a local or hybrid engine works best) so coded validation is accurate and does not fail the run.
+
+## Try it as a notebook
+
+[Batch validation](https://www.health-samurai.io/docs/aidbox/notebooks/64c853e6-f13a-4246-bb0b-044020b3b01a) walks the whole flow end to end: it loads R4-compliant Patients, validates them against a US-Core-modeled profile, and charts the results — valid vs. invalid, issues by type, and where they concentrate. Read it in the docs, then open it in your own Aidbox to run the cells against live data.
