@@ -275,7 +275,6 @@ redirects:
   modules-1/eprescription/environment-variables: modules/eprescription/reference/environment-variables.md
   modules-1/eprescription/frequently-asked-questions: modules/eprescription/frequently-asked-questions.md
   modules-1/eprescription/getting-started: modules/eprescription/getting-started.md
-  modules-1/eprescription/medications/fdb: modules/eprescription/medications/fdb.md
   modules-1/eprescription/pharmacies-synchronization: modules/eprescription/pharmacies-synchronization.md
   modules-1/eprescription/prescribing/cancelrx-message: modules/eprescription/prescribing/cancelrx-message.md
   modules-1/eprescription/prescribing/newrx-message: modules/eprescription/prescribing/newrx-message.md
