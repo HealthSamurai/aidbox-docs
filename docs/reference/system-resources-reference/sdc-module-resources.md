@@ -487,14 +487,6 @@ Configuration resource for SDC system settings including language, theme, storag
   "type" : "string",
   "desc" : "Renderer name"
 }, {
-  "path" : "builder.custom-renderers.source",
-  "name" : "source",
-  "lvl" : 2,
-  "min" : 0,
-  "max" : 1,
-  "type" : "url",
-  "desc" : "Web component source URL"
-}, {
   "path" : "builder.custom-renderers.url",
   "name" : "url",
   "lvl" : 2,
@@ -502,14 +494,6 @@ Configuration resource for SDC system settings including language, theme, storag
   "max" : 1,
   "type" : "url",
   "desc" : "Web component URL"
-}, {
-  "path" : "builder.custom-renderers.title",
-  "name" : "title",
-  "lvl" : 2,
-  "min" : 0,
-  "max" : 1,
-  "type" : "string",
-  "desc" : "Title in Builder"
 }, {
   "path" : "builder.custom-renderers.default",
   "name" : "default",
