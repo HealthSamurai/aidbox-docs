@@ -9,7 +9,7 @@ description: Integrate Aidbox topic-based subscriptions with NATS and NATS JetSt
 
 | Aidbox | Connector JAR | Profile URL |
 | --- | --- | --- |
-| ≥ 2604 | `topic-destination-nats-2604.0.jar` | `http://health-samurai.io/fhir/core/StructureDefinition/aidboxtopicdestination-natsCoreBestEffortProfile`<br>`http://health-samurai.io/fhir/core/StructureDefinition/aidboxtopicdestination-natsJetStreamAtLeastOnceProfile` |
+| ≥ 2604 | `topic-destination-nats-2604.1.jar` | `http://health-samurai.io/fhir/core/StructureDefinition/aidboxtopicdestination-natsCoreBestEffortProfile`<br>`http://health-samurai.io/fhir/core/StructureDefinition/aidboxtopicdestination-natsJetStreamAtLeastOnceProfile` |
 | < 2604 | `topic-destination-nats-2602.1.jar` | `http://aidbox.app/StructureDefinition/aidboxtopicdestination-nats-core-best-effort`<br>`http://aidbox.app/StructureDefinition/aidboxtopicdestination-nats-jetstream-at-least-once` |
 
 Examples below use the ≥ 2604 form. On older Aidbox, swap both the JAR and the `meta.profile` URL. Redeploy the JAR when crossing the 2604 boundary — older JARs register profiles via a legacy path the new validator no longer honors.
@@ -432,6 +432,53 @@ When the request carries no correlation id header, Aidbox omits the `correlation
     ```
     {"topic":"mysubject.hello","value":{"resourceType":"Bundle","type":"history","timestamp":"2025-05-21T13:36:33Z","entry":[{"resource":{"resourceType":"AidboxSubscriptionStatus","status":"active","type":"event-notification","notificationEvent":[{"eventNumber":1,"focus":{"reference":"Patient/89ae88de-c15b-4aac-a393-9168f2dc507c"}}],"topic":"patient-topic","topic-destination":{"reference":"AidboxTopicDestination/nats-core-destination"}}},{"request":{"method":"POST","url":"/fhir/Patient"},"fullUrl":"http://localhost:8080/fhir/Patient/89ae88de-c15b-4aac-a393-9168f2dc507c","resource":{"name":[{"family":"smith"}],"id":"89ae88de-c15b-4aac-a393-9168f2dc507c","resourceType":"Patient","meta":{"lastUpdated":"2025-05-21T13:36:33.378705Z","versionId":"14","extension":[{"url":"ex:createdAt","valueInstant":"2025-05-21T13:36:33.378705Z"}]}}}]}}
     ```
+
+### Using an external secret for the password
+
+{% hint style="info" %}
+Requires connector JAR `2604.1` or newer.
+{% endhint %}
+
+To avoid storing the password in the database, reference a [vault secret](../../configuration/secret-files.md) in place of `valueString`. This works for `password` as well as any other NATS destination parameter (e.g. `username`, `url`).
+
+{% tabs %}
+{% tab title="vault-config.json" %}
+```json
+{
+  "secret": {
+    "nats-password": {
+      "path": "/run/secrets/nats-password",
+      "scope": {"resource_type": "AidboxTopicDestination", "id": "nats-core-destination"}
+    }
+  }
+}
+```
+{% endtab %}
+{% tab title="Secret file content" %}
+```
+secret1
+```
+{% endtab %}
+{% tab title="AidboxTopicDestination" %}
+```json
+{
+  "name": "password",
+  "_valueString": {
+    "extension": [
+      {
+        "url": "http://hl7.org/fhir/StructureDefinition/data-absent-reason",
+        "valueCode": "masked"
+      },
+      {
+        "url": "http://health-samurai.io/fhir/secret-reference",
+        "valueString": "nats-password"
+      }
+    ]
+  }
+}
+```
+{% endtab %}
+{% endtabs %}
 
 ## JWT authentication
 
