@@ -42,4 +42,7 @@ Here is a full list of environment variables used by the module:
 
 
 
-* `FDB_KEY` – FDB API key to use medication database
+* `SDB_UCI`: Scholz DataBank UCI
+* `FDB_KEY`: FDB API key
+* `TERMBOX_BASE_URL`: Overrides the default Termbox server URL for RxNorm
+* `TERMBOX_API_KEY`: Optional API key for a Termbox server that requires authentication
