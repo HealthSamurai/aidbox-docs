@@ -178,6 +178,72 @@ data:
           id: org-1
 ```
 
+#### Contained references
+
+A reference to a [contained](https://www.hl7.org/fhir/references.html#contained) resource (`#local-id`) resolves through the same `resource` field. Aidbox matches the local id against the enclosing resource's `contained` array and returns the entry inline.
+
+{% hint style="info" %}
+Contained references resolve since the 2608 release. Earlier versions returned `null` for `resource`.
+{% endhint %}
+
+Take a `DiagnosticReport` whose `result` points at a contained `Observation`:
+
+```json
+PUT /fhir/DiagnosticReport/dr-contained-1
+content-type: application/json
+
+{
+  "resourceType": "DiagnosticReport",
+  "id": "dr-contained-1",
+  "status": "final",
+  "code": {"text": "Panel"},
+  "contained": [
+    {
+      "resourceType": "Observation",
+      "id": "obs-c1",
+      "status": "final",
+      "code": {"text": "Glucose"},
+      "valueString": "5.5"
+    }
+  ],
+  "result": [{"reference": "#obs-c1"}]
+}
+```
+
+Request:
+
+```graphql
+query {
+  DiagnosticReport(id: "dr-contained-1") {
+    id
+    result {
+      resource {
+        __typename
+        ... on Observation {
+          id
+          status
+        }
+      }
+    }
+  }
+}
+```
+
+Response:
+
+```yaml
+data:
+  DiagnosticReport:
+    id: dr-contained-1
+    result:
+      - resource:
+          __typename: Observation
+          id: obs-c1
+          status: final
+```
+
+`id` and `resourceType` stay `null` on a contained reference, since a `#local-id` names an entry inside the resource rather than a stored one. Read the id from the resolved `resource` instead.
+
 ### Revincludes
 
 Aidbox generates special fields to include resources that reference this resource.

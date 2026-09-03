@@ -236,3 +236,116 @@ Content-Type: application/json
   ]
 }
 ```
+
+## Control the response size
+
+The `Prefer` header controls how much of the result Aidbox returns. Large bundles produce large responses, and a client that only needs the ids of the resources it created can drop the resource bodies.
+
+<table data-full-width="false"><thead><tr><th width="260">Prefer value</th><th>Response</th></tr></thead><tbody><tr><td>absent, or <code>return=representation</code></td><td>Full <code>batch-response</code> or <code>transaction-response</code> bundle: every entry carries both <code>resource</code> and <code>response</code>.</td></tr><tr><td><code>return=minimal</code></td><td>The response bundle without resource bodies. Each entry keeps <code>response</code> with <code>status</code>, <code>location</code>, <code>etag</code>, and <code>lastModified</code>.</td></tr><tr><td><code>return=hs-headers-only</code></td><td>Empty body.</td></tr></tbody></table>
+
+{% hint style="info" %}
+`return=minimal` on bundles behaves this way since the 2608 release. Earlier versions returned an empty body. Use `return=hs-headers-only` to keep that behavior.
+{% endhint %}
+
+### `return=minimal`
+
+Read the created ids from `entry.response.location` without transferring the resources themselves:
+
+```json
+POST /fhir
+Content-Type: application/fhir+json
+Accept: application/fhir+json
+Prefer: return=minimal
+
+{
+  "resourceType": "Bundle",
+  "type": "transaction",
+  "entry": [
+    {
+      "resource": {
+        "resourceType": "Patient",
+        "name": [{"family": "Doe", "given": ["John"]}]
+      },
+      "request": {"method": "POST", "url": "Patient"}
+    }
+  ]
+}
+```
+
+Response:
+
+```json
+{
+  "resourceType": "Bundle",
+  "type": "transaction-response",
+  "entry": [
+    {
+      "response": {
+        "status": "201",
+        "location": "/Patient/b018a792-c364-44b9-bbe9-8615184bab0f/_history/40",
+        "etag": "40",
+        "lastModified": "2026-08-18T09:04:17.818755Z"
+      }
+    }
+  ]
+}
+```
+
+Failed entries keep their `OperationOutcome` in `entry.resource`, so `return=minimal` never hides an error. This applies to `batch` bundles, where processing continues past a failure:
+
+```json
+{
+  "resourceType": "Bundle",
+  "type": "batch-response",
+  "entry": [
+    {
+      "response": {
+        "status": "201",
+        "location": "/Patient/9cb1e1f2-0e2d-4a1f-9d3a-2b6f0f1a7c11/_history/12"
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "OperationOutcome",
+        "issue": [
+          {
+            "severity": "error",
+            "code": "invalid",
+            "diagnostics": "Expected 'male', 'female', 'other', 'unknown'"
+          }
+        ]
+      },
+      "response": {"status": "422"}
+    }
+  ]
+}
+```
+
+### `return=hs-headers-only`
+
+`return=hs-headers-only` returns an empty body. The bundle is processed the same way, so the resources are stored and you can read them back by id:
+
+```json
+POST /fhir
+Content-Type: application/fhir+json
+Prefer: return=hs-headers-only
+
+{
+  "resourceType": "Bundle",
+  "type": "transaction",
+  "entry": [
+    {
+      "resource": {
+        "resourceType": "Patient",
+        "id": "pt-1",
+        "name": [{"family": "Doe"}]
+      },
+      "request": {"method": "PUT", "url": "Patient/pt-1"}
+    }
+  ]
+}
+```
+
+{% hint style="info" %}
+On single-resource endpoints such as `POST /fhir/Patient`, `return=minimal` returns an empty body. Only bundle endpoints distinguish `return=minimal` from `return=hs-headers-only`.
+{% endhint %}

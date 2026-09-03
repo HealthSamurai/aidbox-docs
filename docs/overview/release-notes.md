@@ -6,7 +6,9 @@ description: >-
 
 # Release Notes
 
-## August 2026 _`edge`_
+## September 2026 _`edge`_
+
+## August 2026 _`latest, 2608`_
 
 *   Aidbox FHIR server
 
@@ -16,8 +18,27 @@ description: >-
     * **[Correlation id in topic-based subscription notifications](../modules/topic-based-subscriptions/aidbox-topic-based-subscriptions.md#correlation-id)** — send a correlation id on a request, and Aidbox copies it into `AidboxSubscriptionStatus.notificationEvent.correlationId` on the resulting topic-based subscription notification. Configure the request header name with the `module.topics.correlation-id-header` setting. Every sender supports it, and NATS destinations also carry it as a native message header.
     * **[Organization $purge](../access-control/authorization/scoped-api/organization-based-hierarchical-access-control/organization-purge.md)** — delete select or all data belonging to an organization and its nested organizations.
     * **[Group $purge](../api/bulk-api/group-purge.md)** — the `$purge` operation on `Group` deletes every Patient member of a group along with their compartments, synchronously or asynchronously. Authorization is checked for every member up front, so a single denial leaves the group untouched.
+    * **[Streaming large Binary files](../api/rest-api/other/binary.md#streaming-large-files)** — with offload configured for the `data` element, Aidbox streams raw content between the client and the blob storage instead of buffering it. Only a small buffer stays in memory, so uploads and downloads can exceed the memory available to the instance, bounded by the [`web.max-body`](../reference/all-settings.md#web.max-body) setting.
+    * **[Kafka message keys by resource id](../tutorials/subscriptions-tutorials/kafka-aidboxtopicdestination.md)** — the `keyByResourceId` parameter on a Kafka `AidboxTopicDestination` keys each message by the FHIR resource id, so every event for a resource lands on the same partition and keeps its order. Messages are sent without a key when the parameter is absent or `false`.
 
-## July 2026 _`latest, 2607`_
+    **Bug fixes and improvements**
+
+    * Fixed the `Location` header on create and update responses, which omitted the base URL. Per the FHIR spec it is now absolute: `[base]/[type]/[id]/_history/[vid]`. Set the new [`fhir.location-header-compliant-mode`](../reference/all-settings.md#fhir.location-header-compliant-mode) setting to `false` to restore the previous relative form.
+    * [Webhook destinations accept an endpoint update](../tutorials/subscriptions-tutorials/webhook-aidboxtopicdestination.md#update-the-endpoint) — `AidboxTopicDestination` stays immutable, except that a `PUT` on a `webhook-at-least-once` destination now succeeds when the `endpoint` parameter is the only difference from the stored resource.
+    * Bug fixes in Aidbox UI.
+    * Bug fixes in sending traces using OTEL connector.
+    * Bug fixes in Multibox.
+    * Fixed [`AzureAccount` rejecting a credential-less resource](../configuration/storage-and-api-configuration/offload-base64binary-to-external-storage.md#azure-blob-storage) with `422`, which made base64Binary offload over Azure workload identity unreachable. An account with no credentials is now valid and resolves through `DefaultAzureCredential`.
+    * Added `storageId`, `apiId`, and `ifNoneExist` to [`$create-storage` and `$create-api`](../configuration/storage-and-api-configuration/README.md). Choose your own identifier and get the existing entry back with `200` instead of `409`, so storage and API configuration can be provisioned from an [init bundle](../configuration/init-bundle.md).
+    * Added the [`blobNamePrefix`](../configuration/storage-and-api-configuration/offload-base64binary-to-external-storage.md) parameter to `dataOffloadToExternalStorage`, which writes offloaded blobs as `{prefix}/{uuid}` so you can namespace them per environment or tenant in a shared bucket. Supported for Azure, AWS, and GCP;
+    * Added settings to control [search parameter usage statistics](../deployment-and-maintenance/indexes/search-parameter-usage-stats.md#configuration): [`fhir.search.param-stats.enabled`](../reference/all-settings.md#fhir.search.param-stats.enabled) turns collection off, and [`fhir.search.param-stats.flush-interval`](../reference/all-settings.md#fhir.search.param-stats.flush-interval) sets how often buffered samples reach Postgres. Both hot-reload.
+    * Fixed [GraphQL references to contained resources](../api/graphql-api.md#contained-references) resolving to `null`. A reference such as `DiagnosticReport.result` pointing at a `#local-id` now resolves the contained resource inline through the `resource` field.
+
+    **Changes and deprecations**
+
+    * **[`Prefer: return=minimal` on bundles returns the response bundle](../api/batch-transaction.md#control-the-response-size)** — a batch or transaction request with `Prefer: return=minimal` used to return an empty body. It now returns the response bundle without resource bodies, so each entry keeps `response.status`, `location`, `etag`, and `lastModified`, and failed entries keep their `OperationOutcome`. This matches HAPI. Send `Prefer: return=hs-headers-only` for the empty body. Single-resource endpoints are unaffected.
+
+## July 2026 _`stable, 2607`_
 
 *   Aidbox FHIR server
 
@@ -48,7 +69,7 @@ description: >-
     * **Zen seed removal** — removed the Zen `seed` and `seed-v2` engines along with the `SeedImport` resource type. Load configuration resources at startup with [Init Bundle](../configuration/init-bundle.md) instead.
     * **C-CDA converter moved out of Aidbox** — the built-in C-CDA / FHIR converter module is removed, and the `/ccda/*` endpoints (`to-fhir`, `to-ccda`, `persist`, `validate`, `fhir-validate`) are no longer served by Aidbox.
 
-## June 2026 _`stable, 2606`_
+## June 2026 _`2606`_
 
 *   Aidbox FHIR server
 

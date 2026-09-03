@@ -51,6 +51,8 @@ type: <type>
 ...
 ```
 
+Use the `Prefer` header to [control the response size](../batch-transaction.md#control-the-response-size) of a batch or transaction request.
+
 Behavior of the endpoint depends on the `type` of a bundle resource provided in a request body.
 
 Supported `type` values:

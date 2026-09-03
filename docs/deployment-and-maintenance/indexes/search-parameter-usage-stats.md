@@ -37,7 +37,19 @@ Each row stores:
 | `mean_time_ms` | Running average, `total_time_ms / calls` |
 | `last_used_at` | `timestamptz` of the most recent matching request |
 
-Recording is non-blocking: each search appends to an in-memory buffer; a background worker UPSERTs the buffer into Postgres every 60 seconds. Failed searches (validation errors, query timeouts, errors raised mid-execution) are not counted — only completed responses land in the table. Use `flush-first: true` on a read to force a synchronous drain when you need the latest samples immediately.
+Recording is non-blocking: each search appends to an in-memory buffer; a background worker UPSERTs the buffer into Postgres every 60 seconds by default, see [Configuration](#configuration). Failed searches (validation errors, query timeouts, errors raised mid-execution) are not counted — only completed responses land in the table. Use `flush-first: true` on a read to force a synchronous drain when you need the latest samples immediately.
+
+## Configuration
+
+Two settings control collection. Both hot-reload, so a change takes effect without a restart.
+
+<table><thead><tr><th width="330">Setting</th><th width="110">Default</th><th>Meaning</th></tr></thead><tbody><tr><td><a href="../../reference/all-settings.md#fhir.search.param-stats.enabled"><code>fhir.search.param-stats.enabled</code></a></td><td><code>true</code></td><td>Whether Aidbox records samples. Set it to <code>false</code> to stop collecting; rows already in the table are kept, and reads keep working.</td></tr><tr><td><a href="../../reference/all-settings.md#fhir.search.param-stats.flush-interval"><code>fhir.search.param-stats.flush-interval</code></a></td><td><code>60</code></td><td>Seconds between flushes of the in-memory buffer to Postgres. Accepts 5 to 3600; Aidbox rejects a value outside that range.</td></tr></tbody></table>
+
+A shorter interval narrows the window in which a restart loses buffered samples, at the cost of more frequent writes. A longer one batches more samples per write.
+
+{% hint style="info" %}
+Both settings are available since the 2608 release.
+{% endhint %}
 
 ## Reading the stats: `aidbox.index/get-search-param-stats`
 
