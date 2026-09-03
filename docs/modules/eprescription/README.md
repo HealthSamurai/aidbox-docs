@@ -34,17 +34,15 @@ Controlled substances currently not supported, but we are working on it.
 
 #### Drug Sources
 
-The module mounts SDB, FDB and RxNorm as separate drug sources. Each request selects its source in the URL.
+The module supports medication search, drug-drug interaction checks and drug-allergy interaction checks through [Drug Sources](drug-sources/README.md).
 
 * SDB (Scholz DataBank)
   * Search medications by brand name, generic name or NDC
   * Check drug-drug and drug-allergy interactions
-  * Requires an SDB UCI
 * FDB (First DataBank)
   * Search medications and allergies
   * Get common SIGs for a medication
   * Check drug-drug and drug-allergy interactions
-  * Requires an FDB API key
 * RxNorm
   * Search medications through Termbox
 
@@ -60,8 +58,6 @@ Before using the ePrescription module in production, your implementation must be
 ## References
 
 * [Frequently Asked Questions](frequently-asked-questions.md)
-* [Drug sources](drug-sources/README.md)
-* [FDB identifiers and Rx/OTC codes](drug-sources/fdb.md)
 * [List of metrics](reference/list-of-metrics.md)
 
 ### Directory management
