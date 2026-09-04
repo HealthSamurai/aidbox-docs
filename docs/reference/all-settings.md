@@ -2734,6 +2734,21 @@ Logs history size on telemetry $status endpoint
 
 <details><summary>Details</summary><table data-header-hidden="true"><thead><tr><th width="200"></th><th></th></tr></thead><tbody><tr><td>ID</td><td><code>observability.otel.logs-history-size</code></td></tr><tr><td>Type</td><td>Int</td></tr><tr><td>Default value</td><td><code>10</code></td></tr><tr><td>Environment variable</td><td><code>BOX_OBSERVABILITY_OTEL_LOGS_HISTORY_SIZE</code></td></tr><tr><td>Available from</td><td><code>2503</code></td></tr><tr><td>Sensitive</td><td><code>false</code> — value will be visible in plaintext in Admin UI</td></tr><tr><td>Set via</td><td>Admin UI → Settings<br />Environment variables</td></tr><tr><td>Hot reload</td><td><code>false</code> — setting requires system restart</td></tr></tbody></table></details>
 
+#### OTEL logs level<a href="#observability.otel.logs-level" id="observability.otel.logs-level"></a>
+
+```yaml
+BOX_OBSERVABILITY_OTEL_LOGS_LEVEL: "all"
+```
+
+Controls the level of logs exported to the OTEL logs endpoint.
+Possible values: off, fatal, error, warn, info, debug, trace, all, true 
+By setting one of these levels you would also get all the levels to the left. 
+e.g. if you set log level to `warn` you would also get log events with `fatal` 
+and `error` levels (off is excluded).
+Setting `off` disables the logs export entirely.
+
+<details><summary>Details</summary><table data-header-hidden="true"><thead><tr><th width="200"></th><th></th></tr></thead><tbody><tr><td>ID</td><td><code>observability.otel.logs-level</code></td></tr><tr><td>Type</td><td>Enum</td></tr><tr><td>Values</td><td><code>off</code><br /><code>fatal</code><br /><code>error</code><br /><code>warn</code><br /><code>info</code><br /><code>debug</code><br /><code>trace</code><br /><code>all</code><br /><code>true</code></td></tr><tr><td>Default value</td><td><code>all</code></td></tr><tr><td>Environment variable</td><td><code>BOX_OBSERVABILITY_OTEL_LOGS_LEVEL</code></td></tr><tr><td>Available from</td><td><code>2609</code></td></tr><tr><td>Sensitive</td><td><code>false</code> — value will be visible in plaintext in Admin UI</td></tr><tr><td>Set via</td><td>Admin UI → Settings<br />Environment variables</td></tr><tr><td>Hot reload</td><td><code>false</code> — setting requires system restart</td></tr></tbody></table></details>
+
 ## Multibox
 
 Multibox cluster manager settings
