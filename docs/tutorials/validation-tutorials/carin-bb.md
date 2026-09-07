@@ -8,7 +8,7 @@ description: Set up and validate FHIR resources against CARIN Blue Button 2.0.0 
 
 Follow [getting started guide](../../getting-started/run-aidbox-locally.md). Add the dependency:
 ```
-AIDBOX_FHIR_PACKAGES=hl7.fhir.r4.core#4.0.1:hl7.fhir.us.carin-bb#2.0.0
+BOX_BOOTSTRAP_FHIR_PACKAGES=hl7.fhir.r4.core#4.0.1:hl7.fhir.us.carin-bb#2.0.0
 ```
 
 ## Validate example resources against Carin BB profiles

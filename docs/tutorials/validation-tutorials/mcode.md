@@ -10,7 +10,7 @@ In this tutorial we will guide you how to setup minimal Common Oncology Data Ele
 
 Follow [getting started guide](../../getting-started/run-aidbox-locally.md). Add the dependency:
 ```
-AIDBOX_FHIR_PACKAGES=hl7.fhir.r4.core#4.0.1:hl7.fhir.us.mcode#3.0.0
+BOX_BOOTSTRAP_FHIR_PACKAGES=hl7.fhir.r4.core#4.0.1:hl7.fhir.us.mcode#3.0.0
 ```
 
 ## Validate example resources against minimal Common Oncology Data Elements (mCODE)  IG version profiles

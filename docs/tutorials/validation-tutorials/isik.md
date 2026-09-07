@@ -10,7 +10,7 @@ In this tutorial we will guide you how to setup ISiK Stufe 2 FHIR Implementation
 
 Follow [getting started guide](../../getting-started/run-aidbox-locally.md). Add the dependency:
 ```
-AIDBOX_FHIR_PACKAGES=hl7.fhir.r4.core#4.0.1:de.gematik.isik-basismodul#3.0.4
+BOX_BOOTSTRAP_FHIR_PACKAGES=hl7.fhir.r4.core#4.0.1:de.gematik.isik-basismodul#3.0.4
 ```
 
 ## Validate example resources against ISIK Stufe 2 profiles

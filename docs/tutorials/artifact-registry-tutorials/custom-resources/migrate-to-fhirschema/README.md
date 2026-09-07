@@ -167,7 +167,7 @@ For detailed FHIR Schema engine configuration instructions, refer to the [FHIR S
 Set FHIR core packages using an environment variable:
 
 ```
-AIDBOX_FHIR_PACKAGES=hl7.fhir.r4.core#4.0.1:hl7.fhir.us.core#3.1.0
+BOX_BOOTSTRAP_FHIR_PACKAGES=hl7.fhir.r4.core#4.0.1:hl7.fhir.us.core#3.1.0
 ```
 
 ### Step 4: Migrate Custom Resources

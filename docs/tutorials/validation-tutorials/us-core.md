@@ -10,7 +10,7 @@ In this tutorial we will guide you how to setup US Core FHIR Implementation Guid
 
 Follow [getting started guide](../../getting-started/run-aidbox-locally.md). Add the dependency:
 ```
-AIDBOX_FHIR_PACKAGES=hl7.fhir.r4.core#4.0.1:hl7.fhir.us.core#6.1.0
+BOX_BOOTSTRAP_FHIR_PACKAGES=hl7.fhir.r4.core#4.0.1:hl7.fhir.us.core#6.1.0
 ```
 ## Validate example resources against US Core profiles
 

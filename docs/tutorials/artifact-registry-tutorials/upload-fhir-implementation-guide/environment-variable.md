@@ -13,7 +13,7 @@ Set the environment variable with the names and versions of the IGs.
 **Example for a single IG:**
 
 ```
-AIDBOX_FHIR_PACKAGES=hl7.fhir.us.core#5.0.1
+BOX_BOOTSTRAP_FHIR_PACKAGES=hl7.fhir.us.core#5.0.1
 ```
 
 ***
@@ -24,7 +24,7 @@ Use a colon `:` as a separator between IGs.
 
 {% code fullWidth="false" %}
 ```
-AIDBOX_FHIR_PACKAGES=hl7.fhir.us.core#5.0.1:hl7.fhir.us.davinci-pdex#2.0.0
+BOX_BOOTSTRAP_FHIR_PACKAGES=hl7.fhir.us.core#5.0.1:hl7.fhir.us.davinci-pdex#2.0.0
 ```
 {% endcode %}
 

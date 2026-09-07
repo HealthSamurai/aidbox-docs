@@ -195,7 +195,7 @@ Aidbox provides multiple methods to load IGs:
 
 **1. Environment variable (at startup):**
 ```
-AIDBOX_FHIR_PACKAGES=hl7.fhir.r4.core#4.0.1
+BOX_BOOTSTRAP_FHIR_PACKAGES=hl7.fhir.r4.core#4.0.1
 ```
 
 **2. Aidbox UI:** Navigate to FHIR Packages and select from the registry or upload a local package.
