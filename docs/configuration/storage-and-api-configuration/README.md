@@ -238,6 +238,7 @@ An API record carries these parameters:
 | `resourceType`                 | string | yes      | FHIR resource type exposed at `/fhir/{resourceType}`. One active API per resource type.                                                         |
 | `storageId`                    | string | yes      | Storage the API reads from and writes to.                                                                                                       |
 | `apiTemplate`                  | string | yes      | `pre-2604`.                                                                                                                                     |
+| `typeStructureDefinition`      | canonical | no    | StructureDefinition that defines the resource type for validation, as `url` or `url|version`. When omitted, Aidbox picks the current version of the type definition itself. See [Pin the type definition](#pin-the-type-definition). |
 | `dataOffloadToExternalStorage` | parts  | no       | Store `base64Binary` element values in external storage. See [Offload base64Binary data to external storage](offload-base64binary-to-external-storage.md). |
 | `apiId`                        | string | no       | Identifier of the API. On `$create-api` you may choose your own; when omitted, Aidbox generates a UUID. Pass it to `$configure-api` and `$delete-api`. |
 | `ifNoneExist`                  | boolean | no      | Only on `$create-api`, and only together with `apiId`. When an API with that `apiId` already exists, return it unchanged with `200` instead of `409`. Not stored. |
@@ -334,9 +335,53 @@ Together with a storage created with a known `storageId`, the whole setup become
 
 Every start of every replica applies the bundle; the first one creates the storage and the API, the others find them in place. Later entries of the same bundle can already use the new API.
 
+#### Pin the type definition
+
+When several versions of the same StructureDefinition are installed, for example after loading two versions of one implementation guide, Aidbox validates resources of the type against the current version, chosen by the [candidate selection algorithm](../../artifact-registry/artifact-registry-overview.md#candidate-selection-algorithm) of the Artifact Registry.
+
+To validate against a specific version instead, pass `typeStructureDefinition` with a versioned canonical. The value is stored with the API and echoed by `$create-api`, `$configure-api` and `$list-api`. Change it with `$configure-api` at any time; the new version takes effect immediately.
+
+{% hint style="info" %}
+`typeStructureDefinition` is available starting from Aidbox version **2609**.
+{% endhint %}
+
+{% tabs %}
+{% tab title="Request" %}
+```http
+POST /fhir/$create-api
+Content-Type: application/json
+
+{
+  "resourceType": "Parameters",
+  "parameter": [
+    { "name": "resourceType", "valueString": "SyncStatus" },
+    { "name": "storageId", "valueString": "sync-status-main" },
+    { "name": "apiTemplate", "valueString": "pre-2604" },
+    { "name": "typeStructureDefinition", "valueCanonical": "http://example.org/StructureDefinition/SyncStatus|1.0.0" }
+  ]
+}
+```
+{% endtab %}
+
+{% tab title="Response" %}
+```json
+{
+  "resourceType": "Parameters",
+  "parameter": [
+    { "name": "apiId", "valueString": "8f0c2a1e-5d6b-4c3a-9e7f-1b2c3d4e5f60" },
+    { "name": "apiTemplate", "valueString": "pre-2604" },
+    { "name": "resourceType", "valueString": "SyncStatus" },
+    { "name": "storageId", "valueString": "sync-status-main" },
+    { "name": "typeStructureDefinition", "valueCanonical": "http://example.org/StructureDefinition/SyncStatus|1.0.0" }
+  ]
+}
+```
+{% endtab %}
+{% endtabs %}
+
 ### $configure-api
 
-Updates an existing API, for example to point a resource type at a different storage. Pass the `apiId` with the full API definition.
+Updates an existing API, for example to point a resource type at a different storage or to [pin another version of the type definition](#pin-the-type-definition). Pass the `apiId` with the full API definition.
 
 {% tabs %}
 {% tab title="Request" %}

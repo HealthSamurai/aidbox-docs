@@ -8,6 +8,12 @@ description: >-
 
 ## September 2026 _`edge`_
 
+*   Aidbox FHIR server
+
+    **Features**
+
+    * **[Pin the type definition of an API](../configuration/storage-and-api-configuration/README.md#pin-the-type-definition)** — the new `typeStructureDefinition` parameter on `$create-api` and `$configure-api` selects which version of a StructureDefinition validates a resource type when several versions are installed. Without it, Aidbox now resolves the current version automatically instead of failing with "Found more than one schema for type".
+
 ## August 2026 _`latest, 2608`_
 
 *   Aidbox FHIR server
