@@ -325,16 +325,6 @@ Specifies the URL for the `createdAt` extension.
 
 <details><summary>Details</summary><table data-header-hidden="true"><thead><tr><th width="200"></th><th></th></tr></thead><tbody><tr><td>ID</td><td><code>fhir.validation.createdat-url</code></td></tr><tr><td>Type</td><td>String</td></tr><tr><td>Recommended value</td><td><code>https://aidbox.app/ex/createdAt</code></td></tr><tr><td>Default value</td><td><code>ex:createdAt</code></td></tr><tr><td>Environment variable</td><td><code>BOX_FHIR_CREATEDAT_URL</code></td></tr><tr><td>Deprecated environment variables</td><td><code>AIDBOX_CREATED_AT_URL</code></td></tr><tr><td>Sensitive</td><td><code>false</code> — value will be visible in plaintext in Admin UI</td></tr><tr><td>Set via</td><td>Admin UI → Settings<br />Environment variables</td></tr><tr><td>Hot reload</td><td><code>false</code> — setting requires system restart</td></tr></tbody></table></details>
 
-#### JSON schema datetime<a href="#fhir.validation.json-schema-datetime-regex" id="fhir.validation.json-schema-datetime-regex"></a>
-
-```yaml
-BOX_FHIR_JSON_SCHEMA_DATETIME_REGEX: "#{:fhir-datetime}"
-```
-
-Enables strict datetime validation in JSON schema validation engine.
-
-<details><summary>Details</summary><table data-header-hidden="true"><thead><tr><th width="200"></th><th></th></tr></thead><tbody><tr><td>ID</td><td><code>fhir.validation.json-schema-datetime-regex</code></td></tr><tr><td>Type</td><td>String</td></tr><tr><td>Recommended value</td><td><code>#{:fhir-datetime}</code></td></tr><tr><td>Default value</td><td><code>#{}</code></td></tr><tr><td>Environment variable</td><td><code>BOX_FHIR_JSON_SCHEMA_DATETIME_REGEX</code></td></tr><tr><td>Deprecated environment variables</td><td><code>BOX_COMPATIBILITY_VALIDATION_JSON__SCHEMA_REGEX</code></td></tr><tr><td>Sensitive</td><td><code>false</code> — value will be visible in plaintext in Admin UI</td></tr><tr><td>Set via</td><td>Admin UI → Settings<br />Environment variables</td></tr><tr><td>Hot reload</td><td><code>false</code> — setting requires system restart</td></tr></tbody></table></details>
-
 #### Legacy FCE package<a href="#fhir.validation.legacy-fce-package" id="fhir.validation.legacy-fce-package"></a>
 
 ```yaml
