@@ -9,7 +9,7 @@ description: Integrate Aidbox topic-based subscriptions with NATS and NATS JetSt
 
 | Aidbox | Connector JAR | Profile URL |
 | --- | --- | --- |
-| ≥ 2604 | `topic-destination-nats-2604.1.jar` | `http://health-samurai.io/fhir/core/StructureDefinition/aidboxtopicdestination-natsCoreBestEffortProfile`<br>`http://health-samurai.io/fhir/core/StructureDefinition/aidboxtopicdestination-natsJetStreamAtLeastOnceProfile` |
+| ≥ 2604 | `topic-destination-nats-2604.3.jar` | `http://health-samurai.io/fhir/core/StructureDefinition/aidboxtopicdestination-natsCoreBestEffortProfile`<br>`http://health-samurai.io/fhir/core/StructureDefinition/aidboxtopicdestination-natsJetStreamAtLeastOnceProfile` |
 | < 2604 | `topic-destination-nats-2602.1.jar` | `http://aidbox.app/StructureDefinition/aidboxtopicdestination-nats-core-best-effort`<br>`http://aidbox.app/StructureDefinition/aidboxtopicdestination-nats-jetstream-at-least-once` |
 
 Examples below use the ≥ 2604 form. On older Aidbox, swap both the JAR and the `meta.profile` URL. Redeploy the JAR when crossing the 2604 boundary — older JARs register profiles via a legacy path the new validator no longer honors.
@@ -36,6 +36,10 @@ Core NATS is a lightweight pub/sub system where messages are delivered to subscr
 JetStream is an extension of NATS that provides message persistence, replay, and acknowledgment (at least once delivery). It allows you to create streams, store messages, manage consumers, and ensure that important events are not lost even in the case of failure.
 
 In Aidbox, create [AidboxTopicDestination](../../modules/topic-based-subscriptions/aidbox-topic-based-subscriptions.md#aidboxtopicdestination) with `http://health-samurai.io/fhir/core/StructureDefinition/aidboxtopicdestination-natsCoreBestEffortProfile` profile to integrate with Core NATS and `http://health-samurai.io/fhir/core/StructureDefinition/aidboxtopicdestination-natsJetStreamAtLeastOnceProfile` to integrate with NATS JetStream.
+
+### What to expect from `nats-jetstream-at-least-once` delivery
+
+A single, isolated resource change typically reaches NATS in well under a second. Under a large burst or backlog of changes, delivery is pipelined internally — publishes are not serialized one-at-a-time waiting for each acknowledgment — but every change still arrives as its own, single-resource NATS message; Aidbox never bundles multiple changes into one message.
 
 ## Setting up
 
