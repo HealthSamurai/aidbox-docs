@@ -16,6 +16,7 @@ Here is a full list of environment variables used by the module:
 
 * `AIDBOX_BASE_URL` – Aidbox base URL (without trailing slash)
 * `AIDBOX_CREDENTIALS` – Aidbox Client secret for module access; **base64-encoded** client name and secret from App resource definition: `base64("client_name:client_secret")`
+* `AIDBOX_RPC_CREDENTIALS`: Required base64-encoded `ePrescription-app:<endpoint.secret>` from the App resource definition
 * `TENANT_ORGANIZATION_ID` - top level organization ID for multi-tenant setup
 
 
