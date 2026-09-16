@@ -78,6 +78,8 @@ Create the application using the provided resource definition. To do that, simpl
 **Key Notes:**
 
 * Include your real **secret** in Client section (replace `PUT_SECRET_HERE`).
+* Replace `PUT_ENDPOINT_SECRET_HERE` in the App `endpoint` section with a shared secret.
+* Set the module variable `AIDBOX_RPC_CREDENTIALS` to `base64("ePrescription-app:<endpoint secret>")` to authenticate calls from Aidbox to the module.
 * Include your deployment host (replace `PUT_APP_ENDPOINT_URL_HERE`), but retain the `/rpc` part.
 
 ## Verify Setup with API Endpoints
