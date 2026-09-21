@@ -22,6 +22,22 @@ Aidbox TokenIntrospector supports two main types of tokens:
 
 See [TokenIntrospector schema](../../reference/system-resources-reference/core-module-resources.md#tokenintrospector).
 
+Example: 
+```
+PUT /TokenIntrospector/external-auth-server
+content-type: text/yaml
+
+resourceType: TokenIntrospector
+id: external-auth-server
+type: jwt
+jwt:
+  iss: https://auth.example.com
+  secret: very-secret
+```
+
+See also: [Set up token introspection tutorial](../../tutorials/security-access-control-tutorials/set-up-token-introspection.md)
+
+
 ## Token Validation Process
 
 1. Client sends a request to Aidbox with a Bearer token
