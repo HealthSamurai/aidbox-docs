@@ -222,6 +222,7 @@
   * [Cache](api/other/cache.md)
   * [Changes API](api/other/changes-api.md)
   * [RPC API](api/other/rpc-api.md)
+  * [Multibox box runtime API](api/other/multibox-box-runtime-api.md)
   * [Sequence API](api/other/sequence-api.md)
   * [Encryption API](api/other/encryption-api.md)
   * [Batch Upsert](api/other/batch-upsert.md)
