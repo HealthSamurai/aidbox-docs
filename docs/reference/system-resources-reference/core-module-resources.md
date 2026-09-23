@@ -2945,6 +2945,93 @@ Status tracking for Aidbox job executions.
 | job | reference | `job` | Search AidboxJobStatus by job reference |
 
 
+## AidboxMaterialization
+
+Declares where and how a ViewDefinition or a SQL Library (SQLView) is materialized: the storage kind, the canonical URL of the source, and kind-specific parameters. Allowed parameters are constrained by the kind profile named in meta.profile, the same way AidboxTopicDestination kinds are.
+
+```fhir-structure
+[ {
+  "path" : "parameter",
+  "name" : "parameter",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : "*",
+  "type" : "",
+  "desc" : "Kind-specific settings, constrained by the kind profile in meta.profile."
+}, {
+  "path" : "target",
+  "name" : "target",
+  "lvl" : 0,
+  "min" : 1,
+  "max" : 1,
+  "type" : "canonical",
+  "desc" : "Canonical URL of the ViewDefinition or Library to materialize."
+}, {
+  "path" : "type",
+  "name" : "type",
+  "lvl" : 0,
+  "min" : 1,
+  "max" : 1,
+  "type" : "code",
+  "desc" : "Type of the resource being materialized. \n\n**Allowed values**: `ViewDefinition` | `Library`"
+} ]
+```
+
+### Search Parameters
+
+| SearchParameter | Type | Expression | Description |
+|---|---|---|---|
+| target | uri | `target` | Search AidboxMaterialization by the canonical URL of its target ViewDefinition or Library |
+
+
+## AidboxMaterializationStatus
+
+Tracks the outcome of running $materialize on an AidboxMaterialization: current status, the AidboxMaterialization it belongs to, and the AidboxMaterialization version that was run.
+
+```fhir-structure
+[ {
+  "path" : "sqlHash",
+  "name" : "sqlHash",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "string",
+  "desc" : "Hash of the SQL the target compiled to when this run happened."
+}, {
+  "path" : "status",
+  "name" : "status",
+  "lvl" : 0,
+  "min" : 1,
+  "max" : 1,
+  "type" : "code",
+  "desc" : "in-progress | done | error | canceled \n\n**Allowed values**: `in-progress` | `done` | `error` | `canceled`"
+}, {
+  "path" : "target",
+  "name" : "target",
+  "lvl" : 0,
+  "min" : 1,
+  "max" : 1,
+  "type" : "Reference",
+  "desc" : "The AidboxMaterialization this status belongs to. \n\n**Allowed references**: AidboxMaterialization"
+}, {
+  "path" : "targetVersion",
+  "name" : "targetVersion",
+  "lvl" : 0,
+  "min" : 1,
+  "max" : 1,
+  "type" : "id",
+  "desc" : "AidboxMaterialization.meta.versionId at the time of the run."
+} ]
+```
+
+### Search Parameters
+
+| SearchParameter | Type | Expression | Description |
+|---|---|---|---|
+| status | token | `status` | Search AidboxMaterializationStatus by status |
+| target | reference | `target` | Search AidboxMaterializationStatus by the AidboxMaterialization it belongs to |
+
+
 ## AidboxMigration
 
 Database migration tracking resource for Aidbox.
@@ -16325,6 +16412,143 @@ PostgreSQL sequence definition resource for Aidbox.
   "max" : 1,
   "type" : "integer",
   "desc" : "Starting value for the sequence."
+} ]
+```
+
+
+## PgProfile
+
+PostgreSQL materialization: the schema and object name to build, and which kind of object to build.
+
+```fhir-structure
+[ {
+  "path" : "parameter",
+  "name" : "parameter",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter:materializationType",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.name",
+  "name" : "name",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 1,
+  "max" : 1,
+  "type" : "code",
+  "desc" : ""
+}, {
+  "path" : "parameter.resource",
+  "name" : "resource",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part",
+  "name" : "part",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter:name",
+  "lvl" : 0,
+  "min" : 1,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.name",
+  "name" : "name",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 1,
+  "max" : 1,
+  "type" : "string",
+  "desc" : ""
+}, {
+  "path" : "parameter.resource",
+  "name" : "resource",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part",
+  "name" : "part",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter:schema",
+  "lvl" : 0,
+  "min" : 1,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.name",
+  "name" : "name",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 1,
+  "max" : 1,
+  "type" : "string",
+  "desc" : ""
+}, {
+  "path" : "parameter.resource",
+  "name" : "resource",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part",
+  "name" : "part",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
 } ]
 ```
 
