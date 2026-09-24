@@ -5,17 +5,8 @@ description: Electronic Prescribing of Controlled Substances (EPCS) in the Aidbo
 # EPCS
 
 {% hint style="warning" %}
-Controlled substances currently not supported, but we are working on it.
+The module does not support prescribing controlled substances yet, but we are working on it.
+This section documents the parts that already work, and it grows as EPCS support is added.
 {% endhint %}
 
-{% hint style="warning" %}
-EPCS documentation is in progress.
-{% endhint %}
-
-## Access Management
-
-* [EPCS Access Management](access-management/README.md)
-  * [Who May Call the Operations](access-management/who-may-call-the-operations.md)
-  * [Bootstrap the First Administrator](access-management/bootstrap-the-first-administrator.md)
-  * [List Permissions](access-management/list-permissions.md)
-  * [Approver Nominations](access-management/approver-nominations.md)
+* [EPCS Access Management](access-management/README.md): appoint the people who manage EPCS access at each location.

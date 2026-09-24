@@ -4,31 +4,27 @@ description: Set up a location's EPCS administrator, nominate its first approver
 
 # EPCS Access Management
 
-Electronic Prescribing of Controlled Substances (EPCS) rules require each location that prescribes controlled substances to designate its own **access managers**, the people who manage the location's EPCS access.
-The ePrescription module stores each designation as an `EPrescriptionAccessPermission`: one Aidbox `User`, one role, one `Location`.
-Two roles exist.
-An **administrator access manager** holds `epcs-access-admin`.
-An **EPCS approver** holds `epcs-access-approver`.
+The DEA requires two people to set or change who may prescribe controlled substances: one enters the change, and another approves it with two-factor authentication.
+The ePrescription module lets each location appoint its own **access managers** for this job.
+An access manager holds one of two roles at a location:
 
-The Aidbox App exposes operations to set up administrators, manage approver nominations, and list permissions:
+* An **administrator access manager** holds `epcs-access-admin`. They nominate approvers and see every permission at the location.
+* An **EPCS approver** holds `epcs-access-approver`. They are the second person who approves access changes.
 
-* `POST /e-prescription/access/epcs/bootstrap-admin` grants the first administrator access manager of a location. This is a deployment setup step.
-* `POST /e-prescription/access/epcs/requests` nominates the first EPCS approver of a location. The nominee accepts through `POST /e-prescription/access/epcs/requests/<id>/approve`.
-* `GET /e-prescription/access/epcs/requests` lists nominations visible to the caller. `POST /e-prescription/access/epcs/requests/<id>/cancel` cancels a nomination.
-* `GET /e-prescription/access/epcs/permissions/mine` lists the caller's own permissions.
-* `GET /e-prescription/access/epcs/permissions` lists every permission at the locations the caller administers.
+The module stores each role assignment as an `EPrescriptionAccessPermission` that links one Aidbox `User`, one role, and one `Location`.
+A nomination is an `EPrescriptionAccessRequest`.
 
-Use these operations to read and change `EPrescriptionAccessPermission` and `EPrescriptionAccessRequest` records.
-Direct writes skip the module's checks and leave no audit record.
+The Aidbox App exposes these operations:
 
-The operations do not depend on `EPCS_MODE`.
-They work on every deployment that installs the App, including one that keeps controlled-substance prescribing disabled.
+* `POST /e-prescription/access/epcs/bootstrap-admin` grants the first administrator access manager of a location during deployment. See [Bootstrap the First Administrator](bootstrap-the-first-administrator.md).
+* `POST /e-prescription/access/epcs/requests` nominates the first EPCS approver of a location, and `POST /e-prescription/access/epcs/requests/<id>/approve` lets the nominee accept. `GET /e-prescription/access/epcs/requests` lists nominations, and `POST /e-prescription/access/epcs/requests/<id>/cancel` cancels one. See [Approver Nominations](approver-nominations.md).
+* `GET /e-prescription/access/epcs/permissions/mine` lists the caller's own permissions, and `GET /e-prescription/access/epcs/permissions` lists every permission at the locations the caller administers. See [List Permissions](list-permissions.md).
 
-**LIMITATIONS:** The module cannot add another approver to a location that already has one or revoke a permission. Acceptance requires a nonblank two-factor code, but the module does not verify it.
+Before you expose any of them, set up the AccessPolicies described in [Who May Call the Operations](who-may-call-the-operations.md).
 
-## Pages
+Change `EPrescriptionAccessPermission` and `EPrescriptionAccessRequest` records only through these operations.
+A direct write skips the module's checks and leaves no audit record.
 
-* [Who May Call the Operations](who-may-call-the-operations.md)
-* [Bootstrap the First Administrator](bootstrap-the-first-administrator.md)
-* [List Permissions](list-permissions.md)
-* [Approver Nominations](approver-nominations.md)
+The operations work whether or not controlled-substance prescribing is enabled, so you can set up access managers ahead of time.
+
+**LIMITATIONS:** No operation asks an EPCS approver to approve anything yet. The module cannot add a second approver to a location or revoke a permission. Acceptance of a nomination requires a nonblank two-factor code, but the module does not verify it.
