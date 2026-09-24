@@ -1560,6 +1560,16 @@ Hide back button in UI Form Builder
 
 <details><summary>Details</summary><table data-header-hidden="true"><thead><tr><th width="200"></th><th></th></tr></thead><tbody><tr><td>ID</td><td><code>module.sdc.builder.hide-back-button</code></td></tr><tr><td>Type</td><td>Bool</td></tr><tr><td>Default value</td><td><code>false</code></td></tr><tr><td>Environment variable</td><td><code>BOX_MODULE_SDC_BUILDER_HIDE_BACK_BUTTON</code></td></tr><tr><td>Deprecated environment variables</td><td><code>BOX_SDC_BUILDER_HIDE_BACK_BUTTON</code></td></tr><tr><td>Sensitive</td><td><code>false</code> — value will be visible in plaintext in Admin UI</td></tr><tr><td>Set via</td><td>Admin UI → Settings<br />Environment variables</td></tr><tr><td>Hot reload</td><td><code>true</code> — setting can be changed at runtime</td></tr></tbody></table></details>
 
+#### FHIRPath compatibility profile<a href="#module.sdc.builder.fhirpath-profile" id="module.sdc.builder.fhirpath-profile"></a>
+
+```yaml
+BOX_MODULE_SDC_BUILDER_FHIRPATH_PROFILE: "<String>"
+```
+
+Profile every FHIRPath expression in a form must fit: spec/v2.0.0 (the normative FHIRPath release FHIR R4 and R5 reference), engine/browser or engine/server. Set it when forms built here run in another SDC runtime; left empty, each expression is checked against the engine that evaluates it.
+
+<details><summary>Details</summary><table data-header-hidden="true"><thead><tr><th width="200"></th><th></th></tr></thead><tbody><tr><td>ID</td><td><code>module.sdc.builder.fhirpath-profile</code></td></tr><tr><td>Type</td><td>String</td></tr><tr><td>Default value</td><td>(no default)</td></tr><tr><td>Environment variable</td><td><code>BOX_MODULE_SDC_BUILDER_FHIRPATH_PROFILE</code></td></tr><tr><td>Deprecated environment variables</td><td><code>BOX_SDC_BUILDER_FHIRPATH_PROFILE</code></td></tr><tr><td>Available from</td><td><code>2609</code></td></tr><tr><td>Sensitive</td><td><code>false</code> — value will be visible in plaintext in Admin UI</td></tr><tr><td>Set via</td><td>Admin UI → Settings<br />Environment variables</td></tr><tr><td>Hot reload</td><td><code>true</code> — setting can be changed at runtime</td></tr></tbody></table></details>
+
 #### Form's redirect-on-submit URL<a href="#module.sdc.form.redirect-on-submit" id="module.sdc.form.redirect-on-submit"></a>
 
 ```yaml
