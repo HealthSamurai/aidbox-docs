@@ -511,6 +511,14 @@ Configuration resource for SDC system settings including language, theme, storag
   "type" : "url",
   "desc" : "URL prefix used in URL generation of new forms"
 }, {
+  "path" : "builder.fhirpath-profile",
+  "name" : "fhirpath-profile",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "code",
+  "desc" : "FHIRPath compatibility profile every expression in a form must fit"
+}, {
   "path" : "builder.translation-languages",
   "name" : "translation-languages",
   "lvl" : 1,
