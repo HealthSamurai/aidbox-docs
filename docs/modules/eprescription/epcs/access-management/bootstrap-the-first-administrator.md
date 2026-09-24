@@ -4,10 +4,19 @@ description: Grant the first EPCS administrator access manager of a location in 
 
 # Bootstrap the First Administrator
 
-Call this operation once per location during deployment.
-It grants `epcs-access-admin` to the given user without a second person's approval.
-The module records the Acting User as the operator who performed the setup.
-The module lets any Acting User call this operation, so restrict it with an AccessPolicy as described in [Who May Call the Operations](who-may-call-the-operations.md).
+Use this operation during deployment to appoint a location's first **administrator access manager**.
+It grants the `epcs-access-admin` **access permission** without a second person's approval.
+See [EPCS Access Management](README.md) for the roles.
+
+## Before You Start
+
+* Create the target Aidbox `User` and `Location` records.
+* Confirm that the location has no **administrator access manager**.
+* Restrict the operation to deployment operators with an AccessPolicy. Follow [Who May Call the Operations](who-may-call-the-operations.md), which also defines the **acting user** required for the call.
+
+## Grant the Permission
+
+Call the operation as the deployment operator, using the target user's and location's ids:
 
 ```http
 POST /e-prescription/access/epcs/bootstrap-admin
@@ -19,11 +28,14 @@ Content-Type: application/json
 }
 ```
 
-Both ids are required, and neither may be blank or have leading or trailing whitespace.
+Both ids must be:
 
-## Responses
+* Present and nonblank.
+* Free of leading or trailing whitespace.
 
-`201 Created` returns the new permission:
+## Verify the Grant
+
+Check for `201 Created` and an **access permission** with the requested user and location:
 
 ```json
 {
@@ -36,11 +48,15 @@ Both ids are required, and neither may be blank or have leading or trailing whit
 }
 ```
 
+As the new **administrator access manager**, call [`GET /e-prescription/access/epcs/permissions/mine`](list-permissions.md#list-your-own-permissions) and confirm that the grant appears.
+
+## Handle Errors
+
 Errors return an `OperationOutcome`:
 
-* `400 Bad Request` when `userId` or `locationId` is missing, blank, or padded with whitespace, or when the body is not a JSON object.
-* `403 Forbidden` when the call has no Acting User.
-* `422 Unprocessable Entity` when the `User` or `Location` does not exist, or when the location already has an administrator access manager.
+* `400 Bad Request`: check that the body is a JSON object and both ids meet the requirements above.
+* `403 Forbidden`: authenticate with an **acting user** allowed by your AccessPolicy.
+* `422 Unprocessable Entity`: check that both target records exist and the location has no **administrator access manager**.
 
 ```json
 {
@@ -55,26 +71,29 @@ Errors return an `OperationOutcome`:
 }
 ```
 
-## Bootstrapping Again
+If several bootstrap calls for one location run at the same time:
 
-The operation succeeds whenever the location has no administrator access manager.
-The module cannot revoke a permission, so this happens again only if someone deletes the location's administrator permission directly.
-Earlier grants stay in the audit trail and do not block the new one.
+* One call grants the **access permission**.
+* The others receive `422` because the location now has an **administrator access manager**.
 
-If several bootstrap calls for one location run at the same time, only one grants an administrator.
-The others receive `422`.
+**LIMITATIONS:** The module has no operation to revoke the grant. Do not delete the permission directly to retry setup; direct writes bypass the module's checks and audit events.
 
 ## Audit Trail
 
-Each bootstrap call, granted or rejected, writes an `AuditEvent` with `type.code` `epcs-access-admin-bootstrap`.
-A granted call has `outcome` `0`, and a rejected one has `4`.
+To trace a setup attempt, look for an `AuditEvent` with `type.code` `epcs-access-admin-bootstrap`:
 
-The event names the Acting User as the requesting agent and the target user as a second agent.
-A granted event references the created permission and the `Location`.
-It records `secondPersonApprovalWaiver` = `deployment-setup` as the reason no second person approved the grant.
-The module commits the permission and its event in one transaction, so every grant has its event.
+* A granted call has `outcome` `0` and references the created **access permission** and `Location`.
+* A rejected call has `outcome` `4` and a reason in `failureReason`.
+* A parameter-validation `400` from a call with an **acting user** writes no event.
 
-A rejected event records the reason under `failureReason`: `acting-user-required`, `user-not-found`, `location-not-found`, or `location-already-has-access-admin`.
-A call without an Acting User is audited with the requesting agent as `unknown`.
-That event holds no value from the request body, because the module has not validated the body yet.
-A `400` for a call that has an Acting User writes no event.
+The event names the **acting user** as the requesting agent and the target user as a second agent.
+It records `secondPersonApprovalSkipReason` = `deployment-setup` as the reason no second person approved the grant.
+
+Common `failureReason` values are:
+
+* `acting-user-required`
+* `user-not-found`
+* `location-not-found`
+* `location-already-has-access-admin`
+
+Without an **acting user**, the event records the requesting agent as `unknown` and omits values from the unvalidated request body.

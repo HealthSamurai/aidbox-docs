@@ -4,6 +4,8 @@ description: List your own EPCS access permissions and the permissions at the lo
 
 # List Permissions
 
+An **access permission** grants an Aidbox `User` an **access manager** role at one location.
+See [EPCS Access Management](README.md) for the roles and [Who May Call the Operations](who-may-call-the-operations.md) for the **acting user** required by these calls.
 Permissions come from [bootstrapping the first administrator](bootstrap-the-first-administrator.md) and from accepted [approver nominations](approver-nominations.md).
 
 ## List Your Own Permissions
@@ -12,8 +14,10 @@ Permissions come from [bootstrapping the first administrator](bootstrap-the-firs
 GET /e-prescription/access/epcs/permissions/mine
 ```
 
-The operation returns `200` with a searchset `Bundle` of the Acting User's `EPrescriptionAccessPermission` records at every location.
-A user with no permissions receives an empty `Bundle`.
+The operation returns `200` with a searchset `Bundle`:
+
+* It contains the **acting user**'s `EPrescriptionAccessPermission` records at every location.
+* If the user has no **access permissions**, it is empty.
 
 ```json
 {
@@ -42,13 +46,15 @@ GET /e-prescription/access/epcs/permissions
 GET /e-prescription/access/epcs/permissions?location=<Location id>
 ```
 
-The operation returns `200` with a searchset `Bundle` of every permission, in both roles, at each location where the Acting User holds `epcs-access-admin`.
-The optional `location` query parameter narrows the result to one of those locations.
-A filter on a location the user does not administer returns an empty `Bundle`.
-Holding `epcs-access-approver` at a location does not count as administering it.
-A user who administers no location receives an empty `Bundle` as well.
+The operation returns `200` with a searchset `Bundle`:
+
+* It contains **access permissions** for both roles at locations where the **acting user** holds `epcs-access-admin`.
+* With the optional `location` parameter, it includes only that location's permissions.
+* If the user administers no matching location, it is empty.
+
+The `epcs-access-approver` permission alone does not allow the user to list other users' **access permissions**.
 
 ## Errors and Audit Trail
 
-Both listings return `403` when the call has no Acting User.
+Without an **acting user**, both listings return `403`.
 Neither listing writes an audit event.
