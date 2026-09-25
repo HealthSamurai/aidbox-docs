@@ -743,6 +743,46 @@ Configuration resource for SDC system settings including language, theme, storag
   "type" : "Object",
   "desc" : "Headers (with credentials) for accessing Service (optional)"
 }, {
+  "path" : "data-store.auth",
+  "name" : "auth",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "BackboneElement",
+  "desc" : "OAuth2 client_credentials credentials for accessing Service (optional)"
+}, {
+  "path" : "data-store.auth.token-endpoint",
+  "name" : "token-endpoint",
+  "lvl" : 2,
+  "min" : 0,
+  "max" : 1,
+  "type" : "url",
+  "desc" : "OAuth2 token endpoint issuing the access token"
+}, {
+  "path" : "data-store.auth.client-id",
+  "name" : "client-id",
+  "lvl" : 2,
+  "min" : 0,
+  "max" : 1,
+  "type" : "string",
+  "desc" : "OAuth2 client id"
+}, {
+  "path" : "data-store.auth.client-secret",
+  "name" : "client-secret",
+  "lvl" : 2,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : "OAuth2 client secret; stored encrypted or referenced from the vault"
+}, {
+  "path" : "data-store.auth.scope",
+  "name" : "scope",
+  "lvl" : 2,
+  "min" : 0,
+  "max" : 1,
+  "type" : "string",
+  "desc" : "OAuth2 scope requested with the token (optional)"
+}, {
   "path" : "default",
   "name" : "default",
   "lvl" : 0,
@@ -758,6 +798,70 @@ Configuration resource for SDC system settings including language, theme, storag
   "max" : 1,
   "type" : "string",
   "desc" : "Human readable config description"
+}, {
+  "path" : "dtr-service",
+  "name" : "dtr-service",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "BackboneElement",
+  "desc" : "External Da Vinci DTR service serving $questionnaire-package and $next-question (if not set - use built-in implementation)"
+}, {
+  "path" : "dtr-service.endpoint",
+  "name" : "endpoint",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "url",
+  "desc" : "Base URL of the external DTR service"
+}, {
+  "path" : "dtr-service.headers",
+  "name" : "headers",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "Object",
+  "desc" : "Headers (with credentials) for accessing Service (optional)"
+}, {
+  "path" : "dtr-service.auth",
+  "name" : "auth",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "BackboneElement",
+  "desc" : "OAuth2 client_credentials credentials for accessing Service (optional)"
+}, {
+  "path" : "dtr-service.auth.token-endpoint",
+  "name" : "token-endpoint",
+  "lvl" : 2,
+  "min" : 0,
+  "max" : 1,
+  "type" : "url",
+  "desc" : "OAuth2 token endpoint issuing the access token"
+}, {
+  "path" : "dtr-service.auth.client-id",
+  "name" : "client-id",
+  "lvl" : 2,
+  "min" : 0,
+  "max" : 1,
+  "type" : "string",
+  "desc" : "OAuth2 client id"
+}, {
+  "path" : "dtr-service.auth.client-secret",
+  "name" : "client-secret",
+  "lvl" : 2,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : "OAuth2 client secret; stored encrypted or referenced from the vault"
+}, {
+  "path" : "dtr-service.auth.scope",
+  "name" : "scope",
+  "lvl" : 2,
+  "min" : 0,
+  "max" : 1,
+  "type" : "string",
+  "desc" : "OAuth2 scope requested with the token (optional)"
 }, {
   "path" : "form",
   "name" : "form",
@@ -911,6 +1015,46 @@ Configuration resource for SDC system settings including language, theme, storag
   "type" : "Object",
   "desc" : "Headers with credentials (optional)"
 }, {
+  "path" : "form-store.auth",
+  "name" : "auth",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "BackboneElement",
+  "desc" : "OAuth2 client_credentials credentials for accessing Service (optional)"
+}, {
+  "path" : "form-store.auth.token-endpoint",
+  "name" : "token-endpoint",
+  "lvl" : 2,
+  "min" : 0,
+  "max" : 1,
+  "type" : "url",
+  "desc" : "OAuth2 token endpoint issuing the access token"
+}, {
+  "path" : "form-store.auth.client-id",
+  "name" : "client-id",
+  "lvl" : 2,
+  "min" : 0,
+  "max" : 1,
+  "type" : "string",
+  "desc" : "OAuth2 client id"
+}, {
+  "path" : "form-store.auth.client-secret",
+  "name" : "client-secret",
+  "lvl" : 2,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : "OAuth2 client secret; stored encrypted or referenced from the vault"
+}, {
+  "path" : "form-store.auth.scope",
+  "name" : "scope",
+  "lvl" : 2,
+  "min" : 0,
+  "max" : 1,
+  "type" : "string",
+  "desc" : "OAuth2 scope requested with the token (optional)"
+}, {
   "path" : "language",
   "name" : "language",
   "lvl" : 0,
@@ -1006,6 +1150,46 @@ Configuration resource for SDC system settings including language, theme, storag
   "max" : 1,
   "type" : "Object",
   "desc" : "Headers (with credentials) for accessing Service (optional)"
+}, {
+  "path" : "term-server.auth",
+  "name" : "auth",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "BackboneElement",
+  "desc" : "OAuth2 client_credentials credentials for accessing Service (optional)"
+}, {
+  "path" : "term-server.auth.token-endpoint",
+  "name" : "token-endpoint",
+  "lvl" : 2,
+  "min" : 0,
+  "max" : 1,
+  "type" : "url",
+  "desc" : "OAuth2 token endpoint issuing the access token"
+}, {
+  "path" : "term-server.auth.client-id",
+  "name" : "client-id",
+  "lvl" : 2,
+  "min" : 0,
+  "max" : 1,
+  "type" : "string",
+  "desc" : "OAuth2 client id"
+}, {
+  "path" : "term-server.auth.client-secret",
+  "name" : "client-secret",
+  "lvl" : 2,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : "OAuth2 client secret; stored encrypted or referenced from the vault"
+}, {
+  "path" : "term-server.auth.scope",
+  "name" : "scope",
+  "lvl" : 2,
+  "min" : 0,
+  "max" : 1,
+  "type" : "string",
+  "desc" : "OAuth2 scope requested with the token (optional)"
 }, {
   "path" : "theme",
   "name" : "theme",
