@@ -1600,6 +1600,26 @@ Enable strict access control for operations(like populate/submit/reference-looku
 
 <details><summary>Details</summary><table data-header-hidden="true"><thead><tr><th width="200"></th><th></th></tr></thead><tbody><tr><td>ID</td><td><code>module.sdc.strict-access-control</code></td></tr><tr><td>Type</td><td>Bool</td></tr><tr><td>Recommended value</td><td><code>true</code></td></tr><tr><td>Default value</td><td><code>false</code></td></tr><tr><td>Environment variable</td><td><code>BOX_MODULE_SDC_STRICT_ACCESS_CONTROL</code></td></tr><tr><td>Deprecated environment variables</td><td><code>BOX_SDC_STRICT_ACCESS_CONTROL</code></td></tr><tr><td>Available from</td><td><code>2506</code></td></tr><tr><td>Sensitive</td><td><code>false</code> — value will be visible in plaintext in Admin UI</td></tr><tr><td>Set via</td><td>Admin UI → Settings<br />Environment variables</td></tr><tr><td>Hot reload</td><td><code>true</code> — setting can be changed at runtime</td></tr></tbody></table></details>
 
+#### DTR service client id<a href="#module.sdc.dtr.client-id" id="module.sdc.dtr.client-id"></a>
+
+```yaml
+BOX_MODULE_SDC_DTR_CLIENT_ID: "<String>"
+```
+
+OAuth2 client id used to call the external DTR service set in SDCConfig.dtr-service. The value in the config wins over this setting.
+
+<details><summary>Details</summary><table data-header-hidden="true"><thead><tr><th width="200"></th><th></th></tr></thead><tbody><tr><td>ID</td><td><code>module.sdc.dtr.client-id</code></td></tr><tr><td>Type</td><td>String</td></tr><tr><td>Default value</td><td>(no default)</td></tr><tr><td>Environment variable</td><td><code>BOX_MODULE_SDC_DTR_CLIENT_ID</code></td></tr><tr><td>Deprecated environment variables</td><td><code>BOX_SDC_DTR_CLIENT_ID</code></td></tr><tr><td>Available from</td><td><code>2609</code></td></tr><tr><td>Sensitive</td><td><code>false</code> — value will be visible in plaintext in Admin UI</td></tr><tr><td>Set via</td><td>Environment variables</td></tr><tr><td>Hot reload</td><td><code>true</code> — setting can be changed at runtime</td></tr></tbody></table></details>
+
+#### DTR service client secret<a href="#module.sdc.dtr.client-secret" id="module.sdc.dtr.client-secret"></a>
+
+```yaml
+BOX_MODULE_SDC_DTR_CLIENT_SECRET: "<String>"
+```
+
+OAuth2 client secret used to call the external DTR service set in SDCConfig.dtr-service. The value in the config wins over this setting.
+
+<details><summary>Details</summary><table data-header-hidden="true"><thead><tr><th width="200"></th><th></th></tr></thead><tbody><tr><td>ID</td><td><code>module.sdc.dtr.client-secret</code></td></tr><tr><td>Type</td><td>String</td></tr><tr><td>Default value</td><td>(no default)</td></tr><tr><td>Environment variable</td><td><code>BOX_MODULE_SDC_DTR_CLIENT_SECRET</code></td></tr><tr><td>Deprecated environment variables</td><td><code>BOX_SDC_DTR_CLIENT_SECRET</code></td></tr><tr><td>Available from</td><td><code>2609</code></td></tr><tr><td>Sensitive</td><td><code>true</code> — value will be masked in Admin UI</td></tr><tr><td>Set via</td><td>Environment variables</td></tr><tr><td>Hot reload</td><td><code>true</code> — setting can be changed at runtime</td></tr></tbody></table></details>
+
 ### GraphQL
 
 GraphQL settings
