@@ -51,7 +51,69 @@ Patient's `name` SearchParameter example:
 
 This table contains properties required by the FHIR specification and properties that Aidbox interprets.
 
-<table><thead><tr><th width="144">Property</th><th width="167">FHIR datatype</th><th>Description</th></tr></thead><tbody><tr><td>url</td><td>uri</td><td>Search parameter unique canonical url</td></tr><tr><td>version</td><td>string</td><td>Search parameter version</td></tr><tr><td>name</td><td>string</td><td>Search parameter name, Aidbox ignores it</td></tr><tr><td>status</td><td>code</td><td>draft | active | retired | unknown</td></tr><tr><td>description</td><td>markdown</td><td>Human readable description of the search parameter</td></tr><tr><td>code</td><td>code</td><td>The code used in the URL to invoke this search parameter</td></tr><tr><td>base</td><td>code[]</td><td>The resource type(s) this search parameter applies to</td></tr><tr><td>type</td><td>code</td><td>number | date | string | token | reference | composite | quantity | uri | special</td></tr><tr><td>expression</td><td>string</td><td><a href="https://hl7.org/fhir/fhirpath.html">FHIRPath</a> expression that extracts the values</td></tr><tr><td>component</td><td>BackboneElement</td><td>For Composite SearchParameters to define the parts</td></tr></tbody></table>
+<table><thead><tr><th width="144">Property</th><th width="167">FHIR datatype</th><th>Description</th></tr></thead><tbody><tr><td>url</td><td>uri</td><td>Search parameter unique canonical url</td></tr><tr><td>version</td><td>string</td><td>Search parameter version</td></tr><tr><td>name</td><td>string</td><td>Search parameter name, Aidbox ignores it</td></tr><tr><td>status</td><td>code</td><td>draft | active | retired | unknown</td></tr><tr><td>description</td><td>markdown</td><td>Human readable description of the search parameter</td></tr><tr><td>code</td><td>code</td><td>The code used in the URL to invoke this search parameter</td></tr><tr><td>base</td><td>code[]</td><td>The resource type(s) this search parameter applies to</td></tr><tr><td>type</td><td>code</td><td>number | date | string | token | reference | composite | quantity | uri | special</td></tr><tr><td>expression</td><td>string</td><td><a href="https://hl7.org/fhir/fhirpath.html">FHIRPath</a> expression that extracts the values. Aidbox supports a subset of FHIRPath, see <a href="#supported-fhirpath-in-expression">Supported FHIRPath in expression</a></td></tr><tr><td>component</td><td>BackboneElement</td><td>For Composite SearchParameters to define the parts</td></tr></tbody></table>
+
+## Supported FHIRPath in expression
+
+Aidbox translates `SearchParameter.expression` into SQL over the stored resource. The translator supports this subset of FHIRPath:
+
+| Syntax | Example |
+|--------|---------|
+| Element path | `Patient.name.family` |
+| Array index | `Patient.name[0].family` |
+| Union with `\|` or `or` | `Patient.name \| Patient.contact.name` |
+| Type cast with `as(X)`, `ofType(X)`, `is(X)` or `as X` | `Observation.value.as(Quantity)` |
+| Equality filter `where(<element> = '<literal>')` | `Patient.telecom.where(system = 'email')` |
+| Reference type filter `where(resolve() is X)` | `Observation.subject.where(resolve() is Patient)` |
+| Extension by URL `extension('<url>')` | `Patient.extension('http://example.org/ext').value` |
+| Trailing `exists()` | `Patient.deceased.exists()` (Aidbox drops `exists()` and searches `Patient.deceased`) |
+
+Aidbox does not support other FHIRPath functions and operators in `expression`, for example `repeat()`, `descendants()`, `first()`, `startsWith()`, the infix `is` operator, `!=` or `and` inside `where()`, or `where()` conditions that call a function.
+
+{% hint style="warning" %}
+Aidbox does not check `expression` when you create a SearchParameter. A SearchParameter with unsupported syntax saves with `201`, and each search that uses it returns `500` with `SearchParameter problem: could not resolve element for expression ...`. Some unsupported `where()` conditions, such as `where(linkId != 'a')` or `where(item.exists())`, return incorrect results with no error. Run a search with each custom SearchParameter after you create it.
+{% endhint %}
+
+### Search recursive elements
+
+Elements such as `Questionnaire.item`, `QuestionnaireResponse.item` and `PlanDefinition.action` nest to any depth. Aidbox does not support `repeat()`, so list each nesting level in a union:
+
+```json
+{
+  "resourceType": "SearchParameter",
+  "id": "QuestionnaireResponse-answer-value",
+  "url": "http://example.org/fhir/SearchParameter/QuestionnaireResponse-answer-value",
+  "name": "answer-value",
+  "status": "active",
+  "description": "Answer value at any of the first five item levels",
+  "code": "answer-value",
+  "base": ["QuestionnaireResponse"],
+  "type": "token",
+  "expression": "QuestionnaireResponse.item.answer.value | QuestionnaireResponse.item.item.answer.value | QuestionnaireResponse.item.item.item.answer.value | QuestionnaireResponse.item.item.item.item.answer.value | QuestionnaireResponse.item.item.item.item.item.answer.value"
+}
+```
+
+The parameter matches answers down to the deepest level in the union. Add levels to cover the deepest item you expect.
+
+For unbounded depth, define an Aidbox [Search resource](../aidbox-search.md#search-resource) with a PostgreSQL `jsonpath` predicate. `$.**` matches at any depth, and you can combine the parameter with other search parameters in the same request:
+
+```http
+PUT /Search/QuestionnaireResponse.answer-any-depth
+content-type: application/json
+
+{
+  "resourceType": "Search",
+  "name": "answer-any-depth",
+  "resource": {"id": "QuestionnaireResponse", "resourceType": "Entity"},
+  "where": "jsonb_path_exists({{table}}.resource, 'lax $.**.answer.value.* ? (@ == $v)', jsonb_build_object('v', {{param}}::text))"
+}
+```
+
+```http
+GET /fhir/QuestionnaireResponse?answer-any-depth=yes&status=completed
+```
+
+The `where` clause runs against the Aidbox storage format, where `valueString` is stored as `value.string`. The example above matches string answers. To match coded answers by code, use `'lax $.**.answer.value.Coding ? (@.code == $v)'`. A `$.**` scan does not use indexes, so use it when the union approach does not fit.
 
 ## SearchParameter types
 

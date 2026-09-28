@@ -209,6 +209,7 @@ See also:
 | **Quantity search with unit** | Specifying a unit in the value (e.g. `value-quantity=75.5\|\|kg`) is not implemented; returns 400. Only numeric value comparison is supported. See [quantity](searchparameter.md#quantity). |
 | **url :below modifier** | The `:below` modifier for the **url** search parameter (ValueSet, CodeSystem, StructureDefinition) is not supported; returns 500. `_source:below` works. See [uri](searchparameter.md#uri). |
 | **Component-level composite** | `component-code-value-quantity` (and similar component composites) may not return results; top-level composite search works. See [composite](searchparameter.md#composite). |
+| **FHIRPath in custom SearchParameter** | `SearchParameter.expression` supports a subset of FHIRPath. Functions such as `repeat()` and `descendants()` are not supported; searches with such a parameter return 500. See [Supported FHIRPath in expression](searchparameter.md#supported-fhirpath-in-expression). |
 
 ## Other ways to search
 
