@@ -338,6 +338,7 @@
   * [$run operation](modules/sql-on-fhir/operation-run.md)
   * [$sqlquery-run operation](modules/sql-on-fhir/operation-sqlquery-run.md)
   * [$materialize operation](modules/sql-on-fhir/operation-materialize.md)
+  * [AidboxMaterialization](modules/sql-on-fhir/aidbox-materialization.md)
   * [$viewdefinition-export operation](modules/sql-on-fhir/operation-viewdefinition-export.md)
   * [De-identification](modules/sql-on-fhir/de-identification.md)
   * [Reference](modules/sql-on-fhir/reference.md)

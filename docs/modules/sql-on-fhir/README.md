@@ -28,6 +28,12 @@ Bundle a SQL query, its ViewDefinition dependencies, and parameters into a SQLQu
 
 See [$sqlquery-run operation](./operation-sqlquery-run.md).
 
+## Persist views as database objects
+
+Declare an AidboxMaterialization for a ViewDefinition, SQLView or SQLQuery to build it as a PostgreSQL view or materialized view. Dependents then read the object, and one `$materialize` call rebuilds everything standing on what changed.
+
+See [AidboxMaterialization](./aidbox-materialization.md).
+
 ## Export a ViewDefinition's rows
 
 Run a one-shot ad-hoc export of a ViewDefinition's materialized rows to a backend-provided sink (e.g. Databricks Unity Catalog managed Delta) via the SQL-on-FHIR v2 [`$viewdefinition-export`](./operation-viewdefinition-export.md) operation.
