@@ -2990,6 +2990,22 @@ Tracks the outcome of running $materialize on an AidboxMaterialization: current 
 
 ```fhir-structure
 [ {
+  "path" : "duration",
+  "name" : "duration",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "integer",
+  "desc" : "Milliseconds the run took."
+}, {
+  "path" : "error",
+  "name" : "error",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "string",
+  "desc" : "Why the run failed."
+}, {
   "path" : "sqlHash",
   "name" : "sqlHash",
   "lvl" : 0,
