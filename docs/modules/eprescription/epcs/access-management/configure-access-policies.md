@@ -23,12 +23,12 @@ Write a policy for each operation and grant it to the smallest group that needs 
 * `POST /e-prescription/access/epcs/bootstrap-admin`: the operators who set up locations during deployment.
 * `GET /e-prescription/access/epcs/permissions`: administrators.
 * `GET /e-prescription/access/epcs/permissions/mine`: the users who work in the prescribing UI.
-* `GET /e-prescription/access/epcs/requests`: administrators and nominees.
+* `GET /e-prescription/access/epcs/requests`: access managers and the users named in requests.
 * `POST /e-prescription/access/epcs/requests`: administrators.
-* `POST /e-prescription/access/epcs/requests/<id>/approve`: nominees.
-* `POST /e-prescription/access/epcs/requests/<id>/cancel`: administrators and nominees.
+* `POST /e-prescription/access/epcs/requests/<id>/approve`: approvers, nominees, and administrators.
+* `POST /e-prescription/access/epcs/requests/<id>/cancel`: access managers and the users named in requests.
 
-The module checks each caller's role as described in [Approver Nominations](approver-nominations.md).
+The module checks each caller's role as described in [Access-Change Requests](access-change-requests.md).
 
 This example policy matches a field of your `User` resource.
 Replace `data.role` and its value with whatever your EHR stores on its users.

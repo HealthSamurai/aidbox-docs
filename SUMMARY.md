@@ -437,7 +437,7 @@
       * [Configure Access Policies](modules/eprescription/epcs/access-management/configure-access-policies.md)
       * [Bootstrap the First Administrator](modules/eprescription/epcs/access-management/bootstrap-the-first-administrator.md)
       * [List Permissions](modules/eprescription/epcs/access-management/list-permissions.md)
-      * [Approver Nominations](modules/eprescription/epcs/access-management/approver-nominations.md)
+      * [Access-Change Requests](modules/eprescription/epcs/access-management/access-change-requests.md)
   * [Directory](modules/eprescription/directory/README.md)
     * [DirectoryDownload Message](modules/eprescription/directory/directorydownload-message.md)
     * [GetProviderLocation Message](modules/eprescription/directory/getproviderlocation-message.md)
