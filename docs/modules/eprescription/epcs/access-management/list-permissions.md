@@ -4,9 +4,8 @@ description: List your own EPCS access permissions and the permissions at the lo
 
 # List Permissions
 
-An **access permission** grants an Aidbox `User` an **access manager** role at one location.
-See [EPCS Access Management](README.md) for the roles and [Who May Call the Operations](who-may-call-the-operations.md) for the **acting user** required by these calls.
-Permissions come from [bootstrapping the first administrator](bootstrap-the-first-administrator.md) and from accepted [approver nominations](approver-nominations.md).
+Access permissions come from [bootstrapping the first administrator](bootstrap-the-first-administrator.md) and from accepted [approver nominations](approver-nominations.md).
+Without an acting user, both listings return `403`.
 
 ## List Your Own Permissions
 
@@ -14,10 +13,7 @@ Permissions come from [bootstrapping the first administrator](bootstrap-the-firs
 GET /e-prescription/access/epcs/permissions/mine
 ```
 
-The operation returns `200` with a searchset `Bundle`:
-
-* It contains the **acting user**'s `EPrescriptionAccessPermission` records at every location.
-* If the user has no **access permissions**, it is empty.
+`200 OK` returns a searchset `Bundle` with the acting user's `EPrescriptionAccessPermission` records at every location:
 
 ```json
 {
@@ -46,15 +42,7 @@ GET /e-prescription/access/epcs/permissions
 GET /e-prescription/access/epcs/permissions?location=<Location id>
 ```
 
-The operation returns `200` with a searchset `Bundle`:
+`200 OK` returns a searchset `Bundle` with the permissions of both roles at the locations where the acting user holds `epcs-access-admin`.
+The optional `location` parameter limits the result to one location.
 
-* It contains **access permissions** for both roles at locations where the **acting user** holds `epcs-access-admin`.
-* With the optional `location` parameter, it includes only that location's permissions.
-* If the user administers no matching location, it is empty.
-
-The `epcs-access-approver` permission alone does not allow the user to list other users' **access permissions**.
-
-## Errors and Audit Trail
-
-Without an **acting user**, both listings return `403`.
-Neither listing writes an audit event.
+The approver role alone does not let a user list other users' permissions.

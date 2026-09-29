@@ -434,7 +434,7 @@
     * [How to test Callback](modules/eprescription/prescribing/how-to-test-callback.md)
   * [EPCS](modules/eprescription/epcs/README.md)
     * [EPCS Access Management](modules/eprescription/epcs/access-management/README.md)
-      * [Who May Call the Operations](modules/eprescription/epcs/access-management/who-may-call-the-operations.md)
+      * [Configure Access Policies](modules/eprescription/epcs/access-management/configure-access-policies.md)
       * [Bootstrap the First Administrator](modules/eprescription/epcs/access-management/bootstrap-the-first-administrator.md)
       * [List Permissions](modules/eprescription/epcs/access-management/list-permissions.md)
       * [Approver Nominations](modules/eprescription/epcs/access-management/approver-nominations.md)
