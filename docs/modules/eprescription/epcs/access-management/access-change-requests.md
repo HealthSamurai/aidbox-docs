@@ -13,7 +13,7 @@ The module allows a request when:
 
 * The caller is an administrator at the location.
 * A grant names a user who does not hold the role there, and a revocation names one who does.
-* No pending, unexpired request exists for that user, role, and location, whatever its action.
+* No pending, unexpired request exists for that user, role, and location, whether it grants or revokes the role.
 * An `epcs-access-admin` grant names an existing `User`.
 * An `epcs-access-approver` grant names an eligible user, as described below.
 
@@ -113,24 +113,22 @@ When several nominations are pending, the first nominee to accept becomes the ap
 
 ### An administrator removing the sole approver
 
-An administrator at the location approves a pending revocation of the approver role without a second person and without `twoFactorCode` once its target holds the only approver role there.
+If the target of a pending approver revocation is now the only approver at the location, an administrator at the location may approve it alone, without `twoFactorCode`.
 See [Remove the Sole Approver](#remove-the-sole-approver).
 
 ### Result
-
-On approval, the module checks again that the request is pending and unexpired, and that the user still lacks the granted role or holds the revoked one.
 
 `200 OK` returns the request with `status: approved`, `resolvedBy`, and `resolvedAt`.
 A grant creates the role, and a revocation removes it.
 
 * `400` means `twoFactorCode` is not a string.
 * `403` means the request has no [acting user](configure-access-policies.md#acting-user), or the caller may not approve it: the requester, the target outside the first-approver case, a user who is not an approver at the location, or an approver who is not eligible.
-* `409` means another call changed the request or the location's roles at the same time.
+* `409` means another call changed the request or the location's roles at the same time. Reload the request and retry.
 * `422` means the request does not exist, is resolved or expired, the code is blank, the user already holds the granted role or lacks the revoked one, or the target of an approver grant is not eligible.
 
 ## Remove the Sole Approver
 
-When one user alone holds the approver role at a location, eligible or not, an administrator removes it without a second person's approval and without a two-factor code.
+When only one user holds the approver role at a location, eligible or not, an administrator can remove it at once, without a second person's approval or a two-factor code.
 Request the revocation as usual:
 
 ```http
@@ -146,14 +144,14 @@ Content-Type: application/json
 ```
 
 `201 Created` returns the request already `approved`, and the role is gone.
-When two or more users hold the approver role, the same call creates a pending request that an eligible approver must approve, even if only one holder is eligible.
+When two or more users hold the approver role, the call creates a pending request as usual, even if only one of them is eligible.
 
 To appoint the next approver, nominate one; the nominee accepts as the [first approver](#the-first-approver).
 
 ## Cancel a Request
 
 The target or any access manager at the location may cancel a pending, unexpired request.
-The target of a revocation requested by someone else cannot cancel it, even as an access manager, but may cancel a revocation they requested themselves.
+The target of a revocation cannot cancel it, even as an access manager, unless they requested it themselves.
 
 ```http
 POST /e-prescription/access/epcs/requests/<id>/cancel
@@ -162,7 +160,7 @@ POST /e-prescription/access/epcs/requests/<id>/cancel
 `200 OK` returns the request with `status: cancelled`, `resolvedBy`, and `resolvedAt`.
 
 * `403` means the request has no [acting user](configure-access-policies.md#acting-user), or the caller is neither the target nor an access manager at the location, or is the target of another person's revocation.
-* `409` means another call changed the request at the same time.
+* `409` means another call changed the request at the same time. Reload the request and retry.
 * `422` means the request does not exist, or is resolved or expired.
 
 ## List Requests
