@@ -28,9 +28,9 @@ All features are built with FHIR compatibility in mind, eliminating the need for
 * Handle renewal request ([RxRenewal](prescribing/pharmacy-initiated-messages/rx-renewal.md))
 * About DetectedIssue ([DetectedIssue](prescribing/detected-issue.md))
 
-{% hint style="warning" %}
-Controlled substances currently not supported, but we are working on it.
-{% endhint %}
+#### EPCS
+
+* [Electronic Prescribing of Controlled Substances (EPCS)](epcs/README.md)
 
 #### Drug Sources
 
