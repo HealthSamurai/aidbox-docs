@@ -5,7 +5,7 @@ description: List your own EPCS access permissions and the permissions at the lo
 # List Permissions
 
 Access permissions come from [bootstrapping the first administrator](bootstrap-the-first-administrator.md) and from accepted [approver nominations](approver-nominations.md).
-Without an [acting user](configure-access-policies.md), both listings return `403`.
+Without an [acting user](configure-access-policies.md#acting-user), both listings return `403`.
 
 ## List Your Own Permissions
 
@@ -13,7 +13,7 @@ Without an [acting user](configure-access-policies.md), both listings return `40
 GET /e-prescription/access/epcs/permissions/mine
 ```
 
-`200 OK` returns a searchset `Bundle` with the [acting user](configure-access-policies.md)'s access permissions at every location.
+`200 OK` returns a searchset `Bundle` with the [acting user](configure-access-policies.md#acting-user)'s access permissions at every location.
 
 ## List Permissions at the Locations You Administer
 
@@ -22,7 +22,7 @@ GET /e-prescription/access/epcs/permissions
 GET /e-prescription/access/epcs/permissions?location=<Location id>
 ```
 
-Example `200 OK` response for a location the [acting user](configure-access-policies.md) administers:
+Example `200 OK` response for a location the [acting user](configure-access-policies.md#acting-user) administers:
 
 ```json
 {

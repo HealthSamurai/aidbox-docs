@@ -4,8 +4,12 @@ description: Configure AccessPolicy resources that control who may call the EPCS
 
 # Configure Access Policies
 
+## Acting User
+
 Every call needs an **acting user**: the Aidbox `User` authenticated for the request.
 A request made with only a `Client` credential has no acting user, and the module returns `403`.
+
+## Access Policies
 
 {% hint style="danger" %}
 `bootstrap-admin` does not require the caller to be an access manager.
