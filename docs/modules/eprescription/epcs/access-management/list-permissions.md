@@ -13,27 +13,7 @@ Without an acting user, both listings return `403`.
 GET /e-prescription/access/epcs/permissions/mine
 ```
 
-`200 OK` returns a searchset `Bundle` with the acting user's `EPrescriptionAccessPermission` records at every location:
-
-```json
-{
-  "resourceType": "Bundle",
-  "type": "searchset",
-  "total": 1,
-  "entry": [
-    {
-      "resource": {
-        "resourceType": "EPrescriptionAccessPermission",
-        "id": "9f1c1a2e-4d5b-4b1a-9c1e-2f6d0e7a8b90",
-        "permission": "epcs-access-admin",
-        "user": { "reference": "User/first-admin" },
-        "location": { "reference": "Location/clinic-1" },
-        "grantedAt": "2026-09-22T10:15:00Z"
-      }
-    }
-  ]
-}
-```
+`200 OK` returns a searchset `Bundle` with the acting user's access permissions at every location.
 
 ## List Permissions at the Locations You Administer
 
@@ -42,7 +22,7 @@ GET /e-prescription/access/epcs/permissions
 GET /e-prescription/access/epcs/permissions?location=<Location id>
 ```
 
-`200 OK` returns a searchset `Bundle` with the permissions of both roles at the locations where the acting user holds `epcs-access-admin`.
+`200 OK` returns a searchset `Bundle` with the permissions of both roles at the locations the acting user administers.
 The optional `location` parameter limits the result to one location.
 
 The approver role alone does not let a user list other users' permissions.

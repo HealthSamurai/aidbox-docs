@@ -1,5 +1,5 @@
 ---
-description: Set up a location's EPCS administrator, nominate its first approver, and list access permissions in the Aidbox ePrescription module.
+description: Manage access to Electronic Prescribing of Controlled Substances (EPCS) in the Aidbox ePrescription module.
 ---
 
 # EPCS Access Management
@@ -7,11 +7,11 @@ description: Set up a location's EPCS administrator, nominate its first approver
 The DEA requires two people to set or change who may prescribe controlled substances: one enters the change, and another approves it with two-factor authentication.
 The ePrescription module lets each location appoint its own **access managers** for this job:
 
-* An **administrator** holds the `epcs-access-admin` permission. They nominate approvers and see every permission at the location.
-* An **approver** holds the `epcs-access-approver` permission. They are the second person who approves access changes.
+* An **administrator access manager** nominates EPCS approvers and lists access permissions at the location.
+* An **EPCS approver** approves access changes with two-factor authentication.
 
-An **access permission** grants one of these roles to an Aidbox `User` at a `Location`, and the module stores it as an `EPrescriptionAccessPermission`.
-A **nomination** asks to grant the approver role to a user, and the module stores it as an `EPrescriptionAccessRequest`.
+Each role applies to an Aidbox `User` at a `Location`.
+A **nomination** invites a user to become an EPCS approver at that location.
 
 The Aidbox App exposes the operations under `/e-prescription/access/epcs`:
 
@@ -19,9 +19,6 @@ The Aidbox App exposes the operations under `/e-prescription/access/epcs`:
 * [Bootstrap the First Administrator](bootstrap-the-first-administrator.md): grant a location's first administrator during deployment.
 * [Approver Nominations](approver-nominations.md): nominate the first approver, accept or cancel a nomination, and list nominations.
 * [List Permissions](list-permissions.md): list your own permissions and those at the locations you administer.
-
-Change `EPrescriptionAccessPermission` and `EPrescriptionAccessRequest` records only through these operations.
-A direct write skips the module's checks and audit events.
 
 The operations work whether or not controlled-substance prescribing is enabled, so you can set up access managers ahead of time.
 

@@ -5,7 +5,7 @@ description: Grant the first EPCS administrator of a location in the Aidbox ePre
 # Bootstrap the First Administrator
 
 Use this operation during deployment to appoint a location's first administrator.
-It grants the `epcs-access-admin` permission without a second person's approval.
+The appointment does not require a second person's approval.
 
 ## Before You Start
 
@@ -13,7 +13,7 @@ It grants the `epcs-access-admin` permission without a second person's approval.
 * Confirm that the location has no administrator.
 * Restrict the operation to deployment operators, as described in [Configure Access Policies](configure-access-policies.md).
 
-## Grant the Permission
+## Appoint the Administrator
 
 Call the operation as the deployment operator:
 
@@ -27,18 +27,8 @@ Content-Type: application/json
 }
 ```
 
-`201 Created` returns the new access permission:
-
-```json
-{
-  "resourceType": "EPrescriptionAccessPermission",
-  "id": "9f1c1a2e-4d5b-4b1a-9c1e-2f6d0e7a8b90",
-  "permission": "epcs-access-admin",
-  "user": { "reference": "User/first-admin" },
-  "location": { "reference": "Location/clinic-1" },
-  "grantedAt": "2026-09-22T10:15:00Z"
-}
-```
+`201 Created` confirms the appointment and returns the administrator's access permission.
+The administrator can verify their role with [List Your Own Permissions](list-permissions.md#list-your-own-permissions).
 
 ## Handle Errors
 
@@ -62,16 +52,5 @@ Errors return an `OperationOutcome`:
 ```
 
 {% hint style="warning" %}
-The module has no operation to revoke the grant.
-Do not delete the permission directly to retry setup: a direct write skips the module's checks and audit events.
+The module has no operation to revoke administrator access.
 {% endhint %}
-
-## Audit Trail
-
-The operation writes an `AuditEvent` with `type.code` `epcs-access-admin-bootstrap`:
-
-* A granted call has `outcome` `0` and references the new access permission and the `Location`.
-* A rejected call has `outcome` `4` and the reason in `failureReason`, for example `user-not-found` or `location-already-has-access-admin`.
-
-The event lists the acting user and the target user as agents.
-It records `secondPersonApprovalSkipReason` = `deployment-setup` to explain why no second person approved the grant.

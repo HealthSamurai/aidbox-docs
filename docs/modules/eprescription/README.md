@@ -30,11 +30,7 @@ All features are built with FHIR compatibility in mind, eliminating the need for
 
 #### EPCS
 
-{% hint style="warning" %}
-Prescribing controlled substances is not supported yet, but we are working on it.
-{% endhint %}
-
-* Manage EPCS access at each location ([EPCS](epcs/README.md))
+* [Electronic Prescribing of Controlled Substances (EPCS)](epcs/README.md)
 
 #### Drug Sources
 

@@ -5,7 +5,7 @@ description: Nominate, accept, cancel, and list EPCS approver nominations in the
 # Approver Nominations
 
 An administrator nominates the first approver of a location.
-The **nominee** is the Aidbox `User` who will receive the `epcs-access-approver` permission when they accept the nomination.
+The **nominee** is the Aidbox `User` who becomes the location's EPCS approver when they accept the nomination.
 
 ## Nominate the First Approver
 
@@ -25,7 +25,7 @@ The nominee's EHR records must also meet these rules:
   * `period.start` in the past and `period.end` in the future. Both dates are required.
   * A DEA identifier in the format below.
 
-The DEA identifier must have this `type`, with no other codings, and a value of two letters and seven digits:
+Use this coding for the DEA identifier's `type`, with no other codings:
 
 ```json
 {
@@ -55,11 +55,12 @@ Content-Type: application/json
 }
 ```
 
-`201 Created` returns an `EPrescriptionAccessRequest` with `status: pending`.
-The request records the nominee in `user` and the administrator in `requestedBy`.
+`201 Created` returns the nomination with `status: pending`.
+Use its `id` to accept or cancel the nomination.
+The response identifies the nominee in `user` and the administrator in `requestedBy`.
 It expires 48 hours after `requestedAt`, at the time in `expiresAt`.
 
-* `400` means a required field is missing or invalid. The operation supports only `action: grant` and `permission: epcs-access-approver`.
+* `400` means a required field is missing or invalid. Use the `action` and `permission` values shown above to nominate an EPCS approver.
 * `403` means the request has no [acting user](configure-access-policies.md), or the caller does not administer the location.
 * `409` means a pending, unexpired nomination exists for the same user and location.
 * `422` means the caller nominated themselves, the location already has an approver, or the nominee does not exist or does not meet the rules above.
@@ -70,7 +71,12 @@ The first nominee to accept becomes its approver, and the others can no longer a
 ## Accept a Nomination
 
 Only the nominee may accept their nomination.
-Acceptance requires their two-factor authentication code.
+Send their two-factor authentication code as a nonblank string in `twoFactorCode`.
+
+{% hint style="warning" %}
+The module does not verify the code.
+Your integration must verify the nominee's two-factor authentication before calling this operation.
+{% endhint %}
 
 ```http
 POST /e-prescription/access/epcs/requests/<id>/approve
@@ -87,8 +93,8 @@ On acceptance, the module checks again that:
 * The location still has no approver.
 * The nominee still meets the rules above.
 
-`200 OK` returns the request with `status: approved`, `resolvedBy`, and `resolvedAt`.
-The module creates an `EPrescriptionAccessPermission` for the nominee, with a `request` reference to the nomination.
+`200 OK` returns the nomination with `status: approved`, `resolvedBy`, and `resolvedAt`.
+The nominee becomes the location's EPCS approver.
 
 * `400` means `twoFactorCode` is missing or is not a string.
 * `403` means the request has no acting user, or the caller is not the nominee.
@@ -103,7 +109,7 @@ The nominee or an administrator of the location may cancel a pending, unexpired 
 POST /e-prescription/access/epcs/requests/<id>/cancel
 ```
 
-`200 OK` returns the request with `status: cancelled`, `resolvedBy`, and `resolvedAt`.
+`200 OK` returns the nomination with `status: cancelled`, `resolvedBy`, and `resolvedAt`.
 
 * `403` means the request has no acting user, or the caller is neither the nominee nor an administrator of the location.
 * `409` means another call changed the request at the same time.
@@ -134,16 +140,5 @@ After a nomination passes its `expiresAt` time:
 
 * Acceptance and cancellation return `422`.
 * You can nominate the same user at the same location again.
-* Within an hour, the module changes its `status` to `expired`.
 
-## Audit Trail
-
-Nomination, acceptance, and cancellation write `AuditEvent` records with these `type.code` values:
-
-* `epcs-access-request-creation`
-* `epcs-access-request-approval`
-* `epcs-access-request-cancellation`
-
-A rejected call records the reason in `failureReason`.
-
-An acceptance event records `secondPersonApprovalSkipReason` = `no-active-approver`, because no approver exists yet to approve the grant.
+Use `expiresAt` to determine whether a nomination has expired, even if its `status` still shows `pending`.
