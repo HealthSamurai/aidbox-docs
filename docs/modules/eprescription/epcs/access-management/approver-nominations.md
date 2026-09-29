@@ -25,7 +25,7 @@ The nominee's EHR records must also meet these rules:
   * `period.start` in the past and `period.end` in the future. Both dates are required.
   * A DEA identifier in the format below.
 
-Use this coding for the DEA identifier's `type`, with no other codings:
+The DEA identifier must have this shape:
 
 ```json
 {
@@ -37,11 +37,6 @@ Use this coding for the DEA identifier's `type`, with no other codings:
   "value": "AB1234563"
 }
 ```
-
-{% hint style="warning" %}
-The module checks only the format of the DEA number.
-Before you nominate someone, verify outside the module that their DEA registration and state authorizations are current.
-{% endhint %}
 
 ```http
 POST /e-prescription/access/epcs/requests
@@ -56,9 +51,23 @@ Content-Type: application/json
 ```
 
 `201 Created` returns the nomination with `status: pending`.
-Use its `id` to accept or cancel the nomination.
-The response identifies the nominee in `user` and the administrator in `requestedBy`.
-It expires 48 hours after `requestedAt`, at the time in `expiresAt`.
+
+```json
+{
+  "resourceType": "EPrescriptionAccessRequest",
+  "id": "72bfe69d-0bf7-4691-8b0a-d40ad8624d51",
+  "action": "grant",
+  "permission": "epcs-access-approver",
+  "user": { "reference": "User/nominee" },
+  "location": { "reference": "Location/clinic-1" },
+  "status": "pending",
+  "requestedBy": { "reference": "User/first-admin" },
+  "requestedAt": "2026-09-29T10:00:00Z",
+  "expiresAt": "2026-10-01T10:00:00Z"
+}
+```
+
+Use the nomination's `id` to accept or cancel it.
 
 * `400` means a required field is missing or invalid. Use the `action` and `permission` values shown above to nominate an EPCS approver.
 * `403` means the request has no [acting user](configure-access-policies.md), or the caller does not administer the location.
@@ -72,11 +81,6 @@ The first nominee to accept becomes its approver, and the others can no longer a
 
 Only the nominee may accept their nomination.
 Send their two-factor authentication code as a nonblank string in `twoFactorCode`.
-
-{% hint style="warning" %}
-The module does not verify the code.
-Your integration must verify the nominee's two-factor authentication before calling this operation.
-{% endhint %}
 
 ```http
 POST /e-prescription/access/epcs/requests/<id>/approve
@@ -97,7 +101,7 @@ On acceptance, the module checks again that:
 The nominee becomes the location's EPCS approver.
 
 * `400` means `twoFactorCode` is missing or is not a string.
-* `403` means the request has no acting user, or the caller is not the nominee.
+* `403` means the request has no [acting user](configure-access-policies.md), or the caller is not the nominee.
 * `409` means another call changed the request or appointed an approver at the same time.
 * `422` means the request does not exist, is resolved or expired, the code is blank, the location already has an approver, or the nominee no longer meets the rules.
 
@@ -111,7 +115,7 @@ POST /e-prescription/access/epcs/requests/<id>/cancel
 
 `200 OK` returns the nomination with `status: cancelled`, `resolvedBy`, and `resolvedAt`.
 
-* `403` means the request has no acting user, or the caller is neither the nominee nor an administrator of the location.
+* `403` means the request has no [acting user](configure-access-policies.md), or the caller is neither the nominee nor an administrator of the location.
 * `409` means another call changed the request at the same time.
 * `422` means the request does not exist, or is resolved or expired.
 
@@ -124,17 +128,19 @@ GET /e-prescription/access/epcs/requests?location=<Location id>&status=pending
 
 `200 OK` returns a searchset `Bundle` with:
 
-* Nominations at locations the acting user administers.
-* Nominations of the acting user.
+* Nominations at locations the [acting user](configure-access-policies.md) administers.
+* Nominations of the [acting user](configure-access-policies.md).
 
 Optional filters:
 
 * `location`: a `Location` id.
 * `status`: `pending`, `approved`, `cancelled`, or `expired`.
 
-Without an acting user, the operation returns `403`.
+Without an [acting user](configure-access-policies.md), the operation returns `403`.
 
 ## Expiration
+
+The nomination expires 48 hours after `requestedAt`, at the time in `expiresAt`.
 
 After a nomination passes its `expiresAt` time:
 

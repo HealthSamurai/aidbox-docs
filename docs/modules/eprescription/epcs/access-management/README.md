@@ -21,8 +21,3 @@ The Aidbox App exposes the operations under `/e-prescription/access/epcs`:
 * [List Permissions](list-permissions.md): list your own permissions and those at the locations you administer.
 
 The operations work whether or not controlled-substance prescribing is enabled, so you can set up access managers ahead of time.
-
-{% hint style="warning" %}
-The module can appoint only the first access managers of a location.
-It cannot add a second approver, revoke a permission, or send access changes to an existing approver for approval.
-{% endhint %}

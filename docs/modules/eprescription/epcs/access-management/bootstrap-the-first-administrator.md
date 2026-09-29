@@ -34,23 +34,6 @@ The administrator can verify their role with [List Your Own Permissions](list-pe
 
 Errors return an `OperationOutcome`:
 
-* `400 Bad Request`: the body is not a JSON object, or `userId` or `locationId` is missing or invalid.
-* `403 Forbidden`: the request has no acting user.
+* `400 Bad Request`: invalid request body.
+* `403 Forbidden`: the request has no [acting user](configure-access-policies.md).
 * `422 Unprocessable Entity`: the user or location does not exist, or the location already has an administrator.
-
-```json
-{
-  "resourceType": "OperationOutcome",
-  "issue": [
-    {
-      "severity": "error",
-      "code": "forbidden",
-      "details": { "text": "EPCS access management requires the authenticated Aidbox user" }
-    }
-  ]
-}
-```
-
-{% hint style="warning" %}
-The module has no operation to revoke administrator access.
-{% endhint %}
