@@ -245,4 +245,4 @@ The number of concurrent async worker threads is controlled by the [`BOX_SCHEDUL
 
 ## Audit logging
 
-Both outcomes are audited with `action: "E"` (Execute), `subtype: "$purge"`, and the Group as the entity. A successful purge records `outcome: "0"`; a purge refused with 403 records `outcome: "4"`. See [How to configure audit log](../../tutorials/security-access-control-tutorials/how-to-configure-audit-log.md) for setup instructions.
+Both outcomes are audited with `action: "E"` (Execute), `subtype: "$purge"`, and the Group as the entity. A successful purge records `outcome: "0"`; a purge refused with 403 records `outcome: "4"`. See [How to subscribe to audit events](../../tutorials/security-access-control-tutorials/how-to-subscribe-to-audit-events.md) for setup instructions.

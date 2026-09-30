@@ -96,6 +96,14 @@ accept: application/json
 }
 ```
 
+### Built-in topics
+
+Aidbox ships topics that exist without a stored `AidboxSubscriptionTopic` resource. Reference them by URL in `AidboxTopicDestination.topic`. Aidbox rejects a stored topic that reuses a built-in URL.
+
+| Topic URL | Events |
+|---|---|
+| `http://health-samurai.io/fhir/core/StructureDefinition/AuditEventsR4BALP` | Audit events as FHIR R4 AuditEvent resources. Available since 2609. See [Audit and Logging](../../access-control/audit-and-logging.md#audit-events-topic). |
+
 ## AidboxTopicDestination
 
 The `AidboxTopicDestination` resource is used to define channel configurations for processing subscription data.

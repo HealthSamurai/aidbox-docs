@@ -82,7 +82,7 @@ description: >-
 * [Label-based Access Control](access-control/authorization/label-based-access-control.md) with [Security Labels](access-control/authorization/label-based-access-control.md#what-are-security-labels)
 * [Scoped APIs](access-control/authorization/scoped-api/)
 * Multitenancy: physical isolation (Multibox), [Organization-based hierarchical access control](access-control/authorization/scoped-api/organization-based-hierarchical-access-control/README.md)
-* [AuditEvent logging](access-control/audit-and-logging.md) with support for [external FHIR AuditRecord Repository](access-control/audit-and-logging.md#external-audit-record-repository-support)
+* [AuditEvent logging](access-control/audit-and-logging.md) delivered through [topic-based subscriptions](access-control/audit-and-logging.md#audit-events-topic), with support for [external FHIR AuditRecord Repository](access-control/audit-and-logging.md#external-audit-record-repository-support)
 
 ### Terminology
 
@@ -154,7 +154,6 @@ Load performance testing results [here](https://www.health-samurai.io/downloads/
 * [ePrescriptions](modules/eprescription/)
 * [MDMbox](https://www.health-samurai.io/docs/mdmbox)
 * SMART on FHIR API for health plans and EHRs
-* [Audit record repository](access-control/audit-and-logging.md#aidbox-as-an-audit-record-repository)
 
 ### Compliance & Certifications
 

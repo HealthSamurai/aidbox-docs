@@ -109,7 +109,6 @@ services:
       BOX_FHIR_TERMINOLOGY_ENGINE_HYBRID_EXTERNAL_TX_SERVER: https://tx.health-samurai.io/fhir
       BOX_FHIR_TERMINOLOGY_SERVICE_BASE_URL: https://tx.health-samurai.io/fhir
       BOX_LICENSE: ${AIDBOX_ADMIN_LICENSE}
-      BOX_SECURITY_AUDIT_LOG_ENABLED: "true"
       BOX_SECURITY_DEV_MODE: ${DEV_MODE:-true}
       BOX_SECURITY_ORGBAC_ENABLED: "true"
       BOX_SECURITY_AUTH_KEYS_SECRET: ${AUTH_KEYS_SECRET:-change-this-secret}
@@ -162,7 +161,6 @@ services:
       BOX_FHIR_TERMINOLOGY_ENGINE_HYBRID_EXTERNAL_TX_SERVER: https://tx.health-samurai.io/fhir
       BOX_FHIR_TERMINOLOGY_SERVICE_BASE_URL: https://tx.health-samurai.io/fhir
       BOX_LICENSE: ${AIDBOX_DEV_LICENSE}
-      BOX_SECURITY_AUDIT_LOG_ENABLED: "true"
       BOX_SECURITY_DEV_MODE: ${DEV_MODE:-true}
       BOX_MODULE_SDC_STRICT_ACCESS_CONTROL: "true"
       BOX_SETTINGS_MODE: read-write

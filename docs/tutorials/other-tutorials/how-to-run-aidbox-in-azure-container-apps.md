@@ -206,7 +206,6 @@ az containerapp create \
     BOX_MODULE_SDC_STRICT_ACCESS_CONTROL=true \
     BOX_ROOT_CLIENT_SECRET=<your-client-secret> \
     BOX_SEARCH_INCLUDE_CONFORMANT=true \
-    BOX_SECURITY_AUDIT_LOG_ENABLED=true \
     BOX_SECURITY_DEV_MODE=true \
     BOX_SETTINGS_MODE=read-write \
     BOX_WEB_BASE_URL=<your-base-url> \

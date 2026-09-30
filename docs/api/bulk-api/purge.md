@@ -27,7 +27,7 @@ This operation implements the [FHIR Patient Purge](https://build.fhir.org/patien
 {% endhint %}
 
 {% hint style="info" %}
-**Audit logging**: A successful purge creates an AuditEvent with `action: "E"` (Execute) and `subtype: "$purge"`. See [How to configure audit log](../../tutorials/security-access-control-tutorials/how-to-configure-audit-log.md) for setup instructions.
+**Audit logging**: A successful purge creates an AuditEvent with `action: "E"` (Execute) and `subtype: "$purge"`. See [How to subscribe to audit events](../../tutorials/security-access-control-tutorials/how-to-subscribe-to-audit-events.md) for setup instructions.
 {% endhint %}
 
 ## Endpoint

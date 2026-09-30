@@ -107,8 +107,6 @@ CREATE EXTENSION unaccent;
     Add the following environment variables:\\
 
     ```yaml
-    - name: BOX_SECURITY_AUDIT_LOG_ENABLED
-      value: true
     - name: BOX_FHIR_SCHEMA_VALIDATION
       value: true
     - name: BOX_DB_PORT

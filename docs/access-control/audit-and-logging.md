@@ -21,11 +21,42 @@ Aidbox provides comprehensive audit and logging capabilities:
 
 Aidbox supports the FHIR [BALP](https://profiles.ihe.net/ITI/BALP/index.html) Implementation Guide.
 
-<figure><img src="../../assets/63f5c07d-e571-42d6-922e-b8b0e4c48000.avif" alt="FHIR Basic Audit Logging Profile (BALP) implementation diagram"><figcaption></figcaption></figure>
+{% hint style="info" %}
+Since version 2609, Aidbox publishes audit events to a built-in subscription topic. The `security.audit-log.*` settings are deprecated. For earlier versions, see [How to configure FHIR Audit Log (deprecated)](../deprecated/deprecated/other/security-access-control-deprecated-tutorials/how-to-configure-audit-log.md).
+{% endhint %}
+
+### Audit events topic
+
+Aidbox publishes audit events to a built-in [AidboxSubscriptionTopic](../modules/topic-based-subscriptions/aidbox-topic-based-subscriptions.md):
+
+```
+http://health-samurai.io/fhir/core/StructureDefinition/AuditEventsR4BALP
+```
+
+Each event is a FHIR R4 AuditEvent resource. To receive events, create an [AidboxTopicDestination](../modules/topic-based-subscriptions/aidbox-topic-based-subscriptions.md#aidboxtopicdestination) with this URL in the `topic` element. Any destination kind works: webhook, Kafka, GCP Pub/Sub, and the others listed in [supported channels](../modules/topic-based-subscriptions/aidbox-topic-based-subscriptions.md#currently-supported-channels).
+
+```mermaid
+graph LR
+    A(API request):::blue2 --> B(Aidbox):::green2
+    B --> C(Audit events topic):::violet2
+    C --> D(Webhook destination):::neutral2
+    C --> E(Kafka destination):::neutral2
+    C --> F(Other destinations):::neutral2
+```
+
+How the topic behaves:
+
+* Destinations switch audit logging on. With no destination on the topic, Aidbox builds no audit events and requests carry no audit overhead. Delete the last destination to stop audit logging.
+* The topic is part of Aidbox. You do not create an `AidboxSubscriptionTopic` resource for it, and Aidbox rejects a stored topic that reuses its URL with `422`.
+* Every destination receives its own copy of each event. Delivery guarantees, batching, and retries come from the destination kind.
+* Aidbox publishes events produced from the moment a destination exists. A new destination receives no earlier events.
+* With [organization-based hierarchical access control](authorization/scoped-api/organization-based-hierarchical-access-control/README.md), the AuditEvent `meta` carries the organization of the request.
+
+For a step-by-step setup, see [How to subscribe to audit events](../tutorials/security-access-control-tutorials/how-to-subscribe-to-audit-events.md).
 
 ### Aidbox as a source of audit events
 
-When audit logging is enabled, Aidbox produces audit logs for significant events:
+Aidbox produces audit events for significant events:
 
 * FHIR CRUD & Search operations for basic FHIR resources and custom resources (with BALP profiles)
 * FHIR CRUD & Search operations for Patient compartment resources (with Patient-specific BALP profiles)
@@ -162,24 +193,13 @@ When a user's password is changed (via `PUT /User/:id` or `PATCH /User/:id`), Ai
 }
 ```
 
-This event is generated regardless of whether the password value actually changed. Search for these events:
-
-```http
-GET /fhir/AuditEvent?subtype=110139
-```
-
-### Aidbox as an Audit record repository
-
-Aidbox is an [Audit record repository](https://profiles.ihe.net/ITI/TF/Volume1/ch-9.html#9.1.1.3) (ARR) for FHIR AuditEvent resources. Aidbox supports
-
-* `POST /fhir/AuditEvent` to record events
-* `GET /fhir/AuditEvent` to receive them
+Aidbox generates this event regardless of whether the password value changed.
 
 ### External Audit record repository support
 
-Aidbox can also send Audit Events to a dedicated, external repository. In this case, Aidbox groups outgoing events into a single **FHIR Bundle** of type `collection` and delivers it to the target endpoint.
+To send audit events to an external [Audit record repository](https://profiles.ihe.net/ITI/TF/Volume1/ch-9.html#9.1.1.3), create a webhook `AidboxTopicDestination` on the audit events topic with the repository endpoint. Aidbox delivers events as a FHIR Bundle of type `history`, described in [Notification shape](../modules/topic-based-subscriptions/aidbox-topic-based-subscriptions.md#notification-shape). The first entry of the bundle is an `AidboxSubscriptionStatus`, so check that the repository accepts this shape.
 
-For setup instructions and payload examples, see the [**External Audit Repository Configuration**](../tutorials/security-access-control-tutorials/how-to-configure-audit-log.md#external-audit-repository-configuration) section of the guide.
+For setup instructions and a payload example, see [How to subscribe to audit events](../tutorials/security-access-control-tutorials/how-to-subscribe-to-audit-events.md).
 
 ## FHIR Resource versioning
 
@@ -200,7 +220,7 @@ Aidbox also provides ways to [extend](../modules/observability/logs/extending-ai
 | REST Create (POST) | Yes | `IHE.BasicAudit.Create` / `PatientCreate` | |
 | REST Read (GET) | Yes | `IHE.BasicAudit.Read` / `PatientRead` | |
 | REST Update (PUT/PATCH) | Yes | `IHE.BasicAudit.Update` / `PatientUpdate` | |
-| REST Delete | Yes | `IHE.BasicAudit.Delete` / `PatientDelete` | Entity reference includes `/_history/version` — see Known limitations |
+| REST Delete | Yes | `IHE.BasicAudit.Delete` / `PatientDelete` | Entity reference includes `/_history/version`, see Known limitations |
 | REST Search | Yes | `IHE.BasicAudit.Query` / `PatientQuery` | |
 | Bundle transaction | Yes | Per-entry BALP profiles | Each entry gets its own AuditEvent |
 | Password change | Yes | No (DICOM `110139`) | See [Password change AuditEvent](#password-change-auditevent) |
@@ -212,12 +232,12 @@ Aidbox also provides ways to [extend](../modules/observability/logs/extending-ai
 | Auth token issuance | **No** | — | `client_credentials` grant, `/auth/token` not audited |
 | `/auth/userinfo` | **No** | — | |
 | Configuration changes | **No** | — | |
-| AuditEvent operations | Excluded | — | Intentional — prevents infinite audit loops |
+| AuditEvent search, read, create | Excluded | — | Intentional, prevents infinite audit loops |
 
 ## Known limitations
 
 {% hint style="warning" %}
-**Delete entity reference includes version**: Delete AuditEvents store the entity reference as `ResourceType/id/_history/versionId` (e.g. `Patient/123/_history/5`). This breaks entity-based AuditEvent search — querying `GET /fhir/AuditEvent?entity=Patient/123` returns no results for delete events.
+**Delete entity reference includes version**: Delete AuditEvents carry the entity reference as `ResourceType/id/_history/versionId` (e.g. `Patient/123/_history/5`). A consumer that matches events by `Patient/123` misses delete events unless it strips the version suffix.
 {% endhint %}
 
 {% hint style="info" %}
@@ -230,6 +250,6 @@ Aidbox also provides ways to [extend](../modules/observability/logs/extending-ai
 
 ## See also:
 
-{% content-ref url="../tutorials/security-access-control-tutorials/how-to-configure-audit-log.md" %}
-[how-to-configure-audit-log.md](../tutorials/security-access-control-tutorials/how-to-configure-audit-log.md)
+{% content-ref url="../tutorials/security-access-control-tutorials/how-to-subscribe-to-audit-events.md" %}
+[how-to-subscribe-to-audit-events.md](../tutorials/security-access-control-tutorials/how-to-subscribe-to-audit-events.md)
 {% endcontent-ref %}

@@ -51,7 +51,7 @@ Content-Type: application/json
 A CRUD update does **not** require the current password. Any client with write access to the `User` resource can change any user's password. Protect the `User` resource with an [AccessPolicy](../authorization/access-policies.md) that restricts write access. For an end-user flow that does verify the current password, use [`/auth/change-password`](#self-service-password-change) instead.
 {% endhint %}
 
-When audit logging is enabled, password changes generate an AuditEvent with DICOM subtype `110139` ("User password changed"). Resets through the reset-link flow also carry the `password-self-reset` subtype, and admin-issued resets carry `password-force-reset`. See [Audit and Logging](../audit-and-logging.md) for details.
+When a destination is subscribed to the [audit events topic](../audit-and-logging.md#audit-events-topic), password changes generate an AuditEvent with DICOM subtype `110139` ("User password changed"). Resets through the reset-link flow also carry the `password-self-reset` subtype, and admin-issued resets carry `password-force-reset`. See [Audit and Logging](../audit-and-logging.md) for details.
 
 #### Self-service password change
 

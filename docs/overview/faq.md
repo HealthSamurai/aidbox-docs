@@ -560,20 +560,20 @@ Aidbox provides comprehensive audit logging with FHIR BALP (Basic Audit Log Patt
 - **Authentication events** — login, logout, SMART authorization
 - **Resource versioning** — full history via `_history` operation
 
-Enable with `BOX_SECURITY_AUDIT_LOG_ENABLED=true`.
+Aidbox publishes audit events to a built-in subscription topic. Create an `AidboxTopicDestination` on that topic to start receiving them.
 
 Learn more:
 - [Audit and Logging](../access-control/audit-and-logging.md)
-- [Configure FHIR Audit Log](../tutorials/security-access-control-tutorials/how-to-configure-audit-log.md)
+- [How to subscribe to audit events](../tutorials/security-access-control-tutorials/how-to-subscribe-to-audit-events.md)
 
 ### Can I send audit events to an external repository?
 
-Yes, Aidbox can forward AuditEvent resources to an external Audit Record Repository. Events are batched into FHIR Bundles and sent via HTTP POST.
+Yes. Create a webhook `AidboxTopicDestination` on the audit events topic with the repository endpoint. Aidbox batches AuditEvent resources into FHIR Bundles and sends them via HTTP POST. Kafka, GCP Pub/Sub, and the other topic destination kinds work too.
 
 For advanced audit management, consider **Auditbox** — a dedicated audit log management solution with analytics, search, and compliance reporting.
 
 Learn more:
-- [External Audit Repository Configuration](../tutorials/security-access-control-tutorials/how-to-configure-audit-log.md#external-audit-repository-configuration)
+- [External Audit record repository support](../access-control/audit-and-logging.md#external-audit-record-repository-support)
 - [Auditbox Documentation](https://www.health-samurai.io/docs/auditbox)
 - [Auditbox Product Page](https://www.health-samurai.io/auditbox)
 - [FHIR-Native Audit Log (blog)](https://www.health-samurai.io/articles/early-access-fhir-native-audit-log-for-modern-healthcare-solutions)
