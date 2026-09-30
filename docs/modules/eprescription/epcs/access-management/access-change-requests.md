@@ -113,7 +113,7 @@ When several nominations are pending, the first nominee to accept becomes the ap
 
 ### An administrator removing the sole approver
 
-If the target of a pending approver revocation is now the only approver at the location, an administrator at the location may approve it alone, without `twoFactorCode`.
+If the target of a pending approver revocation is now the only approver at the location, any administrator at the location, including the one who requested it, may approve it alone, without `twoFactorCode`.
 See [Remove the Sole Approver](#remove-the-sole-approver).
 
 ### Result
@@ -122,7 +122,7 @@ See [Remove the Sole Approver](#remove-the-sole-approver).
 A grant creates the role, and a revocation removes it.
 
 * `400` means `twoFactorCode` is not a string.
-* `403` means the request has no [acting user](configure-access-policies.md#acting-user), or the caller may not approve it: the requester (except an administrator removing the sole approver), the target outside the first-approver case, a user who is not an approver at the location, or an approver who is not eligible.
+* `403` means the request has no [acting user](configure-access-policies.md#acting-user), or the caller is none of the three callers above.
 * `409` means another call changed the request or the location's roles at the same time. Reload the request and retry.
 * `422` means the request does not exist, is resolved or expired, the code is blank, the user already holds the granted role or lacks the revoked one, or the target of an approver grant is not eligible.
 
@@ -145,6 +145,7 @@ Content-Type: application/json
 
 `201 Created` returns the request already `approved`, and the role is gone.
 When two or more users hold the approver role, the call creates a pending request as usual, even if only one of them is eligible.
+A `409` means another call changed the location's roles at the same time; retry the request.
 
 To appoint the next approver, nominate one; the nominee accepts as the [first approver](#the-first-approver).
 
@@ -160,7 +161,7 @@ POST /e-prescription/access/epcs/requests/<id>/cancel
 `200 OK` returns the request with `status: cancelled`, `resolvedBy`, and `resolvedAt`.
 
 * `403` means the request has no [acting user](configure-access-policies.md#acting-user), or the caller is neither the target nor an access manager at the location, or is the target of another person's revocation.
-* `409` means another call changed the request or your role at the location at the same time. Reload the request and retry.
+* `409` means another call changed the request or the caller's role at the location at the same time. Reload the request and retry.
 * `422` means the request does not exist, or is resolved or expired.
 
 ## List Requests
