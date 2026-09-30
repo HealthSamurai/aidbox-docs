@@ -122,7 +122,7 @@ See [Remove the Sole Approver](#remove-the-sole-approver).
 A grant creates the role, and a revocation removes it.
 
 * `400` means `twoFactorCode` is not a string.
-* `403` means the request has no [acting user](configure-access-policies.md#acting-user), or the caller may not approve it: the requester, the target outside the first-approver case, a user who is not an approver at the location, or an approver who is not eligible.
+* `403` means the request has no [acting user](configure-access-policies.md#acting-user), or the caller may not approve it: the requester (except an administrator removing the sole approver), the target outside the first-approver case, a user who is not an approver at the location, or an approver who is not eligible.
 * `409` means another call changed the request or the location's roles at the same time. Reload the request and retry.
 * `422` means the request does not exist, is resolved or expired, the code is blank, the user already holds the granted role or lacks the revoked one, or the target of an approver grant is not eligible.
 
