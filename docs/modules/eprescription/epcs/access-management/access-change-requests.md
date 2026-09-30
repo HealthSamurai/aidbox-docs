@@ -160,7 +160,7 @@ POST /e-prescription/access/epcs/requests/<id>/cancel
 `200 OK` returns the request with `status: cancelled`, `resolvedBy`, and `resolvedAt`.
 
 * `403` means the request has no [acting user](configure-access-policies.md#acting-user), or the caller is neither the target nor an access manager at the location, or is the target of another person's revocation.
-* `409` means another call changed the request at the same time. Reload the request and retry.
+* `409` means another call changed the request or your role at the location at the same time. Reload the request and retry.
 * `422` means the request does not exist, or is resolved or expired.
 
 ## List Requests
