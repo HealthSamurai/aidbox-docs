@@ -517,7 +517,7 @@ Configuration resource for SDC system settings including language, theme, storag
   "min" : 0,
   "max" : 1,
   "type" : "code",
-  "desc" : "FHIRPath compatibility profile every expression in a form must fit"
+  "desc" : "spec/v2.0.0 | engine/browser | engine/server"
 }, {
   "path" : "builder.translation-languages",
   "name" : "translation-languages",
@@ -958,6 +958,14 @@ Configuration resource for SDC system settings including language, theme, storag
   "max" : 1,
   "type" : "boolean",
   "desc" : "Hide print button from the form"
+}, {
+  "path" : "form.enable-scriber",
+  "name" : "enable-scriber",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "boolean",
+  "desc" : "Enable the voice agent in the renderer (disabled by default)"
 }, {
   "path" : "form.enable-amend-button",
   "name" : "enable-amend-button",
