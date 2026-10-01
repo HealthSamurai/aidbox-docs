@@ -25,6 +25,8 @@ SQLQuery is a profile on `Library` that bundles SQL, dependencies, and parameter
 - **`relatedArtifact`** — dependencies of `type = "depends-on"`. The `resource` is a canonical URL pointing to a ViewDefinition or another SQLQuery Library; the `label` becomes the table name used in SQL.
 - **`content`** — one or more SQL attachments. `content.contentType` starts with `application/sql`; `content.data` is the base64-encoded SQL. The optional [sql-text](https://build.fhir.org/ig/HL7/sql-on-fhir/StructureDefinition-sql-text.html) extension carries a plain-text copy for human readability. When several attachments are provided, Aidbox prefers `application/sql;dialect=postgresql` and falls back to `application/sql`.
 
+A dependency declared with an [AidboxMaterialization](aidbox-materialization.md) reads its database object: `$sqlquery-run` compiles it to `SELECT * FROM <schema>.<name>` instead of inlining its SQL. See [How dependents read a materialized object](aidbox-materialization.md#how-dependents-read-a-materialized-object).
+
 A minimal SQLQuery Library looks like this:
 
 ```json

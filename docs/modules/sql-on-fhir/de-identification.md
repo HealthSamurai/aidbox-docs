@@ -273,6 +273,8 @@ This restriction exists because PostgreSQL stores the full view definition (incl
 
 `$run` and `$sql` are unaffected — they return data or SQL strings directly without storing anything in system catalogs.
 
+[AidboxMaterialization](aidbox-materialization.md) builds views and materialized views only, with no table option, so a run on a de-identified ViewDefinition fails. That check covers materialized nodes alone: Aidbox inlines a de-identified ViewDefinition without an AidboxMaterialization of its own into the object of any dependent that has one, keys included. Keep de-identified ViewDefinitions out of dependency graphs you materialize.
+
 ## Pre-built ViewDefinitions
 
 The IG package [`io.health-samurai.de-identification.r4`](https://get-ig.org/io.health-samurai.de-identification.r4) provides ready-made Safe Harbor ViewDefinitions for common FHIR R4 resource types. Install it via [Artefact Registry](../../artifact-registry/artifact-registry-overview.md) ("FHIR packages" in Aidbox UI):
