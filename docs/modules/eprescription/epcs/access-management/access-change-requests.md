@@ -101,7 +101,7 @@ Three kinds of caller may approve a pending, unexpired request.
 
 ### An EPCS approver
 
-Any eligible approver at the location approves a request with their two-factor authentication code, sent as a nonblank string in `twoFactorCode`.
+Any eligible approver at the location approves a request with their two-factor authentication code, sent in `twoFactorCode`.
 The approver must be neither the requester nor the target of the request.
 For an approver grant, the target must still be eligible.
 
