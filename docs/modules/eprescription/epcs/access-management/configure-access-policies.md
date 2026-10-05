@@ -30,6 +30,9 @@ Write a policy for each operation and grant it to the smallest group that needs 
 
 The module checks each caller's role as described in [Access-Change Requests](access-change-requests.md).
 
+Do not let any policy grant your users or clients direct read or write access to `EPrescriptionAccessPermission` and `EPrescriptionAccessRequest` resources.
+Direct access bypasses the module's role checks and audit records.
+
 This example policy matches a field of your `User` resource.
 Replace `data.role` and its value with whatever your EHR stores on its users.
 

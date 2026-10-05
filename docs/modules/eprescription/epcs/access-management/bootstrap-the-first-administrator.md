@@ -4,7 +4,11 @@ description: Grant the first EPCS administrator of a location in the Aidbox ePre
 
 # Bootstrap the First Administrator
 
-Use this operation during deployment to appoint a location's first administrator.
+Use this operation to appoint an administrator at a location that has none:
+
+* during deployment, for the location's first administrator
+* after the location loses its last administrator
+
 The appointment does not require a second person's approval.
 
 ## Before You Start

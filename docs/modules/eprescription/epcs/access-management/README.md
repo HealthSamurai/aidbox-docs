@@ -26,7 +26,7 @@ The module checks only the records in Aidbox.
 The Aidbox App exposes the operations under `/e-prescription/access/epcs`:
 
 * [Configure Access Policies](configure-access-policies.md): decide who may call each operation. Do this first.
-* [Bootstrap the First Administrator](bootstrap-the-first-administrator.md): grant a location's first administrator during deployment.
+* [Bootstrap the First Administrator](bootstrap-the-first-administrator.md): grant a location's first administrator during deployment, or a new one after it loses its last.
 * [Access-Change Requests](access-change-requests.md): request, approve, cancel, and list grants and revocations of both roles.
 * [List Permissions](list-permissions.md): list your own permissions and those at the locations you administer.
 
