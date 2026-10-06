@@ -107,7 +107,7 @@ For an approver nomination, the target must still be DEA-qualified.
 
 ### The first approver
 
-While no approver at the location is DEA-qualified, the nominee of an approver nomination accepts it themselves with their two-factor code, unless they requested it.
+While the location has no DEA-qualified approver, the nominee of an approver nomination accepts it themselves with their two-factor code, unless they requested it.
 Approver roles held by users who are not DEA-qualified stay in place and do not block this.
 When several nominations are pending, the first nominee to accept becomes the approver; the other nominations stay pending, and the new approver may approve them.
 
