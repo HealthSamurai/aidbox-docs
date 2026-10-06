@@ -5,15 +5,15 @@ description: Request, approve, cancel, and list grants and revocations of EPCS a
 # Access-Change Requests
 
 An administrator requests a change of who manages EPCS access at a location, and a second person approves it.
-Each request grants or revokes one role for one Aidbox `User` at one `Location`.
+Each **access-change request** grants or revokes one role for one Aidbox `User` at one `Location`.
 
 ## Request a Change
 
-The module allows a request when:
+The module allows an access-change request when:
 
 * The caller is an administrator at the location.
 * A grant names a user who does not hold the role there, and a revocation names one who does.
-* No pending, unexpired request exists for that user, role, and location, whether it grants or revokes the role.
+* No pending, unexpired access-change request exists for that user, role, and location, whether it grants or revokes the role.
 * An `epcs-access-admin` grant names an existing `User`.
 * An `epcs-access-approver` grant names a DEA-qualified user, as described below.
 
@@ -35,7 +35,7 @@ Content-Type: application/json
 * `action`: `grant` or `revoke`.
 * `permission`: `epcs-access-admin` or `epcs-access-approver`.
 
-`201 Created` returns the request with `status: pending`.
+`201 Created` returns the access-change request with `status: pending`.
 
 ```json
 {
@@ -52,11 +52,11 @@ Content-Type: application/json
 }
 ```
 
-Use the request's `id` to approve or cancel it.
+Use the access-change request's `id` to approve or cancel it.
 
 * `400` means a required field is missing or invalid.
 * `403` means the request has no [acting user](configure-access-policies.md#acting-user), or the caller does not administer the location.
-* `409` means a pending, unexpired request exists for the same user, role, and location.
+* `409` means a pending, unexpired access-change request exists for the same user, role, and location.
 * `422` means the caller nominated themselves without a DEA-qualified approver, the user already holds the granted role or lacks the revoked one, the user does not exist, or the nominee is not DEA-qualified.
 
 ### DEA Qualification
@@ -86,7 +86,7 @@ The DEA identifier must have this shape:
 The module checks DEA qualification when you request an approver grant and again on approval.
 It keeps the approver role of a user whose records stop meeting the rules; that user only loses the ability to approve until the records qualify again.
 
-## Approve a Request
+## Approve an Access-Change Request
 
 ```http
 POST /e-prescription/access/epcs/requests/<id>/approve
@@ -97,12 +97,12 @@ Content-Type: application/json
 }
 ```
 
-Three kinds of caller may approve a pending, unexpired request.
+Three kinds of caller may approve a pending, unexpired access-change request.
 
 ### An EPCS approver
 
-Any DEA-qualified approver at the location approves a request with their two-factor authentication code, sent in `twoFactorCode`.
-The approver must be neither the requester nor the target of the request.
+Any DEA-qualified approver at the location approves an access-change request with their two-factor authentication code, sent in `twoFactorCode`.
+The approver must be neither the requester nor the target of the access-change request.
 For an approver grant, the target must still be DEA-qualified.
 
 ### The first approver
@@ -118,13 +118,13 @@ See [Remove the Sole Approver](#remove-the-sole-approver).
 
 ### Result
 
-`200 OK` returns the request with `status: approved`, `resolvedBy`, and `resolvedAt`.
+`200 OK` returns the access-change request with `status: approved`, `resolvedBy`, and `resolvedAt`.
 A grant creates the role, and a revocation removes it.
 
 * `400` means `twoFactorCode` is not a string.
 * `403` means the request has no [acting user](configure-access-policies.md#acting-user), or the caller is none of the three callers above.
-* `409` means another call changed the request or the location's roles at the same time. Reload the request and retry.
-* `422` means the request does not exist, is resolved or expired, the code is blank, the user already holds the granted role or lacks the revoked one, or the target of an approver grant is not DEA-qualified.
+* `409` means another call changed the access-change request or the location's roles at the same time. Reload the access-change request and retry.
+* `422` means the access-change request does not exist, is resolved or expired, the code is blank, the user already holds the granted role or lacks the revoked one, or the target of an approver grant is not DEA-qualified.
 
 ## Remove the Sole Approver
 
@@ -143,28 +143,28 @@ Content-Type: application/json
 }
 ```
 
-`201 Created` returns the request already `approved`, and the role is gone.
-When two or more users hold the approver role, the call creates a pending request as usual, even if only one of them is DEA-qualified.
+`201 Created` returns the access-change request already `approved`, and the role is gone.
+When two or more users hold the approver role, the call creates a pending access-change request as usual, even if only one of them is DEA-qualified.
 A `409` means another call changed the location's roles at the same time; retry the request.
 
 To appoint the next approver, nominate one; the nominee accepts as the [first approver](#the-first-approver).
 
-## Cancel a Request
+## Cancel an Access-Change Request
 
-The target or any access manager at the location may cancel a pending, unexpired request.
+The target or any access manager at the location may cancel a pending, unexpired access-change request.
 The target of a revocation cannot cancel it, even as an access manager, unless they requested it themselves.
 
 ```http
 POST /e-prescription/access/epcs/requests/<id>/cancel
 ```
 
-`200 OK` returns the request with `status: cancelled`, `resolvedBy`, and `resolvedAt`.
+`200 OK` returns the access-change request with `status: cancelled`, `resolvedBy`, and `resolvedAt`.
 
 * `403` means the request has no [acting user](configure-access-policies.md#acting-user), or the caller is neither the target nor an access manager at the location, or is the target of another person's revocation.
-* `409` means another call changed the request or the caller's role at the location at the same time. Reload the request and retry.
-* `422` means the request does not exist, or is resolved or expired.
+* `409` means another call changed the access-change request or the caller's role at the location at the same time. Reload the access-change request and retry.
+* `422` means the access-change request does not exist, or is resolved or expired.
 
-## List Requests
+## List Access-Change Requests
 
 ```http
 GET /e-prescription/access/epcs/requests
@@ -173,8 +173,8 @@ GET /e-prescription/access/epcs/requests?location=<Location id>&status=pending
 
 `200 OK` returns a searchset `Bundle` with:
 
-* Requests at locations where the [acting user](configure-access-policies.md#acting-user) holds either role.
-* Requests naming the [acting user](configure-access-policies.md#acting-user) as target.
+* Access-change requests at locations where the [acting user](configure-access-policies.md#acting-user) holds either role.
+* Access-change requests naming the [acting user](configure-access-policies.md#acting-user) as target.
 
 Optional filters:
 
@@ -185,11 +185,11 @@ Without an [acting user](configure-access-policies.md#acting-user), the operatio
 
 ## Expiration
 
-A request expires 48 hours after `requestedAt`, at the time in `expiresAt`.
+An access-change request expires 48 hours after `requestedAt`, at the time in `expiresAt`.
 
-After a request passes its `expiresAt` time:
+After an access-change request passes its `expiresAt` time:
 
 * Approval and cancellation return `422`.
 * You can request the same change again.
 
-Use `expiresAt` to determine whether a request has expired, even if its `status` still shows `pending`.
+Use `expiresAt` to determine whether an access-change request has expired, even if its `status` still shows `pending`.
