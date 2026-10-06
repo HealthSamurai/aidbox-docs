@@ -14,8 +14,8 @@ The module allows an access-change request when:
 * The caller is an administrator at the location.
 * A grant names a user who does not hold the role there, and a revocation names one who does.
 * No pending, unexpired access-change request exists for that user, role, and location, whether it grants or revokes the role.
-* An `epcs-access-admin` grant names an existing `User`.
-* An `epcs-access-approver` grant names a DEA-qualified user, as described below.
+* An administrator nomination names an existing `User`.
+* An approver nomination names a DEA-qualified user, as described below.
 
 An administrator may request changes to their own roles, including the removal of the last administrator at the location.
 The one exception is a self-nomination: an administrator cannot request the approver role for themselves while the location has no DEA-qualified approver, because they could then accept it themselves.
@@ -83,7 +83,7 @@ The DEA identifier must have this shape:
 }
 ```
 
-The module checks DEA qualification when you request an approver grant and again on approval.
+The module checks DEA qualification when you request an approver nomination and again on approval.
 It keeps the approver role of a user whose records stop meeting the rules; that user only loses the ability to approve until the records qualify again.
 
 ## Approve an Access-Change Request
@@ -103,11 +103,11 @@ Three kinds of caller may approve a pending, unexpired access-change request.
 
 Any DEA-qualified approver at the location approves an access-change request with their two-factor authentication code, sent in `twoFactorCode`.
 The approver must be neither the requester nor the target of the access-change request.
-For an approver grant, the target must still be DEA-qualified.
+For an approver nomination, the target must still be DEA-qualified.
 
 ### The first approver
 
-While no approver at the location is DEA-qualified, the nominee of an approver grant accepts it themselves with their two-factor code, unless they requested it.
+While no approver at the location is DEA-qualified, the nominee of an approver nomination accepts it themselves with their two-factor code, unless they requested it.
 Approver roles held by users who are not DEA-qualified stay in place and do not block this.
 When several nominations are pending, the first nominee to accept becomes the approver; the other nominations stay pending, and the new approver may approve them.
 
@@ -124,7 +124,7 @@ A grant creates the role, and a revocation removes it.
 * `400` means `twoFactorCode` is not a string.
 * `403` means the request has no [acting user](configure-access-policies.md#acting-user), or the caller is none of the three callers above.
 * `409` means another call changed the access-change request or the location's roles at the same time. Reload the access-change request and retry.
-* `422` means the access-change request does not exist, is resolved or expired, the code is blank, the user already holds the granted role or lacks the revoked one, or the target of an approver grant is not DEA-qualified.
+* `422` means the access-change request does not exist, is resolved or expired, the code is blank, the user already holds the granted role or lacks the revoked one, or the target of an approver nomination is not DEA-qualified.
 
 ## Remove the Sole Approver
 
