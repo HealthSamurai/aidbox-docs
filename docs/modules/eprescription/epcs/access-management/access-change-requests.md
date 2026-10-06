@@ -15,10 +15,10 @@ The module allows a request when:
 * A grant names a user who does not hold the role there, and a revocation names one who does.
 * No pending, unexpired request exists for that user, role, and location, whether it grants or revokes the role.
 * An `epcs-access-admin` grant names an existing `User`.
-* An `epcs-access-approver` grant names an eligible user, as described below.
+* An `epcs-access-approver` grant names a DEA-qualified user, as described below.
 
 An administrator may request changes to their own roles, including the removal of the last administrator at the location.
-The one exception is a self-nomination: an administrator cannot request the approver role for themselves while the location has no eligible approver, because they could then accept it themselves.
+The one exception is a self-nomination: an administrator cannot request the approver role for themselves while the location has no DEA-qualified approver, because they could then accept it themselves.
 
 ```http
 POST /e-prescription/access/epcs/requests
@@ -57,11 +57,11 @@ Use the request's `id` to approve or cancel it.
 * `400` means a required field is missing or invalid.
 * `403` means the request has no [acting user](configure-access-policies.md#acting-user), or the caller does not administer the location.
 * `409` means a pending, unexpired request exists for the same user, role, and location.
-* `422` means the caller nominated themselves without an eligible approver, the user already holds the granted role or lacks the revoked one, the user does not exist, or the nominee is not eligible.
+* `422` means the caller nominated themselves without a DEA-qualified approver, the user already holds the granted role or lacks the revoked one, the user does not exist, or the nominee is not DEA-qualified.
 
-### Eligibility
+### DEA Qualification
 
-A user is eligible for the approver role, and eligible to approve as one, when their EHR records meet these rules:
+A user is DEA-qualified for the approver role, and DEA-qualified to approve as one, when their EHR records meet these rules:
 
 * `User.fhirUser` references a `Practitioner` whose `active` is not `false`.
 * That `Practitioner` has at least one `PractitionerRole` with all of these:
@@ -83,7 +83,7 @@ The DEA identifier must have this shape:
 }
 ```
 
-The module checks eligibility when you request an approver grant and again on approval.
+The module checks DEA qualification when you request an approver grant and again on approval.
 It keeps the approver role of a user whose records stop meeting the rules; that user only loses the ability to approve until the records qualify again.
 
 ## Approve a Request
@@ -101,14 +101,14 @@ Three kinds of caller may approve a pending, unexpired request.
 
 ### An EPCS approver
 
-Any eligible approver at the location approves a request with their two-factor authentication code, sent in `twoFactorCode`.
+Any DEA-qualified approver at the location approves a request with their two-factor authentication code, sent in `twoFactorCode`.
 The approver must be neither the requester nor the target of the request.
-For an approver grant, the target must still be eligible.
+For an approver grant, the target must still be DEA-qualified.
 
 ### The first approver
 
-While no approver at the location is eligible, the nominee of an approver grant accepts it themselves with their two-factor code, unless they requested it.
-Approver roles held by ineligible users stay in place and do not block this.
+While no approver at the location is DEA-qualified, the nominee of an approver grant accepts it themselves with their two-factor code, unless they requested it.
+Approver roles held by users who are not DEA-qualified stay in place and do not block this.
 When several nominations are pending, the first nominee to accept becomes the approver; the other nominations stay pending, and the new approver may approve them.
 
 ### An administrator removing the sole approver
@@ -124,11 +124,11 @@ A grant creates the role, and a revocation removes it.
 * `400` means `twoFactorCode` is not a string.
 * `403` means the request has no [acting user](configure-access-policies.md#acting-user), or the caller is none of the three callers above.
 * `409` means another call changed the request or the location's roles at the same time. Reload the request and retry.
-* `422` means the request does not exist, is resolved or expired, the code is blank, the user already holds the granted role or lacks the revoked one, or the target of an approver grant is not eligible.
+* `422` means the request does not exist, is resolved or expired, the code is blank, the user already holds the granted role or lacks the revoked one, or the target of an approver grant is not DEA-qualified.
 
 ## Remove the Sole Approver
 
-When only one user holds the approver role at a location, eligible or not, an administrator can remove it at once, without a second person's approval or a two-factor code.
+When only one user holds the approver role at a location, DEA-qualified or not, an administrator can remove it at once, without a second person's approval or a two-factor code.
 Request the revocation as usual:
 
 ```http
@@ -144,7 +144,7 @@ Content-Type: application/json
 ```
 
 `201 Created` returns the request already `approved`, and the role is gone.
-When two or more users hold the approver role, the call creates a pending request as usual, even if only one of them is eligible.
+When two or more users hold the approver role, the call creates a pending request as usual, even if only one of them is DEA-qualified.
 A `409` means another call changed the location's roles at the same time; retry the request.
 
 To appoint the next approver, nominate one; the nominee accepts as the [first approver](#the-first-approver).
