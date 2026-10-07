@@ -345,11 +345,6 @@ identifier:
       coding:
         - system: http://terminology.hl7.org/CodeSystem/v2-0203
           code: SL
-  - value: AB1234563
-    type:
-      coding:
-        - system: http://terminology.hl7.org/CodeSystem/v2-0203
-          code: DEA
   - value: XB1234563
     system: urn:app:aidbox:e-prescriptions:ncpdp:Data2000WaiverID
   - value: MA-CS-456789
@@ -382,6 +377,12 @@ If only an inactive **StateLicenseNumber** is available, set the **use** field o
 
 ```yaml
 ...
+identifier:
+  - value: AB1234563
+    type:
+      coding:
+        - system: http://terminology.hl7.org/CodeSystem/v2-0203
+          code: DEA
 specialty:
   - coding:
       - system: http://nucc.org/provider-taxonomy
