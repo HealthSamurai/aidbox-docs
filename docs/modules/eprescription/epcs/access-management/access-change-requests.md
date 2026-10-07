@@ -101,7 +101,7 @@ Content-Type: application/json
 }
 ```
 
-A pending, unexpired request can be approved in one of the two ways below.
+A pending, unexpired request can be approved in one of the three ways below.
 
 ### First Approver
 
@@ -113,6 +113,11 @@ There, the nominee of an approver nomination accepts it with their own two-facto
 A DEA-qualified approver at the location approves the request with their two-factor code.
 The approver cannot be the requester or the target of the request.
 
+### Pending Sole Approver Revocation
+
+A pending revocation can target an approver who has since become the only approver at the location, DEA-qualified or not.
+Any administrator at the location can approve it without `twoFactorCode`, including the administrator who requested it.
+
 <details>
 
 <summary>Result</summary>
@@ -122,7 +127,7 @@ The approver cannot be the requester or the target of the request.
 Errors:
 
 * `400`: `twoFactorCode` is not a string.
-* `403`: the request has no [acting user](configure-access-policies.md#acting-user), or the caller may not approve this request in either way.
+* `403`: the request has no [acting user](configure-access-policies.md#acting-user), or the caller may not approve this request in any of the three ways.
 * `409`: another call changed the request or the location's roles at the same time. Reload the request and retry.
 * `422`: the request does not exist, is resolved or expired, the code is blank, the user already holds the granted role or lacks the revoked one, or the nominee of an approver nomination is not DEA-qualified.
 
