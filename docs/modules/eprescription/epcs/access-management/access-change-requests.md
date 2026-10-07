@@ -1,5 +1,5 @@
 ---
-description: Request, approve, cancel, and list grants and revocations of EPCS access manager roles in the Aidbox ePrescription module.
+description: Grant or revoke an EPCS access manager role at a location, with the approval of a second person, in the Aidbox ePrescription module.
 ---
 
 # Access-Change Requests
@@ -30,6 +30,10 @@ Content-Type: application/json
 * `action`: `grant` or `revoke`.
 * `permission`: `epcs-access-admin` for the administrator role, or `epcs-access-approver` for the approver role.
 
+<details>
+
+<summary>Response</summary>
+
 `201 Created` returns the access-change request with `status: pending`.
 Use its `id` to approve or cancel it.
 
@@ -48,10 +52,14 @@ Use its `id` to approve or cancel it.
 }
 ```
 
+</details>
+
 An administrator may request changes to their own roles, including removing the last administrator at the location.
 To appoint a new administrator after that, use [Bootstrap the First Administrator](bootstrap-the-first-administrator.md).
 
-Errors:
+<details>
+
+<summary>Errors</summary>
 
 * `400`: a required field is missing or invalid.
 * `403`: the request has no [acting user](configure-access-policies.md#acting-user), or the caller is not an administrator at the location.
@@ -61,6 +69,8 @@ Errors:
   * An administrator nomination names a `User` that does not exist.
   * An approver nomination names a user who is not DEA-qualified.
   * The caller nominates themselves as approver while the location has no DEA-qualified approver. Otherwise they could [accept the nomination themselves](#first-approver).
+
+</details>
 
 ### DEA Qualification
 
@@ -84,31 +94,27 @@ Content-Type: application/json
 }
 ```
 
-A pending, unexpired request can be approved in one of three ways.
+A pending, unexpired request can be approved in one of the three ways below.
+
+### First Approver
+
+A location with no DEA-qualified approver cannot use [second-person approval](#second-person-approval).
+There, the nominee of an approver nomination accepts it with their own two-factor code.
 
 ### Second-Person Approval
 
 A DEA-qualified approver at the location approves the request with their two-factor code.
 The approver cannot be the requester or the target of the request.
-For an approver nomination, the nominee must still be DEA-qualified.
-
-### First Approver
-
-A location with no DEA-qualified approver cannot use second-person approval.
-There, the nominee of an approver nomination accepts it with their own two-factor code, unless they requested it themselves.
-
-If several approver nominations are pending, the first nominee to accept becomes the approver.
-The other nominations stay pending, and the new approver can approve them.
 
 ### Sole Approver Removal
 
-If only one user at the location holds the approver role, an administrator can remove it without a second person or a two-factor code.
-See [Remove the Sole Approver](#remove-the-sole-approver).
+When only one user holds the approver role at a location, DEA-qualified or not, an administrator can remove it at once.
 
-### Result
+<details>
+
+<summary>Result</summary>
 
 `200 OK` returns the access-change request with `status: approved`, `resolvedBy`, and `resolvedAt`.
-A grant creates the role, and a revocation removes it.
 
 Errors:
 
@@ -117,35 +123,12 @@ Errors:
 * `409`: another call changed the request or the location's roles at the same time. Reload the request and retry.
 * `422`: the request does not exist, is resolved or expired, the code is blank, the user already holds the granted role or lacks the revoked one, or the nominee of an approver nomination is not DEA-qualified.
 
-## Remove the Sole Approver
-
-When only one user holds the approver role at a location, DEA-qualified or not, an administrator can remove it at once.
-Request the revocation as usual:
-
-```http
-POST /e-prescription/access/epcs/requests
-Content-Type: application/json
-
-{
-  "action": "revoke",
-  "permission": "epcs-access-approver",
-  "userId": "<approver's Aidbox User id>",
-  "locationId": "<Location id>"
-}
-```
-
-`201 Created` returns the request already `approved`, and the role is gone.
-A `409` means another call changed the location's roles at the same time. Retry the request.
-
-When two or more users hold the approver role, the call creates a pending request as usual, even if only one of them is DEA-qualified.
-If a pending revocation targets the approver who has since become the only one, any administrator at the location can approve it without `twoFactorCode`, including the administrator who requested it.
-
-To appoint the next approver, nominate one. The nominee accepts as the [first approver](#first-approver).
+</details>
 
 ## Cancel an Access-Change Request
 
-The target or any access manager at the location can cancel a pending, unexpired request.
-The target of a revocation can cancel it only if they requested it themselves.
+The nominee of a nomination or any access manager at the location can cancel a pending, unexpired request.
+A nominee cancels a nomination to decline it.
 
 ```http
 POST /e-prescription/access/epcs/requests/<id>/cancel
@@ -153,11 +136,15 @@ POST /e-prescription/access/epcs/requests/<id>/cancel
 
 `200 OK` returns the access-change request with `status: cancelled`, `resolvedBy`, and `resolvedAt`.
 
-Errors:
+<details>
+
+<summary>Errors</summary>
 
 * `403`: the request has no [acting user](configure-access-policies.md#acting-user), the caller is neither the target nor an access manager at the location, or the caller is the target of a revocation someone else requested.
 * `409`: another call changed the request or the caller's role at the location at the same time. Reload the request and retry.
 * `422`: the request does not exist, or is resolved or expired.
+
+</details>
 
 ## List Access-Change Requests
 
