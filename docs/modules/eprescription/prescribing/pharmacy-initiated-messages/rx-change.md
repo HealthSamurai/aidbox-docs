@@ -21,7 +21,7 @@ It is required that RxChange is preceded by NewRx.
 
 **MedicationRequest.extension.where(url = "TODO")** referred as **MessageRequestSubCodes**
 
-**PractitionerRole.identifier.where(system = 'http://hl7.org/fhir/sid/us-npi')** referred as **NPI**
+**Practitioner.identifier.where(system = 'http://hl7.org/fhir/sid/us-npi')** referred as **NPI**
 
 **PractitionerRole.identifier.where(system = 'http://terminology.hl7.org/CodeSystem/v2-0203' and code = 'DEA')** referred as **DEANumber**
 
