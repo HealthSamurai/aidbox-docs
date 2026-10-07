@@ -1,5 +1,5 @@
 ---
-description: Grant or revoke an EPCS access manager role at a location, with the approval of a second person, in the Aidbox ePrescription module.
+description: Change who holds an EPCS access manager role at a location in the Aidbox ePrescription module.
 ---
 
 # Access-Change Requests
