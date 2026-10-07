@@ -4052,6 +4052,46 @@ Configures where and how notifications triggered by a subscription topic should 
   "type" : "boolean",
   "desc" : "Enable logging of delivery status."
 }, {
+  "path" : "filterBy",
+  "name" : "filterBy",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : "*",
+  "type" : "BackboneElement",
+  "desc" : "Criteria for narrowing the subscription topic stream."
+}, {
+  "path" : "filterBy.resource",
+  "name" : "resource",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "uri",
+  "desc" : "Allowed Resource (reference to definition) for this filter."
+}, {
+  "path" : "filterBy.filterParameter",
+  "name" : "filterParameter",
+  "lvl" : 1,
+  "min" : 1,
+  "max" : 1,
+  "type" : "string",
+  "desc" : "Filter label defined in AidboxSubscriptionTopic."
+}, {
+  "path" : "filterBy.comparator",
+  "name" : "comparator",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "code",
+  "desc" : "eq. \n\n**Allowed values**: `eq`"
+}, {
+  "path" : "filterBy.value",
+  "name" : "value",
+  "lvl" : 1,
+  "min" : 1,
+  "max" : 1,
+  "type" : "string",
+  "desc" : "Literal value or resource path."
+}, {
   "path" : "includeEntryAction",
   "name" : "includeEntryAction",
   "lvl" : 0,
@@ -4637,6 +4677,31 @@ Attribute definition resource for Aidbox entities.
   "max" : 1,
   "type" : "string",
   "desc" : "URI of the value set."
+} ]
+```
+
+
+## AuditEventsRecorderProfile
+
+Audit events recorder profile for AidboxTopicDestination. Stores audit events of an audit events topic in the AuditEvent table.
+
+```fhir-structure
+[ {
+  "path" : "kind",
+  "name" : "kind",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
 } ]
 ```
 
