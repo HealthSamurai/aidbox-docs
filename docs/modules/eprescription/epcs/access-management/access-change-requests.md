@@ -63,7 +63,9 @@ To appoint a new administrator after that, use [Bootstrap the First Administrato
 
 * `400`: a required field is missing or invalid.
 * `403`: the request has no [acting user](configure-access-policies.md#acting-user), or the caller is not an administrator at the location.
-* `409`: a pending, unexpired request already exists for the same user, role, and location, whether it grants or revokes the role.
+* `409`, in either of these cases:
+  * A pending, unexpired request already exists for the same user, role, and location, whether it grants or revokes the role.
+  * While [removing the sole approver](#sole-approver-removal), another call changed the location's roles at the same time. Retry the request.
 * `422`, in any of these cases:
   * A grant names a user who already holds the role, or a revocation names a user who does not.
   * An administrator nomination names a `User` that does not exist.
@@ -71,6 +73,11 @@ To appoint a new administrator after that, use [Bootstrap the First Administrato
   * The caller nominates themselves as approver while the location has no DEA-qualified approver. Otherwise they could [accept the nomination themselves](#first-approver).
 
 </details>
+
+### Sole Approver Removal
+
+When only one user holds the approver role at a location, DEA-qualified or not, an administrator can remove it at once.
+The request to revoke it returns `201 Created` with `status: approved`, and the role is gone.
 
 ### DEA Qualification
 
@@ -94,7 +101,7 @@ Content-Type: application/json
 }
 ```
 
-A pending, unexpired request can be approved in one of the three ways below.
+A pending, unexpired request can be approved in one of the two ways below.
 
 ### First Approver
 
@@ -106,10 +113,6 @@ There, the nominee of an approver nomination accepts it with their own two-facto
 A DEA-qualified approver at the location approves the request with their two-factor code.
 The approver cannot be the requester or the target of the request.
 
-### Sole Approver Removal
-
-When only one user holds the approver role at a location, DEA-qualified or not, an administrator can remove it at once.
-
 <details>
 
 <summary>Result</summary>
@@ -119,7 +122,7 @@ When only one user holds the approver role at a location, DEA-qualified or not, 
 Errors:
 
 * `400`: `twoFactorCode` is not a string.
-* `403`: the request has no [acting user](configure-access-policies.md#acting-user), or the caller may not approve this request in any of the three ways.
+* `403`: the request has no [acting user](configure-access-policies.md#acting-user), or the caller may not approve this request in either way.
 * `409`: another call changed the request or the location's roles at the same time. Reload the request and retry.
 * `422`: the request does not exist, is resolved or expired, the code is blank, the user already holds the granted role or lacks the revoked one, or the nominee of an approver nomination is not DEA-qualified.
 
