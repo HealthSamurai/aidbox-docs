@@ -59,7 +59,7 @@ To appoint a new administrator after that, use [Bootstrap the First Administrato
 
 <details>
 
-<summary>Errors</summary>
+<summary>Error Responses</summary>
 
 * `400`: a required field is missing or invalid.
 * `403`: the request has no [acting user](configure-access-policies.md#acting-user), or the caller is not an administrator at the location.
@@ -141,7 +141,7 @@ POST /e-prescription/access/epcs/requests/<id>/cancel
 
 <details>
 
-<summary>Errors</summary>
+<summary>Error Responses</summary>
 
 * `403`: the request has no [acting user](configure-access-policies.md#acting-user), the caller is neither the target nor an access manager at the location, or the caller is the target of a revocation someone else requested.
 * `409`: another call changed the request or the caller's role at the location at the same time. Reload the request and retry.
