@@ -229,6 +229,7 @@ operation id Aidbox does not know returns `404`.
 
 ## Audit
 
-Every call writes an `AuditEvent` with subtype `$purge-organization`, naming the organization and
-the resource types. An asynchronous run records acceptance when it returns `202`, and a type that
+Every call produces an `AuditEvent` with subtype `$purge-organization`, naming the organization and
+the resource types. Aidbox delivers it to the destinations of the
+[audit events topic](../../../audit-and-logging.md#audit-events-topic). An asynchronous run records acceptance when it returns `202`, and a type that
 exhausts its retries records its own failure, so the trail shows which data may remain.

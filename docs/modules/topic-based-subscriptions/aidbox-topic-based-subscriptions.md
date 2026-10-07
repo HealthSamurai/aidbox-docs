@@ -68,7 +68,7 @@ Export FHIR resources to Databricks Unity Catalog managed Delta tables.
 
 The `AidboxSubscriptionTopic` resource describes the data sources for subscriptions. It allows clients to subscribe to events in Aidbox and filter them using user-defined triggers, which are specified by the `trigger` element. Supported properties:
 
-<table data-full-width="false"><thead><tr><th width="257">Property</th><th width="91">Type</th><th>Description</th></tr></thead><tbody><tr><td><code>resource</code> *</td><td>uri</td><td>Resource (reference to definition) for this trigger definition. It is binding to <a href="https://www.hl7.org/fhir/valueset-all-resource-types.html">All Resource Types</a>.</td></tr><tr><td><code>supportedInteraction</code></td><td>code</td><td>create | update | delete</td></tr><tr><td><code>fhirPathCriteria</code></td><td>string</td><td>FHIRPath based trigger rule. FHIRPath criteria are evaluated only within the context of the current resource. Supports <code>%current</code> and <code>%previous</code> variables for comparing resource states during updates.</td></tr><tr><td><code>description</code></td><td>string</td><td>Text representation of the event trigger.</td></tr></tbody></table>
+<table data-full-width="false"><thead><tr><th width="257">Property</th><th width="91">Type</th><th>Description</th></tr></thead><tbody><tr><td><code>resource</code> *</td><td>uri</td><td>Resource (reference to definition) for this trigger definition. It is binding to <a href="https://www.hl7.org/fhir/valueset-all-resource-types.html">All Resource Types</a>.</td></tr><tr><td><code>supportedInteraction</code></td><td>code</td><td>create | update | delete</td></tr><tr><td><code>fhirPathCriteria</code></td><td>string</td><td>FHIRPath based trigger rule. FHIRPath criteria are evaluated only within the context of the current resource. Supports <code>%current</code> and <code>%previous</code> variables for comparing resource states during updates.</td></tr><tr><td><code>description</code></td><td>string</td><td>Text representation of the event trigger.</td></tr><tr><td><code>canFilterBy</code></td><td>BackboneElement</td><td>Filter parameters that destinations and FHIR Subscriptions can use in <code>filterBy</code>. Each entry has <code>filterParameter</code>, <code>filterDefinitionFhirPathExpression</code>, <code>comparator</code> (only <code>eq</code>), and <code>description</code>. See <a href="#filter-events-with-filterby">Filter events with filterBy</a>.</td></tr></tbody></table>
 
 \* required.
 
@@ -102,7 +102,7 @@ Aidbox ships topics that exist without a stored `AidboxSubscriptionTopic` resour
 
 | Topic URL | Events |
 |---|---|
-| `http://health-samurai.io/fhir/core/StructureDefinition/AuditEventsR4BALP` | Audit events as FHIR R4 AuditEvent resources. Available since 2609. See [Audit and Logging](../../access-control/audit-and-logging.md#audit-events-topic). |
+| `http://health-samurai.io/fhir/core/StructureDefinition/AuditEventsR4BALP` | Audit events as FHIR R4 AuditEvent resources. Filter parameters: `type`, `subtype`, `action`. Available since 2609. See [Audit and Logging](../../access-control/audit-and-logging.md#audit-events-topic). |
 
 ## AidboxTopicDestination
 
@@ -197,7 +197,8 @@ Ensure that the resource metadata contains the kind-specific `AidboxTopicDestina
         <code>clickhouse</code>,
         <code>clickhouse-at-least-once</code>,
         <code>bigquery-at-least-once</code>,
-        <code>data-lakehouse-at-least-once</code>
+        <code>data-lakehouse-at-least-once</code>,
+        <code>audit-events-recorder</code> (audit events topic only, see <a href="../../access-control/audit-and-logging.md#store-audit-events-in-aidbox">Store audit events in Aidbox</a>)
       </td>
     </tr>
     <tr>
@@ -212,6 +213,11 @@ Ensure that the resource metadata contains the kind-specific `AidboxTopicDestina
         <code>full-resource</code> | <code>id-only</code> | <code>empty</code><br>
         <code>full-resource</code> is the default value.
       </td>
+    </tr>
+    <tr>
+      <td><code>filterBy</code></td>
+      <td>BackboneElement</td>
+      <td>Filters that narrow the events the destination receives. Each entry has <code>filterParameter</code>, <code>value</code>, and optional <code>comparator</code> and <code>resource</code>. You cannot change <code>filterBy</code> after creation. See <a href="#filter-events-with-filterby">Filter events with filterBy</a> (supported since the 2609 release).</td>
     </tr>
     <tr>
       <td><code>includeEntryAction</code></td>
@@ -242,6 +248,86 @@ Ensure that the resource metadata contains the kind-specific `AidboxTopicDestina
 </table>
 
 \* required.
+
+## Filter events with filterBy
+
+{% hint style="info" %}
+`filterBy` on `AidboxTopicDestination` is available starting from version 2609.
+{% endhint %}
+
+A destination receives every event of its topic unless you add `filterBy`. The topic declares the parameters you can filter by in `trigger.canFilterBy`. Each parameter has a FHIRPath expression that extracts values from the resource of the event.
+
+Define a filter parameter on the topic:
+
+```http
+POST /fhir/AidboxSubscriptionTopic
+content-type: application/json
+accept: application/json
+
+{
+  "resourceType": "AidboxSubscriptionTopic",
+  "url": "http://example.org/SubscriptionTopic/patient-topic",
+  "status": "active",
+  "trigger": [
+    {
+      "resource": "Patient",
+      "canFilterBy": [
+        {
+          "filterParameter": "gender",
+          "filterDefinitionFhirPathExpression": "gender",
+          "comparator": ["eq"],
+          "description": "Patient gender"
+        }
+      ]
+    }
+  ]
+}
+```
+
+Filter by it in a destination:
+
+```http
+POST /fhir/AidboxTopicDestination
+content-type: application/json
+accept: application/json
+
+{
+  "resourceType": "AidboxTopicDestination",
+  "id": "female-patients",
+  "meta": {
+    "profile": [
+      "http://health-samurai.io/fhir/core/StructureDefinition/aidboxtopicdestination-webhookAtLeastOnceProfile"
+    ]
+  },
+  "kind": "webhook-at-least-once",
+  "topic": "http://example.org/SubscriptionTopic/patient-topic",
+  "filterBy": [
+    {
+      "filterParameter": "gender",
+      "comparator": "eq",
+      "value": "female"
+    }
+  ],
+  "parameter": [
+    {
+      "name": "endpoint",
+      "valueUrl": "https://example.com/webhook"
+    }
+  ]
+}
+```
+
+The destination receives events of female patients only. Aidbox matches filters by these rules:
+
+* Aidbox compares `value` with the values that `filterDefinitionFhirPathExpression` returns. References compare by their `reference` string, booleans and numbers by their string form. Other complex values, such as a `Coding`, match nothing, so point the expression at a primitive, for example `code.coding.code`.
+* Comma-separated values in one filter match when any of them matches: `"value": "male,female"`.
+* Several filters match when all of them match.
+* `comparator` accepts `eq` only, and you can omit it. Aidbox rejects other comparators with `422`.
+* `resource` limits a filter to the trigger of that resource, for topics with several triggers.
+* An event with no value for the filter parameter does not match. A filter on a parameter that the topic does not define matches no event.
+* You cannot change `filterBy` after creation: `PUT` returns `405`. Delete the destination and create it again.
+
+`filterBy` works with every destination kind. For the `fhir-native-topic-based-subscription` kind, Aidbox applies the destination filters first and the `filterBy` of each FHIR `Subscription` after them. Built-in topics define their own filter parameters, see [Filter audit events](../../access-control/audit-and-logging.md#filter-audit-events).
 
 ## Organization-based hierarchical filtering
 

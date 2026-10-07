@@ -154,6 +154,7 @@ Load performance testing results [here](https://www.health-samurai.io/downloads/
 * [ePrescriptions](modules/eprescription/)
 * [MDMbox](https://www.health-samurai.io/docs/mdmbox)
 * SMART on FHIR API for health plans and EHRs
+* [Audit record repository](access-control/audit-and-logging.md#aidbox-as-an-audit-record-repository)
 
 ### Compliance & Certifications
 

@@ -22,7 +22,7 @@ Aidbox provides comprehensive audit and logging capabilities:
 Aidbox supports the FHIR [BALP](https://profiles.ihe.net/ITI/BALP/index.html) Implementation Guide.
 
 {% hint style="info" %}
-Since version 2609, Aidbox publishes audit events to a built-in subscription topic. The `security.audit-log.*` settings are deprecated. For earlier versions, see [How to configure FHIR Audit Log (deprecated)](../deprecated/deprecated/other/security-access-control-deprecated-tutorials/how-to-configure-audit-log.md).
+Since version 2609, Aidbox publishes audit events to a built-in subscription topic. The `security.audit-log.enabled` setting stores them in the `AuditEvent` table, and the other `security.audit-log.*` settings are deprecated. See [Migrate from the security.audit-log settings](../tutorials/security-access-control-tutorials/how-to-subscribe-to-audit-events.md#migrate-from-the-security-audit-log-settings).
 {% endhint %}
 
 ### Audit events topic
@@ -33,7 +33,7 @@ Aidbox publishes audit events to a built-in [AidboxSubscriptionTopic](../modules
 http://health-samurai.io/fhir/core/StructureDefinition/AuditEventsR4BALP
 ```
 
-Each event is a FHIR R4 AuditEvent resource. To receive events, create an [AidboxTopicDestination](../modules/topic-based-subscriptions/aidbox-topic-based-subscriptions.md#aidboxtopicdestination) with this URL in the `topic` element. Any destination kind works: webhook, Kafka, GCP Pub/Sub, and the others listed in [supported channels](../modules/topic-based-subscriptions/aidbox-topic-based-subscriptions.md#currently-supported-channels).
+Each event is a FHIR R4 AuditEvent resource. To receive events, create an [AidboxTopicDestination](../modules/topic-based-subscriptions/aidbox-topic-based-subscriptions.md#aidboxtopicdestination) with this URL in the `topic` element. Any destination kind works: webhook, Kafka, GCP Pub/Sub, and the others listed in [supported channels](../modules/topic-based-subscriptions/aidbox-topic-based-subscriptions.md#currently-supported-channels). To keep events in Aidbox, see [Store audit events in Aidbox](#store-audit-events-in-aidbox).
 
 ```mermaid
 graph LR
@@ -42,17 +42,57 @@ graph LR
     C --> D(Webhook destination):::neutral2
     C --> E(Kafka destination):::neutral2
     C --> F(Other destinations):::neutral2
+    C --> G(Recorder, AuditEvent table):::neutral2
 ```
 
 How the topic behaves:
 
-* Destinations switch audit logging on. With no destination on the topic, Aidbox builds no audit events and requests carry no audit overhead. Delete the last destination to stop audit logging.
+* Destinations switch audit logging on. With no destination on the topic, Aidbox builds no audit events and requests carry no audit overhead. Delete the last destination to stop audit logging. The `security.audit-log.enabled` setting adds a built-in destination.
 * The topic is part of Aidbox. You do not create an `AidboxSubscriptionTopic` resource for it, and Aidbox rejects a stored topic that reuses its URL with `422`.
-* Every destination receives its own copy of each event. Delivery guarantees, batching, and retries come from the destination kind.
+* Every destination receives each event with the same AuditEvent `id`, a UUIDv7. Delivery guarantees, batching, and retries come from the destination kind.
+* A destination with `filterBy` receives only the events that match it. Aidbox does not build an event that no destination accepts, see [Filter audit events](#filter-audit-events).
 * Aidbox publishes events produced from the moment a destination exists. A new destination receives no earlier events.
+* Aidbox publishes only the audit events it produces. AuditEvent resources that clients create through the REST API do not reach the topic.
 * With [organization-based hierarchical access control](authorization/scoped-api/organization-based-hierarchical-access-control/README.md), the AuditEvent `meta` carries the organization of the request.
 
 For a step-by-step setup, see [How to subscribe to audit events](../tutorials/security-access-control-tutorials/how-to-subscribe-to-audit-events.md).
+
+### Filter audit events
+
+Add `filterBy` to a destination to receive part of the audit events. The audit events topic defines three filter parameters:
+
+| Filter parameter | AuditEvent element | Values |
+|---|---|---|
+| `type` | `type.code` | `rest`: FHIR and Aidbox REST API, SDC operations, password changes. `110112`: SQL queries. `110113`: access granted to a client. `110114`: login, logout, refresh token. |
+| `subtype` | `subtype.code` | `create`, `update`, `patch`, `delete`, `read`, `vread`, `search`, `$import`, `$load`, `$purge`, `$purge-organization`, `sql` (`$sql`, `$psql`, `$query`, `$dump-sql`, SQL notebooks, attribute analysis), `110122` (login, refresh token), `110123` (logout), `110139` (password changed), `password-force-reset`, `password-self-reset`, `AuthZ-Consent` (access granted to a client). SDC operations: `assemble-form`, `populate`, `populate-link`, `questionnaire-package`, `generate-form-token`, `generate-form-link`, `generate-link`, `start-link`, `submit`, `update-response`, `amend-response`, `submit-response`. |
+| `action` | `action` | `C`: create, SDC `populate-link` and `start-link`. `R`: read, vread. `U`: update, patch, password changes, SDC `submit` and response changes. `D`: delete. `E`: search, queries, other operations, authentication. |
+
+A `subtype` filter matches when any `subtype` of the event matches. Password reset events carry both `110139` and their reset subtype.
+
+This filter keeps create, update, and delete events and drops reads, searches, and the rest:
+
+```json
+"filterBy": [
+  {
+    "filterParameter": "action",
+    "comparator": "eq",
+    "value": "C,U,D"
+  }
+]
+```
+
+Comma-separated values match when any of them matches, and several filters match when all of them match. See [Filter events with filterBy](../modules/topic-based-subscriptions/aidbox-topic-based-subscriptions.md#filter-events-with-filterby) for the full rules.
+
+Aidbox checks the filters before it builds an event. With the filter above on every destination, reads and searches carry no audit overhead.
+
+### Store audit events in Aidbox
+
+To search audit events with the FHIR API and browse them on the [Audit Events](../overview/aidbox-ui/README.md#audit-events) page of Aidbox UI, store them in the `AuditEvent` table. Two options do this:
+
+* An `AidboxTopicDestination` of kind `audit-events-recorder` on the audit events topic. You create and delete it through the API, and it accepts `filterBy`.
+* The [`security.audit-log.enabled`](../reference/all-settings.md#security.audit-log.enabled) setting. At startup, Aidbox runs a built-in recorder that stores every event.
+
+Both options work with FHIR R4 or R4B only, and Aidbox runs one recorder at a time. See [Store audit events in the AuditEvent table](../tutorials/security-access-control-tutorials/how-to-subscribe-to-audit-events.md#store-audit-events-in-the-auditevent-table) for setup.
 
 ### Aidbox as a source of audit events
 
@@ -148,7 +188,12 @@ When you update a Patient resource, the generated AuditEvent uses the `IHE.Basic
 
 ### Password change AuditEvent
 
-When a user's password is changed (via `PUT /User/:id` or `PATCH /User/:id`), Aidbox generates an AuditEvent with DICOM subtype `110139` ("User password changed").
+Aidbox generates an AuditEvent with DICOM subtype `110139` ("User password changed") when:
+
+* `PUT /User/:id` sets a password that differs from the stored one;
+* a user changes their own password with `/auth/change-password`;
+* an administrator resets a password (extra subtype `password-force-reset`);
+* a user resets their password through a reset link (extra subtype `password-self-reset`).
 
 ```json
 {
@@ -193,7 +238,16 @@ When a user's password is changed (via `PUT /User/:id` or `PATCH /User/:id`), Ai
 }
 ```
 
-Aidbox generates this event regardless of whether the password value changed.
+A `PUT` with the unchanged password produces a regular `update` event, and `PATCH /User/:id` produces a regular `patch` event, both without subtype `110139`. A rejected self-service change or reset produces the event with `outcome` `4`.
+
+### Aidbox as an Audit record repository
+
+Aidbox is an [Audit record repository](https://profiles.ihe.net/ITI/TF/Volume1/ch-9.html#9.1.1.3) (ARR) for FHIR AuditEvent resources. Aidbox supports
+
+* `POST /fhir/AuditEvent` to record events
+* `GET /fhir/AuditEvent` to receive them
+
+Aidbox stores the AuditEvent resources that clients create next to the events of the [recorder](#store-audit-events-in-aidbox). It does not publish them to the audit events topic.
 
 ### External Audit record repository support
 
@@ -227,7 +281,11 @@ Aidbox also provides ways to [extend](../modules/observability/logs/extending-ai
 | `$psql` / `$sql` | Yes | No (`aidbox/sql-interaction`) | Custom Aidbox type system |
 | User login/logout | Yes | No (custom) | Not BALP-conformant |
 | GraphQL | Indirect | Via underlying FHIR calls | The GraphQL query text is not captured; only the translated FHIR operations are audited |
-| Bulk `$import` / `$load` | **No** | — | Imported resources have no audit trail |
+| Bulk `$import` / `$load` | Operation only | No (subtype `$import` / `$load`) | One AuditEvent per operation, imported resources get no AuditEvents |
+| `$purge` / `$purge-organization` | Yes | No (subtype `$purge` / `$purge-organization`) | |
+| Refresh token | Yes | No (DICOM `110114` / `110122`) | |
+| Access granted to a client | Yes | No (`AuthZ-Consent`) | |
+| SDC operations | Yes | No (SDC subtypes) | See [Filter audit events](#filter-audit-events) for the subtypes |
 | Bulk `$export` | **No** | — | |
 | Auth token issuance | **No** | — | `client_credentials` grant, `/auth/token` not audited |
 | `/auth/userinfo` | **No** | — | |
@@ -237,11 +295,11 @@ Aidbox also provides ways to [extend](../modules/observability/logs/extending-ai
 ## Known limitations
 
 {% hint style="warning" %}
-**Delete entity reference includes version**: Delete AuditEvents carry the entity reference as `ResourceType/id/_history/versionId` (e.g. `Patient/123/_history/5`). A consumer that matches events by `Patient/123` misses delete events unless it strips the version suffix.
+**Delete entity reference includes version**: Delete AuditEvents carry the reference to the deleted resource as `ResourceType/id/_history/versionId` (e.g. `Observation/obs-1/_history/2`). A search by `entity=Observation/obs-1` in the `AuditEvent` table returns no delete events, and a consumer that matches events by `Observation/obs-1` misses them unless it strips the version suffix.
 {% endhint %}
 
 {% hint style="info" %}
-**Bulk import has no audit trail**: Resources created via `$import` or `$load` bypass the CRUD pipeline and do not generate AuditEvents. If you need a complete audit trail, use individual FHIR CRUD operations or Bundle transactions instead.
+**Bulk import audits the operation only**: `$import` and `$load` produce one AuditEvent per operation. The imported resources bypass the CRUD pipeline and get no AuditEvents of their own. If you need an AuditEvent for every resource, use individual FHIR CRUD operations or Bundle transactions instead.
 {% endhint %}
 
 {% hint style="info" %}

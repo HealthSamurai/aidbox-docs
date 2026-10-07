@@ -665,7 +665,6 @@
       * [Patient Encounter Notification Application](deprecated/deprecated/other/app-development-deprecated-tutorials/patient-encounter-notification-application.md)
     * [Security Access Control Deprecated Tutorials](deprecated/deprecated/other/security-access-control-deprecated-tutorials/README.md)
       * [Configuring Two Factor Authentication in Aidbox Identity Provider](deprecated/deprecated/other/security-access-control-deprecated-tutorials/two-factor-authentication.md)
-      * [How to configure FHIR Audit Log (deprecated)](deprecated/deprecated/other/security-access-control-deprecated-tutorials/how-to-configure-audit-log.md)
     * [Other Deprecated Tutorials](deprecated/deprecated/other/other-deprecated-tutorials/README.md)
       * [Resource Generation with Map-to-FHIR-Bundle-Task and Subscription Triggers](deprecated/deprecated/other/other-deprecated-tutorials/resource-generation-with-map-to-fhir-bundle-task-and-subscription-triggers.md)
       * [APM Aidbox](deprecated/deprecated/other/other-deprecated-tutorials/apm-aidbox.md)

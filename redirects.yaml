@@ -1,5 +1,6 @@
 redirects:
-  tutorials/security-access-control-tutorials/how-to-configure-audit-log: deprecated/deprecated/other/security-access-control-deprecated-tutorials/how-to-configure-audit-log.md
+  tutorials/security-access-control-tutorials/how-to-configure-audit-log: tutorials/security-access-control-tutorials/how-to-subscribe-to-audit-events.md#store-audit-events-in-the-auditevent-table
+  deprecated/deprecated/other/security-access-control-deprecated-tutorials/how-to-configure-audit-log: tutorials/security-access-control-tutorials/how-to-subscribe-to-audit-events.md#migrate-from-the-security-audit-log-settings
   configuration/storage-and-api-configuration: configuration/storage-and-api-configuration/README.md
   tutorials/security-access-control-tutorials/access-policy-dev-tool: deprecated/deprecated/other/access-policy-dev-tool.md
   contact-us: overview/contact-us.md

@@ -95,13 +95,12 @@ What "result-available" means may vary from installation to installation. The FH
 
 ### canFilterBy
 
-The `canFilterBy` element in `AidboxSubscriptionTopic` defines what filter parameters subscribers can use when creating their subscriptions. This allows subscribers to receive only events that match their specific criteria.
+The `trigger.canFilterBy` element in `AidboxSubscriptionTopic` defines what filter parameters subscribers can use when creating their subscriptions. This allows subscribers to receive only events that match their specific criteria. A filter parameter applies to the resource of its trigger.
 
 | Field | Description |
 |-------|-------------|
 | `filterParameter` | Name of the filter parameter that subscribers will use |
 | `filterDefinitionFhirPathExpression` | FHIRPath expression to extract the filter value from the resource |
-| `resource` | Resource type this filter applies to |
 | `comparator` | Comparison operators allowed for this filter. Currently only `eq` (equals) is supported. |
 | `description` | Human-readable description of the filter |
 
@@ -112,19 +111,18 @@ The `canFilterBy` element in `AidboxSubscriptionTopic` defines what filter param
   "status": "active",
   "trigger": [{
     "resource": "ClaimResponse",
-    "fhirPathCriteria": "status = 'active'"
-  }],
-  "canFilterBy": [{
-    "description": "Filter by insurer organization",
-    "resource": "ClaimResponse",
-    "filterParameter": "insurer",
-    "filterDefinitionFhirPathExpression": "insurer",
-    "comparator": ["eq"]
+    "fhirPathCriteria": "status = 'active'",
+    "canFilterBy": [{
+      "description": "Filter by insurer organization",
+      "filterParameter": "insurer",
+      "filterDefinitionFhirPathExpression": "insurer",
+      "comparator": ["eq"]
+    }]
   }]
 }
 ```
 
-Subscribers can then specify filter criteria in their `Subscription` resource to receive only events matching their filters (e.g., only ClaimResponses for a specific insurer).
+Subscribers can then specify filter criteria in their `Subscription` resource to receive only events matching their filters (e.g., only ClaimResponses for a specific insurer). The same parameters work in the `filterBy` of an `AidboxTopicDestination`, see [Filter events with filterBy](aidbox-topic-based-subscriptions.md#filter-events-with-filterby).
 
 ### AidboxTopicDestination
 

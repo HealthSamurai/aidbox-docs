@@ -13,6 +13,18 @@ description: >-
     **Features**
 
     * **[Pin the type definition of an API](../configuration/storage-and-api-configuration/README.md#pin-the-type-definition)** — the new `typeStructureDefinition` parameter on `$create-api` and `$configure-api` selects which version of a StructureDefinition validates a resource type when several versions are installed. Without it, Aidbox now resolves the current version automatically instead of failing with "Found more than one schema for type".
+    * **[Audit events through topic-based subscriptions](../access-control/audit-and-logging.md#audit-events-topic)**: Aidbox publishes audit events to the built-in `AuditEventsR4BALP` topic. Every `AidboxTopicDestination` kind receives them: webhook, Kafka, GCP Pub/Sub, and the others. While the topic has no destinations, Aidbox builds no audit events.
+    * **[Audit events recorder](../tutorials/security-access-control-tutorials/how-to-subscribe-to-audit-events.md#store-audit-events-in-the-auditevent-table)**: the `audit-events-recorder` destination kind stores audit events in the `AuditEvent` table. The `security.audit-log.enabled` setting starts a built-in recorder.
+    * **[`filterBy` on AidboxTopicDestination](../modules/topic-based-subscriptions/aidbox-topic-based-subscriptions.md#filter-events-with-filterby)**: every destination kind filters the events of its topic by the parameters of `trigger.canFilterBy`. The audit events topic filters by `type`, `subtype`, and `action`, and Aidbox does not build an audit event that no destination accepts.
+
+    **Bug fixes and improvements**
+
+    * The webhook destination reuses one HTTP client per destination for its deliveries.
+
+    **Changes and deprecations**
+
+    * **[`security.audit-log.*` settings](../tutorials/security-access-control-tutorials/how-to-subscribe-to-audit-events.md#migrate-from-the-security-audit-log-settings)**: `repository-url`, `flush-interval`, `max-flush-interval`, `batch-count`, and `request-headers` are deprecated and ignored, and Aidbox logs a warning at startup when they are set. To forward audit events to an external repository, create a webhook destination on the audit events topic. The repository receives a Bundle of type `history` with an `AidboxSubscriptionStatus` in the first entry in place of the `collection` Bundle. With `security.audit-log.enabled`, Aidbox stores events in the `AuditEvent` table even when `repository-url` is set.
+    * AuditEvent ids are UUIDv7. All destinations receive an event with the same `id`.
 
 ## August 2026 _`latest, 2608`_
 
