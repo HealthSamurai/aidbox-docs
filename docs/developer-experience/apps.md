@@ -62,7 +62,7 @@ Parameters:
 | **method**   | string                      | One of: `GET`, `POST`, `PUT`, `DELETE`, `PATCH`, `OPTIONS` |
 | **path**     | array of strings or objects | New endpoint in Aidbox in array                           |
 | **policies** | object                      | Access policies to create and bound to this operation     |
-| **timeout**  | integer                     | HTTP connection and idle response timeout in milliseconds; defaults to `30000` |
+| **timeout**  | integer                     | Timeout in milliseconds; defaults to `30000`. See [Timeout](#timeout) for HTTP streaming and bundle behavior. |
 
 ### resources
 
@@ -119,27 +119,32 @@ operation:
 
 ### Response
 
-Your service can return any HTTP status code and response body. Aidbox forwards the status, body, and end-to-end response headers to the client. Aidbox preserves compressed response bytes and headers such as `Content-Encoding`, `Content-Length`, and `Content-Disposition`. Each `Set-Cookie` header reaches the client as a separate header. Aidbox removes hop-by-hop headers such as `Connection` and `Transfer-Encoding` and manages the client connection itself.
+Aidbox forwards your service's HTTP status code, response body, and end-to-end response headers to the client. This includes redirect and error responses. Aidbox returns redirects to the client without following them.
+
+Aidbox preserves compressed response bytes and the `Content-Encoding`, `Content-Length`, and `Content-Disposition` headers. Each `Set-Cookie` value reaches the client as a separate header. Aidbox removes hop-by-hop headers, including `Connection`, `Transfer-Encoding`, and headers named in `Connection`, and manages transfer framing for the client connection. Your service can omit `Content-Length` when it does not know the response size in advance.
 
 ### Streaming responses
 
-Aidbox streams the HTTP response body returned by an `http-rpc` App operation. The following operations register client requests at `GET /reports/export` and `GET /events`:
+For an App with `endpoint.type: http-rpc`, Aidbox enables response streaming by default for HTTP requests that match an operation's `method` and `path`. Aidbox sends a `POST` to `endpoint.url` with the JSON RPC envelope described above, regardless of the client's HTTP method. The envelope identifies the operation and carries the client's request data.
 
-```yaml
-operations:
-  export-report:
-    method: GET
-    path: ['reports', 'export']
-  events:
-    method: GET
-    path: ['events']
-    timeout: 60000
-```
+Aidbox forwards the body of this `POST` response to the original client as it reads bytes from your service, without waiting for the complete body. This applies to text and binary responses, including CSV (`text/csv`), NDJSON (`application/x-ndjson`), and server-sent events (`text/event-stream`). Aidbox forwards the body bytes without parsing the payload.
 
-For either client request, Aidbox sends a `POST` to the App's `endpoint.url` with the JSON RPC envelope described above. The envelope identifies the selected operation and carries the original request parameters and headers. Aidbox forwards the HTTP response body from this POST to the original client as your App produces it.
+To deliver data before your service finishes the response, flush each portion of the body from your service. Aidbox flushes the bytes it reads to the client. For `HEAD` requests, Aidbox sends the response headers and omits the body.
 
-For `GET /reports/export`, your App can return HTTP `200`, `Content-Type: text/csv`, `Content-Disposition: attachment; filename="report.csv"`, and a streamed CSV body. For `GET /events`, return `Content-Type: text/event-stream` and flush each SSE event from your service. Aidbox closes the App connection when the client cancels either request.
+For an App operation invoked as an entry in a transaction or batch bundle, Aidbox reads the complete response and decodes a JSON body before including the result in the bundle.
 
-The operation's `timeout` limits connection setup and the wait for response headers or the next bytes from the App. An active stream can run longer than this timeout. For SSE, send events or heartbeat comments at intervals shorter than the timeout.
+#### Timeout
 
-If the App fails before sending response headers, Aidbox returns HTTP `500` with an error body. If the App fails or times out after Aidbox has started the response, Aidbox closes the client connection. Treat a transport error while reading an export response as an incomplete result and retry the request.
+Set `operations.<operation-id>.timeout` to control the timeout for that operation. The default is `30000` milliseconds.
+
+For HTTP streaming, this value limits connection setup and idle socket reads while Aidbox waits for response headers or body bytes from your service. It does not limit the total duration of an active response. For SSE, send events or heartbeat comments at intervals shorter than the timeout to keep the connection active.
+
+For calls within transaction or batch bundles, the timeout limits the complete App request, including reading the response body.
+
+#### Cancellation and transport errors
+
+When the client disconnects, Aidbox closes its connection to your service, including while waiting for headers or body bytes. Your service must handle the closed connection and stop producing the response.
+
+If a connection failure or timeout occurs before Aidbox sends response headers to the client, Aidbox returns HTTP `500` with `Content-Type: application/json`. The body contains `message` with the transport error and `endpoint` with the App endpoint configuration, excluding `secret`.
+
+If a transport error or idle timeout occurs after Aidbox sends response headers, Aidbox aborts the client connection. The client retains the status code and any body bytes it has received. Handle the interrupted response as an incomplete result.
