@@ -6,7 +6,10 @@ description: >-
 
 # Release Notes
 
-## September 2026 _`edge`_
+## October 2026 _`edge`_
+
+
+## September 2026 _`latest, 2609`_
 
 *   Aidbox FHIR server
 
@@ -16,17 +19,30 @@ description: >-
     * **[Audit events through topic-based subscriptions](../access-control/audit-and-logging.md#audit-events-topic)**: Aidbox publishes audit events to the built-in `AuditEventsR4BALP` topic. Every `AidboxTopicDestination` kind receives them: webhook, Kafka, GCP Pub/Sub, and the others. While the topic has no destinations, Aidbox builds no audit events.
     * **[Audit events recorder](../tutorials/security-access-control-tutorials/how-to-subscribe-to-audit-events.md#store-audit-events-in-the-auditevent-table)**: the `audit-events-recorder` destination kind stores audit events in the `AuditEvent` table. The `security.audit-log.enabled` setting starts a built-in recorder.
     * **[`filterBy` on AidboxTopicDestination](../modules/topic-based-subscriptions/aidbox-topic-based-subscriptions.md#filter-events-with-filterby)**: every destination kind filters the events of its topic by the parameters of `trigger.canFilterBy`. The audit events topic filters by `type`, `subtype`, and `action`, and Aidbox does not build an audit event that no destination accepts.
+    * **[AidboxMaterialization](../modules/sql-on-fhir/aidbox-materialization.md)**: the `AidboxMaterialization` resource declares how Aidbox stores a ViewDefinition or a SQL Library (SQLView or SQLQuery) as a PostgreSQL view or materialized view. Its `$materialize` operation builds the whole `relatedArtifact` dependency graph around the target, validates every object with `EXPLAIN` before touching the database, rebuilds only the objects whose SQL changed, and records each run in an `AidboxMaterializationStatus`. Dependents read a materialized object instead of inlining its SQL.
+    * **[Binary access with SMART patient scopes](../api/rest-api/other/binary.md#access-control-with-smart-patient-scopes)**: Aidbox stores the `X-Security-Context` header as `Binary.securityContext`. With a SMART patient scope, a Binary is readable when `patient/Binary.r` is granted and its `securityContext` references the patient or a resource in that patient's compartment — so a `Binary` tied to `Encounter/enc-1` is accessible only to the patient that Encounter belongs to.
 
     **Bug fixes and improvements**
 
     * The webhook destination reuses one HTTP client per destination for its deliveries.
+    * [OpenTelemetry metrics](../modules/observability/metrics/technical-reference/opentelemetry-metrics.md) and spans carry the semantic-convention attribute names (`http.route`, `http.request.method`, `http.response.status_code`, `db.namespace`, `db.collection.name`, `jvm.gc.name`) alongside the old ones, so one query covers Aidbox and the OTel-instrumented services around it. Numeric attributes such as the status code and `server.port` arrive as integers.
+    * Fixed several OTLP metrics defects. HTTP and connection-pool latency histograms gain 1 ms and 2.5 ms buckets, so percentiles below 5 ms no longer collapse into one value. `db.client.connection.count` reports active connections under the right `db.client.connection.state`, `jvm.gc.duration` measures each collection pause, `jvm.gc.count` exports as a monotonic counter, and cumulative series carry `start_time_unix_nano`. Aidbox omits resource attributes it has no value for instead of sending `"?"`.
+    * Fixed custom Operations returning 404 for existing resources when their [`scope`](../reference/oauth-operation-scopes.md) lists a SMART scope that the caller's token also carries.
+    * Bug fixes in Aidbox UI.
 
     **Changes and deprecations**
 
     * **[`security.audit-log.*` settings](../tutorials/security-access-control-tutorials/how-to-subscribe-to-audit-events.md#migrate-from-the-security-audit-log-settings)**: `repository-url`, `flush-interval`, `max-flush-interval`, `batch-count`, and `request-headers` are deprecated and ignored, and Aidbox logs a warning at startup when they are set. To forward audit events to an external repository, create a webhook destination on the audit events topic. The repository receives a Bundle of type `history` with an `AidboxSubscriptionStatus` in the first entry in place of the `collection` Bundle. With `security.audit-log.enabled`, Aidbox stores events in the `AuditEvent` table even when `repository-url` is set.
     * AuditEvent ids are UUIDv7. All destinations receive an event with the same `id`.
+    * OpenTelemetry metrics, traces, and logs set `service.name` from [`BOX_INSTANCE_NAME`](../reference/all-settings.md#instance-name) instead of the fixed `Aidbox`, so each deployment shows up as its own service in your APM backend. The default stays `Aidbox`. If you set `BOX_INSTANCE_NAME`, update dashboards and alerts that filter on `service.name`.
 
-## August 2026 _`latest, 2608`_
+*   Helm charts
+
+    **Features**
+
+    * **[Topology spread constraints](https://github.com/HealthSamurai/helm-charts/tree/main/aidbox)**: the `aidbox` chart 0.2.20 accepts a `topologySpreadConstraints` value, which it passes to the pod spec. Use it to spread Aidbox replicas across zones or nodes. See [Pod Topology Spread Constraints](https://kubernetes.io/docs/concepts/scheduling-eviction/topology-spread-constraints/) in the Kubernetes docs.
+
+## August 2026 _`stable, 2608`_
 
 *   Aidbox FHIR server
 
@@ -56,7 +72,7 @@ description: >-
 
     * **[`Prefer: return=minimal` on bundles returns the response bundle](../api/batch-transaction.md#control-the-response-size)** — a batch or transaction request with `Prefer: return=minimal` used to return an empty body. It now returns the response bundle without resource bodies, so each entry keeps `response.status`, `location`, `etag`, and `lastModified`, and failed entries keep their `OperationOutcome`. This matches HAPI. Send `Prefer: return=hs-headers-only` for the empty body. Single-resource endpoints are unaffected.
 
-## July 2026 _`stable, 2607`_
+## July 2026 _`2607`_
 
 *   Aidbox FHIR server
 

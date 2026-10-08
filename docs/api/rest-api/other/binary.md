@@ -70,6 +70,58 @@ The `_format` query parameter overrides `Accept` and takes the same values. When
 
 Version read, `GET /fhir/Binary/{id}/_history/{vid}`, negotiates the same way and serves the content of the requested version.
 
+## Access control with SMART patient scopes
+
+{% hint style="info" %}
+This functionality is available starting from Aidbox version **2609**.
+{% endhint %}
+
+The content of a Binary is often sensitive, but the resource itself carries nothing that ties it to a patient. [`Binary.securityContext`](https://www.hl7.org/fhir/R4/binary-definitions.html#Binary.securityContext) supplies that link: it references another resource — typically the DocumentReference or Encounter the content belongs to — and Aidbox treats the Binary as part of that resource's patient compartment.
+
+On a raw upload, the `X-Security-Context` header sets the element:
+
+{% tabs %}
+{% tab title="Request" %}
+```http
+POST /fhir/Binary
+Content-Type: application/pdf
+X-Security-Context: Encounter/enc-1
+
+<pdf bytes>
+```
+{% endtab %}
+
+{% tab title="Response" %}
+```json
+{
+  "resourceType": "Binary",
+  "id": "b9f7a86e-16a5-45f5-8b1c-3e2a90c31c02",
+  "contentType": "application/pdf",
+  "securityContext": {
+    "reference": "Encounter/enc-1"
+  }
+}
+```
+{% endtab %}
+{% endtabs %}
+
+A Binary posted as FHIR JSON sets `securityContext` in the body like any other element.
+
+### How a request is authorized
+
+Under a SMART patient scope, Aidbox grants access to a Binary when both hold:
+
+* the token carries the scope for **`Binary`** itself — `patient/Binary.r` to read, `patient/Binary.c` to create, and so on, and
+* `securityContext` references the patient of the token, or a resource that belongs to that patient's compartment.
+
+The scope of the referenced resource does not grant access on its own: a token with only `patient/Encounter.rs` cannot read a Binary whose `securityContext` is `Encounter/enc-1`, and Aidbox responds with `403`.
+
+A Binary **without** `securityContext` is outside every patient compartment. A patient-scoped read of it returns `404`, and it never appears in patient-scoped search results — searching `/fhir/Binary` with `patient/Binary.s` lists only the Binaries whose `securityContext` resolves into the compartment.
+
+Creating a Binary follows the same rule: a `securityContext` pointing outside the compartment of the token's patient is rejected with `403`.
+
+System and user scopes are unaffected — `user/Binary.s` and `system/Binary.s` read and search every Binary, with or without `securityContext`.
+
 ## Data offload
 
 `Binary.data` can live in external blob storage instead of PostgreSQL, with reads, including raw reads, working unchanged:
