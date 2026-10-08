@@ -48,7 +48,7 @@ The module supports medication search, drug-drug interaction checks and drug-all
 
 ## Requirements
 
-* Aidbox with FHIR r4b and FHIRSchema
+* Aidbox with FHIR R4B and the [FHIR Schema validation engine](../profiling-and-validation/fhir-schema-validator/README.md), which is always on since 2606. On 2605 and earlier, set `AIDBOX_FHIR_SCHEMA_VALIDATION=true`.
 * Surescripts direct contract
 * User Interface for prescribing\
   **We provide an API-based solution. A user interface is required to obtain Surescripts certification**
