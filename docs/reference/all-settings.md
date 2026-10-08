@@ -705,15 +705,25 @@ URL of consent screen. A consent screen is an interface presented to a user duri
 
 <details><summary>Details</summary><table data-header-hidden="true"><thead><tr><th width="200"></th><th></th></tr></thead><tbody><tr><td>ID</td><td><code>security.grant-page-url</code></td></tr><tr><td>Type</td><td>String</td></tr><tr><td>Default value</td><td><code>/auth/grant</code></td></tr><tr><td>Environment variable</td><td><code>BOX_SECURITY_GRANT_PAGE_URL</code></td></tr><tr><td>Deprecated environment variables</td><td><code>BOX_AUTH_GRANT__PAGE__URL</code></td></tr><tr><td>Sensitive</td><td><code>false</code> — value will be visible in plaintext in Admin UI</td></tr><tr><td>Set via</td><td>Admin UI → Settings<br />Environment variables</td></tr><tr><td>Hot reload</td><td><code>true</code> — setting can be changed at runtime</td></tr></tbody></table></details>
 
-### Enable FHIR Audit Log<a href="#security.audit-log.enabled" id="security.audit-log.enabled"></a>
+### Store audit events in the AuditEvent table<a href="#security.audit-log.enabled" id="security.audit-log.enabled"></a>
 
 ```yaml
-BOX_SECURITY_AUDIT_LOG_ENABLED: true
+BOX_SECURITY_AUDIT_LOG_ENABLED: false
 ```
 
-Generates structured audit logs in FHIR R4 AuditEvent format (with other FHIR versions will not be generated).
+Stores every audit event produced by Aidbox in the `AuditEvent` table as a FHIR R4 AuditEvent conforming to IHE BALP.
+When enabled, Aidbox starts a built-in in-memory AidboxTopicDestination `security-audit-log-enabled` of kind `audit-events-recorder`
+for the AidboxSubscriptionTopic `http://health-samurai.io/fhir/core/StructureDefinition/AuditEventsR4BALP`.
+Works only with FHIR R4.
 
-<details><summary>Details</summary><table data-header-hidden="true"><thead><tr><th width="200"></th><th></th></tr></thead><tbody><tr><td>ID</td><td><code>security.audit-log.enabled</code></td></tr><tr><td>Type</td><td>Bool</td></tr><tr><td>Recommended value</td><td><code>true</code></td></tr><tr><td>Default value</td><td><code>false</code></td></tr><tr><td>Environment variable</td><td><code>BOX_SECURITY_AUDIT_LOG_ENABLED</code></td></tr><tr><td>Deprecated environment variables</td><td><code>AIDBOX_SECURITY_AUDIT__LOG_ENABLED</code></td></tr><tr><td>Sensitive</td><td><code>false</code> — value will be visible in plaintext in Admin UI</td></tr><tr><td>Set via</td><td>Admin UI → Settings<br />Environment variables</td></tr><tr><td>Hot reload</td><td><code>false</code> — setting requires system restart</td></tr></tbody></table></details>
+Instead of enabling this setting, you can create an AidboxTopicDestination for this topic yourself:
+it lets you filter audit events with `filterBy` and choose where to deliver them.
+To store audit events in the `AuditEvent` table, use the `audit-events-recorder` kind (FHIR R4 only).
+Only one destination of this kind is allowed, so disable this setting before creating your own.
+Destinations of other kinds receive audit events with any FHIR version.
+[Learn more](https://www.health-samurai.io/docs/aidbox/tutorials/security-access-control-tutorials/how-to-subscribe-to-audit-events)
+
+<details><summary>Details</summary><table data-header-hidden="true"><thead><tr><th width="200"></th><th></th></tr></thead><tbody><tr><td>ID</td><td><code>security.audit-log.enabled</code></td></tr><tr><td>Type</td><td>Bool</td></tr><tr><td>Default value</td><td><code>false</code></td></tr><tr><td>Environment variable</td><td><code>BOX_SECURITY_AUDIT_LOG_ENABLED</code></td></tr><tr><td>Deprecated environment variables</td><td><code>AIDBOX_SECURITY_AUDIT__LOG_ENABLED</code></td></tr><tr><td>Sensitive</td><td><code>false</code> — value will be visible in plaintext in Admin UI</td></tr><tr><td>Set via</td><td>Admin UI → Settings<br />Environment variables</td></tr><tr><td>Hot reload</td><td><code>false</code> — setting requires system restart</td></tr></tbody></table></details>
 
 ### Audit Log repository URL<a href="#security.audit-log.repository-url" id="security.audit-log.repository-url"></a>
 
@@ -974,12 +984,12 @@ Only the administrator is allowed to use the `SU` header.
 ### Enable Aidbox developer mode<a href="#security.dev-mode" id="security.dev-mode"></a>
 
 ```yaml
-BOX_SECURITY_DEV_MODE: true
+BOX_SECURITY_DEV_MODE: false
 ```
 
 Activates debugging features for access policy development, including the `_debug=policy URL` parameter and `x-debug` header. Returns detailed policy evaluation traces showing why requests were allowed or denied. For development environments only - not recommended for production systems.
 
-<details><summary>Details</summary><table data-header-hidden="true"><thead><tr><th width="200"></th><th></th></tr></thead><tbody><tr><td>ID</td><td><code>security.dev-mode</code></td></tr><tr><td>Type</td><td>Bool</td></tr><tr><td>Recommended value</td><td><code>true</code></td></tr><tr><td>Default value</td><td><code>false</code></td></tr><tr><td>Environment variable</td><td><code>BOX_SECURITY_DEV_MODE</code></td></tr><tr><td>Deprecated environment variables</td><td><code>AIDBOX_DEV_MODE</code></td></tr><tr><td>Sensitive</td><td><code>false</code> — value will be visible in plaintext in Admin UI</td></tr><tr><td>Set via</td><td>Admin UI → Settings<br />Environment variables</td></tr><tr><td>Hot reload</td><td><code>true</code> — setting can be changed at runtime</td></tr></tbody></table></details>
+<details><summary>Details</summary><table data-header-hidden="true"><thead><tr><th width="200"></th><th></th></tr></thead><tbody><tr><td>ID</td><td><code>security.dev-mode</code></td></tr><tr><td>Type</td><td>Bool</td></tr><tr><td>Default value</td><td><code>false</code></td></tr><tr><td>Environment variable</td><td><code>BOX_SECURITY_DEV_MODE</code></td></tr><tr><td>Deprecated environment variables</td><td><code>AIDBOX_DEV_MODE</code></td></tr><tr><td>Sensitive</td><td><code>false</code> — value will be visible in plaintext in Admin UI</td></tr><tr><td>Set via</td><td>Admin UI → Settings<br />Environment variables</td></tr><tr><td>Hot reload</td><td><code>true</code> — setting can be changed at runtime</td></tr></tbody></table></details>
 
 ## Modules
 
