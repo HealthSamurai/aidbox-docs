@@ -4,7 +4,8 @@ description: List your own EPCS access permissions and the permissions at the lo
 
 # List Permissions
 
-Access permissions come from [bootstrapping the first administrator](bootstrap-the-first-administrator.md) and from accepted [approver nominations](approver-nominations.md).
+Access permissions come from [bootstrapping the first administrator](bootstrap-the-first-administrator.md) and from approved [access-change requests](access-change-requests.md).
+A revocation deletes the permission, so a listing shows only the permissions in force.
 Without an [acting user](configure-access-policies.md#acting-user), both listings return `403`.
 
 ## List Your Own Permissions

@@ -3,3 +3,7 @@
 # docs-tools
 node_modules/
 .docs-tools/
+
+# local agent instructions
+AGENTS.local.md
+CLAUDE.local.md

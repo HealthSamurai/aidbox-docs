@@ -861,3 +861,4 @@ redirects:
   overview/aidbox-ui/attrs-stats: overview/aidbox-ui/README.md
   overview/aidbox-ui/db-tables: overview/aidbox-ui/README.md
   overview/aidbox-ui/db-queries: overview/aidbox-ui/README.md
+  modules/eprescription/epcs/access-management/approver-nominations: modules/eprescription/epcs/access-management/access-change-requests.md
