@@ -286,6 +286,7 @@
 * [PostgreSQL Requirements](database/postgresql-requirements.md)
 * [Database schema](database/database-schema.md)
 * [PostgreSQL Extensions](database/postgresql-extensions.md)
+* [Upgrade PostgreSQL major version](database/upgrade-postgresql-major-version.md)
 * [Database maintenance RPCs](database/database-maintenance-rpcs.md)
 
 ## Modules

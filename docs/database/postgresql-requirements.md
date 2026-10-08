@@ -35,3 +35,4 @@ Compatible with all PostgreSQL deployments
 
 1. Check [Database Schema](database-schema.md) for technical details on schema and query capabilities.
 2. Required and optional [PostgreSQL Extensions](postgresql-extensions.md)
+3. [Upgrade PostgreSQL major version](upgrade-postgresql-major-version.md) when moving to a new PostgreSQL release
