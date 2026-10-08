@@ -123,16 +123,23 @@ Your service can return any HTTP status code and response body. Aidbox forwards 
 
 ### Streaming responses
 
-Aidbox forwards HTTP response chunks as your App produces them. You can serve file downloads and Server-Sent Events (SSE) through App operations. Set `Content-Type: text/event-stream` for SSE and flush each event from your service. Aidbox closes the App connection when the client cancels the request.
-
-The operation's `timeout` limits connection setup and the wait for response headers or the next bytes from the App. An active stream can run longer than this timeout. For SSE, send events or heartbeat comments at intervals shorter than the timeout.
+Aidbox streams the HTTP response body returned by an `http-rpc` App operation. The following operations register client requests at `GET /reports/export` and `GET /events`:
 
 ```yaml
 operations:
+  export-report:
+    method: GET
+    path: ['reports', 'export']
   events:
     method: GET
     path: ['events']
     timeout: 60000
 ```
 
-If the App fails before sending response headers, Aidbox returns HTTP `500` with an error body. If the App fails or times out after Aidbox has started the response, Aidbox closes the client connection. Treat a transport error during a download as an incomplete file and retry the request.
+For either client request, Aidbox sends a `POST` to the App's `endpoint.url` with the JSON RPC envelope described above. The envelope identifies the selected operation and carries the original request parameters and headers. Aidbox forwards the HTTP response body from this POST to the original client as your App produces it.
+
+For `GET /reports/export`, your App can return HTTP `200`, `Content-Type: text/csv`, `Content-Disposition: attachment; filename="report.csv"`, and a streamed CSV body. For `GET /events`, return `Content-Type: text/event-stream` and flush each SSE event from your service. Aidbox closes the App connection when the client cancels either request.
+
+The operation's `timeout` limits connection setup and the wait for response headers or the next bytes from the App. An active stream can run longer than this timeout. For SSE, send events or heartbeat comments at intervals shorter than the timeout.
+
+If the App fails before sending response headers, Aidbox returns HTTP `500` with an error body. If the App fails or times out after Aidbox has started the response, Aidbox closes the client connection. Treat a transport error while reading an export response as an incomplete result and retry the request.
