@@ -62,6 +62,7 @@ Parameters:
 | **method**   | string                      | One of: `GET`, `POST`, `PUT`, `DELETE`, `PATCH`, `OPTIONS` |
 | **path**     | array of strings or objects | New endpoint in Aidbox in array                           |
 | **policies** | object                      | Access policies to create and bound to this operation     |
+| **timeout**  | integer                     | HTTP connection and idle response timeout in milliseconds; defaults to `30000` |
 
 ### resources
 
@@ -118,4 +119,20 @@ operation:
 
 ### Response
 
-Your service can return any HTTP status code and response body. Aidbox passes the response as-is to the client.
+Your service can return any HTTP status code and response body. Aidbox forwards the status, body, and end-to-end response headers to the client. Aidbox preserves compressed response bytes and headers such as `Content-Encoding`, `Content-Length`, and `Content-Disposition`. Each `Set-Cookie` header reaches the client as a separate header. Aidbox removes hop-by-hop headers such as `Connection` and `Transfer-Encoding` and manages the client connection itself.
+
+### Streaming responses
+
+Aidbox forwards HTTP response chunks as your App produces them. You can serve file downloads and Server-Sent Events (SSE) through App operations. Set `Content-Type: text/event-stream` for SSE and flush each event from your service. Aidbox closes the App connection when the client cancels the request.
+
+The operation's `timeout` limits connection setup and the wait for response headers or the next bytes from the App. An active stream can run longer than this timeout. For SSE, send events or heartbeat comments at intervals shorter than the timeout.
+
+```yaml
+operations:
+  events:
+    method: GET
+    path: ['events']
+    timeout: 60000
+```
+
+If the App fails before sending response headers, Aidbox returns HTTP `500` with an error body. If the App fails or times out after Aidbox has started the response, Aidbox closes the client connection. Treat a transport error during a download as an incomplete file and retry the request.
