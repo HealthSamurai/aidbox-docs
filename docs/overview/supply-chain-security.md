@@ -29,10 +29,10 @@ Download the SBOM for the `:edge` build: [edge-sbom.json](https://storage.google
 SBOMs for recent supported releases:
 
 <!-- sbom-links:start -->
-- [2605.1](https://storage.googleapis.com/aidbox_sbom/release/2605.1-sbom.json)
-- [2512.4](https://storage.googleapis.com/aidbox_sbom/release/2512.4-sbom.json)
-- [2507.5](https://storage.googleapis.com/aidbox_sbom/release/2507.5-sbom.json)
-- [2410.9](https://storage.googleapis.com/aidbox_sbom/release/2410.9-sbom.json)
+- [2605.9](https://storage.googleapis.com/aidbox_sbom/release/2605.9-sbom.json)
+- [2512.8](https://storage.googleapis.com/aidbox_sbom/release/2512.8-sbom.json)
+- [2507.9](https://storage.googleapis.com/aidbox_sbom/release/2507.9-sbom.json)
+- [2410.13](https://storage.googleapis.com/aidbox_sbom/release/2410.13-sbom.json)
 <!-- sbom-links:end -->
 
 ## Vulnerability scanning
