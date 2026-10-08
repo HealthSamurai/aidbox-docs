@@ -120,9 +120,9 @@ You can delete the versions in the Artifact Registry web interface instead.
 
 ### Upgrade Aidbox to 2609 or Later
 
-Aidbox 2609.0 and later serve no API for the custom resources of package versions before `0.17.0`.
+Aidbox 2609.0 and later do not serve the module's custom resources from package versions before `0.17.0`.
 Before you upgrade Aidbox to 2609.0 or later, update the module to a version that installs package `0.17.0` or later.
-On its next start, the module installs the new package version next to the old one and then deletes the old one. Stored records need no conversion.
+On its next start, the module replaces the old package version, and stored records need no conversion.
 
 ## Verify Setup with API Endpoints
 
