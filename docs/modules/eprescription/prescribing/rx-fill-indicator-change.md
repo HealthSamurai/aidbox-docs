@@ -25,12 +25,12 @@ A selection is a list of `RxFillIndicator` values:
 The module accepts a change when all of these conditions hold:
 
 * `MedicationRequest.status` is not `completed` or `cancelled`
-* Surescripts confirmed that the pharmacy received the prescription, by NewRx or by an approved renewal or change response. Status `000` without a final `Verify` is not enough.
+* Surescripts gave a final confirmation that the pharmacy received the prescription, sent as a NewRx or as an approved renewal or change response
 * the pharmacy `Organization` has the Surescripts service level `RxFillIndicatorChange` in `meta.tag`
 * no cancellation started, or the pharmacy denied it, or Surescripts proved that the cancellation was not delivered
 * no other notification change of the prescription is pending
 
-The module enforces these conditions for every caller. A pending notification change does not block [CancelRx](cancelrx-message.md).
+A pending notification change does not block [CancelRx](cancelrx-message.md).
 
 ## Check the current state
 
@@ -87,7 +87,7 @@ The module answers in one of these ways:
 * `409`: another change is pending, a cancellation blocks the change, or the module cannot resend this change
 * `422`: the selection is invalid, or the prescription does not meet the conditions above
 
-The pharmacy applies the new selection after the module confirms delivery. Until then, `confirmedSelection` keeps the previous selection and `pendingSelection` shows the new one. If delivery fails, the previous selection stays confirmed. You can later return to an earlier selection with another change.
+The pharmacy applies the new selection after the module confirms delivery. Until then, `confirmedSelection` keeps the previous selection and `pendingSelection` shows the new one. If delivery fails, the previous selection stays confirmed.
 
 If a change response replaces the prescription while a notification change is pending, the change and its result stay with the original prescription. The new prescription starts with the selection its response carried.
 
@@ -119,4 +119,4 @@ The prescriber sent a NewRx with `Dispensed` and `PartiallyDispensed`, and the p
 
 ## Renewal and change responses
 
-An approving renewal or change response sends the `RxFillIndicator` extensions of its `MedicationRequest`, as before. For a prior authorization approval, the module sends no `RxFillIndicator` while a notification change of the same prescription is pending. See [RxChange Message](pharmacy-initiated-messages/rx-change.md#fill-notifications).
+An approving renewal or change response sends the `RxFillIndicator` extensions of its `MedicationRequest`. A prior authorization approval sends none while a notification change of the same prescription is pending. See [RxChange Message](pharmacy-initiated-messages/rx-change.md#fill-notifications).
