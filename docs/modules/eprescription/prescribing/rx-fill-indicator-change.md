@@ -87,7 +87,7 @@ The module answers in one of these ways:
 * `409`: another change is pending, a cancellation blocks the change, or the module cannot resend this change
 * `422`: the selection is invalid, or the prescription does not meet the conditions above
 
-The pharmacy applies the new selection after the module confirms delivery. Until then, `confirmedSelection` keeps the previous selection and `pendingSelection` shows the new one. If delivery fails, the previous selection stays confirmed.
+Until Surescripts confirms delivery, `confirmedSelection` keeps the previous selection and `pendingSelection` shows the new one. If delivery fails, the previous selection stays confirmed.
 
 If a change response replaces the prescription while a notification change is pending, the change and its result stay with the original prescription. The new prescription starts with the selection its response carried.
 
@@ -119,4 +119,4 @@ The prescriber sent a NewRx with `Dispensed` and `PartiallyDispensed`, and the p
 
 ## Renewal and change responses
 
-An approving renewal or change response sends the `RxFillIndicator` extensions of its `MedicationRequest`. A prior authorization approval sends none while a notification change of the same prescription is pending. See [RxChange Message](pharmacy-initiated-messages/rx-change.md#fill-notifications).
+An approving renewal or change response sends the `RxFillIndicator` extensions of its `MedicationRequest`. A prior authorization approval sends none while a notification change is pending; see [RxChange Message](pharmacy-initiated-messages/rx-change.md#fill-notifications).
