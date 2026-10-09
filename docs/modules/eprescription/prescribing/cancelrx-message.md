@@ -19,7 +19,23 @@ To send a CancelRx message, follow these steps:
 
 #### Required FHIR Resources
 
-CancelRx requires the same FHIR resources as [NewRx](newrx-message.md) message, with identical validation rules and required fields. The only difference is that for CancelRx the MedicationRequest **must be in either "active" or "completed" status**.
+CancelRx requires the same FHIR resources as [NewRx](newrx-message.md) message, with identical validation rules and required fields. In addition, the `medication-request-new-rx-status` extension of the MedicationRequest **must be "active" or "completed"**.
+
+### Cancel or Discontinue
+
+The ePrescription module sends each CancelRx message to Surescripts with a code that tells the pharmacy if the prescription was already dispensed. It chooses the code from RxFill messages, so you don't pass it yourself:
+
+* Discontinue (`D`): the pharmacy reported in an RxFill message that it dispensed this prescription fully or partially.
+* Cancel (`C`): no RxFill message reports dispensing.
+
+Dispense records created by your EHR and the patient's medication history do not affect this choice.
+
+The module cannot choose between Cancel and Discontinue if both are true:
+
+* No RxFill message confirms dispensing of this prescription.
+* An RxFill message may refer to this prescription or to another one.
+
+In this case, it returns `422 ambiguous-dispensing-history` and sends nothing. Contact the pharmacy to cancel the prescription.
 
 ### Status Management
 
