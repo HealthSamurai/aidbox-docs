@@ -90,8 +90,10 @@ On every start, before it serves requests, the module uploads its version of the
 If the upload or the check fails, the module tries again, up to 5 attempts 30 seconds apart, and then stops with an error.
 Other versions of the package stay in Aidbox until the check passes.
 
-The module does not reinstall a version that Aidbox already has.
-If that version fails the check, the error log names the version, the failed check, and the fix: delete all versions of `io.healthsamurai.e-prescription` in Aidbox, then restart the module.
+### Fix a Failed Package Check
+
+The module does not reinstall a version that Aidbox already has, so retries cannot repair it.
+When that version fails the check, the error log names the version, the failed check, and the fix: delete all versions of `io.healthsamurai.e-prescription` in Aidbox, then restart the module.
 
 To delete the versions with the [`$fhir-package-uninstall`](../../reference/package-registry-api.md#usdfhir-package-uninstall) operation:
 
@@ -118,7 +120,7 @@ To delete the versions with the [`$fhir-package-uninstall`](../../reference/pack
 
 You can delete the versions in the Artifact Registry web interface instead.
 
-If the check gets `401` or `403` when it searches one of the module's custom resources, the AccessPolicy of the module's client does not allow that resource type, and the error log says so.
+If the log reports `401` or `403` for a search of a custom resource, the AccessPolicy of the module's client does not allow that resource type.
 Update the App definition with the resource definitions our team provides, as in [Create an Application](#create-an-application), then restart the module.
 
 ### Upgrade Aidbox to 2609 or Later
