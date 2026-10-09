@@ -143,8 +143,8 @@ For calls within transaction or batch bundles, the timeout limits the complete A
 
 #### Cancellation and transport errors
 
-When the client disconnects, Aidbox closes its connection to your service, including while waiting for headers or body bytes. Your service must handle the closed connection and stop producing the response.
+Aidbox detects client cancellation when a write to the client fails and closes its connection to your service. While Aidbox waits for headers or body bytes from your service, the operation's idle timeout bounds cleanup of a cancelled request. Your service must handle the closed connection and stop producing the response.
 
 If a connection failure or timeout occurs before Aidbox sends response headers to the client, Aidbox returns HTTP `500` with `Content-Type: application/json`. The body contains `message` with the transport error and `endpoint` with the App endpoint configuration, excluding `secret`.
 
-If a transport error or idle timeout occurs after Aidbox sends response headers, Aidbox aborts the client connection. The client retains the status code and any body bytes it has received. Handle the interrupted response as an incomplete result.
+If a transport error or idle timeout occurs after Aidbox sends response headers, Aidbox resets the client connection instead of completing the response. The client retains the status code and any body bytes it has received. Handle the interrupted response as an incomplete result.
