@@ -118,6 +118,9 @@ To delete the versions with the [`$fhir-package-uninstall`](../../reference/pack
 
 You can delete the versions in the Artifact Registry web interface instead.
 
+If the check gets `401` or `403` when it searches one of the module's custom resources, the AccessPolicy of the module's client does not allow that resource type, and the error log says so.
+Update the App definition with the resource definitions our team provides, as in [Create an Application](#create-an-application), then restart the module.
+
 ### Upgrade Aidbox to 2609 or Later
 
 Aidbox 2609.0 and later do not serve the module's custom resources from package versions before `0.17.0`.
