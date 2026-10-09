@@ -137,9 +137,7 @@ For an App operation invoked as an entry in a transaction or batch bundle, Aidbo
 
 Set `operations.<operation-id>.timeout` to control the timeout for that operation. The default is `30000` milliseconds.
 
-For HTTP streaming, this value limits connection setup and idle socket reads while Aidbox waits for response headers or body bytes from your service. It does not limit the total duration of an active response. For SSE, send events or heartbeat comments at intervals shorter than the timeout to keep the connection active.
-
-For calls within transaction or batch bundles, the timeout limits the complete App request, including reading the response body.
+For both HTTP streaming and calls within transaction or batch bundles, this value limits connection setup and idle socket reads while Aidbox waits for response headers or body bytes from your service. It does not limit the total duration of an active response. For SSE, send events or heartbeat comments at intervals shorter than the timeout to keep the connection active.
 
 #### Cancellation and transport errors
 
