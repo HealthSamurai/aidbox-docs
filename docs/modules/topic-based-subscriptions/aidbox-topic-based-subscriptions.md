@@ -102,7 +102,7 @@ Aidbox ships topics that exist without a stored `AidboxSubscriptionTopic` resour
 
 | Topic URL | Events |
 |---|---|
-| `http://health-samurai.io/fhir/core/StructureDefinition/AuditEventsR4BALP` | Audit events as FHIR R4 AuditEvent resources. Filter parameters: `type`, `subtype`, `action`. Available since 2609. See [Audit and Logging](../../access-control/audit-and-logging.md#audit-events-topic). |
+| `http://health-samurai.io/fhir/core/StructureDefinition/AuditEventsR4BALP` | Audit events as FHIR R4 AuditEvent resources. Filter parameters: `type`, `subtype`, `action`. Available since 2609. Since 2610, your application publishes its own events to it with [`$aidbox-audit`](../../access-control/audit-and-logging.md#publish-audit-events-from-your-application). See [Audit and Logging](../../access-control/audit-and-logging.md#audit-events-topic). |
 
 ## AidboxTopicDestination
 

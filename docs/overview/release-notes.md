@@ -8,6 +8,11 @@ description: >-
 
 ## October 2026 _`edge`_
 
+*   Aidbox FHIR server
+
+    **Features**
+
+    * **[`$aidbox-audit` operation](../access-control/audit-and-logging.md#publish-audit-events-from-your-application)**: publishes an AuditEvent of your application to the audit events topic, so its destinations receive your events next to the ones Aidbox produces.
 
 ## September 2026 _`latest, 2609`_
 

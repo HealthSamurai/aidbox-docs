@@ -560,12 +560,13 @@ Aidbox provides comprehensive audit logging with FHIR BALP (Basic Audit Log Patt
 - **Authentication events** — login, logout, SMART authorization
 - **Resource versioning** — full history via `_history` operation
 
-Aidbox publishes audit events to a built-in subscription topic. Create an `AidboxTopicDestination` on that topic to start receiving them, and add `filterBy` to receive part of them. To store events in the `AuditEvent` table, create an `audit-events-recorder` destination or set `BOX_SECURITY_AUDIT_LOG_ENABLED=true`.
+Aidbox publishes audit events to a built-in subscription topic. Create an `AidboxTopicDestination` on that topic to start receiving them, and add `filterBy` to receive part of them. To store events in the `AuditEvent` table, create an `audit-events-recorder` destination or set `BOX_SECURITY_AUDIT_LOG_ENABLED=true`. Your application publishes its own AuditEvents to the topic with the `$aidbox-audit` operation.
 
 Learn more:
 - [Audit and Logging](../access-control/audit-and-logging.md)
 - [How to subscribe to audit events](../tutorials/security-access-control-tutorials/how-to-subscribe-to-audit-events.md)
 - [Store audit events in the AuditEvent table](../tutorials/security-access-control-tutorials/how-to-subscribe-to-audit-events.md#store-audit-events-in-the-auditevent-table)
+- [Publish audit events from your application](../access-control/audit-and-logging.md#publish-audit-events-from-your-application)
 
 ### Can I send audit events to an external repository?
 

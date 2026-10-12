@@ -39,6 +39,7 @@ Each event is a FHIR R4 AuditEvent resource. To receive events, create an [Aidbo
 graph LR
     A(API request):::blue2 --> B(Aidbox):::green2
     B --> C(Audit events topic):::violet2
+    H(Your application, $aidbox-audit):::blue2 --> C
     C --> D(Webhook destination):::neutral2
     C --> E(Kafka destination):::neutral2
     C --> F(Other destinations):::neutral2
@@ -52,7 +53,7 @@ How the topic behaves:
 * Every destination receives each event with the same AuditEvent `id`, a UUIDv7. Delivery guarantees, batching, and retries come from the destination kind.
 * A destination with `filterBy` receives only the events that match it. Aidbox does not build an event that no destination accepts, see [Filter audit events](#filter-audit-events).
 * Aidbox publishes events produced from the moment a destination exists. A new destination receives no earlier events.
-* Aidbox publishes only the audit events it produces. AuditEvent resources that clients create through the REST API do not reach the topic.
+* AuditEvent resources that clients create with `POST /fhir/AuditEvent` do not reach the topic. To publish an event of your own, call [`$aidbox-audit`](#publish-audit-events-from-your-application).
 * With [organization-based hierarchical access control](authorization/scoped-api/organization-based-hierarchical-access-control/README.md), the AuditEvent `meta` carries the organization of the request.
 
 For a step-by-step setup, see [How to subscribe to audit events](../tutorials/security-access-control-tutorials/how-to-subscribe-to-audit-events.md).
@@ -247,7 +248,78 @@ Aidbox is an [Audit record repository](https://profiles.ihe.net/ITI/TF/Volume1/c
 * `POST /fhir/AuditEvent` to record events
 * `GET /fhir/AuditEvent` to receive them
 
-Aidbox stores the AuditEvent resources that clients create next to the events of the [recorder](#store-audit-events-in-aidbox). It does not publish them to the audit events topic.
+Aidbox stores the AuditEvent resources that clients create next to the events of the [recorder](#store-audit-events-in-aidbox). It does not publish them to the audit events topic. To publish an event to the topic, use [`$aidbox-audit`](#publish-audit-events-from-your-application).
+
+### Publish audit events from your application
+
+Your application can publish its own AuditEvent resources to the audit events topic with the `$aidbox-audit` operation, available since version 2610. Aidbox delivers them to every destination of the topic next to the events it produces, so one pipeline carries the audit trail of the whole system, for example a frontend that shows patient data or a service that bypasses the FHIR API.
+
+The operation takes a `Parameters` resource with two parameters:
+
+| Parameter | Type | Description |
+|---|---|---|
+| `resource` | `AuditEvent` | The event to publish. |
+| `topic` | `canonical` | URL of the audit events topic, `http://health-samurai.io/fhir/core/StructureDefinition/AuditEventsR4BALP`. |
+
+```http
+POST /fhir/$aidbox-audit
+content-type: application/json
+accept: application/json
+
+{
+  "resourceType": "Parameters",
+  "parameter": [
+    {
+      "name": "resource",
+      "resource": {
+        "resourceType": "AuditEvent",
+        "type": {
+          "system": "http://terminology.hl7.org/CodeSystem/audit-event-type",
+          "code": "rest"
+        },
+        "subtype": [
+          {
+            "system": "http://hl7.org/fhir/restful-interaction",
+            "code": "read"
+          }
+        ],
+        "action": "R",
+        "recorded": "2026-10-12T10:00:00Z",
+        "outcome": "0",
+        "agent": [
+          {
+            "who": {"reference": "Practitioner/pr-1"},
+            "requestor": true
+          }
+        ],
+        "source": {
+          "observer": {"display": "Patient portal"}
+        },
+        "entity": [
+          {
+            "what": {"reference": "Patient/pt-1"}
+          }
+        ]
+      }
+    },
+    {
+      "name": "topic",
+      "valueCanonical": "http://health-samurai.io/fhir/core/StructureDefinition/AuditEventsR4BALP"
+    }
+  ]
+}
+```
+
+How the operation behaves:
+
+* Aidbox replaces the `id` of the event with a UUIDv7 and delivers the event to every destination of the topic with the same `id`.
+* Aidbox applies the `filterBy` of each destination to the `type`, `subtype`, and `action` of the event, see [Filter audit events](#filter-audit-events). A destination whose filter rejects the event does not receive it.
+* Aidbox does not validate the event against the BALP profiles and does not add the organization of the request to its `meta`. The event reaches the destinations as you sent it.
+* Aidbox does not store the event. To keep it in the `AuditEvent` table, run a [recorder](#store-audit-events-in-aidbox) on the topic.
+* Aidbox responds with `200` and an `OperationOutcome` once every destination has accepted the event. With no destinations on the topic, it responds with `200` too. A request without a `Parameters` body, without the `resource` or `topic` parameter, with a resource other than an AuditEvent, or with a topic other than the audit events topic returns `422`.
+* The call produces no audit event of its own.
+
+See [Publish an audit event from your application](../tutorials/security-access-control-tutorials/how-to-subscribe-to-audit-events.md#publish-an-audit-event-from-your-application) for a walkthrough with the response.
 
 ### External Audit record repository support
 

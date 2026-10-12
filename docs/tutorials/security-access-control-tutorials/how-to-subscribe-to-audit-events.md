@@ -20,6 +20,7 @@ Objectives
 * Check delivery status and stop audit logging.
 * Filter audit events.
 * Store audit events in the `AuditEvent` table and search them.
+* Publish an audit event from your application.
 
 {% hint style="info" %}
 Not all operations generate AuditEvents. See [Audit coverage](../../access-control/audit-and-logging.md#audit-coverage) and [Known limitations](../../access-control/audit-and-logging.md#known-limitations) for details.
@@ -293,7 +294,83 @@ Aidbox works as an [Audit record repository](https://profiles.ihe.net/ITI/TF/Vol
 * `POST /fhir/AuditEvent` records an event;
 * `GET /fhir/AuditEvent` returns stored events.
 
-Aidbox stores the AuditEvent resources that clients create next to the events of the recorder. It does not publish them to the audit events topic.
+Aidbox stores the AuditEvent resources that clients create next to the events of the recorder. It does not publish them to the audit events topic. To publish an event to the topic, use [`$aidbox-audit`](#publish-an-audit-event-from-your-application).
+
+## Publish an audit event from your application
+
+Aidbox produces audit events for the operations it serves. For the actions your own application performs, such as showing a patient record in a frontend or exporting data outside the FHIR API, build an AuditEvent and publish it with the `$aidbox-audit` operation. Every destination of the topic receives it next to the events of Aidbox, and the recorder stores it when one runs. The operation is available since version 2610.
+
+Pass the event in the `resource` parameter and the topic URL in the `topic` parameter:
+
+```http
+POST /fhir/$aidbox-audit
+content-type: application/json
+accept: application/json
+
+{
+  "resourceType": "Parameters",
+  "parameter": [
+    {
+      "name": "resource",
+      "resource": {
+        "resourceType": "AuditEvent",
+        "type": {
+          "system": "http://terminology.hl7.org/CodeSystem/audit-event-type",
+          "code": "rest"
+        },
+        "subtype": [
+          {
+            "system": "http://hl7.org/fhir/restful-interaction",
+            "code": "read"
+          }
+        ],
+        "action": "R",
+        "recorded": "2026-10-12T10:00:00Z",
+        "outcome": "0",
+        "agent": [
+          {
+            "who": {"reference": "Practitioner/pr-1"},
+            "requestor": true
+          }
+        ],
+        "source": {
+          "observer": {"display": "Patient portal"}
+        },
+        "entity": [
+          {
+            "what": {"reference": "Patient/pt-1"}
+          }
+        ]
+      }
+    },
+    {
+      "name": "topic",
+      "valueCanonical": "http://health-samurai.io/fhir/core/StructureDefinition/AuditEventsR4BALP"
+    }
+  ]
+}
+```
+
+Aidbox responds with `200`:
+
+```json
+{
+  "resourceType": "OperationOutcome",
+  "id": "informational",
+  "issue": [
+    {
+      "code": "informational",
+      "diagnostics": "AuditEvent sent to topic http://health-samurai.io/fhir/core/StructureDefinition/AuditEventsR4BALP"
+    }
+  ]
+}
+```
+
+The webhook from [Create a destination](#create-a-destination) receives the event in the same Bundle shape as the events of Aidbox, with a UUIDv7 in `id` in place of the one you sent. With the recorder from [Create a recorder destination](#create-a-recorder-destination), the event appears in `GET /fhir/AuditEvent`.
+
+* Aidbox replaces the `id` of the event and keeps the rest as you sent it. It does not validate the event against the BALP profiles.
+* The `filterBy` of each destination applies to the `type`, `subtype`, and `action` of the event. The `C,U,D` filter from [Filter audit events](#filter-audit-events) drops the read event above.
+* Aidbox returns `200` even when the topic has no destinations. It returns `422` when the body is not a `Parameters` resource, a parameter is missing, the resource is not an AuditEvent, or the topic is not the audit events topic.
 
 ## Performance considerations
 
