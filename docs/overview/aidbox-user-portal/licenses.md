@@ -48,14 +48,6 @@ description: This article describes how to manage Aidbox licenses
 4. Information about the selected license will appear on the right side of the screen. Click _**Delete this License**_
 5. In the confirmation window, type the license name and click _**Delete this License**_
 
-## License parameters
-
-### `max-instances`
-
-{% hint style="info" %}
-`max-instances` is retired. Aidbox no longer warns or restricts anything based on it, and the number of Aidbox instances you run is not limited. A license covers a dataset — see [What a license covers](../licensing-and-support.md#what-a-license-covers).
-{% endhint %}
-
 ## Manage Aidbox licenses via API
 
 Licences API on Aidbox portal allows you to issue Aidbox licenses on-premise installation (self-hosted) and automate the process of deploying new Aidbox instances locally or in your infrastructure.
