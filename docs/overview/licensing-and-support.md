@@ -22,19 +22,6 @@ The Aidbox development license is intended exclusively for development, testing,
 \
 \- **Storage Limit**: The Development license permits storage of up to 5 GB of data in your database.
 
-When you reach your database size limit, you’ll receive 2 types of warnings:
-
-{% tabs %}
-{% tab title="About to exceed the license limit" %}
-`Your database (name of your database) size 4.9 GiB is about to exceed the license limit 5.0 GiB. Please review database size or contact us for further information.`
-{% endtab %}
-
-{% tab title="Above license limit" %}
-`Your database (name of your database) size is 5.7 GiB and it's above license limit 5.0 GiB. Please review database size or contact us for further information.`
-{% endtab %}
-
-{% endtabs %}
-
 ### Production-ready Aidbox as a SaaS
 
 You can get a turn-key production-ready Aidbox as a SaaS to start your development in minutes.
