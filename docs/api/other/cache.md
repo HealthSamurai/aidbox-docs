@@ -35,7 +35,7 @@ One call is therefore enough: send it through the load balancer and it reaches a
 Propagation is asynchronous — a replica drops its caches when it receives the notification, normally within a second.
 
 {% hint style="info" %}
-Cross-replica propagation needs cache replication enabled, which is the default. With `BOX_CACHE_REPLICATION_DISABLE` set, `$drop-cache` affects only the replica that receives it.
+Cross-replica propagation needs cache replication enabled, which is the default. With [`BOX_CACHE_REPLICATION_DISABLE`](../../reference/all-settings.md#cache-replication-disable) set, `$drop-cache` affects only the replica that receives it.
 {% endhint %}
 
 Under normal operation cache invalidation happens on its own — `$drop-cache` is an emergency lever, not the routine path.
