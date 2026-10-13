@@ -142,23 +142,23 @@ metadata:
   name: aidbox
   namespace: prod
 data:
-  AIDBOX_BASE_URL: https://my.box.url
+  BOX_WEB_BASE_URL: https://my.box.url
   BOX_BOOTSTRAP_FHIR_PACKAGES: 'hl7.fhir.r4.core#4.0.1' # your packages
-  AIDBOX_TERMINOLOGY_SERVICE_BASE_URL: 'https://tx.health-samurai.io/fhir'
-  AIDBOX_BOX_ID: aidbox
-  AIDBOX_PORT: '8080'
-  AIDBOX_STDOUT_PRETTY: all
+  BOX_FHIR_TERMINOLOGY_SERVICE_BASE_URL: 'https://tx.health-samurai.io/fhir'
+  BOX_ID: aidbox
+  BOX_WEB_PORT: '8080'
+  BOX_OBSERVABILITY_STDOUT_PRETTY_LOG_LEVEL: all
   BOX_INSTANCE_NAME: aidbox
   BOX_METRICS_PORT: '8765'
-  PGDATABASE: aidbox
-  PGHOST: db.prod.svc.cluster.local   # database address
-  PGPORT: '5432'                      # database port
-  AIDBOX_FHIR_SCHEMA_VALIDATION: 'true'
-  AIDBOX_COMPLIANCE: 'enabled'
-  AIDBOX_CORRECT_AIDBOX_FORMAT: 'true'
-  AIDBOX_CREATED_AT_URL: 'https://aidbox.app/ex/createdAt'
+  BOX_DB_DATABASE: aidbox
+  BOX_DB_HOST: db.prod.svc.cluster.local   # database address
+  BOX_DB_PORT: '5432'                      # database port
+  BOX_FHIR_SCHEMA_VALIDATION: 'true'
+  BOX_FHIR_COMPLIANT_MODE: 'true'
+  BOX_FHIR_CORRECT_AIDBOX_FORMAT: 'true'
+  BOX_FHIR_CREATEDAT_URL: 'https://aidbox.app/ex/createdAt'
   BOX_SEARCH_INCLUDE_CONFORMANT: 'true'
-  BOX_SEARCH_FHIR__COMPARISONS: 'true'
+  BOX_FHIR_SEARCH_COMPARISONS: 'true'
   BOX_COMPATIBILITY_VALIDATION_JSON__SCHEMA_REGEX: '#{:fhir-datetime}'
 ```
 {% endcode %}
@@ -171,11 +171,11 @@ metadata:
   name: aidbox
   namespace: prod
 data:
-  AIDBOX_ADMIN_PASSWORD: <admin_password>
-  AIDBOX_CLIENT_SECRET: <root_client_password>
-  AIDBOX_LICENSE: <JWT-LICENSE>    # JWT license from the Aidbox user portal
-  PGUSER: <db_user>                # database username
-  PGPASSWORD: <db_password>        # database password
+  BOX_ADMIN_PASSWORD: <admin_password>
+  BOX_ROOT_CLIENT_SECRET: <root_client_password>
+  BOX_LICENSE: <JWT-LICENSE>    # JWT license from the Aidbox user portal
+  BOX_DB_USER: <db_user>         # database username
+  BOX_DB_PASSWORD: <db_password> # database password
 ```
 {% endcode %}
 
@@ -401,8 +401,8 @@ metadata:
   namespace: prod
 data:
 <strong>  ...
-</strong><strong>  AIDBOX_ES_URL = http://es-service.es-ns.svc.cluster.local
-</strong>  AIDBOX_ES_AUTH = &#x3C;user>:&#x3C;password>
+</strong><strong>  BOX_OBSERVABILITY_ELASTICSEARCH_URL: http://es-service.es-ns.svc.cluster.local
+</strong>  BOX_OBSERVABILITY_ELASTICSEARCH_AUTH: &#x3C;user>:&#x3C;password>
 <strong>  ...
 </strong></code></pre>
 
@@ -415,7 +415,7 @@ metadata:
   namespace: prod
 data:
 <strong>  ...
-</strong><strong>  AIDBOX_DD_API_KEY: &#x3C;Datadog API Key>
+</strong><strong>  BOX_OBSERVABILITY_DATADOG_API_KEY: &#x3C;Datadog API Key>
 </strong><strong>  ...
 </strong></code></pre>
 

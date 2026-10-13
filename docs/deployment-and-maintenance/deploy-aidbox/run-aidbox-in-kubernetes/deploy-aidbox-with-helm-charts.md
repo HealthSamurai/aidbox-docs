@@ -137,3 +137,73 @@ helm upgrade --install aidbox healthsamurai/aidbox \
 ```
 
 It will install the Aidbox in the `aidbox` namespace, creating that namespace if it doesn't already exist.
+
+## High availability
+
+See [Highly Available Aidbox](highly-available-aidbox.md) for the concept behind running multiple Aidbox replicas. This section covers the same setup as Helm values.
+
+{% hint style="warning" %}
+Aidbox generates a new RSA keypair and secret on every startup unless you pass them explicitly. With multiple replicas, each pod would get its own keypair, and JWTs issued by one replica would fail verification on another.
+
+Generate the keypair and secret once, store them in a Kubernetes `Secret`, and load that secret into every replica:
+
+```yaml
+# aidbox-keys-secret.yaml
+apiVersion: v1
+kind: Secret
+metadata:
+  name: aidbox-keys
+  namespace: aidbox
+stringData:
+  BOX_SECURITY_AUTH_KEYS_PUBLIC: <rsa-public-key-pem>
+  BOX_SECURITY_AUTH_KEYS_PRIVATE: <rsa-private-key-pem>
+  BOX_SECURITY_AUTH_KEYS_SECRET: <random-secret>
+```
+
+```yaml
+extraEnvFromSecrets:
+  - aidbox-keys
+```
+
+See [Set up RSA private/public keys and secret](../../../reference/all-settings.md#security.auth.keys.public) for how to generate the keypair.
+{% endhint %}
+
+Add the following values to run several replicas spread across zones:
+
+```yaml
+replicaCount: 2
+
+topologySpreadConstraints:
+  - maxSkew: 1
+    topologyKey: topology.kubernetes.io/zone
+    whenUnsatisfiable: ScheduleAnyway
+    labelSelector:
+      matchLabels:
+        service: aidbox
+```
+
+{% hint style="info" %}
+`topologySpreadConstraints` is available starting with chart version 0.2.20.
+{% endhint %}
+
+To keep a minimum number of replicas available during voluntary disruptions (node drains, cluster upgrades), add a `PodDisruptionBudget`:
+
+```yaml
+# aidbox-pdb.yaml
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: aidbox
+  namespace: aidbox
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      service: aidbox
+```
+
+```bash
+kubectl apply -f aidbox-pdb.yaml
+```
+
+Readiness, liveness, and startup probe tuning for multi-replica deployments is covered in [Highly Available Aidbox](highly-available-aidbox.md#configuration).
