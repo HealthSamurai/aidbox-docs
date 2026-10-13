@@ -317,14 +317,17 @@ accept: application/json
 }
 ```
 
-The destination receives events of female patients only. Aidbox matches filters by these rules:
+The destination receives events of female patients only. With `"comparator": "ne"`, it receives events of every patient except female ones, including patients without `gender`.
+
+Aidbox matches filters by these rules:
 
 * Aidbox compares `value` with the values that `filterDefinitionFhirPathExpression` returns. References compare by their `reference` string, booleans and numbers by their string form. Other complex values, such as a `Coding`, match nothing, so point the expression at a primitive, for example `code.coding.code`.
-* Comma-separated values in one filter match when any of them matches: `"value": "male,female"`.
+* `comparator` accepts `eq` and `ne`. Without `comparator`, Aidbox uses `eq`. Aidbox rejects other comparators with `422`.
+* `eq` matches when any value of the event equals `value`. `ne` matches when no value of the event equals `value`.
+* Comma-separated values in one filter match `eq` when any of them matches, and `ne` when none of them matches: `"value": "male,female"`.
 * Several filters match when all of them match.
-* `comparator` accepts `eq` only, and you can omit it. Aidbox rejects other comparators with `422`.
 * `resource` limits a filter to the trigger of that resource, for topics with several triggers.
-* An event with no value for the filter parameter does not match. A filter on a parameter that the topic does not define matches no event.
+* An event with no value for the filter parameter does not match `eq` and matches `ne`. A filter on a parameter that the topic does not define matches no event with `eq` and every event with `ne`.
 * You cannot change `filterBy` after creation: `PUT` returns `405`. Delete the destination and create it again.
 
 `filterBy` works with every destination kind. For the `fhir-native-topic-based-subscription` kind, Aidbox applies the destination filters first and the `filterBy` of each FHIR `Subscription` after them. Built-in topics define their own filter parameters, see [Filter audit events](../../access-control/audit-and-logging.md#filter-audit-events).

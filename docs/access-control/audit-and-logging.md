@@ -82,7 +82,7 @@ This filter keeps create, update, and delete events and drops reads, searches, a
 ]
 ```
 
-Comma-separated values match when any of them matches, and several filters match when all of them match. See [Filter events with filterBy](../modules/topic-based-subscriptions/aidbox-topic-based-subscriptions.md#filter-events-with-filterby) for the full rules.
+Comma-separated values match when any of them matches, and several filters match when all of them match. With `"comparator": "ne"`, the same filter keeps every event except create, update, and delete. See [Filter events with filterBy](../modules/topic-based-subscriptions/aidbox-topic-based-subscriptions.md#filter-events-with-filterby) for the full rules.
 
 Aidbox checks the filters before it builds an event. With the filter above on every destination, reads and searches carry no audit overhead.
 
