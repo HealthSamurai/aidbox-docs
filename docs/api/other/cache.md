@@ -8,7 +8,9 @@ Aidbox keeps a set of in-memory caches per process: introspected access tokens, 
 
 ## Drop cache operation
 
-Drops every in-memory cache on every replica. Most useful right after an out-of-band change to FAR contents (an Implementation Guide loaded via init bundle, an external token introspection rotation, etc.) when you don't want to wait for the next automatic invalidation tick.
+Drops every in-memory cache on every replica. Intended for testing and debugging — when you want a known-cold cache, or to check whether behaviour you are seeing comes from a stale entry.
+
+Writes through Aidbox invalidate the caches they affect, so this is not part of normal operation. Reach for it when something changed outside Aidbox — contents edited directly in the database, or a key rotated on an external token introspection endpoint — and you need the caches to forget what they hold.
 
 {% code title="Example request" %}
 ```http
@@ -37,5 +39,3 @@ Propagation is asynchronous — a replica drops its caches when it receives the 
 {% hint style="info" %}
 Cross-replica propagation needs cache replication enabled, which is the default. With [`BOX_CACHE_REPLICATION_DISABLE`](../../reference/all-settings.md#cache-replication-disable) set, `$drop-cache` affects only the replica that receives it.
 {% endhint %}
-
-Under normal operation cache invalidation happens on its own — `$drop-cache` is an emergency lever, not the routine path.
