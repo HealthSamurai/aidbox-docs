@@ -52,9 +52,9 @@ description: This article describes how to manage Aidbox licenses
 
 ### `max-instances`
 
-The maximum number of Aidbox runtimes allowed to use the license concurrently. Each replica of a high-availability deployment counts as one instance; PostgreSQL read replicas do not count. Set this value to at least the number of replicas you intend to run. See [Instance limit](../licensing-and-support.md#instance-limit-max-instances) for the warning behavior when the limit is exceeded.
-
-To change `max-instances` on an existing license, edit the license on [aidbox.app](https://aidbox.app) — the change takes effect on the next heartbeat (~30 minutes for production licenses).
+{% hint style="info" %}
+`max-instances` is retired. Aidbox no longer warns or restricts anything based on it, and the number of Aidbox instances you run is not limited. A license covers a dataset — see [What a license covers](../licensing-and-support.md#what-a-license-covers).
+{% endhint %}
 
 ## Manage Aidbox licenses via API
 
