@@ -16,24 +16,7 @@ A production license allows running Aidbox for 14 days (trial) and then can be e
 
 ### Development license
 
-The Aidbox development license is intended exclusively for development, testing, and demonstration purposes. This license comes with specific restrictions and limitations:\
-\
-\- **No PHI:** Users must not load real healthcare data or Protected Health Information (PHI) into any Aidbox instance operating under a Development license.\
-\
-\- **Storage Limit**: The Development license permits storage of up to 5 GB of data in your database.
-
-When you reach your database size limit, you’ll receive 2 types of warnings:
-
-{% tabs %}
-{% tab title="About to exceed the license limit" %}
-`Your database (name of your database) size 4.9 GiB is about to exceed the license limit 5.0 GiB. Please review database size or contact us for further information.`
-{% endtab %}
-
-{% tab title="Above license limit" %}
-`Your database (name of your database) size is 5.7 GiB and it's above license limit 5.0 GiB. Please review database size or contact us for further information.`
-{% endtab %}
-
-{% endtabs %}
+The Aidbox development license is intended exclusively for development, testing, and demonstration purposes. It comes with one restriction: **no PHI** — users must not load real healthcare data or Protected Health Information into any Aidbox instance operating under a Development license.
 
 ### Production-ready Aidbox as a SaaS
 
@@ -47,29 +30,17 @@ You can get a turn-key production-ready Aidbox as a SaaS to start your developme
 
 For non-profit educational institutions, the Health Samurai provides Aidbox licenses that can be used for instructional and non-commercial academic research. Please [contact us](contact-us.md) for more information.
 
-## License limits
+## What a license covers
 
-### Instance limit (`max-instances`)
+**An Aidbox license is tied to a dataset, not to a running process.** One license covers one Aidbox database and every Aidbox instance that serves it, so a single production license covers:
 
-Each Aidbox license carries a `max-instances` parameter — the maximum number of **concurrent** Aidbox runtimes that can use the license. Each running Aidbox process counts as one instance: every replica of a [highly available](../deployment-and-maintenance/deploy-aidbox/run-aidbox-in-kubernetes/highly-available-aidbox.md) deployment, every staging / production environment that shares the same license, and every long-lived local developer runtime. Read-only PostgreSQL replicas do **not** count — only Aidbox application processes that send heartbeats to [aidbox.app](https://aidbox.app).
+* **Highly available deployments** — any number of Aidbox instances running against the same database. Scaling replicas up or down needs no license change.
+* **Read-only replicas** — PostgreSQL read replicas and the Aidbox instances serving from them.
+* **Disaster recovery** — a standby site replicating the same dataset.
 
-The instance count is observed by the [Aidbox license portal](aidbox-user-portal/licenses.md), which the running instances ping on a heartbeat (~30 minutes for production licenses). If the active count exceeds `max-instances`, the portal returns a `max-instances` warning on the next heartbeat refresh.
+A separate production license is needed for a separate dataset — an independent production environment with its own database.
 
-#### Concurrent instances warning
-
-When over the limit, every running instance receives the warning on its next heartbeat (so the warning shows up on **all** instances simultaneously, ~30 minutes after they start):
-
-* In Aidbox logs: `:license.modern/warning {:max-instances {:type "max-instances", :message "Your current number of concurrent running installations is N. Your possible number is M..."}}`
-* On every API response:
-
-  ```http
-  License-Mode: normal
-  License-Mode-Info: {"warning":{"max-instances":{"message":"Your current number of concurrent running installations is N. Your possible number is M. Please contact Health Samurai for further information"}}}
-  ```
-
-The warning is **informational** — `License-Mode` remains `normal` and CRUD, search, and other operations continue working. To clear it, raise `max-instances` on [aidbox.app](https://aidbox.app) to at least the number of replicas you run, or reduce the number of replicas. Read-only DB replicas need no license adjustment because they don't count.
-
-When planning an HA rollout, set `max-instances` **before** scaling up — the warning fires once per heartbeat, so a same-day scale-up is not silently logged as a license breach.
+Staging and test environments that hold **no PHI** can run on free [development licenses](#development-license). An environment with its own database that does hold PHI needs its own production license.
 
 ## Aidbox Support
 
