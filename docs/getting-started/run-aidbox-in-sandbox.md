@@ -15,7 +15,7 @@ This quickstart guide explains how to run **Aidbox** in the [Aidbox Cloud Sandbo
 
 - Click the **New License** button in the portal.
 - Configure your instance by selecting:
-  - **License Type**: Development license (free, no PHI, with a 5 GB database limit).
+  - **License Type**: Development license (free, no PHI).
   - **License Name**: Add a descriptive name for your license and specify your goal.
   - **Hosting Option**: Google Cloud Platform.
   - **Aidbox Version**: Choose “Edge” or “Latest.”

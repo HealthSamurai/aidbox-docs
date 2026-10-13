@@ -1180,7 +1180,7 @@ Learn more:
 
 Yes, **Aidbox Cloud Sandbox** is available at [aidbox.app](https://aidbox.app):
 
-- Free development license (no PHI, 5 GB limit)
+- Free development license (no PHI)
 - Hosted on Google Cloud Platform
 - Instant setup with choice of FHIR version
 - Personal URLs for each instance

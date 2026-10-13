@@ -16,11 +16,7 @@ A production license allows running Aidbox for 14 days (trial) and then can be e
 
 ### Development license
 
-The Aidbox development license is intended exclusively for development, testing, and demonstration purposes. This license comes with specific restrictions and limitations:\
-\
-\- **No PHI:** Users must not load real healthcare data or Protected Health Information (PHI) into any Aidbox instance operating under a Development license.\
-\
-\- **Storage Limit**: The Development license permits storage of up to 5 GB of data in your database.
+The Aidbox development license is intended exclusively for development, testing, and demonstration purposes. It comes with one restriction: **no PHI** — users must not load real healthcare data or Protected Health Information into any Aidbox instance operating under a Development license.
 
 ### Production-ready Aidbox as a SaaS
 
