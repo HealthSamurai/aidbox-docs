@@ -8,7 +8,9 @@ Aidbox keeps a set of in-memory caches per process: introspected access tokens, 
 
 ## Drop cache operation
 
-Drops every in-memory cache on the receiving replica. Most useful right after an out-of-band change to FAR contents (an Implementation Guide loaded via init bundle, an external token introspection rotation, etc.) when you don't want to wait for the next automatic invalidation tick.
+Drops every in-memory cache on every replica. Intended for testing and debugging — when you want a known-cold cache, or to check whether behaviour you are seeing comes from a stale entry.
+
+Writes through Aidbox invalidate the caches they affect, so this is not part of normal operation. Reach for it when something changed outside Aidbox — contents edited directly in the database, or a key rotated on an external token introspection endpoint — and you need the caches to forget what they hold.
 
 {% code title="Example request" %}
 ```http
@@ -16,7 +18,7 @@ POST /$drop-cache
 ```
 {% endcode %}
 
-The response is `200 OK` with no body. The operation is local to the replica that receives the request.
+The response is `200 OK` with no body.
 
 ### What gets cleared
 
@@ -28,9 +30,12 @@ The response is `200 OK` with no body. The operation is local to the replica tha
 
 ### Multi-replica deployments
 
-`$drop-cache` only affects the replica that receives the request. Two consequences:
+`$drop-cache` clears the caches of **every** replica, not only the one that receives the request. It publishes the drop over the same PostgreSQL `LISTEN` / `NOTIFY` channel that [cache replication](../../deployment-and-maintenance/deploy-aidbox/run-aidbox-in-kubernetes/highly-available-aidbox.md#cache-replication) uses, and every replica subscribes to it.
 
-* Calls through a load balancer hit one replica per request — they will not clear caches on the other pods.
-* For an HA-wide refresh (for example after loading an IG that other replicas haven't observed yet), call `$drop-cache` against each replica's pod address directly. See the [HA cache invalidation guidance](../../deployment-and-maintenance/deploy-aidbox/run-aidbox-in-kubernetes/highly-available-aidbox.md#cache-invalidation-after-ig-loading) for an example loop.
+One call is therefore enough: send it through the load balancer and it reaches all pods. There is no need to address each replica directly.
 
-Under normal operation the cross-replica cache propagation runs automatically over PostgreSQL `LISTEN` / `NOTIFY` — `$drop-cache` is an emergency lever, not the routine path.
+Propagation is asynchronous — a replica drops its caches when it receives the notification, normally within a second.
+
+{% hint style="info" %}
+Cross-replica propagation needs cache replication enabled, which is the default. With [`BOX_CACHE_REPLICATION_DISABLE`](../../reference/all-settings.md#cache-replication-disable) set, `$drop-cache` affects only the replica that receives it.
+{% endhint %}
