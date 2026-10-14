@@ -119,10 +119,9 @@ config:
   
 ingress:
   enabled: true
-  className: nginx
+  className: <your-ingress-class>
   annotations:
-    acme.cert-manager.io/http01-ingress-class: nginx
-    cert-manager.io/cluster-issuer: letsencrypt
+    <ingress-controller-specific-annotations>
 ```
 You can find recomended variables [here](../../../configuration/recommended-envs.md)
 
@@ -168,42 +167,35 @@ extraEnvFromSecrets:
 See [Set up RSA private/public keys and secret](../../../reference/all-settings.md#security.auth.keys.public) for how to generate the keypair.
 {% endhint %}
 
-Add the following values to run several replicas spread across zones:
+Add the following values to the same `aidbox-config.yaml` from step 2 and run several replicas:
 
 ```yaml
-replicaCount: 2
-
-topologySpreadConstraints:
-  - maxSkew: 1
-    topologyKey: topology.kubernetes.io/zone
-    whenUnsatisfiable: ScheduleAnyway
-    labelSelector:
-      matchLabels:
-        service: aidbox
+replicaCount: 2 # or more
 ```
 
 {% hint style="info" %}
-`topologySpreadConstraints` is available starting with chart version 0.2.20.
+The chart spreads replicas for you without any extra configuration:
+
+* **Across zones.** Starting with chart version 0.2.21, it sets a default `topologySpreadConstraints` (`topology.kubernetes.io/zone`, `maxSkew: 1`, `whenUnsatisfiable: ScheduleAnyway`) asking Kubernetes to run Aidbox replicas in different availability zones. Set `topologySpreadConstraints` yourself only to override this default.
+* **Across nodes.** It also sets a default `podAntiAffinity` (a preferred, not required, rule) asking Kubernetes to run Aidbox replicas on different nodes, regardless of which zone each node is in. Set `affinity` yourself only to override this default.
+
+Both defaults use the chart's own `app.kubernetes.io/name` / `app.kubernetes.io/instance` selector labels; the chart's pods aren't labeled `service: aidbox`.
 {% endhint %}
 
-To keep a minimum number of replicas available during voluntary disruptions (node drains, cluster upgrades), add a `PodDisruptionBudget`:
+To keep a minimum number of replicas available during voluntary disruptions (node drains, cluster upgrades), also enable the chart's built-in `PodDisruptionBudget` (available starting with chart version 0.2.16):
 
 ```yaml
-# aidbox-pdb.yaml
-apiVersion: policy/v1
-kind: PodDisruptionBudget
-metadata:
-  name: aidbox
-  namespace: aidbox
-spec:
-  minAvailable: 1
-  selector:
-    matchLabels:
-      service: aidbox
+podDisruptionBudget:
+  enabled: true
 ```
 
-```bash
-kubectl apply -f aidbox-pdb.yaml
+By default this allows at most 1 unavailable replica (`maxUnavailable: 1`). To require a minimum instead, set `minAvailable` and clear `maxUnavailable` (the chart only applies one of the two):
+
+```yaml
+podDisruptionBudget:
+  enabled: true
+  minAvailable: 1
+  maxUnavailable: null
 ```
 
 Readiness, liveness, and startup probe tuning for multi-replica deployments is covered in [Highly Available Aidbox](highly-available-aidbox.md#configuration).
