@@ -189,13 +189,12 @@ podDisruptionBudget:
   enabled: true
 ```
 
-By default this allows at most 1 unavailable replica (`maxUnavailable: 1`). To require a minimum instead, set `minAvailable` and clear `maxUnavailable` (the chart only applies one of the two):
+By default this allows at most 1 unavailable replica (`maxUnavailable: 1`). We recommend keeping this default: Kubernetes evicts replicas one at a time, so the rest keep serving traffic during a node drain or cluster upgrade.
 
-```yaml
-podDisruptionBudget:
-  enabled: true
-  minAvailable: 1
-  maxUnavailable: null
-```
+{% hint style="warning" %}
+Avoid `minAvailable` for Aidbox. It only limits how few replicas may remain, so with 5 replicas and `minAvailable: 1`, Kubernetes may evict 4 of them at once, and the one remaining replica gets all the traffic. With `maxUnavailable: 1`, at least 4 of 5 replicas keep running, so losing one is barely noticeable.
+
+`minAvailable` is meant for other cases, for example keeping the PostgreSQL primary of a CloudNativePG cluster from being evicted before a switchover.
+{% endhint %}
 
 Readiness, liveness, and startup probe tuning for multi-replica deployments is covered in [Highly Available Aidbox](highly-available-aidbox.md#configuration).
