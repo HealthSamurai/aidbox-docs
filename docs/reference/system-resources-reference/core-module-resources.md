@@ -4082,7 +4082,7 @@ Configures where and how notifications triggered by a subscription topic should 
   "min" : 0,
   "max" : 1,
   "type" : "code",
-  "desc" : "eq. \n\n**Allowed values**: `eq`"
+  "desc" : "eq | ne. \n\n**Allowed values**: `eq` | `ne`"
 }, {
   "path" : "filterBy.value",
   "name" : "value",
