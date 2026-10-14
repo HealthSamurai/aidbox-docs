@@ -168,42 +168,43 @@ extraEnvFromSecrets:
 See [Set up RSA private/public keys and secret](../../../reference/all-settings.md#security.auth.keys.public) for how to generate the keypair.
 {% endhint %}
 
-Add the following values to run several replicas spread across zones:
+Run several replicas:
 
 ```yaml
 replicaCount: 2
-
-topologySpreadConstraints:
-  - maxSkew: 1
-    topologyKey: topology.kubernetes.io/zone
-    whenUnsatisfiable: ScheduleAnyway
-    labelSelector:
-      matchLabels:
-        service: aidbox
 ```
 
 {% hint style="info" %}
-`topologySpreadConstraints` is available starting with chart version 0.2.20.
-{% endhint %}
-
-To keep a minimum number of replicas available during voluntary disruptions (node drains, cluster upgrades), add a `PodDisruptionBudget`:
+Starting with chart version 0.2.21, the chart spreads replicas across zones by default (`topology.kubernetes.io/zone`, `maxSkew: 1`, `whenUnsatisfiable: ScheduleAnyway`) using its own selector labels, so you don't need to set `topologySpreadConstraints` yourself. Set it explicitly only to override the default, for example to spread across nodes instead of zones:
 
 ```yaml
-# aidbox-pdb.yaml
-apiVersion: policy/v1
-kind: PodDisruptionBudget
-metadata:
-  name: aidbox
-  namespace: aidbox
-spec:
-  minAvailable: 1
-  selector:
-    matchLabels:
-      service: aidbox
+topologySpreadConstraints:
+  - maxSkew: 1
+    topologyKey: kubernetes.io/hostname
+    whenUnsatisfiable: ScheduleAnyway
 ```
 
-```bash
-kubectl apply -f aidbox-pdb.yaml
+Don't hardcode a `labelSelector` here. Leave it unset and the chart fills in its own `app.kubernetes.io/name` / `app.kubernetes.io/instance` selector labels for you: the chart's pods aren't labeled `service: aidbox`.
+{% endhint %}
+
+To keep a minimum number of replicas available during voluntary disruptions (node drains, cluster upgrades), enable the chart's built-in `PodDisruptionBudget`:
+
+```yaml
+podDisruptionBudget:
+  enabled: true
 ```
+
+By default this allows at most 1 unavailable replica (`maxUnavailable: 1`). To require a minimum instead, set `minAvailable` and clear `maxUnavailable` (the chart only applies one of the two):
+
+```yaml
+podDisruptionBudget:
+  enabled: true
+  minAvailable: 1
+  maxUnavailable: null
+```
+
+{% hint style="info" %}
+`podDisruptionBudget` is available starting with chart version 0.2.16.
+{% endhint %}
 
 Readiness, liveness, and startup probe tuning for multi-replica deployments is covered in [Highly Available Aidbox](highly-available-aidbox.md#configuration).
