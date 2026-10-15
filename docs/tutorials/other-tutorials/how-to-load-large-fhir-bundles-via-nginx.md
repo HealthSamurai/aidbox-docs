@@ -62,6 +62,8 @@ server {
 ```
 {% endtab %}
 {% tab title="Kubernetes Ingress" %}
+These annotations belong to the community [Ingress NGINX Controller](https://github.com/kubernetes/ingress-nginx), which Kubernetes SIG Network retired in March 2026. For new clusters, use the Gateway API tab.
+
 ```yaml
 apiVersion: networking.k8s.io/v1
 kind: Ingress
@@ -85,6 +87,34 @@ spec:
                 port:
                   number: 8080
 ```
+{% endtab %}
+{% tab title="Gateway API" %}
+The `HTTPRoute` timeout covers the whole request. The Gateway API has no standard field for the request body limit, so set it in your implementation's own policy resource (for example `ClientTrafficPolicy` in Envoy Gateway).
+
+```yaml
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: aidbox
+spec:
+  parentRefs:
+    - name: aidbox
+      sectionName: https
+  hostnames:
+    - aidbox.example.com
+  rules:
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /
+      backendRefs:
+        - name: aidbox
+          port: 8080
+      timeouts:
+        request: 300s
+```
+
+With the Aidbox Helm chart, set `route.main.timeouts.request` instead, see [Deploy Aidbox with Helm Charts](../../deployment-and-maintenance/deploy-aidbox/run-aidbox-in-kubernetes/deploy-aidbox-with-helm-charts.md).
 {% endtab %}
 {% endtabs %}
 

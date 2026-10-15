@@ -116,18 +116,59 @@ config:
   BOX_SETTINGS_MODE: read-write
   BOX_WEB_BASE_URL: <base-url>
   BOX_WEB_PORT: 8888
-  
+```
+You can find recomended variables [here](../../../configuration/recommended-envs.md)
+
+All Aidbox helm config values are [here](https://github.com/HealthSamurai/helm-charts/tree/main/aidbox).
+
+### 3. Expose Aidbox
+
+We recommend the [Kubernetes Gateway API](https://gateway-api.sigs.k8s.io/). With `route.main` enabled, the chart renders an `HTTPRoute` that points at the Aidbox service. The route takes its hostname from `host`, and the chart derives `BOX_WEB_BASE_URL` from `protocol` and `host`.
+
+The chart enables an `Ingress` with the `nginx` class by default, so set `ingress.enabled: false` when you use the Gateway API.
+
+{% hint style="warning" %}
+Do not use the community [Ingress NGINX Controller](https://github.com/kubernetes/ingress-nginx) (`kubernetes/ingress-nginx`) for new deployments. Kubernetes SIG Network retired the project: it receives no releases or security fixes after March 2026.
+{% endhint %}
+
+Add one of the following blocks to `aidbox-config.yaml`:
+
+{% tabs %}
+{% tab title="Gateway API (recommended)" %}
+Your cluster needs a Gateway API implementation and a `Gateway` with an HTTPS listener for the Aidbox host. See [Ingress](deploy-production-ready-aidbox-to-kubernetes.md#ingress) for a `Gateway` example with cert-manager.
+
+```yaml
+ingress:
+  enabled: false
+
+route:
+  main:
+    enabled: true
+    parentRefs:
+      - name: <your-gateway>
+        namespace: <gateway-namespace>
+        sectionName: https
+    timeouts:
+      request: 300s # raise for large bundles and bulk operations
+```
+
+If you run Multibox, list both the portal host and the box subdomains under `route.main.hostnames`, for example `[my.domain.tld, "*.my.domain.tld"]`.
+{% endtab %}
+
+{% tab title="Ingress" %}
+Use this option only with a maintained controller that implements the `Ingress` API.
+
+```yaml
 ingress:
   enabled: true
   className: <your-ingress-class>
   annotations:
     <ingress-controller-specific-annotations>
 ```
-You can find recomended variables [here](../../../configuration/recommended-envs.md)
+{% endtab %}
+{% endtabs %}
 
-All Aidbox helm config values are [here](https://github.com/HealthSamurai/helm-charts/tree/main/aidbox).
-
-### 3. Apply config
+### 4. Apply config
 
 ```bash
 helm upgrade --install aidbox healthsamurai/aidbox \

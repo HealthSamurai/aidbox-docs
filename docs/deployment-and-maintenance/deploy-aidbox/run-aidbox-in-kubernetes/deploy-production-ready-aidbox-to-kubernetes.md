@@ -11,6 +11,7 @@ Key infrastructure elements:
 * [Cluster configuration](deploy-production-ready-aidbox-to-kubernetes.md#cluster-configuration-and-tooling) — Node pool and tooling
 * [Database](deploy-production-ready-aidbox-to-kubernetes.md#database) — Cloud or self-managed database
 * [Aidbox](deploy-production-ready-aidbox-to-kubernetes.md#aidbox) — Aidbox installation
+* [Ingress](deploy-production-ready-aidbox-to-kubernetes.md#ingress) — Gateway API routing and TLS certificates
 * [Logging](deploy-production-ready-aidbox-to-kubernetes.md#logging) — Collect application and cluster logs
 * [Monitoring](deploy-production-ready-aidbox-to-kubernetes.md#monitoring) — Collect, alert, and visualize cluster and application metrics
 * [Security](deploy-production-ready-aidbox-to-kubernetes.md#extra) — Vulnerability scanning and policy management
@@ -275,28 +276,15 @@ spec:
 
 ## Ingress
 
-A Cluster must have an [ingress controller](https://kubernetes.io/docs/concepts/services-networking/ingress-controllers/) Installed.
+Expose Aidbox through the [Kubernetes Gateway API](https://gateway-api.sigs.k8s.io/). The cluster needs a Gateway API implementation installed, for example [Envoy Gateway](https://gateway.envoyproxy.io/), [Istio](https://istio.io/latest/docs/tasks/traffic-management/ingress/gateway-api/), [NGINX Gateway Fabric](https://github.com/nginx/nginx-gateway-fabric), [Traefik](https://doc.traefik.io/traefik/routing/providers/kubernetes-gateway/), or a cloud-managed option such as [Application Gateway for Containers](https://learn.microsoft.com/en-us/azure/application-gateway/for-containers/overview) on AKS or the [GKE Gateway controller](https://cloud.google.com/kubernetes-engine/docs/concepts/gateway-api). See the [list of conformant implementations](https://gateway-api.sigs.k8s.io/implementations/).
 
-Our recommendation is to use the [Kubernetes Ingress NGINX Controller](https://github.com/kubernetes/ingress-nginx). As an alternative, you can use [Traefik](https://github.com/traefik/traefik/).
-
-More additional information about Ingress in k8s can be found in this documentation — [Kubernetes Service Networking](https://kubernetes.io/docs/concepts/services-networking/ingress/)
-
-### Ingress NGINX controller
-
-Ingress-nginx — is an Ingress controller for Kubernetes using [NGINX](https://www.nginx.org/) as a reverse proxy and load balancer.
-
-{% code title="Install Ingress NGINX" %}
-```shell
-helm upgrade \
-  --install ingress-nginx ingress-nginx \
-  --repo https://kubernetes.github.io/ingress-nginx \
-  --namespace ingress-nginx --create-namespace
-```
-{% endcode %}
+{% hint style="warning" %}
+Do not use the community [Ingress NGINX Controller](https://github.com/kubernetes/ingress-nginx) (`kubernetes/ingress-nginx`) for new deployments. Kubernetes SIG Network retired the project: it receives no releases or security fixes after March 2026. If your cluster already runs a maintained controller that implements the `Ingress` API (for example Traefik or the F5 NGINX Ingress Controller), an `Ingress` resource still works for Aidbox.
+{% endhint %}
 
 ### CertManager
 
-To provide a secure HTTPS connection you can use paid SSL certificates, issued for your domain, or use LetsEncrypt-issued certificates. In the case of using LetsEcrypt, we recommend [installing and configuring Cert Manager](https://cert-manager.io/docs/installation/helm/) Operator
+To provide a secure HTTPS connection you can use paid SSL certificates, issued for your domain, or use LetsEncrypt-issued certificates. In the case of using LetsEncrypt, we recommend [installing and configuring Cert Manager](https://cert-manager.io/docs/installation/helm/) with [Gateway API support](https://cert-manager.io/docs/usage/gateway/) enabled.
 
 {% code title="Install Cert Manager" %}
 ```bash
@@ -306,13 +294,16 @@ helm install \
   cert-manager jetstack/cert-manager \
   --namespace cert-manager \
   --create-namespace \
-  --set crds.enabled=true
+  --set crds.enabled=true \
+  --set config.apiVersion=controller.config.cert-manager.io/v1alpha1 \
+  --set config.kind=ControllerConfiguration \
+  --set config.enableGatewayAPI=true
 ```
 {% endcode %}
 
 Configure Cluster Issuer:
 
-{% code title="" lineNumbers="true" %}
+{% code title="Cluster Issuer" lineNumbers="true" %}
 ```yaml
 apiVersion: cert-manager.io/v1
 kind: ClusterIssuer
@@ -321,61 +312,88 @@ metadata:
 spec:
   acme:
     email: hello@my-domain.com
-    preferredChain: ''
     privateKeySecretRef:
       name: issuer-key
     server: https://acme-v02.api.letsencrypt.org/directory
     solvers:
       - http01:
-          ingress:
-            class: nginx  # Ingress class name
+          gatewayHTTPRoute:
+            parentRefs:
+              - name: aidbox
+                namespace: prod
+                kind: Gateway
 ```
 {% endcode %}
 
 {% hint style="info" %}
-If you use Multibox image and want to use cert manger — you should configure DNS01 authorization to provide wildcard certificates
-
-[https://letsencrypt.org/docs/challenge-types/#dns-01-challenge](https://letsencrypt.org/docs/challenge-types/#dns-01-challenge)
+If you use the Multibox image, configure a DNS-01 solver instead to issue a wildcard certificate for the cluster domain: [DNS-01 challenge](https://letsencrypt.org/docs/challenge-types/#dns-01-challenge).
 {% endhint %}
 
-### Ingress resource
+### Gateway
 
-Now you can create k8s `Ingress` for Aidbox deployment
+The `cert-manager.io/cluster-issuer` annotation tells cert-manager to issue a certificate for every HTTPS listener and store it in the secret from `certificateRefs`. Set `gatewayClassName` to the class your Gateway API implementation provides.
 
-{% code title="Ingress" lineNumbers="true" %}
+{% code title="Gateway" lineNumbers="true" %}
 ```yaml
-apiVersion: networking.k8s.io/v1
-kind: Ingress
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
 metadata:
   name: aidbox
   namespace: prod
   annotations:
-    acme.cert-manager.io/http01-ingress-class: nginx
     cert-manager.io/cluster-issuer: letsencrypt
-    kubernetes.io/ingress.class: nginx
 spec:
-  tls:
-    - hosts:
-        - my.box.url
-      secretName: aidbox-tls
-  rules:
-    - host: my.box.url
-      http:
-        paths:
-          - path: /
-            pathType: ImplementationSpecific
-            backend:
-              service:
-                name: aidbox
-                port:
-                  number: 80
+  gatewayClassName: <your-gateway-class>
+  listeners:
+    - name: http
+      protocol: HTTP
+      port: 80
+      hostname: my.box.url
+    - name: https
+      protocol: HTTPS
+      port: 443
+      hostname: my.box.url
+      tls:
+        mode: Terminate
+        certificateRefs:
+          - name: aidbox-tls
 ```
 {% endcode %}
 
-Now you can test ingress
+### HTTPRoute
+
+Route traffic from the HTTPS listener to the Aidbox service. Raise the request timeout if you load large bundles or run bulk operations, see [How to load large FHIR bundles](../../../tutorials/other-tutorials/how-to-load-large-fhir-bundles-via-nginx.md).
+
+{% code title="HTTPRoute" lineNumbers="true" %}
+```yaml
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: aidbox
+  namespace: prod
+spec:
+  parentRefs:
+    - name: aidbox
+      sectionName: https
+  hostnames:
+    - my.box.url
+  rules:
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /
+      backendRefs:
+        - name: aidbox
+          port: 80
+      timeouts:
+        request: 300s
+```
+{% endcode %}
+
+Now you can test the route
 
 ```bash
-curl https://my.box.url
+curl https://my.box.url/health
 ```
 
 ## Logging
