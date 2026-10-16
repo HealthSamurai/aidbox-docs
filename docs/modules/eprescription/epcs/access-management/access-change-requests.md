@@ -83,11 +83,7 @@ A request that grants `epcs-prescribing` is a **prescribing nomination**.
 Its nominee must be [DEA-qualified](#dea-qualification) at the location.
 An administrator may nominate themselves.
 
-Any approver at the location except the requester can approve it through [second-person approval](#second-person-approval).
-That includes the nominee, so an approver can approve their own prescribing nomination when another administrator requested it.
-
-The module accepts a prescribing nomination even when no approver at the location can approve it.
-Without an approval, it [expires](#expiration) after 48 hours.
+Any approver at the location other than the requester can approve it through [second-person approval](#second-person-approval), including the nominee.
 
 ### Sole Approver Removal
 
@@ -126,7 +122,6 @@ There, the nominee of an approver nomination accepts it with their own two-facto
 ### Second-Person Approval
 
 A DEA-qualified approver at the location approves the request with their two-factor code.
-The approver does not need the EPCS prescribing permission.
 The approver cannot be the requester.
 They cannot be the target either, except as the nominee of a [prescribing nomination](#prescribing-nomination).
 
