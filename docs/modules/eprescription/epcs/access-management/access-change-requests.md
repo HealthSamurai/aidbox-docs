@@ -143,7 +143,7 @@ Errors:
 * `400`: `twoFactorCode` is not a string.
 * `403`: the request has no [acting user](configure-access-policies.md#acting-user), or the caller may not approve this request in any of the three ways.
 * `409`: another call changed the request or the location's roles at the same time. Reload the request and retry.
-* `422`: the request does not exist, is resolved or expired, the code is blank, the user already holds the granted permission or lacks the revoked one, or the nominee of an approver or prescribing nomination is not DEA-qualified.
+* `422`: the request does not exist, is resolved or expired, the two-factor code is missing, the user already holds the granted permission or lacks the revoked one, or the nominee of an approver or prescribing nomination is not DEA-qualified.
 
 </details>
 
