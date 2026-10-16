@@ -5,6 +5,7 @@ description: List your own EPCS access permissions and the permissions at the lo
 # List Permissions
 
 Access permissions come from [bootstrapping the first administrator](bootstrap-the-first-administrator.md) and from approved [access-change requests](access-change-requests.md).
+Each access permission is an access manager role or the EPCS prescribing permission, and its `permission` field holds `epcs-access-admin`, `epcs-access-approver`, or `epcs-prescribing`.
 A revocation deletes the permission, so a listing shows only the permissions in force.
 Without an [acting user](configure-access-policies.md#acting-user), both listings return `403`.
 
