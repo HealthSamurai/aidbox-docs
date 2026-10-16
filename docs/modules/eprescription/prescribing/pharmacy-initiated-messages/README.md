@@ -278,3 +278,36 @@ POST /eprescription/rx/respond-to-renewal
 
 HTTP response with status 202 designates that the response was successfully transitioned to Surescripts.
 Surescripts response is reflected in extensions for status and status reason.
+
+## Response prescription
+
+When the prescriber's decision lets the pharmacy fill a prescription, the ePrescription module creates a separate **MedicationRequest** for it: the response prescription.
+The response prescription holds the medication, dosage, and dispense data the prescriber authorized.
+
+Decisions that create a response prescription:
+
+| decision            | RxRenewalResponse | RxChangeResponse |
+|---------------------|-------------------|------------------|
+| Approved            | ✓                 | ✓                |
+| ApprovedWithChanges | ✓                 | ✓                |
+| Replace             | ✓                 |                  |
+| Validated           |                   | ✓                |
+
+`Denied` and `Pending` create no response prescription.
+
+The response prescription references the request it answers in `MedicationRequest.basedOn`.
+Search by `based-on` to find it:
+
+```http
+GET /fhir/MedicationRequest?based-on=MedicationRequest/your-medication-request-id
+```
+
+The search returns an empty bundle when the decision created no response prescription.
+
+To load requests together with their response prescriptions in one call, add `_revinclude` to the search for requests:
+
+```http
+GET /fhir/MedicationRequest?rxRenewalStatus=active&_revinclude=MedicationRequest:based-on
+```
+
+The bundle marks the requests with `search.mode` `match` and the response prescriptions with `search.mode` `include`.
