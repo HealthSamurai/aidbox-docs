@@ -44,9 +44,3 @@ The module decides whether CancelRx cancels the prescription or discontinues it 
 * Cancel: no RxFill notification reports dispensing.
 
 Dispense records created by your EHR do not affect this choice.
-
-### Error Responses
-
-Errors return an `OperationOutcome`:
-
-* `422 Unprocessable Entity`, `ambiguous-dispensing-history`: an RxFill notification may belong to this prescription or to another one, so the module cannot choose between Cancel and Discontinue. CancelRx is not sent.
