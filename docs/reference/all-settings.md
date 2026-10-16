@@ -816,6 +816,7 @@ BOX_SECURITY_CORS_ORIGINS: "*"
 ```
 
 Comma separated list of origins `[schema]://[domain]:[port]`
+Use `*` as the leftmost label to allow any subdomain, e.g. `https://*.portal.example.com` for Multibox with per-tenant subdomains: it allows `https://acme.portal.example.com` and `https://a.b.portal.example.com`, but not `https://portal.example.com`
 Default is wildcard value `"*"` 
 
 <details><summary>Details</summary><table data-header-hidden="true"><thead><tr><th width="200"></th><th></th></tr></thead><tbody><tr><td>ID</td><td><code>security.cors.origins</code></td></tr><tr><td>Type</td><td>String</td></tr><tr><td>Default value</td><td><code>*</code></td></tr><tr><td>Environment variable</td><td><code>BOX_SECURITY_CORS_ORIGINS</code></td></tr><tr><td>Deprecated environment variables</td><td><code>BOX_WEB_CORS_ORIGINS</code></td></tr><tr><td>Sensitive</td><td><code>false</code> — value will be visible in plaintext in Admin UI</td></tr><tr><td>Set via</td><td>Admin UI → Settings<br />Environment variables</td></tr><tr><td>Hot reload</td><td><code>true</code> — setting can be changed at runtime</td></tr></tbody></table></details>
@@ -1629,6 +1630,16 @@ BOX_MODULE_SDC_DTR_CLIENT_SECRET: "<String>"
 OAuth2 client secret used to call the external DTR service set in SDCConfig.dtr-service. The value in the config wins over this setting.
 
 <details><summary>Details</summary><table data-header-hidden="true"><thead><tr><th width="200"></th><th></th></tr></thead><tbody><tr><td>ID</td><td><code>module.sdc.dtr.client-secret</code></td></tr><tr><td>Type</td><td>String</td></tr><tr><td>Default value</td><td>(no default)</td></tr><tr><td>Environment variable</td><td><code>BOX_MODULE_SDC_DTR_CLIENT_SECRET</code></td></tr><tr><td>Deprecated environment variables</td><td><code>BOX_SDC_DTR_CLIENT_SECRET</code></td></tr><tr><td>Available from</td><td><code>2609</code></td></tr><tr><td>Sensitive</td><td><code>true</code> — value will be masked in Admin UI</td></tr><tr><td>Set via</td><td>Environment variables</td></tr><tr><td>Hot reload</td><td><code>true</code> — setting can be changed at runtime</td></tr></tbody></table></details>
+
+#### Da Vinci DTR IG version<a href="#module.sdc.dtr.ig-version" id="module.sdc.dtr.ig-version"></a>
+
+```yaml
+BOX_MODULE_SDC_DTR_IG_VERSION: "2.2.0"
+```
+
+Version of the Da Vinci DTR IG the $questionnaire-package response follows. The IG renamed the bundle output parameter in every release: 2.0.1 'return', 2.1.0 'PackageBundle', 2.2.0 'packagebundle'.
+
+<details><summary>Details</summary><table data-header-hidden="true"><thead><tr><th width="200"></th><th></th></tr></thead><tbody><tr><td>ID</td><td><code>module.sdc.dtr.ig-version</code></td></tr><tr><td>Type</td><td>String</td></tr><tr><td>Default value</td><td><code>2.2.0</code></td></tr><tr><td>Environment variable</td><td><code>BOX_MODULE_SDC_DTR_IG_VERSION</code></td></tr><tr><td>Deprecated environment variables</td><td><code>BOX_SDC_DTR_IG_VERSION</code></td></tr><tr><td>Available from</td><td><code>2610</code></td></tr><tr><td>Sensitive</td><td><code>false</code> — value will be visible in plaintext in Admin UI</td></tr><tr><td>Set via</td><td>Admin UI → Settings<br />Environment variables</td></tr><tr><td>Hot reload</td><td><code>true</code> — setting can be changed at runtime</td></tr></tbody></table></details>
 
 ### GraphQL
 
