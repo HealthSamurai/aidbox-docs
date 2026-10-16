@@ -22,7 +22,7 @@ There is no one-click migration tool. Plan the migration in stages: map your con
 
 * **Match your FHIR version.** Note which FHIR version your HAPI server runs (R4, R4B, or R5) and provision your Aidbox instance with the same version.
 * **Inventory custom content.** List every custom `StructureDefinition`, `SearchParameter`, and `Subscription` your HAPI deployment defines. Each has a direct but not identical equivalent in Aidbox, covered below.
-* **Check your interceptors.** HAPI deployments often carry custom Java interceptors for validation, authorization, or request rewriting. Aidbox replaces most of these with declarative configuration (access policies, StructureDefinition-based validation) rather than code, so plan to reimplement interceptor logic as configuration.
+* **Check your interceptors.** HAPI deployments often carry custom Java interceptors for validation, authorization, auditing, or request rewriting. List what each one does: most map to Aidbox configuration, and the rest move to an App. See [Migrate interceptors](#migrate-interceptors).
 * **Have a rollback plan.** Keep your HAPI instance and its database running read-only until you've verified the Aidbox instance in production.
 
 {% hint style="info" %}
@@ -76,6 +76,90 @@ HAPI authorization interceptors don't carry over as code. Reimplement your autho
 {% content-ref url="../../access-control/authorization/smart-on-fhir/README.md" %}
 [README.md](../../access-control/authorization/smart-on-fhir/README.md)
 {% endcontent-ref %}
+
+## Migrate interceptors
+
+A HAPI interceptor is a hook, so there is no one place in Aidbox to move it to. Look at the job each interceptor does and move that job to the Aidbox feature built for it. Most interceptors map to configuration. The rest become an [App](#custom-logic-aidbox-apps).
+
+| What the HAPI interceptor does | Where it goes in Aidbox |
+| --- | --- |
+| `AuthorizationInterceptor`: allow or deny requests by user, client, or resource | [Access policies](../../access-control/authorization/access-policies.md) and [SMART on FHIR](../../access-control/authorization/smart-on-fhir/README.md) scopes |
+| `SearchNarrowingInterceptor`: limit a user to their own patients, compartment, or organization | Access policies with the [Compartments API](../../access-control/authorization/scoped-api/compartments-api.md) or [organization-based access control](../../access-control/authorization/scoped-api/organization-based-hierarchical-access-control/README.md). See the [example below](#example-limit-a-patient-to-their-own-data). |
+| `ConsentInterceptor`: hide resources or elements based on patient consent | [Consent-based access control](../security-access-control-tutorials/how-to-implement-consent-based-access-control-using-fhir-search-and-aidbox-access-policy.md) and [label-based access control](../../access-control/authorization/label-based-access-control.md) with element masking |
+| A custom interceptor that writes `AuditEvent` resources, or `BalpAuditCaptureInterceptor` | Built-in [BALP audit logging](../../access-control/audit-and-logging.md): Aidbox produces `AuditEvent` resources, stores them, or sends them to an external audit record repository |
+| `RequestValidatingInterceptor` or `RepositoryValidatingInterceptor` | [Profile validation](../../modules/profiling-and-validation/README.md) against the StructureDefinitions you load. Aidbox validates every write by default. |
+| A `STORAGE_PRECOMMIT_RESOURCE_*` hook that pushes changes to Kafka, a queue, or a webhook | [Topic-based subscriptions](../../modules/topic-based-subscriptions/aidbox-topic-based-subscriptions.md) with a destination such as Kafka, webhook, or GCP Pub/Sub |
+| `LoggingInterceptor` | [Observability](../../modules/observability/README.md): structured logs and metrics |
+| `RequestTenantPartitionInterceptor` and other multitenancy hooks | [Organization-based access control](../../access-control/authorization/scoped-api/organization-based-hierarchical-access-control/README.md) or [Multibox](../../configuration/configure-aidbox-and-multibox.md) |
+| A custom operation or endpoint | [Apps](../../developer-experience/apps.md) or [AidboxQuery](../../api/rest-api/aidbox-search.md#aidboxquery) for SQL-backed endpoints |
+| Anything else: enriching resources on write, business rules, calls to external systems | [Apps](#custom-logic-aidbox-apps) |
+
+### Example: limit a patient to their own data
+
+In HAPI, a patient-facing app often runs a `SearchNarrowingInterceptor` (paired with an `AuthorizationInterceptor`) that finds the caller's patient and restricts every request to that patient's compartment:
+
+```java
+public class PatientNarrowingInterceptor extends SearchNarrowingInterceptor {
+  @Override
+  protected AuthorizedList buildAuthorizedList(RequestDetails theRequestDetails) {
+    String patientId = findCallerPatientId(theRequestDetails);
+    return new AuthorizedList().addCompartments("Patient/" + patientId);
+  }
+}
+```
+
+In Aidbox, link the `User` to the patient through `User.fhirUser` and create one access policy:
+
+```yaml
+resourceType: AccessPolicy
+id: patient-own-data
+engine: matcho
+link:
+  - reference: Operation/FhirRead
+  - reference: Operation/FhirCompartmentSearch
+matcho:
+  params:
+    resource/type: Patient
+    resource/id: .user.fhirUser.id
+```
+
+The policy lets the user read their own `Patient` resource and search their own compartment. For a user whose `fhirUser` is `Patient/p1`:
+
+```http
+GET /fhir/Patient/p1               # 200
+GET /fhir/Patient/p1/Observation   # 200, only Observations of p1
+GET /fhir/Patient/p2/Observation   # 403
+GET /fhir/Observation              # 403
+```
+
+HAPI rewrites an unscoped search such as `GET /Observation` and adds the patient filter for you. Aidbox rejects it, so point your client at the compartment URL `/fhir/Patient/<id>/<type>`. If your users belong to organizations rather than patients, use [organization-based access control](../../access-control/authorization/scoped-api/organization-based-hierarchical-access-control/README.md), which scopes the whole FHIR API to the user's organization. For more patterns, see [Access policies examples](../security-access-control-tutorials/accesspolicy-examples.md).
+
+### Custom logic: Aidbox Apps
+
+Interceptors that change data on the way in, apply business rules, or call other systems move to an [App](../../developer-experience/apps.md). An App is your own HTTP service, written in any language. You register it in Aidbox with the endpoints it handles, and Aidbox proxies matching requests to it. The service gets the request with the parsed resource, the user, and the client, runs your code, and writes to Aidbox through the REST API.
+
+For example, a HAPI interceptor that tags new patients and assigns an MRN on create becomes a `$register` operation:
+
+```yaml
+PUT /App/myorg.registration
+content-type: text/yaml
+
+resourceType: App
+apiVersion: 1
+type: app
+endpoint:
+  type: http-rpc
+  url: https://registration.myorg.internal
+  secret: <app-secret>
+operations:
+  register-patient:
+    method: POST
+    path: ['fhir', 'Patient', '$register']
+```
+
+Clients send `POST /fhir/Patient/$register` with the Patient in the body. Your service adds the tag and the identifier, creates the resource with `POST /fhir/Patient`, and returns the result. Access policies apply to App operations like to any other endpoint, so you control who can call them.
+
+The same pattern covers what teams build with interceptors in HAPI: an MPI lookup before create, a custom `$everything`, derived resources written next to the original, or a call to a billing or scheduling system. You keep the logic in your own codebase and deploy it on its own schedule, separate from Aidbox upgrades.
 
 ## Migrate terminology
 
@@ -194,7 +278,7 @@ Browse the complete list of Aidbox capabilities.
 * [ ] Custom resources recreated using StructureDefinition
 * [ ] Custom search parameters recreated
 * [ ] Subscriptions rebuilt as Aidbox topic-based subscriptions
-* [ ] Access policies written to replace HAPI interceptors
+* [ ] Each HAPI interceptor mapped to access policies, audit, validation, subscriptions, or an App
 * [ ] Terminology resources migrated or external terminology server repointed
 * [ ] Data exported from HAPI and imported into Aidbox in a trial run
 * [ ] Imported data validated against your target StructureDefinitions
