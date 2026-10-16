@@ -123,7 +123,8 @@ BOX_DB_DATABRICKS_SCOPE=all-apis
 {% endtab %}
 {% tab title="Autoscaling" %}
 ```shell
-BOX_DB_HOST=<project-id>.database.cloud.databricks.com
+# Endpoint host: databricks postgres get-endpoint <endpoint> -o json | jq -r .status.hosts.host
+BOX_DB_HOST=ep-<name>.database.<region>.cloud.databricks.com
 BOX_DB_PORT=5432
 BOX_DB_DATABASE=databricks_postgres
 BOX_DB_USER=<client-id>
@@ -146,3 +147,5 @@ BOX_DB_DATABRICKS_SCOPE=all-apis
 [`BOX_DB_DATABRICKS_SCOPE`](../../reference/all-settings.md#db.databricks-scope) defaults to `all-apis`. Do not change unless you know your workspace requires a different scope.
 The same auth settings are available for the read-only replica with the `BOX_DB_RO_REPLICA_*` prefix (e.g. `BOX_DB_RO_REPLICA_AUTH_METHOD`, `BOX_DB_RO_REPLICA_DATABRICKS_HOST`, etc.).
 {% endhint %}
+
+To move an existing Aidbox database to Lakebase, see [Migrate from PostgreSQL to Databricks Lakebase](../../tutorials/other-tutorials/migrate-from-postgresql-to-databricks-lakebase.md).
