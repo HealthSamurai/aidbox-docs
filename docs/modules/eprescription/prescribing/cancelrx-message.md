@@ -19,7 +19,7 @@ To send a CancelRx message, follow these steps:
 
 #### Required FHIR Resources
 
-CancelRx requires the same FHIR resources as [NewRx](newrx-message.md) message, with identical validation rules and required fields. In addition, the `medication-request-new-rx-status` extension of the MedicationRequest **must be "active" or "completed"**.
+CancelRx requires the same FHIR resources as [NewRx](newrx-message.md) message, with identical validation rules and required fields. In addition, the MedicationRequest `medication-request-new-rx-status` extension must be `active` or `completed`.
 
 ### Status Management
 
@@ -38,9 +38,7 @@ It's expected to get a response from pharmacy within 48 hours. If no response is
 
 ### Cancel or Discontinue
 
-The module decides whether CancelRx cancels the prescription or discontinues it after dispensing. It uses the RxFill notifications the pharmacy sent for this prescription:
+CancelRx sets `ChangeOfPrescriptionStatusCode` from the prescription's RxFill notification history:
 
-* Discontinue: the pharmacy reported full or partial dispensing.
-* Cancel: no RxFill notification reports dispensing.
-
-Dispense records created by your EHR do not affect this choice.
+* `D` (Discontinue): an RxFill notification reports full or partial dispensing.
+* `C` (Cancel): no RxFill notification reports dispensing.
