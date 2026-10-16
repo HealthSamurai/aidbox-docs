@@ -81,10 +81,13 @@ To appoint a new administrator after that, use [Bootstrap the First Administrato
 
 A request that grants `epcs-prescribing` is a **prescribing nomination**.
 Its nominee must be [DEA-qualified](#dea-qualification) at the location.
-An administrator may nominate themselves, and an approver other than that administrator must [approve](#second-person-approval) the nomination.
+An administrator may nominate themselves.
 
-The module accepts a prescribing nomination even when the location has no approver who could approve it.
-Unless an approver approves it within 48 hours, the nomination [expires](#expiration).
+Any approver at the location except the requester can approve it through [second-person approval](#second-person-approval).
+That includes the nominee, so an approver can approve their own prescribing nomination when another administrator requested it.
+
+The module accepts a prescribing nomination even when no approver at the location can approve it.
+Without an approval, it [expires](#expiration) after 48 hours.
 
 ### Sole Approver Removal
 
@@ -125,7 +128,7 @@ There, the nominee of an approver nomination accepts it with their own two-facto
 A DEA-qualified approver at the location approves the request with their two-factor code.
 The approver does not need the EPCS prescribing permission.
 The approver cannot be the requester.
-They cannot be the target either, except as the nominee of a [prescribing nomination](#prescribing-nomination): a nominee who is an approver at the location may approve their own prescribing nomination, whether or not the location has other approvers.
+They cannot be the target either, except as the nominee of a [prescribing nomination](#prescribing-nomination).
 
 ### Pending Sole Approver Revocation
 
@@ -177,7 +180,7 @@ GET /e-prescription/access/epcs/requests?location=<Location id>&status=pending
 
 `200 OK` returns a searchset `Bundle` with:
 
-* Requests at locations where the [acting user](configure-access-policies.md#acting-user) is an access manager. The EPCS prescribing permission alone does not count.
+* Requests at locations where the [acting user](configure-access-policies.md#acting-user) is an access manager.
 * Requests that name the acting user as the target.
 
 Optional filters:
