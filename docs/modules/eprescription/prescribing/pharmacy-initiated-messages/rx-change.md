@@ -391,15 +391,3 @@ specialty:
     text: Family Medicine
 ...
 ```
-
-## Fill notifications
-
-To choose which fill events the pharmacy reports, add `RxFillIndicator` values to the response `MedicationRequest`:
-
-```yaml
-extension:
-  - url: http://aidbox.app/ePrescription/FHIRSchema/medication-request-rx-fill-indicator
-    valueCode: All
-```
-
-For a prior authorization approval (**MessageRequestCode** `P` with the `approved` decision), the module leaves out `RxFillIndicator` while an [RxFillIndicatorChange](../rx-fill-indicator-change.md) of the same prescription is pending. In that case it does not validate the values on the `MedicationRequest`, so invalid values do not block the approval.
