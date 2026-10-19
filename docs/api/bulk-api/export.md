@@ -828,3 +828,79 @@ Each exported Patient keeps only `given` inside `name`, dropping `family` and ev
 {% hint style="warning" %}
 When the `fhir.bulk-data.export.nested-elements` setting is disabled (the default), a request that contains a nested `_elements` path is rejected at kickoff with `400 Bad Request` and an `OperationOutcome` describing the offending paths. Root-level and qualified-root forms (`name`, `Patient.name`) are always allowed.
 {% endhint %}
+
+## Offloaded base64Binary data
+
+{% hint style="info" %}
+Available since version 2610.
+{% endhint %}
+
+With [base64Binary offload](../../configuration/storage-and-api-configuration/offload-base64binary-to-external-storage.md) configured, the database keeps a blob location in place of each offloaded value. `$export` includes the offloaded data itself: for every exported resource type that has offloaded values, Aidbox streams the blobs into an archive and uploads it to the export folder next to the type's ndjson file.
+
+* The archive is a gzipped tar named `<Type>_offloaded_data.tar.gz`, for example `DocumentReference_offloaded_data.tar.gz`. Aidbox gzips it whatever the output format.
+* Each archive entry is one blob holding the raw decoded bytes. The entry is named after the last segment of the blob location.
+* In the exported resources, the `location` sub-extension of the [offload extension](../../configuration/storage-and-api-configuration/offload-base64binary-to-external-storage.md#how-it-works) points into the archive as `file://<Type>_offloaded_data/<entry-name>`. The element value stays absent, and the `hash` sub-extension is kept, so you can verify each entry.
+* The type's `output` entry carries a `bulkexportstatus-offloadedData` extension with the signed `url` of the archive and the `count` of files in it.
+
+Aidbox uploads no archive and adds no extension when none of the exported resources of a type has offloaded data, including when `_elements` leaves the offloaded element out.
+
+This works at patient, group, and system level, for both the FHIR (`/fhir/...`) and the Aidbox format.
+
+{% tabs %}
+{% tab title="BulkExportStatus on completion" %}
+```json
+{
+  "status": "completed",
+  "output": [
+    {
+      "type": "DocumentReference",
+      "url": "https://storage/<folder>/DocumentReference.ndjson?<signature>",
+      "count": 3,
+      "extension": [
+        {
+          "url": "http://health-samurai.io/fhir/core/StructureDefinition/bulkexportstatus-offloadedData",
+          "extension": [
+            { "url": "url", "valueUrl": "https://storage/<folder>/DocumentReference_offloaded_data.tar.gz?<signature>" },
+            { "url": "count", "valueInteger": 2 }
+          ]
+        }
+      ]
+    }
+  ],
+  "error": []
+}
+```
+{% endtab %}
+
+{% tab title="Exported resource" %}
+```json
+{
+  "resourceType": "DocumentReference",
+  "id": "doc-1",
+  "status": "current",
+  "content": [
+    {
+      "attachment": {
+        "contentType": "text/plain",
+        "_data": {
+          "extension": [
+            {
+              "url": "http://health-samurai.io/fhir/core/data-offloaded-to-external-storage",
+              "extension": [
+                { "url": "hash", "valueString": "Kq5sNclPz7QV2+lfQIuc6R7oRu0=" },
+                { "url": "location", "valueString": "file://DocumentReference_offloaded_data/4f1f61a2-9e3b-4b0e-bb1d-6a1a1c2f7e58" }
+              ]
+            }
+          ]
+        }
+      }
+    }
+  ]
+}
+```
+{% endtab %}
+{% endtabs %}
+
+To restore a resource, extract the archive, read the entry named in `location`, base64-encode its bytes into the element value, and remove the offload extension.
+
+If Aidbox can't read a blob, for example because someone deleted it from the storage, or can't write the archive, the whole export fails: the status is `error` and the `urn:url:extension:BulkExportStatus.internal-error` extension holds the message.

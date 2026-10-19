@@ -384,6 +384,7 @@ Content-Type: application/json
 
 * Offload runs on the FHIR REST create (`POST`) and update (`PUT`) interactions, and on the entries of transaction bundles. When a transaction fails, its blobs never become visible in the storage. Conditional update and PATCH store the data inline.
 * Aidbox restores data on instance read and version read. Search and history responses return the stored form: the element is absent and the extension holds the location.
+* [`$export`](../../api/bulk-api/export.md#offloaded-base64binary-data) puts the offloaded data of each resource type into a `<Type>_offloaded_data.tar.gz` archive next to the ndjson file and points the `location` of each exported resource at its archive entry. A blob that can't be read fails the export.
 * When the upload to the external storage fails, the request fails with a `500` `OperationOutcome` and the resource is not written. When the download fails on read, the request fails with a `500` `OperationOutcome` as well.
 * A configured element whose value is not valid base64 fails the write with `422`.
 * Aidbox does not delete blobs. Deleting a resource leaves its blob in the storage, and updating a resource uploads a new blob while the old one stays.
@@ -393,6 +394,7 @@ Content-Type: application/json
 
 * [Storage and API configuration](README.md)
 * [Binary resource](../../api/rest-api/other/binary.md)
+* [$export](../../api/bulk-api/export.md#offloaded-base64binary-data)
 * [Azure Blob Storage](../../file-storage/azure-blob-storage.md)
 * [AWS S3](../../file-storage/aws-s3.md)
 * [GCP Cloud Storage](../../file-storage/gcp-cloud-storage.md)
