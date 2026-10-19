@@ -5,12 +5,10 @@ On every start, before it serves requests, the module uploads its version of the
 
 ## Fix a Failed Package Check
 
-Follow these steps when the module log reports that the installed package fails the check.
-
-To delete the versions with the [`$fhir-package-uninstall`](../../reference/package-registry-api.md#usdfhir-package-uninstall) operation:
+If the module log reports that the installed package fails the check, you need to delete all package versions from Aidbox:
 
 1. List the installed versions of `io.healthsamurai.e-prescription`, for example in the [Artifact Registry web interface](../../artifact-registry/artifact-registry-overview.md#access-via-web-interface).
-2. Call the operation with admin credentials, such as the `root` client.
+2. Call the [`$fhir-package-uninstall`](../../reference/package-registry-api.md#usdfhir-package-uninstall) operation with admin credentials, such as the `root` client.
    The module's `ePrescription-app` client gets `403 Forbidden`.
    Pass each version as its own `package` parameter in the `<name>@<version>` format:
 
