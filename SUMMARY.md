@@ -425,6 +425,7 @@
     * [Setup SMTP provider](modules/integration-toolkit/email-providers/setup-smtp-provider.md)
 * [ePrescription](modules/eprescription/README.md)
   * [Getting Started](modules/eprescription/getting-started.md)
+  * [FHIR Package Installation](modules/eprescription/fhir-package-installation.md)
   * [Authentication with mTLS](modules/eprescription/authentication-with-mtls.md)
   * [Pharmacies Synchronization](modules/eprescription/pharmacies-synchronization.md)
   * [Prescribing](modules/eprescription/prescribing/README.md)

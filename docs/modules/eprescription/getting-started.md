@@ -85,49 +85,7 @@ Create the application using the provided resource definition. To do that, simpl
 ## FHIR Package Installation
 
 The module stores its FHIR definitions, such as extensions, custom resources, and search parameters, in the `io.healthsamurai.e-prescription` package.
-On every start, before it serves requests, the module uploads its version of the package to Aidbox unless Aidbox already has it, checks that Aidbox serves that version, and deletes the other versions of the package.
-
-If the upload or the check fails, the module tries again, up to 5 attempts 30 seconds apart, and then stops with an error.
-Other versions of the package stay in Aidbox until the check passes.
-
-### Fix a Failed Package Check
-
-The module does not reinstall a version that Aidbox already has, so retries cannot repair it.
-When that version fails the check, the error log names the version, the failed check, and the fix: delete all versions of `io.healthsamurai.e-prescription` in Aidbox, then restart the module.
-
-To delete the versions with the [`$fhir-package-uninstall`](../../reference/package-registry-api.md#usdfhir-package-uninstall) operation:
-
-1. List the installed versions of `io.healthsamurai.e-prescription`, for example in the [Artifact Registry web interface](../../artifact-registry/artifact-registry-overview.md#access-via-web-interface).
-2. Call the operation with admin credentials, such as the `root` client.
-   The module's `ePrescription-app` client gets `403 Forbidden`.
-   Pass each version as its own `package` parameter in the `<name>@<version>` format:
-
-   ```http
-   POST /fhir/$fhir-package-uninstall
-   Content-Type: application/json
-
-   {
-     "resourceType": "Parameters",
-     "parameter": [
-       { "name": "package", "valueString": "io.healthsamurai.e-prescription@0.16.19" },
-       { "name": "package", "valueString": "io.healthsamurai.e-prescription@0.16.20" }
-     ]
-   }
-   ```
-3. Check that the response reports `status: deleted` for every version.
-   A call that passes only the package name, without a version, returns `200` with `result: false` and deletes nothing.
-4. Restart the module. It installs its version of the package from scratch.
-
-You can delete the versions in the Artifact Registry web interface instead.
-
-If the log reports `401` or `403` for a search of a custom resource, the AccessPolicy of the module's client does not allow that resource type.
-Update the App definition with the resource definitions our team provides, as in [Create an Application](#create-an-application), then restart the module.
-
-### Upgrade Aidbox to 2609 or Later
-
-Aidbox 2609.0 and later do not serve the module's custom resources from package versions before `0.17.0`.
-Before you upgrade Aidbox to 2609.0 or later, update the module to a version that installs package `0.17.0` or later.
-On its next start, the module replaces the old package version, and stored records need no conversion.
+To learn how the module installs the package and how to fix a failed installation, see [FHIR Package Installation](fhir-package-installation.md).
 
 ## Verify Setup with API Endpoints
 
