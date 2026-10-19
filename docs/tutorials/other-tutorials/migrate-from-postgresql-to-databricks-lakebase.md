@@ -8,6 +8,8 @@ This tutorial moves an existing Aidbox database from a self-hosted PostgreSQL to
 
 {% hint style="warning" %}
 Aidbox 2608 and later fail to start with `BOX_DB_AUTH_METHOD=databricks-autoscale` or `databricks-provisioned`: the main connection pool sends `BOX_DB_PASSWORD` instead of the OAuth token, and Lakebase rejects it with `Provided authentication token is not a valid JWT encoding`. Use Aidbox 2607 or earlier until a release with the fix is available.
+
+The ClickHouse topic destination can't run its initial export under Databricks authentication: it passes the database password to ClickHouse, and that password is the `BOX_DB_PASSWORD` placeholder.
 {% endhint %}
 
 ## Objectives
@@ -259,11 +261,42 @@ docker compose up -d aidbox
 curl -fsS http://localhost:8080/health
 ```
 
-Aidbox fetches a token for the service principal, caches it for 45 minutes and rotates pool connections before the token expires. Read replicas take the same settings with the `BOX_DB_RO_REPLICA_` prefix.
+Aidbox fetches a token for the service principal, caches it for 45 minutes and rotates pool connections before the token expires.
+
+With the default `BOX_DB_POOL_MINIMUM_IDLE=0`, the pool closes every connection after an idle period, and the first request afterwards waits while Aidbox reconnects and reloads its caches. Set [`BOX_DB_POOL_MINIMUM_IDLE`](../../reference/all-settings.md#db.pool.minimum-idle) above zero to keep connections open.
 
 {% hint style="info" %}
 Run Aidbox in the same cloud region as the Lakebase project. Each FHIR request makes several SQL round trips, and with a cross-region network every round trip adds the full network latency to the response time.
 {% endhint %}
+
+### Add a read replica (optional)
+
+A read-only endpoint on the same branch serves as a [read-only replica](../../database/overview.md#postgresql-with-read-only-replica). The service principal role works on it without extra grants.
+
+```bash
+databricks postgres create-endpoint "$BRANCH" ro-replica \
+  --json '{"spec": {"endpoint_type": "ENDPOINT_TYPE_READ_ONLY", "autoscaling_limit_min_cu": 0.5, "autoscaling_limit_max_cu": 2.0}}'
+
+databricks postgres get-endpoint "$BRANCH/endpoints/ro-replica" -o json | jq -r .status.hosts.host
+```
+
+Add the replica settings to the Aidbox service:
+
+```yaml
+BOX_DB_RO_REPLICA_ENABLED: 'true'
+BOX_DB_RO_REPLICA_HOST: <replica host>
+BOX_DB_RO_REPLICA_PORT: '5432'
+BOX_DB_RO_REPLICA_DATABASE: databricks_postgres
+BOX_DB_RO_REPLICA_USER: <SP_CLIENT_ID>
+BOX_DB_RO_REPLICA_PASSWORD: placeholder
+BOX_DB_RO_REPLICA_AUTH_METHOD: databricks-autoscale
+BOX_DB_RO_REPLICA_DATABRICKS_HOST: https://<workspace>.cloud.databricks.com
+BOX_DB_RO_REPLICA_DATABRICKS_AUTOSCALE_ENDPOINT: projects/<project-id>/branches/production/endpoints/ro-replica
+BOX_DB_RO_REPLICA_DATABRICKS_CLIENT_ID: <SP_CLIENT_ID>
+BOX_DB_RO_REPLICA_DATABRICKS_CLIENT_SECRET: <SP_CLIENT_SECRET>
+```
+
+Aidbox sends a request to the replica when the request carries the `x-use-ro-replica` header. A write sent with this header fails with `cannot execute INSERT in a read-only transaction`.
 
 ## Verify the migration
 
