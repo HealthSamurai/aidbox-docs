@@ -147,8 +147,9 @@ Errors:
 
 ## Cancel an Access-Change Request
 
-The nominee of a nomination or any access manager at the location can cancel a pending, unexpired request.
+The nominee of an administrator or approver nomination, or any access manager at the location, can cancel a pending, unexpired request.
 A nominee cancels a nomination to decline it.
+The nominee of a [prescribing nomination](#prescribing-nomination) can cancel it only as an access manager at the location.
 
 ```http
 POST /e-prescription/access/epcs/requests/<id>/cancel
@@ -160,7 +161,7 @@ POST /e-prescription/access/epcs/requests/<id>/cancel
 
 <summary>Error Responses</summary>
 
-* `403`: the request has no [acting user](configure-access-policies.md#acting-user), the caller is neither the target nor an access manager at the location, or the caller is the target of a revocation someone else requested.
+* `403`: the request has no [acting user](configure-access-policies.md#acting-user), the caller is neither an access manager at the location nor the target of a request that changes their access manager role, or the caller is the target of a revocation someone else requested.
 * `409`: another call changed the request or the caller's role at the location at the same time. Reload the request and retry.
 * `422`: the request does not exist, or is resolved or expired.
 
@@ -176,7 +177,7 @@ GET /e-prescription/access/epcs/requests?location=<Location id>&status=pending
 `200 OK` returns a searchset `Bundle` with:
 
 * Requests at locations where the [acting user](configure-access-policies.md#acting-user) is an access manager.
-* Requests that name the acting user as the target.
+* Requests that name the acting user as the target and change an access manager role.
 
 Optional filters:
 
