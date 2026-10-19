@@ -85,7 +85,7 @@ Create the application using the provided resource definition. To do that, simpl
 ## FHIR Package Installation
 
 The module stores its FHIR definitions, such as extensions, custom resources, and search parameters, in the `io.healthsamurai.e-prescription` package.
-To learn how the module installs the package and how to fix a failed installation, see [FHIR Package Installation](fhir-package-installation.md).
+See [FHIR Package Installation](fhir-package-installation.md).
 
 ## Verify Setup with API Endpoints
 

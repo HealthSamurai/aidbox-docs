@@ -1,7 +1,7 @@
 # FHIR Package Installation
 
 The module stores its FHIR definitions, such as extensions, custom resources, and search parameters, in the `io.healthsamurai.e-prescription` package.
-On every start, before it serves requests, the module uploads its version of the package if it's outdated, and deletes the other versions of the package.
+On every start, before it serves requests, the module uploads its version of the package if the installed version differs, and deletes the other versions of the package.
 
 ## Fix a Failed Package Check
 
