@@ -21,14 +21,14 @@ Content-Type: application/json
 
 {
   "action": "grant",
-  "permission": "epcs-access-approver",
+  "permissionCode": "epcs-access-approver",
   "userId": "<target's Aidbox User id>",
   "locationId": "<Location id>"
 }
 ```
 
 * `action`: `grant` or `revoke`. The `epcs-prescribing` permission accepts only `grant`.
-* `permission`, one of:
+* `permissionCode`, one of:
   * `epcs-access-admin` for the administrator role
   * `epcs-access-approver` for the approver role
   * `epcs-prescribing` for the EPCS prescribing permission
@@ -45,7 +45,7 @@ Use its `id` to approve or cancel it.
   "resourceType": "EPrescriptionAccessRequest",
   "id": "72bfe69d-0bf7-4691-8b0a-d40ad8624d51",
   "action": "grant",
-  "permission": "epcs-access-approver",
+  "permissionCode": "epcs-access-approver",
   "user": { "reference": "User/nominee" },
   "location": { "reference": "Location/clinic-1" },
   "status": "pending",
