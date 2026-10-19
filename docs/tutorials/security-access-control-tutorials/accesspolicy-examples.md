@@ -581,11 +581,20 @@ GET /fhir/Patient/<patient-id>/Observation
 
 **Description:** We have an application that is registered as a Client resource with id `client-id` in Aidbox. We want to allow this application to use [FHIR transactions](../../api/batch-transaction.md).
 
-{% hint style="warning" %}
-Note that this policy only allows access to the `/fhir` endpoint itself. You still need to configure access for individual requests within the transaction bundle — for example, the `/fhir/Patient` endpoint.
-{% endhint %}
+Aidbox authorizes a transaction on **two levels**:
 
-**Policy:**
+1. The Bundle request itself — `POST /fhir`
+2. Each `Bundle.entry`, which is dispatched as its own request and authorized independently
+
+Allowing only the `/fhir` endpoint is therefore not enough. If no policy matches an entry, the entry is rejected and the whole transaction is rolled back:
+
+```
+Transaction failed at entry[0]. Response status is 403.
+```
+
+You need one policy for the Bundle endpoint and one for each operation performed inside the Bundle.
+
+**Policy 1 — allow the transaction endpoint:**
 
 ```yaml
 engine: matcho
@@ -597,6 +606,23 @@ matcho:
   operation: 
     id: FhirTransaction
 ```
+
+**Policy 2 — allow creating Patient inside the Bundle:**
+
+```yaml
+engine: matcho
+description: Allow client-id to create Patient
+id: as-client-id-allowed-to-create-patient
+link:
+  - reference: Client/client-id
+matcho:
+  operation:
+    id: FhirCreate
+  params:
+    resource/type: Patient
+```
+
+With both policies in place the transaction below succeeds. With only the first one it fails at `entry[0]` with a 403.
 
 **Request to test the policy:**
 

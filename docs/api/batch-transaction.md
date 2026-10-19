@@ -113,6 +113,23 @@ content-type: application/json
 }
 ```
 
+## Access control
+
+Aidbox authorizes a Bundle on **two levels**:
+
+1. The Bundle request itself — `POST /fhir`
+2. Each `Bundle.entry`, which is dispatched as its own request and authorized independently
+
+Granting access to the `/fhir` endpoint is therefore not enough. If no policy matches an entry, that entry is rejected. For `type: transaction` the whole Bundle is rolled back:
+
+```
+Transaction failed at entry[0]. Response status is 403.
+```
+
+For `type: batch` the remaining entries are still processed, and the denied entry returns a `403` OperationOutcome in its own `entry.response`.
+
+You need one policy for the Bundle endpoint and one for each operation performed inside the Bundle. See [this example](../tutorials/security-access-control-tutorials/accesspolicy-examples.md#18-policy-that-allows-using-fhir-transactions-for-the-application) for the policies.
+
 ## Multiple resources with the same id
 
 If you have multiple entries with the same resource id, Aidbox will execute them one by one and thus you can create a resource with a history within a single transaction:
