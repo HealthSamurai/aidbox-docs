@@ -35,7 +35,7 @@ Example `200 OK` response for a location the [acting user](configure-access-poli
       "resource": {
         "resourceType": "EPrescriptionAccessPermission",
         "id": "9f1c1a2e-4d5b-4b1a-9c1e-2f6d0e7a8b90",
-        "permission": "epcs-access-admin",
+        "permissionCode": "epcs-access-admin",
         "user": { "reference": "User/first-admin" },
         "location": { "reference": "Location/clinic-1" },
         "grantedAt": "2026-09-29T09:00:00Z"
@@ -44,6 +44,12 @@ Example `200 OK` response for a location the [acting user](configure-access-poli
   ]
 }
 ```
+
+`permissionCode` can be one of:
+
+* `epcs-access-admin` for the administrator [access manager](README.md) role
+* `epcs-access-approver` for the approver [access manager](README.md) role
+* `epcs-prescribing` for the EPCS prescribing permission
 
 The optional `location` parameter limits the result to one location.
 
