@@ -82,6 +82,11 @@ Create the application using the provided resource definition. To do that, simpl
 * Set the module variable `AIDBOX_RPC_CREDENTIALS` to `base64("ePrescription-app:<endpoint secret>")` to authenticate calls from Aidbox to the module.
 * Include your deployment host (replace `PUT_APP_ENDPOINT_URL_HERE`), but retain the `/rpc` part.
 
+## FHIR Package Installation
+
+The module stores its FHIR definitions, such as extensions, custom resources, and search parameters, in the `io.healthsamurai.e-prescription` package.
+See [FHIR Package Installation](fhir-package-installation.md).
+
 ## Verify Setup with API Endpoints
 
 After deployment, test the setup by calling these endpoints:
