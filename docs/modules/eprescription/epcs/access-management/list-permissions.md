@@ -5,7 +5,6 @@ description: List your own EPCS access permissions and the permissions at the lo
 # List Permissions
 
 Access permissions come from [bootstrapping the first administrator](bootstrap-the-first-administrator.md) and from approved [access-change requests](access-change-requests.md).
-The `permissionCode` field of an access permission holds `epcs-access-admin` or `epcs-access-approver` for an [access manager](README.md) role, or `epcs-prescribing` for the EPCS prescribing permission.
 A revocation deletes the permission, so a listing shows only the permissions in force.
 Without an [acting user](configure-access-policies.md#acting-user), both listings return `403`.
 
@@ -45,6 +44,12 @@ Example `200 OK` response for a location the [acting user](configure-access-poli
   ]
 }
 ```
+
+`permissionCode`, one of:
+
+* `epcs-access-admin` for the administrator [access manager](README.md) role
+* `epcs-access-approver` for the approver [access manager](README.md) role
+* `epcs-prescribing` for the EPCS prescribing permission
 
 The optional `location` parameter limits the result to one location.
 
