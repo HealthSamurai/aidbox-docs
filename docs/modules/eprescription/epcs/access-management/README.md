@@ -7,11 +7,11 @@ description: Manage access to Electronic Prescribing of Controlled Substances (E
 The DEA requires two people to set or change who may prescribe controlled substances: one enters the change, and another approves it with two-factor authentication.
 The ePrescription module lets each location appoint its own **access managers** for this job:
 
-* An **administrator access manager** requests access changes and lists access permissions at the location.
+* An **administrator access manager** at the location:
+  * requests access changes
+  * requests the **EPCS prescribing permission** (`epcs-prescribing`) for each practitioner who prescribes controlled substances there, which covers every DEA number the practitioner uses at the location
+  * lists access permissions
 * An **EPCS approver** approves access changes with two-factor authentication.
-
-Access managers also grant the **EPCS prescribing permission** (`epcs-prescribing`) to each practitioner who prescribes controlled substances at the location.
-It covers every DEA number the practitioner uses there.
 
 Each role and permission applies to an Aidbox `User` at a `Location`.
 Neither access manager role lets its holder prescribe controlled substances.
