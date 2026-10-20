@@ -45,7 +45,7 @@ Example `200 OK` response for a location the [acting user](configure-access-poli
 }
 ```
 
-`permissionCode`, one of:
+`permissionCode` can be one of:
 
 * `epcs-access-admin` for the administrator [access manager](README.md) role
 * `epcs-access-approver` for the approver [access manager](README.md) role
