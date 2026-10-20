@@ -9,7 +9,7 @@ The ePrescription module lets each location appoint its own **access managers** 
 
 * An **administrator access manager** at the location:
   * requests access changes
-  * requests the **EPCS prescribing permission** (`epcs-prescribing`) for each practitioner who prescribes controlled substances there, which covers every DEA number the practitioner uses at the location
+  * requests the **EPCS prescribing permission** (`epcs-prescribing`) for practitioners, which covers all their DEA numbers at the location
   * lists access permissions
 * An **EPCS approver** approves access changes with two-factor authentication.
 
