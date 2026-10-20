@@ -20132,6 +20132,87 @@ UDAP B2B authorization context for a Client. Used to populate the hl7-b2b extens
 ```
 
 
+## offloadedData
+
+Archive with the offloaded binary data of the resources in this output entry.
+
+```fhir-structure
+[ {
+  "path" : "extension",
+  "name" : "extension",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "extension",
+  "name" : "extension:count",
+  "lvl" : 0,
+  "min" : 1,
+  "max" : 1,
+  "type" : "",
+  "desc" : "Number of files in the archive."
+}, {
+  "path" : "extension.url",
+  "name" : "url",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "extension.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "integer",
+  "desc" : ""
+}, {
+  "path" : "extension",
+  "name" : "extension:url",
+  "lvl" : 0,
+  "min" : 1,
+  "max" : 1,
+  "type" : "",
+  "desc" : "URL of the tar.gz archive with the offloaded data."
+}, {
+  "path" : "extension.url",
+  "name" : "url",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "extension.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "url",
+  "desc" : ""
+}, {
+  "path" : "url",
+  "name" : "url",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "value[x]",
+  "name" : "value[x]",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+} ]
+```
+
+
 ## orgbac-mode
 
 ```fhir-structure
