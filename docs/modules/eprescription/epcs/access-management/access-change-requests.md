@@ -149,7 +149,6 @@ Errors:
 
 The nominee of an administrator or approver nomination, or any access manager at the location, can cancel a pending, unexpired request.
 A nominee cancels a nomination to decline it.
-The nominee of a [prescribing nomination](#prescribing-nomination) can cancel it only as an access manager at the location.
 
 ```http
 POST /e-prescription/access/epcs/requests/<id>/cancel
