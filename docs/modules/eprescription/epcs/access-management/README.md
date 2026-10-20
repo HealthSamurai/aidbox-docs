@@ -14,7 +14,6 @@ The ePrescription module lets each location appoint its own **access managers** 
 * An **EPCS approver** approves access changes with two-factor authentication.
 
 Each role and permission applies to an Aidbox `User` at a `Location`.
-Neither access manager role lets its holder prescribe controlled substances.
 
 ## Operations
 
