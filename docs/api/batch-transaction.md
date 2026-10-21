@@ -6,7 +6,7 @@ description: Execute multiple FHIR operations atomically using batch or transact
 
 ## Introduction
 
-Transaction interaction allows for several interactions using one HTTP request. There are two types of transaction interaction (type is specified by field `type`): **batch** and **transaction**. The first one executes requests one by one, and the second one does the same but rolls back all changes if any request fails.
+Transaction interaction allows for several interactions using one HTTP request. There are two types of transaction interaction (type is specified by field `type`): **batch** and **transaction**. The first one executes requests one by one, and the second one does the same but rolls back all changes if any request fails. Aidbox also accepts `collection` and `search` bundles and upserts every resource in them, see [Collection bundles](#collection-bundles).
 
 ```http
 POST /fhir
@@ -112,6 +112,81 @@ content-type: application/json
   ]
 }
 ```
+
+## Collection bundles
+
+`POST /fhir` also accepts a Bundle of `type: collection` or `type: search`, for example a patient record exported by [Synthea](https://github.com/synthetichealth/synthea). Such a bundle has no `entry.request`, so Aidbox upserts each resource in it:
+
+```json
+POST /fhir
+Content-Type: application/json
+
+{
+  "resourceType": "Bundle",
+  "type": "collection",
+  "entry": [
+    {
+      "resource": {
+        "resourceType": "Organization",
+        "id": "org-1",
+        "name": "Test Payer"
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Coverage",
+        "id": "cov-1",
+        "status": "active",
+        "beneficiary": {"reference": "Patient/pt-1"},
+        "payor": [{"reference": "Organization/org-1"}]
+      }
+    }
+  ]
+}
+```
+
+Processing rules:
+
+* Aidbox executes each entry as `PUT /<resourceType>/<id>`, in the order of the bundle. For an entry without `id`, Aidbox generates a UUID.
+* Aidbox saves each entry on its own. If one entry fails, Aidbox still saves the entries before and after it.
+* Aidbox ignores `fullUrl` and stores `urn:uuid:` references as written. Use literal references such as `Patient/pt-1` with explicit ids.
+* The FHIR constraint `bdl-3` prohibits `entry.request` in these bundle types. With [`fhir.bundle-execution-validation-mode`](../reference/all-settings.md#fhir.bundle-execution-validation-mode) set to `limited` or `full`, Aidbox rejects such a bundle with `422`. In `legacy` mode Aidbox ignores `entry.request`.
+* Aidbox authorizes each entry as a separate request, see [Access control](#access-control).
+
+Aidbox returns a `batch-response` Bundle. Each entry holds `resource` only: the saved resource, or an `OperationOutcome` for a failed entry. The response has no `entry.response`. The HTTP status is the highest status among the entries, so a bundle with one invalid resource returns `422` while Aidbox saves the rest:
+
+```json
+{
+  "resourceType": "Bundle",
+  "type": "batch-response",
+  "entry": [
+    {
+      "resource": {
+        "resourceType": "Patient",
+        "id": "pt-ok",
+        "meta": {"versionId": "6946", "lastUpdated": "2026-10-21T12:12:27.727537Z"}
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "OperationOutcome",
+        "issue": [
+          {
+            "severity": "fatal",
+            "code": "invalid",
+            "expression": ["Patient.gender"],
+            "diagnostics": "The provided code '#nope' was not found in the value set 'http://hl7.org/fhir/ValueSet/administrative-gender|4.0.1'"
+          }
+        ]
+      }
+    }
+  ]
+}
+```
+
+{% hint style="warning" %}
+Use `type: transaction` when the resources must be saved all together or not at all, or when they reference each other with `urn:uuid:` references.
+{% endhint %}
 
 ## Access control
 
