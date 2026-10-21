@@ -40,4 +40,4 @@ Errors return an `OperationOutcome`:
 
 * `400 Bad Request`: invalid request body.
 * `403 Forbidden`: the request has no [acting user](configure-access-policies.md#acting-user).
-* `422 Unprocessable Entity`: the user or location does not exist, or the location already has an administrator.
+* `422 Unprocessable Entity`: the user does not exist, the location does not exist or was deleted, or the location already has an administrator.

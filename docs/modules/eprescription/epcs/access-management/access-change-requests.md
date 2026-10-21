@@ -4,8 +4,8 @@ description: Change who holds an EPCS access manager role or the EPCS prescribin
 
 # Access-Change Requests
 
-An **access-change request** grants or revokes one [access manager](README.md) role, or grants the [EPCS prescribing permission](README.md), for one Aidbox `User` at one `Location`.
-An administrator at the location creates it, and the change takes effect only after the request is approved.
+An **access-change request** grants or revokes one [access manager](README.md) role or the [EPCS prescribing permission](README.md) for one Aidbox `User` at one `Location`.
+An administrator at the location creates it, and the change takes effect after the request is approved, except for an [immediate revocation](#immediate-revocation).
 A request that grants a role or permission is a **nomination**, and the user it names is the **nominee**.
 
 An **EPCS approver** approves requests with their two-factor code.
@@ -27,7 +27,7 @@ Content-Type: application/json
 }
 ```
 
-* `action`: `grant` or `revoke`. The `epcs-prescribing` permission accepts only `grant`.
+* `action`: `grant` or `revoke`.
 * `permissionCode`, one of:
   * `epcs-access-admin` for the administrator role
   * `epcs-access-approver` for the approver role
@@ -37,8 +37,8 @@ Content-Type: application/json
 
 <summary>Response</summary>
 
-`201 Created` returns the access-change request with `status: pending`.
-Use its `id` to approve or cancel it.
+`201 Created` returns the access-change request with `status: pending`, or `status: approved` for an [immediate revocation](#immediate-revocation).
+Use the `id` of a pending request to approve or cancel it.
 
 ```json
 {
@@ -64,11 +64,11 @@ To appoint a new administrator after that, use [Bootstrap the First Administrato
 
 <summary>Error Responses</summary>
 
-* `400`: a required field is missing or invalid, or the request revokes `epcs-prescribing`.
+* `400`: a required field is missing or invalid.
 * `403`: the request has no [acting user](configure-access-policies.md#acting-user), or the caller is not an administrator at the location.
 * `409`, in either of these cases:
   * A pending, unexpired request already exists for the same user, permission, and location, whether it grants or revokes the permission.
-  * While [removing the sole approver](#sole-approver-removal), another call changed the location's roles at the same time. Retry the request.
+  * During an [immediate revocation](#immediate-revocation), another call changed the location's roles at the same time. Retry the request.
 * `422`, in any of these cases:
   * A grant names a user who already holds the permission, or a revocation names a user who does not.
   * An administrator nomination names a `User` that does not exist.
@@ -85,10 +85,27 @@ An administrator may nominate themselves.
 
 Any approver at the location other than the requester can approve it through [second-person approval](#second-person-approval), including the nominee.
 
-### Sole Approver Removal
+### Prescribing Revocation
 
-When only one user holds the approver role at a location, DEA-qualified or not, an administrator can remove it at once.
-The request to revoke it returns `201 Created` with `status: approved`, and the role is gone.
+A request that revokes `epcs-prescribing` is a **prescribing revocation**.
+Its target does not need to be DEA-qualified.
+An administrator may revoke their own prescribing permission.
+
+The module does not detect when a practitioner must lose the permission, for example after a lost authentication factor or an expired DEA registration.
+An administrator requests the revocation when your practice learns of such an event.
+
+Any approver at the location other than the requester can approve it through [second-person approval](#second-person-approval), including the target.
+At a location where no user holds the approver role, the revocation completes as an [immediate revocation](#immediate-revocation).
+
+### Immediate Revocation
+
+An administrator's revocation completes at once, without a second person's approval or a two-factor code, in two cases:
+
+* It revokes the approver role while only one user holds that role at the location, DEA-qualified or not.
+* It revokes `epcs-prescribing` while no user holds the approver role at the location.
+  This includes an administrator's revocation of their own prescribing permission.
+
+The request returns `201 Created` with `status: approved`, and the role or permission is gone.
 
 ### DEA Qualification
 
@@ -123,12 +140,17 @@ There, the nominee of an approver nomination accepts it with their own two-facto
 
 A DEA-qualified approver at the location approves the request with their two-factor code.
 The approver cannot be the requester.
-They cannot be the target either, except as the nominee of a [prescribing nomination](#prescribing-nomination).
+They cannot be the target either, except as the target of a [prescribing nomination](#prescribing-nomination) or a [prescribing revocation](#prescribing-revocation).
 
-### Pending Sole Approver Revocation
+### Administrator Approval
 
-A pending revocation can target an approver who has since become the only approver at the location, DEA-qualified or not.
-Any administrator at the location can approve it without `twoFactorCode`, including the administrator who requested it.
+A pending revocation can turn into one of the two [immediate revocation](#immediate-revocation) cases after it was requested:
+
+* Its target has become the only user who holds the approver role at the location.
+* It revokes `epcs-prescribing`, and the location has lost its last approver.
+
+Any administrator at the location can then approve it without `twoFactorCode`, including the administrator who requested it.
+If a user receives the approver role at the location during the call, the approval fails with `409`.
 
 <details>
 
@@ -149,6 +171,9 @@ Errors:
 
 The nominee of an administrator or approver nomination, or any access manager at the location, can cancel a pending, unexpired request.
 A nominee cancels a nomination to decline it.
+
+The target of a revocation cannot cancel it when someone else requested it, even when the target is an access manager at the location.
+An administrator who requested the revocation of their own prescribing permission can cancel it while they hold an access manager role at the location.
 
 ```http
 POST /e-prescription/access/epcs/requests/<id>/cancel
