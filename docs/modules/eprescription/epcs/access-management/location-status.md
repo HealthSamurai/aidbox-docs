@@ -4,7 +4,7 @@ description: Check whether a location's EPCS access managers meet the two-person
 
 # Location Status
 
-A location meets the module's two-person rule when it has an administrator and an approver who are different users.
+A location meets the module's **two-person rule** when it has an administrator and an approver who are different users.
 The status operation reports whether a location meets it.
 The module does not block controlled-substance prescribing at a location that fails the rule, so use the status to warn your users, for example on the prescribing screen.
 
