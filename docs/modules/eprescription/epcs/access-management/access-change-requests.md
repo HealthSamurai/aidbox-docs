@@ -100,11 +100,10 @@ At a location where no user holds the approver role, the revocation completes as
 
 ### Immediate Revocation
 
-An administrator's revocation completes at once, without a second person's approval or a two-factor code, in two cases:
+A revocation completes when the administrator creates it, without a second person's approval or a two-factor code, in either of these cases:
 
 * It revokes the approver role while only one user holds that role at the location, DEA-qualified or not.
-* It revokes `epcs-prescribing` while no user holds the approver role at the location.
-  This includes an administrator's revocation of their own prescribing permission.
+* It revokes `epcs-prescribing` while no user holds the approver role at the location, also when the administrator revokes their own permission.
 
 The request returns `201 Created` with `status: approved`, and the module has already removed the role or permission.
 
@@ -141,16 +140,16 @@ There, the nominee of an approver nomination accepts it with their own two-facto
 
 A DEA-qualified approver at the location approves the request with their two-factor code.
 The approver cannot be the requester.
-They cannot be the target either, except as the nominee of a [prescribing nomination](#prescribing-nomination) or the target of a [prescribing revocation](#prescribing-revocation).
+They cannot be the target either, unless the request is a [prescribing nomination](#prescribing-nomination) or a [prescribing revocation](#prescribing-revocation).
 
 ### Administrator Approval
 
-The location's approvers can change while a revocation is pending, so that it now matches an [immediate revocation](#immediate-revocation) case:
+A pending revocation can come to match an [immediate revocation](#immediate-revocation) case after the location's approvers change:
 
-* Its target has become the only user who holds the approver role at the location.
-* It revokes `epcs-prescribing`, and the location has lost its last approver.
+* It revokes the approver role, and its target has become the only user who holds that role at the location.
+* It revokes `epcs-prescribing`, and no user holds the approver role at the location any more.
 
-Any administrator at the location can then approve it without `twoFactorCode`, including the administrator who requested it.
+Then any administrator at the location can approve it without `twoFactorCode`, including the administrator who requested it.
 
 <details>
 
@@ -173,7 +172,6 @@ These users can cancel a pending, unexpired request:
 
 * The nominee of an administrator or approver nomination, to decline it.
 * Any access manager at the location, except the target of a revocation that someone else requested.
-  An administrator who requested the revocation of their own prescribing permission cancels it as an access manager, so only while they hold an access manager role at the location.
 
 ```http
 POST /e-prescription/access/epcs/requests/<id>/cancel
