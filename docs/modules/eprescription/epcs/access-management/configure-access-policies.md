@@ -27,6 +27,7 @@ Write a policy for each operation and grant it to the smallest group that needs 
 * `POST /e-prescription/access/epcs/requests`: administrators.
 * `POST /e-prescription/access/epcs/requests/<id>/approve`: approvers, nominees, and administrators.
 * `POST /e-prescription/access/epcs/requests/<id>/cancel`: access managers and the users named in access-change requests.
+* `GET /e-prescription/access/epcs/locations/<Location id>/status`: access managers and the users who work in the prescribing UI.
 
 The module checks each caller's role as described in [Access-Change Requests](access-change-requests.md).
 
