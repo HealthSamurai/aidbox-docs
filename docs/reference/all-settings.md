@@ -248,24 +248,24 @@ Sets the maximum (inclusive) isolation level for transactions. Can be overridden
 
 <details><summary>Details</summary><table data-header-hidden="true"><thead><tr><th width="200"></th><th></th></tr></thead><tbody><tr><td>ID</td><td><code>fhir.transaction-max-isolation-level</code></td></tr><tr><td>Type</td><td>Enum</td></tr><tr><td>Values</td><td><code>none</code><br /><code>read-committed</code><br /><code>repeatable-read</code><br /><code>serializable</code></td></tr><tr><td>Default value</td><td><code>none</code></td></tr><tr><td>Environment variable</td><td><code>BOX_FHIR_TRANSACTION_MAX_ISOLATION_LEVEL</code></td></tr><tr><td>Deprecated environment variables</td><td><code>BOX_FEATURES_FHIR_TRANSACTION_MAX__ISOLATION__LEVEL</code></td></tr><tr><td>Sensitive</td><td><code>false</code> — value will be visible in plaintext in Admin UI</td></tr><tr><td>Set via</td><td>Admin UI → Settings<br />Environment variables</td></tr><tr><td>Hot reload</td><td><code>false</code> — setting requires system restart</td></tr></tbody></table></details>
 
-#### Enable Aidbox API<a href="#fhir.aidbox-api.enabled" id="fhir.aidbox-api.enabled"></a>
+#### Enable Aidbox format API<a href="#fhir.aidbox-format-api.enabled" id="fhir.aidbox-format-api.enabled"></a>
 
 ```yaml
-BOX_FHIR_AIDBOX_API_ENABLED: true
+BOX_FHIR_AIDBOX_FORMAT_API_ENABLED: true
 ```
 
-Enables the Aidbox-format REST API: CRUD, search, history,
+Enables the Aidbox format REST API: CRUD, search, history,
 transaction, `$import`, `$load` and other endpoints served outside the
 `/fhir` prefix (e.g. `/Patient`). The FHIR API under `/fhir` is not
 affected.
 
-Aidbox-format endpoints expect resources in Aidbox format. FHIR resources
+Aidbox format endpoints expect resources in Aidbox format. FHIR resources
 sent to them (for example, loaded with `$import` or `POST /Patient`) are
 stored without conversion: references are not split into `resourceType`
 and `id`, so search parameters on such elements do not work. Disable this
 setting to make sure data enters Aidbox only through the FHIR API.
 
-<details><summary>Details</summary><table data-header-hidden="true"><thead><tr><th width="200"></th><th></th></tr></thead><tbody><tr><td>ID</td><td><code>fhir.aidbox-api.enabled</code></td></tr><tr><td>Type</td><td>Bool</td></tr><tr><td>Default value</td><td><code>true</code></td></tr><tr><td>Environment variable</td><td><code>BOX_FHIR_AIDBOX_API_ENABLED</code></td></tr><tr><td>Available from</td><td><code>2610</code></td></tr><tr><td>Sensitive</td><td><code>false</code> — value will be visible in plaintext in Admin UI</td></tr><tr><td>Set via</td><td>Environment variables</td></tr><tr><td>Hot reload</td><td><code>false</code> — setting requires system restart</td></tr></tbody></table></details>
+<details><summary>Details</summary><table data-header-hidden="true"><thead><tr><th width="200"></th><th></th></tr></thead><tbody><tr><td>ID</td><td><code>fhir.aidbox-format-api.enabled</code></td></tr><tr><td>Type</td><td>Bool</td></tr><tr><td>Default value</td><td><code>true</code></td></tr><tr><td>Environment variable</td><td><code>BOX_FHIR_AIDBOX_FORMAT_API_ENABLED</code></td></tr><tr><td>Available from</td><td><code>2610</code></td></tr><tr><td>Sensitive</td><td><code>false</code> — value will be visible in plaintext in Admin UI</td></tr><tr><td>Set via</td><td>Environment variables</td></tr><tr><td>Hot reload</td><td><code>false</code> — setting requires system restart</td></tr></tbody></table></details>
 
 ### Validation
 
