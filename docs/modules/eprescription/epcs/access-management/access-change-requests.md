@@ -69,7 +69,7 @@ To appoint a new administrator after that, use [Bootstrap the First Administrato
 * `403`: the request has no [acting user](configure-access-policies.md#acting-user), or the caller is not an administrator at the location.
 * `409`, in either of these cases:
   * A pending, unexpired request already exists for the same user, permission, and location, whether it grants or revokes the permission.
-  * During an [immediate revocation](#immediate-revocation), another call changed the location's roles at the same time. Retry the request.
+  * During an [immediate revocation](#immediate-revocation), another call changed the location's roles at the same time. Retry the call.
 * `422`, in any of these cases:
   * A grant names a user who already holds the permission, or a revocation names a user who does not.
   * An administrator nomination names a `User` that does not exist.
@@ -92,8 +92,8 @@ A request that revokes `epcs-prescribing` is a **prescribing revocation**.
 Its target does not need to be DEA-qualified.
 An administrator may revoke their own prescribing permission.
 
-The module does not revoke the permission on its own when a practitioner must lose it, for example after a lost authentication factor or an expired DEA registration.
-An administrator requests the revocation instead.
+When a practitioner must lose the permission, for example after a lost authentication factor or an expired DEA registration, an administrator requests the revocation.
+The module does not detect these events.
 
 Any approver at the location other than the requester can approve it through [second-person approval](#second-person-approval), including the target.
 At a location where no user holds the approver role, the revocation completes as an [immediate revocation](#immediate-revocation).
@@ -103,9 +103,9 @@ At a location where no user holds the approver role, the revocation completes as
 A revocation completes when the administrator creates it, without a second person's approval or a two-factor code, in either of these cases:
 
 * It revokes the approver role while only one user holds that role at the location, DEA-qualified or not.
-* It revokes `epcs-prescribing` while no user holds the approver role at the location, also when the administrator revokes their own permission.
+* It revokes `epcs-prescribing`, the administrator's own included, while no user holds the approver role at the location.
 
-The request returns `201 Created` with `status: approved`, and the module has already removed the role or permission.
+The call returns `201 Created` with `status: approved`, and the module has already removed the role or permission.
 
 ### DEA Qualification
 
@@ -144,12 +144,12 @@ They cannot be the target either, unless the request is a [prescribing nominatio
 
 ### Administrator Approval
 
-A pending revocation can come to match an [immediate revocation](#immediate-revocation) case after the location's approvers change:
+After the location's approvers change, a pending revocation can match an [immediate revocation](#immediate-revocation) case:
 
-* It revokes the approver role, and its target has become the only user who holds that role at the location.
-* It revokes `epcs-prescribing`, and no user holds the approver role at the location any more.
+* It revokes the approver role, and its target is now the only user who holds that role at the location.
+* It revokes `epcs-prescribing`, and no user holds the approver role at the location.
 
-Then any administrator at the location can approve it without `twoFactorCode`, including the administrator who requested it.
+Any administrator at the location can then approve it without `twoFactorCode`, including the administrator who requested it.
 
 <details>
 
