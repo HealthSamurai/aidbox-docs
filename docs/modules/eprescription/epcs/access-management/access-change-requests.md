@@ -5,7 +5,8 @@ description: Change who holds an EPCS access manager role or the EPCS prescribin
 # Access-Change Requests
 
 An **access-change request** grants or revokes one [access manager](README.md) role or the [EPCS prescribing permission](README.md) for one Aidbox `User` at one `Location`.
-An administrator at the location creates it, and the change takes effect after the request is approved, except for an [immediate revocation](#immediate-revocation).
+An administrator at the location creates it, and the change takes effect when the request is approved.
+An [immediate revocation](#immediate-revocation) is approved as soon as it is created.
 The user whose role or permission a request changes is its **target**.
 A request that grants a role or permission is a **nomination**, and its target is the **nominee**.
 
@@ -170,8 +171,10 @@ Errors:
 
 These users can cancel a pending, unexpired request:
 
-* The nominee of an administrator or approver nomination, to decline it.
-* Any access manager at the location, except the target of a revocation that someone else requested.
+* Any access manager at the location.
+* The target of a request that changes their access manager role, such as a nominee who declines an administrator or approver nomination.
+
+The target of a revocation that someone else requested cannot cancel it.
 
 ```http
 POST /e-prescription/access/epcs/requests/<id>/cancel
