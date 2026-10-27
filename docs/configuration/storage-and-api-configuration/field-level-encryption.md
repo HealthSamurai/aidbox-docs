@@ -5,7 +5,7 @@ description: Data at rest encryption for specific fields of a resource
 # Encrypt field of a resource at rest
 
 {% hint style="info" %}
-This functionality is available starting from Aidbox version **2611**.
+This functionality is available starting from Aidbox version **2610**.
 {% endhint %}
 
 FHIR resources contain personal data (PII), and you may want to encrypt the fields storing sensitive data.
@@ -19,7 +19,7 @@ the fields on REST interaction (same as if Aidbox encrypted them).
 
 ## JSON WEB Encryption (JWE)
 JSON WEB Encryption (JWE) is an IETF standard ([RFC 7516](https://www.rfc-editor.org/info/rfc7516)) which defines
-representation of encrypted content. We use compact form, it consists of 5 base65url-encoded parts separated by period:
+representation of encrypted content. We use compact form, it consists of 5 base64url-encoded parts separated by period:
 - JOSE header;
 - Encrypted data encryption key;
 - Initialization vector;
@@ -28,16 +28,16 @@ representation of encrypted content. We use compact form, it consists of 5 base6
 
 For example,
 ```
-eyJraWQiOiJrZWsiLCJlbmMiOiJYQzIwUCIsImFsZyI6IkEyNTZLVyJ9.wam7aJrqtAiqUlC1-ieRGjTQnPLDxdsPGlTGvCdzoh3-ZODG176TUg.__79_Pv6-fj39vX08_Lx8O_u7ezr6uno.5JUwHtTCxjrqRfV7qg.GSTB1HWZLDE5ovqxK5pkRw
+eyJraWQiOiJrZXktYSIsImVuYyI6IlhDMjBQIiwiYWxnIjoiZGlyIn0..__79_Pv6-fj39vX08_Lx8O_u7ezr6uno.5JUwHtTCxjrqRfV7qg.Qt26TXBmVKi5v7H7RE0ujQ
 ```
 is the representation of:
 - a string "Hello, World!";
 - encrypted with XChaCha20 cipher with
   - key `00 01 ... 1f`,
   - IV `ff fe ... e8`;
-- authenticated with Poly1305 MAC;
-- and the key is wrapped with AES-256 keywrap algorithm
-  - with key `20 21 ... 3f`.
+- authenticated with Poly1305 MAC.
+
+The key is used directly (`dir`), without key wrapping, so the encrypted key part is empty.
 
 ### JSON Object Signing and Encryption header (JOSE header)
 The first part of the JWE is the JOSE header. This header specifies the algorithm used to encrypt data
@@ -46,15 +46,15 @@ and key-wrapping algorithm.
 In our case it is (base64url-decoded):
 ```
 {
-  "kid": "kek",
+  "kid": "key-a",
   "enc": "XC20P",
-  "alg": "A256KW"
+  "alg": "dir"
 }
 ```
 Here
 - `kid` is a key id (so the system knows which key to use for decryption);
 - `enc` specifies encryption algorithm;
-- `alg` specifies key wrapping algorithm.
+- `alg` specifies key wrapping algorithm; `dir` means the key encrypts the data directly.
 
 ## Configuration
 Pass the `encryption` parameter to `$create-api` or `$configure-api`. Its parts:
@@ -62,13 +62,13 @@ Pass the `encryption` parameter to `$create-api` or `$configure-api`. Its parts:
 | Part       | Type                | Required        | Description                                                                               |
 |------------|---------------------|-----------------|-------------------------------------------------------------------------------------------|
 | `jose`     | complex (see below) | yes             | JOSE header describing encryption                                                         |
-| `mode`     | code                | yes             | `strict`: on data change validate that Aidbox can decrypt data; `lenient`: don't validate |
+| `mode`     | code                | no              | `strict`: on data change validate that Aidbox can decrypt data; `lenient` (default): don't validate |
 | `fhirpath` | string              | yes, repeatable | FHIRPath to elements to encrypt                                                           |
 
 Structure of the `jose` parameter:
 | Part  | Type   | Required | Description                                                                              |
 |-------|--------|----------|------------------------------------------------------------------------------------------|
-| `alg` | string | yes      | Key-wrapping algorithm. Only `DIR` (no key wrapping) is supported now                    |
+| `alg` | string | yes      | Key-wrapping algorithm. Only `dir` (no key wrapping) is supported now                    |
 | `enc` | string | yes      | Encryption algorithm. Supported `A256GCM` (AES-256-GCM) and `XC20P` (XChaCha20-Poly1305) |
 | `kid` | string | yes      | Key ID (from [Secrets API](https://www.health-samurai.io/docs/aidbox/configuration/secret-files))                     |
 
@@ -88,7 +88,7 @@ Example:
         { "name": "jose", "part": [
             { "name": "alg", "valueCode": "dir" },
             { "name": "enc", "valueCode": "XC20P" },
-            { "name": "kid", "valueString": "key-abc" }
+            { "name": "kid", "valueString": "key-a" }
         ]}
     ]}
   ]
