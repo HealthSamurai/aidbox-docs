@@ -158,6 +158,7 @@
 * [Migrations](configuration/migrations.md)
 * [Storage and API configuration](configuration/storage-and-api-configuration/README.md)
   * [Offload base64Binary data to external storage](configuration/storage-and-api-configuration/offload-base64binary-to-external-storage.md)
+  * [Field-level encryption](configuration/storage-and-api-configuration/field-level-encryption.md)
 
 ## API
 
