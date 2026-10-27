@@ -28,16 +28,16 @@ representation of encrypted content. We use compact form, it consists of 5 base6
 
 For example,
 ```
-eyJraWQiOiJrZXktYSIsImVuYyI6IlhDMjBQIiwiYWxnIjoiZGlyIn0..__79_Pv6-fj39vX08_Lx8O_u7ezr6uno.5JUwHtTCxjrqRfV7qg.Qt26TXBmVKi5v7H7RE0ujQ
+eyJraWQiOiJrZWsiLCJlbmMiOiJYQzIwUCIsImFsZyI6IkEyNTZLVyJ9.wam7aJrqtAiqUlC1-ieRGjTQnPLDxdsPGlTGvCdzoh3-ZODG176TUg.__79_Pv6-fj39vX08_Lx8O_u7ezr6uno.5JUwHtTCxjrqRfV7qg.GSTB1HWZLDE5ovqxK5pkRw
 ```
 is the representation of:
 - a string "Hello, World!";
 - encrypted with XChaCha20 cipher with
   - key `00 01 ... 1f`,
   - IV `ff fe ... e8`;
-- authenticated with Poly1305 MAC.
-
-The key is used directly (`dir`), without key wrapping, so the encrypted key part is empty.
+- authenticated with Poly1305 MAC;
+- and the key is wrapped with AES-256 keywrap algorithm
+  - with key `20 21 ... 3f`.
 
 ### JSON Object Signing and Encryption header (JOSE header)
 The first part of the JWE is the JOSE header. This header specifies the algorithm used to encrypt data
@@ -46,15 +46,18 @@ and key-wrapping algorithm.
 In our case it is (base64url-decoded):
 ```
 {
-  "kid": "key-a",
+  "kid": "kek",
   "enc": "XC20P",
-  "alg": "dir"
+  "alg": "A256KW"
 }
 ```
 Here
 - `kid` is a key id (so the system knows which key to use for decryption);
 - `enc` specifies encryption algorithm;
-- `alg` specifies key wrapping algorithm; `dir` means the key encrypts the data directly.
+- `alg` specifies key wrapping algorithm.
+
+Aidbox supports direct encryption only (`"alg": "dir"`): the key from `kid` encrypts the data,
+and the encrypted key part of the JWE is empty.
 
 ## Configuration
 Pass the `encryption` parameter to `$create-api` or `$configure-api`. Its parts:
@@ -68,7 +71,7 @@ Pass the `encryption` parameter to `$create-api` or `$configure-api`. Its parts:
 Structure of the `jose` parameter:
 | Part  | Type   | Required | Description                                                                              |
 |-------|--------|----------|------------------------------------------------------------------------------------------|
-| `alg` | string | yes      | Key-wrapping algorithm. Only `dir` (no key wrapping) is supported now                    |
+| `alg` | string | yes      | Key-wrapping algorithm. Only `dir` (no key wrapping) is supported                        |
 | `enc` | string | yes      | Encryption algorithm. Supported `A256GCM` (AES-256-GCM) and `XC20P` (XChaCha20-Poly1305) |
 | `kid` | string | yes      | Key ID (from [Secrets API](https://www.health-samurai.io/docs/aidbox/configuration/secret-files))                     |
 
