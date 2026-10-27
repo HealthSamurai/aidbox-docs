@@ -240,6 +240,7 @@ An API record carries these parameters:
 | `apiTemplate`                  | string | yes      | `pre-2604`.                                                                                                                                     |
 | `typeStructureDefinition`      | canonical | no    | StructureDefinition that defines the resource type for validation, as `url` or `url|version`. When omitted, Aidbox picks the current version of the type definition itself. See [Pin the type definition](#pin-the-type-definition). |
 | `dataOffloadToExternalStorage` | parts  | no       | Store `base64Binary` element values in external storage. See [Offload base64Binary data to external storage](offload-base64binary-to-external-storage.md). |
+| `encryption`                   | parts  | no       | Encrypt selected elements at rest. See [Encrypt field of a resource at rest](field-level-encryption.md). |
 | `apiId`                        | string | no       | Identifier of the API. On `$create-api` you may choose your own; when omitted, Aidbox generates a UUID. Pass it to `$configure-api` and `$delete-api`. |
 | `ifNoneExist`                  | boolean | no      | Only on `$create-api`, and only together with `apiId`. When an API with that `apiId` already exists, return it unchanged with `200` instead of `409`. Not stored. |
 

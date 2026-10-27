@@ -14,6 +14,7 @@ description: >-
 
     * **[`$aidbox-audit` operation](../access-control/audit-and-logging.md#publish-audit-events-from-your-application)**: publishes an AuditEvent of your application to the audit events topic, so its destinations receive your events next to the ones Aidbox produces.
     * **[Offloaded data in `$export`](../api/bulk-api/export.md#offloaded-base64binary-data)**: for each resource type with [offloaded base64Binary data](../configuration/storage-and-api-configuration/offload-base64binary-to-external-storage.md), `$export` uploads a `<Type>_offloaded_data.tar.gz` archive of the blobs next to the ndjson file. Exported resources point at their archive entries, and the type's `output` entry carries the archive URL and file count.
+    * **[Field-level encryption](../configuration/storage-and-api-configuration/field-level-encryption.md)**: the new `encryption` parameter of an API lists FHIRPath expressions for the elements to encrypt at rest. Aidbox stores each selected value as a JWE with a key from the Secrets API, and decrypts it on read, search, and history.
 
 ## September 2026 _`latest, 2609`_
 
