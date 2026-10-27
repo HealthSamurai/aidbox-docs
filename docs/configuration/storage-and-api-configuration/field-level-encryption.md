@@ -70,7 +70,7 @@ Structure of the `jose` parameter:
 |-------|--------|----------|------------------------------------------------------------------------------------------|
 | `alg` | string | yes      | Key-wrapping algorithm. Only `DIR` (no key wrapping) is supported now                    |
 | `enc` | string | yes      | Encryption algorithm. Supported `A256GCM` (AES-256-GCM) and `XC20P` (XChaCha20-Poly1305) |
-| `kid` | string | yes      | Key ID (from [Secrets API](/docs/aidbox/configuration/secret-files))                     |
+| `kid` | string | yes      | Key ID (from [Secrets API](https://www.health-samurai.io/docs/aidbox/configuration/secret-files))                     |
 
 Example:
 ```json
