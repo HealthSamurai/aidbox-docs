@@ -104,7 +104,7 @@ At a location where no user holds the approver role, the revocation completes as
 A revocation completes when the administrator creates it, without a second person's approval or a two-factor code, in either of these cases:
 
 * It revokes the approver role while only one user holds that role at the location, DEA-qualified or not.
-* It revokes `epcs-prescribing`, the administrator's own included, while no user holds the approver role at the location.
+* It revokes `epcs-prescribing` (the administrator's own included) while no user holds the approver role at the location.
 
 The call returns `201 Created` with `status: approved`, and the module has already removed the role or permission.
 
