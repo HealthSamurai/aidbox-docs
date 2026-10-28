@@ -97,11 +97,12 @@ When a practitioner must lose the permission, for example after a lost authentic
 The module does not detect these events.
 
 Any approver at the location other than the requester can approve it through [second-person approval](#second-person-approval), including the target.
-At a location where no user holds the approver role, the revocation completes as an [immediate revocation](#immediate-revocation).
+At a location where no user holds the approver role, the revocation is an [immediate revocation](#immediate-revocation) and completes when it is created.
 
 ### Immediate Revocation
 
-A revocation completes when the administrator creates it, without a second person's approval or a two-factor code, in either of these cases:
+An **immediate revocation** completes when the administrator creates it, without a second person's approval or a two-factor code.
+A revocation is immediate in either of these cases:
 
 * It revokes the approver role while only one user holds that role at the location, DEA-qualified or not.
 * It revokes `epcs-prescribing` (the administrator's own included) while no user holds the approver role at the location.
