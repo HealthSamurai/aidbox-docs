@@ -24,10 +24,11 @@ PUT /fhir/Search/Patient.name
 content-type: text/yaml
 accept: text/yaml
 
+resourceType: Search
+id: Patient.name
 name: name
 resource:
-  id: Patient
-  resourceType: Entity
+  reference: Entity/Patient
 where: "{{table}}.resource->>'name' ilike {{param}}" # sql for search
 format: "%?%" # parameter format for ilike 
 order-by: "{{table}}.resource#>>'{name,0,family}'" # sql for ordering (using _sort)
@@ -61,8 +62,8 @@ resourceType: Search
 id: Patient.generalPractitioner
 name: generalPractitioner
 param-parser: reference
-where: '{{table}}.resource->'generalPractitioner' @>  jsonb_build_array(jsonb_build_object('id', {{param.id}}::text, 'resourceType', {{param.resourceType}}::text)) '
-resource: {id: Patient, resourceType: Entity}
+where: "{{table}}.resource->'generalPractitioner' @> jsonb_build_array(jsonb_build_object('id', {{param.id}}::text, 'resourceType', {{param.resourceType}}::text))"
+resource: {reference: Entity/Patient}
 ```
 
 #### Token search
@@ -86,7 +87,7 @@ token-sql:
   text: 'array_to_string(knife_extract({{table}}.resource, ''[["identifier"]]''), '''') ilike {{param.text}}'
   text-format: '%?%'
 where: '(knife_extract_text({{table}}.resource, ''[["identifier","value"]]'') && ARRAY[{{param.code}}]) AND ({{table}}.resource->''identifier'' @> jsonb_build_array(jsonb_build_object(''system'', {{param.system}}::text, ''value'', {{param.code}}::text)))'
-resource: {id: ServiceRequest, resourceType: Entity}
+resource: {reference: Entity/ServiceRequest}
 ```
 
 To refer to the value of the parameter with `:text` modifier use `{{param.text}}`&#x20;
@@ -335,16 +336,16 @@ With parameters started with `.`, you can provide the exact path for the element
 ### Example
 
 ```http
-GET /Patient?.name.0.family=Johnson
-=> WHERE resource#>>'{name,0,family}' = 'Jonhnson'
+GET /fhir/Patient?.name.0.family=Johnson
+=> WHERE resource#>>'{name,0,family}' = 'Johnson'
 
-GET /Patient?.name.0.family$contains=Joh
-=> WHERE resource#>>'{name,0,family}' ilike '%John%'
+GET /fhir/Patient?.name.0.family$contains=Joh
+=> WHERE resource#>>'{name,0,family}' ilike '%Joh%'
 
-GET /Encounter?.period.start::timestamptz$gt=2015-01-01
+GET /fhir/Encounter?.period.start::timestamptz$gt=2015-01-01
 => WHERE (resource#>>'{period,start}')::timestamptz > '2015-01-01'
 
-GET /Patient?.contact$isnull=true
+GET /fhir/Patient?.contact$isnull=true
 => WHERE resource#>>'{contact}' IS NULL
 ```
 
@@ -375,7 +376,7 @@ limit 50
 If this query returns 50 records, Aidbox will respond with these records.
 
 ```http
-GET /Patient/$lookup?\
+GET /fhir/Patient/$lookup?\
   by=name.family,name.given,birthDate,identifier.value;address.city,address.line&\
   sort=name.family,name.given&\
   q=Joh+Do+1980&\

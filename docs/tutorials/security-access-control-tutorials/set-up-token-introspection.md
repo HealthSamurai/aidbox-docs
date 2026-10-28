@@ -21,7 +21,7 @@ Aidbox provides three ways to validate JWT tokens with `TokenIntrospector` resou
 Set `jwt.secret` property to the secret value used to sign the JWT.
 
 ```http
-PUT /TokenIntrospector/external-auth-server
+PUT /fhir/TokenIntrospector/external-auth-server
 content-type: text/yaml
 
 resourceType: TokenIntrospector
@@ -37,15 +37,15 @@ jwt:
 Set `jwks_uri` property to the URL of the JWKS endpoint.
 
 ```http
-PUT /TokenIntrospector/external-auth-server
+PUT /fhir/TokenIntrospector/external-auth-server
 content-type: text/yaml
 
 resourceType: TokenIntrospector
 id: external-auth-server
-type: "jwt"
+type: jwt
 jwt:
   iss: <AUTH_SERVER_URL>
-jwks_uri: <AUTH_SERVER_URL>/.well-known/jwks.json"
+jwks_uri: <AUTH_SERVER_URL>/.well-known/jwks.json
 ```
 
 #### 3. Cryptographic keys
@@ -57,13 +57,11 @@ Cryptographic keys functionality is available starting from version 2505.
 TokenIntrospector allows you to use `RSA` `EC` `OCT` keys to validate a JWT token.
 
 ```http
-PUT /TokenIntrospector/external-auth-server
+PUT /fhir/TokenIntrospector/external-auth-server
 content-type: text/yaml
 
 resourceType: TokenIntrospector
 id: external-auth-server
-resourceType: TokenIntrospector
-id: with-keys
 type: jwt
 jwt:
   iss: <AUTH_SERVER_URL>
@@ -123,7 +121,7 @@ When using JWKS URI or introspection endpoints, Aidbox needs to fetch data from 
 **Example with JWKS URI:**
 
 ```http
-PUT /TokenIntrospector/external-auth-server
+PUT /fhir/TokenIntrospector/external-auth-server
 content-type: text/yaml
 
 resourceType: TokenIntrospector
@@ -138,7 +136,7 @@ jwks_uri: https://auth.example.com/.well-known/jwks.json
 **Example with Opaque Token:**
 
 ```http
-PUT /TokenIntrospector/external-auth-server
+PUT /fhir/TokenIntrospector/external-auth-server
 content-type: text/yaml
 
 resourceType: TokenIntrospector
@@ -163,7 +161,7 @@ Balance availability needs with security requirements when choosing cache durati
 ### Define `AccessPolicy`
 
 ```http
-PUT /AccessPolicy/external-auth-server
+PUT /fhir/AccessPolicy/external-auth-server
 content-type: text/yaml
 
 resourceType: AccessPolicy
@@ -184,15 +182,12 @@ schema:
 ### Create `User`
 
 ```http
-PUT /User/some-user-id
+PUT /fhir/User/some-user-id
 content-type: text/yaml
 
 resourceType: User
 id: some-user-id
-data:
-  id: basic
-  sub: basic
-  email: basic@example.com
+email: user@example.com
 ```
 
 Aidbox resolves the user by matching the JWT `sub` claim to `User.id`. In the example above, the JWT must contain `"sub": "some-user-id"`.
@@ -224,13 +219,13 @@ Use [this tool](http://jwtbuilder.jamiekurtz.com/) to build your JWT. Mind the c
 
 * `issuer` should be `https://auth.example.com`
 * `expiration` should be in the future
-* `subject` should be `basic` (user id, or use `box_user` claim to map to it)
+* `subject` should be `some-user-id` (user id, or use `box_user` claim to map to it)
 * `key` should be `very-secret` string
 
 Press `Create Signed JWT` button to get signed JWT. The generated `JWT` looks like this
 
 ```
-eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJPbmxpbmUgSldUIEJ1aWxkZXIiLCJpYXQiOjE2NTc4ODA4NjMsImV4cCI6MTY4OTQxNjg2MywiYXVkIjoid3d3LmV4YW1wbGUuY29tIiwic3ViIjoianJvY2tldEBleGFtcGxlLmNvbSIsIkdpdmVuTmFtZSI6IkpvaG5ueSIsIlN1cm5hbWUiOiJSb2NrZXQiLCJFbWFpbCI6Impyb2NrZXRAZXhhbXBsZS5jb20iLCJSb2xlIjpbIk1hbmFnZXIiLCJQcm9qZWN0IEFkbWluaXN0cmF0b3IiXX0.TvlrkjPfNAATDW6tHOcgRh3ZNl2tYpUPkFBS_UjU6TY
+eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJodHRwczovL2F1dGguZXhhbXBsZS5jb20iLCJzdWIiOiJzb21lLXVzZXItaWQiLCJleHAiOjQxMDI0NDQ4MDB9.Q-qjdrIkmQYnKA5M8ub4VA7oe1E_peT7ej3gH5zP3l8
 ```
 
 ### Use the `JWT` to get the access
@@ -239,7 +234,7 @@ Make an HTTP request providing `authorization` header with the `JWT` as a `Beare
 
 ```http
 GET /fhir/Patient
-Authorization: Bearer eyJ0...U6TY
+Authorization: Bearer eyJh...3l8
 ```
 
 ## Opaque Token
@@ -249,7 +244,7 @@ Authorization: Bearer eyJ0...U6TY
 with `introspection_endpoint`:
 
 ```http
-PUT /TokenIntrospector/external-auth-server
+PUT /fhir/TokenIntrospector/external-auth-server
 content-type: text/yaml
 
 resourceType: TokenIntrospector
@@ -263,16 +258,17 @@ introspection_endpoint:
 ### Create AccessPolicy
 
 ```http
-PUT /AccessPolicy/external-auth-server
+PUT /fhir/AccessPolicy/external-auth-server
 content-type: text/yaml
 
+resourceType: AccessPolicy
+id: external-auth-server
 engine: matcho
 matcho:
-  // Everything Aidbox retrieved from  introspection_endpoint
-  // will be available under `token` in AccessPolicy
+  # Everything Aidbox retrieved from introspection_endpoint
+  # is available under `token` in AccessPolicy
   token:
     active: true
-resourceType: AccessPolicy
 ```
 
 See all available [TokenIntrospector properties](../../reference/system-resources-reference/core-module-resources.md).
