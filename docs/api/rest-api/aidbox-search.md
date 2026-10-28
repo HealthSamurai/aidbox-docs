@@ -20,7 +20,7 @@ Aidbox Search resource defines a search parameter or overrides the existing one.
 ### Example
 
 ```http
-PUT /Search/Patient.name
+PUT /fhir/Search/Patient.name
 content-type: text/yaml
 accept: text/yaml
 
@@ -53,7 +53,7 @@ Allows the use of different reference types in the "where" expression. Reference
 * `{{param.url}}` for resource `url`
 
 ```http
-PUT /Search/Patient.generalPractitioner
+PUT /fhir/Search/Patient.generalPractitioner
 content-type: text/yaml
 accept: text/yaml
 
@@ -70,7 +70,7 @@ resource: {id: Patient, resourceType: Entity}
 To refer to the system and code in the SQL query, use `{{param.system}}` and `{{param.code}}` accordingly.&#x20;
 
 ```http
-PUT /Search/ServiceRequest.identifier
+PUT /fhir/Search/ServiceRequest.identifier
 content-type: text/yaml
 accept: text/yaml
 
