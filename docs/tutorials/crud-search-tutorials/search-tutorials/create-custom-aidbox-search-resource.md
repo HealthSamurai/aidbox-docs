@@ -23,18 +23,23 @@ The solution is to use SQL to extract it. We use the Search resource, an Aidbox-
 
 Let's create our patients to search for:
 
-<pre><code><strong>PUT /fhir/Patient/pt1
-</strong>
+```http
+PUT /fhir/Patient/pt1
+content-type: text/yaml
+
+resourceType: Patient
 telecom:
 - system: email
   value: john@SOMECOMPANY.COM
 - system: email
   value: john@dundermifflin.com
-</code></pre>
+```
 
 ```http
 PUT /fhir/Patient/pt2
+content-type: text/yaml
 
+resourceType: Patient
 telecom:
 - system: email
   value: mike@SOMECOMPANY.COM
@@ -75,7 +80,7 @@ EXISTS (
 And create Search resource using `Search.where` expression (note how we use `{{table}}` and `{{param}}` placeholders):
 
 ```http
-PUT /Search/Patient.email-domain
+PUT /fhir/Search/Patient.email-domain
 content-type: text/yaml
 accept: text/yaml
 
@@ -83,8 +88,7 @@ resourceType: Search
 id: Patient.email-domain
 name: email-domain
 resource:
-  id: Patient
-  resourceType: Entity
+  reference: Entity/Patient
 where: EXISTS ( SELECT 1 FROM jsonb_array_elements({{table}}.resource -> 'telecom') AS email WHERE email ->> 'system' = 'email' AND split_part(lower(email ->> 'value'), '@', 2) = lower({{param}}::text))
 ```
 
@@ -129,16 +133,15 @@ See more:
 ### Encounter.subject performance optimization
 
 ```http
-PUT /Search/Encounter.subject
+PUT /fhir/Search/Encounter.subject
 content-type: text/yaml
 accept: text/yaml
 
 resourceType: Search
 id: Encounter.subject
 name: subject 
-resource: 
-  id: Encounter
-  resourceType: Entity
+resource:
+  reference: Entity/Encounter
 where: "resource #>> '{ subject, id }' = ANY ({{param}}::text[])"
 multi: array
 ```
@@ -146,7 +149,7 @@ multi: array
 ### Patient.deceased
 
 ```http
-PUT /Search/Patient.deceased
+PUT /fhir/Search/Patient.deceased
 content-type: text/yaml
 accept: text/yaml
 
@@ -154,15 +157,14 @@ resourceType: Search
 id: Patient.deceased
 name: deceased
 resource:
-  id: Patient
-  resourceType: Entity
+  reference: Entity/Patient
 where: "coalesce((resource#>>'{deceased,boolean}')::boolean, resource ?? 'deceased', false) = {{param}}"
 ```
 
 ### User.identifier
 
 ```http
-PUT /Search/User.identifier
+PUT /fhir/Search/User.identifier
 content-type: text/yaml
 accept: text/yaml
 
@@ -178,19 +180,19 @@ token-sql:
   text: 'array_to_string(knife_extract({{table}}.resource, ''[["identifier"]]''), '''') ilike {{param.text}}'
   text-format: '%?%'
 where: '(knife_extract_text({{table}}.resource, ''[["identifier","value"]]'') && ARRAY[{{param.code}}]) AND ({{table}}.resource->''identifier'' @> jsonb_build_array(jsonb_build_object(''system'', {{param.system}}::text, ''value'', {{param.code}}::text)))'
-resource: {id: User, resourceType: Entity}
+resource: {reference: Entity/User}
 ```
 
 ### ServiceRequest.subject performance optimization
 
 ```http
-PUT /Search/ServiceRequest.subject
+PUT /fhir/Search/ServiceRequest.subject
 content-type: text/yaml
 accept: text/yaml
 
 resourceType: Search
 name: subject
-resource: {id: ServiceRequest, resourceType: Entity}
+resource: {reference: Entity/ServiceRequest}
 where: "{{table}}.resource#>> '{ subject, id }' = {{param.id}}"
 param-parser: reference
 ```
@@ -198,13 +200,13 @@ param-parser: reference
 ### Search and sort by field in the related resource
 
 ```http
-PUT /Search/Patient.organization-name
+PUT /fhir/Search/Patient.organization-name
 content-type: text/yaml
 accept: text/yaml
 
 resourceType: Search
 name: organization-name
-resource: {id: Patient, resourceType: Entity}
+resource: {reference: Entity/Patient}
 where: "(select org.resource ->> 'name' from organization org where {{table}}.resource #>> '{ managingOrganization, id }' = org.id) = {{param}}::text"
 order-by: "(select org.resource ->> 'name' from organization org where {{table}}.resource #>> '{ managingOrganization, id }' = org.id)"
 ```
