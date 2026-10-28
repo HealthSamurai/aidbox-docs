@@ -104,7 +104,7 @@ See tutorial:
 With the AidboxQuery resource, you can turn your SQL query into a REST endpoint.
 
 ```yaml
-PUT /AidboxQuery/<query-name>
+PUT /fhir/AidboxQuery/<query-name>
 
 params:
   # define filter parameter
@@ -139,7 +139,7 @@ type: query
 For example, let's create a simple aggregation report for encounters parameterised by date. Create an `AidboxQuery` resource:
 
 ```yaml
-PUT /AidboxQuery/daily-report
+PUT /fhir/AidboxQuery/daily-report
 
 params:
   date:
@@ -203,7 +203,7 @@ AidboxQuery supports two parameter substitution modes:
 Example:
 
 ```yaml
-PUT /AidboxQuery/history-query
+PUT /fhir/AidboxQuery/history-query
 query: 'SELECT txid FROM {{!params.tableName}} WHERE id = {{params.resourceId}}'
 params:
   tableName: {type: string, isRequired: true}
@@ -219,7 +219,7 @@ Identifier parameters are quoted and escaped (double quotes are doubled), which 
 AidboxQuery has `type` field, which can be either `query` or `execute`. Default type is query. This means that _SELECT_ statement in query parameter is expected. If you want to make SQL query with execute statements e.g. _TRUNCATE_, use `execute` type.
 
 ```http
-PUT /AidboxQuery/truncate
+PUT /fhir/AidboxQuery/truncate
 
 query: 'TRUNCATE {{resourceType}}; TRUNCATE {{resourceType}}_history'
 type: execute
@@ -230,7 +230,7 @@ type: execute
 You can use `enable-links` parameter to include [links](https://www.hl7.org/fhir/http.html#paging) in the response. Here is simple example how to use paging with AidboxQuery and include links.
 
 ```http
-PUT /AidboxQuery/q1
+PUT /fhir/AidboxQuery/q1
 
 query: |
   SELECT 
