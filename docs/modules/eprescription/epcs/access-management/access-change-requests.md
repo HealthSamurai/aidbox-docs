@@ -6,7 +6,7 @@ description: Change who holds an EPCS access manager role or the EPCS prescribin
 
 An **access-change request** grants or revokes one [access manager](README.md) role or the [EPCS prescribing permission](README.md) for one Aidbox `User` at one `Location`.
 An administrator at the location creates it, and the change takes effect when the request is approved.
-An [immediate revocation](#immediate-revocation) is approved as soon as it is created.
+An administrator completes an [immediate revocation](#immediate-revocation) without a second person's approval.
 The user whose role or permission a request changes is its **target**.
 A request that grants a role or permission is a **nomination**, and its target is the **nominee**.
 
@@ -70,7 +70,7 @@ To appoint a new administrator after that, use [Bootstrap the First Administrato
 * `403`: the request has no [acting user](configure-access-policies.md#acting-user), or the caller is not an administrator at the location.
 * `409`, in either of these cases:
   * A pending, unexpired request already exists for the same user, permission, and location, whether it grants or revokes the permission.
-  * During an [immediate revocation](#immediate-revocation), another call changed the location's roles at the same time. Retry the call.
+  * During an [immediate revocation](#immediate-revocation), another call changed the location's roles or the revoked permission at the same time. Retry the call.
 * `422`, in any of these cases:
   * A grant names a user who already holds the permission, or a revocation names a user who does not.
   * An administrator nomination names a `User` that does not exist.
@@ -101,13 +101,14 @@ At a location where no user holds the approver role, the revocation is an [immed
 
 ### Immediate Revocation
 
-An **immediate revocation** completes when the administrator creates it, without a second person's approval or a two-factor code.
+An **immediate revocation** is a revocation that an administrator completes without a second person's approval or a two-factor code.
 A revocation is immediate in either of these cases:
 
 * It revokes the approver role while only one user holds that role at the location, DEA-qualified or not.
 * It revokes `epcs-prescribing` (the administrator's own included) while no user holds the approver role at the location.
 
-The call returns `201 Created` with `status: approved`, and the module has already removed the role or permission.
+When a case holds as the administrator creates the request, the module removes the role or permission and returns the request with `status: approved`.
+A pending revocation that matches a case later needs [Administrator Approval](#administrator-approval).
 
 ### DEA Qualification
 
@@ -146,7 +147,7 @@ They cannot be the target either, unless the request is a [prescribing nominatio
 
 ### Administrator Approval
 
-After the location's approvers change, a pending revocation can match an [immediate revocation](#immediate-revocation) case:
+After the location's approvers change, a pending revocation can become an [immediate revocation](#immediate-revocation):
 
 * It revokes the approver role, and its target is now the only user who holds that role at the location.
 * It revokes `epcs-prescribing`, and no user holds the approver role at the location.
