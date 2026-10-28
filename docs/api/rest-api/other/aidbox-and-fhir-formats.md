@@ -139,7 +139,7 @@ PUT /
 Now you can test how a resource will be stored in Aidbox with:
 
 ```yaml
-POST /to-format/aidbox
+POST /$to-format/aidbox
 
 resourceType: Patient
 id: sample-pt
