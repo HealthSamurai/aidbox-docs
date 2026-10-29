@@ -56,6 +56,12 @@ This setting requires a restart to take effect. The config file is loaded once â
     "jwt-key": {
       "path": "/run/secrets/jwt-key",
       "scope": {"resource_type": "TokenIntrospector"}
+    },
+    "enc-key": {
+      "path": "/run/secrets/enc-key",
+      "kind": "encryption",
+      "scope": {"resource_type": "Patient"},
+      "alg": "XC20P"
     }
   }
 }
@@ -64,7 +70,12 @@ This setting requires a restart to take effect. The config file is loaded once â
 
 Each entry under `"secret"` maps a secret name to:
 
-<table><thead><tr><th width="100">Field</th><th>Description</th></tr></thead><tbody><tr><td><code>path</code></td><td>Absolute path to the file containing the secret value</td></tr><tr><td><code>scope</code></td><td>Object identifying the resource allowed to access this secret. Use <code>resource_type</code> and <code>id</code> to restrict to a specific instance (e.g. <code>{"resource_type": "Client", "id": "my-client"}</code>), or <code>resource_type</code> alone to allow any instance of that type (e.g. <code>{"resource_type": "TokenIntrospector"}</code>)</td></tr></tbody></table>
+| Field   | Description |
+| ------- | ----------- |
+| `path`  | Absolute path to the file containing the secret value |
+| `scope` | Object identifying the resource allowed to access this secret. Use `resource_type` and `id` to restrict to a specific instance (e.g. `{"resource_type": "Client", "id": "my-client"}`), or `resource_type` alone to allow any instance of that type (e.g. `{"resource_type": "TokenIntrospector"}`) |
+| `kind`  | `encryption` for encryption keys, `resource` for resource-bound secrets |
+| `alg`   | algorithm for which the key is generated (only for kind `encryption` |
 
 ## Extension pattern
 

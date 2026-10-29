@@ -44,7 +44,7 @@ The first part of the JWE is the JOSE header. This header specifies the algorith
 and key-wrapping algorithm.
 
 In our case it is (base64url-decoded):
-```
+```json
 {
   "kid": "kek",
   "enc": "XC20P",
@@ -62,18 +62,18 @@ and the encrypted key part of the JWE is empty.
 ## Configuration
 Pass the `encryption` parameter to `$create-api` or `$configure-api`. Its parts:
 
-| Part       | Type                | Required        | Description                                                                               |
-|------------|---------------------|-----------------|-------------------------------------------------------------------------------------------|
-| `jose`     | complex (see below) | yes             | JOSE header describing encryption                                                         |
-| `mode`     | code                | no              | `strict`: on data change validate that Aidbox can decrypt data; `lenient` (default): don't validate |
-| `fhirpath` | string              | yes, repeatable | FHIRPath to elements to encrypt                                                           |
+| Part                | Type                | Required        | Description                                                                                                             |
+|---------------------|---------------------|-----------------|-------------------------------------------------------------------------------------------------------------------------|
+| `jose`              | complex (see below) | yes             | JOSE header describing encryption                                                                                       |
+| `decryptValidation` | code                | no              | `reject-undecryptable`: on data change validate that Aidbox can decrypt data; `no-validation` (default): don't validate |
+| `fhirpath`          | string              | yes, repeatable | FHIRPath to elements to encrypt                                                                                         |
 
 Structure of the `jose` parameter:
-| Part  | Type   | Required | Description                                                                              |
-|-------|--------|----------|------------------------------------------------------------------------------------------|
-| `alg` | string | yes      | Key-wrapping algorithm. Only `dir` (no key wrapping) is supported                        |
-| `enc` | string | yes      | Encryption algorithm. Supported `A256GCM` (AES-256-GCM) and `XC20P` (XChaCha20-Poly1305) |
-| `kid` | string | yes      | Key ID (from [Secrets API](https://www.health-samurai.io/docs/aidbox/configuration/secret-files))                     |
+| Part  | Type   | Required | Description                                                                                       |
+|-------|--------|----------|---------------------------------------------------------------------------------------------------|
+| `alg` | string | yes      | Key-wrapping algorithm. Only `dir` (no key wrapping) is supported                                 |
+| `enc` | string | yes      | Encryption algorithm. See supported algorithms                                                    |
+| `kid` | string | yes      | Key ID (from [Secrets API](https://www.health-samurai.io/docs/aidbox/configuration/secret-files)) |
 
 Example:
 ```json
@@ -87,7 +87,7 @@ Example:
     { "name": "encryption", "part": [
         { "name": "fhirpath", "valueString": "birthDate" },
         { "name": "fhirpath", "valueString": "name.family" },
-        { "name": "mode", "valueCode": "lenient" },
+        { "name": "decryptValidation", "valueCode": "no-validation" },
         { "name": "jose", "part": [
             { "name": "alg", "valueCode": "dir" },
             { "name": "enc", "valueCode": "XC20P" },
@@ -104,17 +104,37 @@ Vault config example:
   "secret": {
     "key-a": {
       "path": "/path/to/key.base64",
+      "kind": "encryption",
+      "alg": "XC20P",
       "scope": {
-        "kind": "encryption",
-        "alg": "XC20P"
+        "resource_type": "Patient"
       }
     }
   }
 }
 ```
 
+### Multiple keys
+Multiple keys can be bound to the same resource type.
+Aidbox will use the matching key (by kid) from the set of bound keys for decryption.
+For encryption the key specified in the API will be used.
+
+### Supported algorithms
+The encryption algorithms supported:
+| enc value    | Algorithm          |
+|--------------|--------------------|
+| `A256GCM`    | AES-256-GCM        |
+| `XC20P`      | XChaCha20-Poly1305 |
+| `A256GCMSIV` | AES-256-GCM-SIV    |
+
+At the moment Aidbox doesn't support envelope encryption, so the only accepted `alg` value is `dir` (no envelope encryption).
+
+### Key format
+The key must be a base64-encoded UTF-8 string of the raw key bytes.
+
 ## Operation
-On changes (create, update, update-as-create operations) Aidbox extracts fields with FHIRPath expression, then (in strict mode) validates that encrypted values could be decrypted, then encrypts plaintext values.
+On changes (create, update, update-as-create operations) Aidbox extracts fields with FHIRPath expression,
+then (if decryption validation is enabled) validates that encrypted values could be decrypted, then encrypts plaintext values.
 Each value is first serialized as JSON, then encoded as UTF-8, and then encrypted.
 
 For example, number `1` will be encoded as JSON `1`, then encoded as UTF-8 `31`, then encrypted.
@@ -147,5 +167,16 @@ will be encrypted as
     ]
   }
 }
+```
 
-On read, search, and history operations the process is reversed and Aidbox decrypts data before sending it to the client. If some element cannot be decrypted, it is send as is.
+On read, search, and history operations the process is reversed and Aidbox decrypts data before sending it to the client. If some element cannot be decrypted, it is sent as is.
+
+## Key rotation
+There are two levels of key rotation.
+
+The first one is infrastructure level. You can store data encryption keys (DEK) in your vault in encrypted form, and rotate key encryption key.
+The second one is rotation of data encryption keys. It is recommended to rotate DEK before `2^32` encrypted messages threshold. Each encrypted field
+constitutes a message.
+
+To rotate DEK add a new DEK to the vault, and reconfigure API to use the new key. From this moment all newly encrypted data will use the new key,
+but old data will continue to be decrypted using the old key.
