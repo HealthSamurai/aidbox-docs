@@ -7,7 +7,9 @@ description: Move an existing Aidbox database from self-hosted PostgreSQL to Dat
 This tutorial moves an existing Aidbox database from a self-hosted PostgreSQL to a [Databricks Lakebase](https://docs.databricks.com/aws/en/oltp/) Autoscaling project. You copy the data with `pg_dump` and `pg_restore`, then point Aidbox at Lakebase with Databricks OAuth authentication. The Aidbox image, its settings and FHIR packages stay the same.
 
 {% hint style="warning" %}
-Aidbox 2608 and later fail to start with `BOX_DB_AUTH_METHOD=databricks-autoscale` or `databricks-provisioned`: the main connection pool sends `BOX_DB_PASSWORD` instead of the OAuth token, and Lakebase rejects it with `Provided authentication token is not a valid JWT encoding`. Use Aidbox 2607 or earlier until a release with the fix is available.
+Aidbox 2608 and 2609 fail to start with `BOX_DB_AUTH_METHOD=databricks-autoscale` or `databricks-provisioned`: the main connection pool sends `BOX_DB_PASSWORD` instead of the OAuth token, and Lakebase rejects it with `Provided authentication token is not a valid JWT encoding`. Aidbox 2607 and earlier, and 2610 and later, work with Databricks authentication. If you run 2608 or 2609, move to 2610 or later before you switch to Lakebase.
+
+The ClickHouse topic destination can't run its initial export under Databricks authentication: it passes the database password to ClickHouse, and that password is the `BOX_DB_PASSWORD` placeholder.
 {% endhint %}
 
 ## Objectives
@@ -259,11 +261,42 @@ docker compose up -d aidbox
 curl -fsS http://localhost:8080/health
 ```
 
-Aidbox fetches a token for the service principal, caches it for 45 minutes and rotates pool connections before the token expires. Read replicas take the same settings with the `BOX_DB_RO_REPLICA_` prefix.
+Aidbox fetches a token for the service principal, caches it for 45 minutes and rotates pool connections before the token expires.
+
+With the default `BOX_DB_POOL_MINIMUM_IDLE=0`, the pool closes every connection after an idle period, and the first request afterwards waits while Aidbox reconnects and reloads its caches. Set [`BOX_DB_POOL_MINIMUM_IDLE`](../../reference/all-settings.md#db.pool.minimum-idle) above zero to keep connections open.
 
 {% hint style="info" %}
 Run Aidbox in the same cloud region as the Lakebase project. Each FHIR request makes several SQL round trips, and with a cross-region network every round trip adds the full network latency to the response time.
 {% endhint %}
+
+### Add a read replica (optional)
+
+A read-only endpoint on the same branch serves as a [read-only replica](../../database/overview.md#postgresql-with-read-only-replica). The service principal role works on it without extra grants.
+
+```bash
+databricks postgres create-endpoint "$BRANCH" ro-replica \
+  --json '{"spec": {"endpoint_type": "ENDPOINT_TYPE_READ_ONLY", "autoscaling_limit_min_cu": 0.5, "autoscaling_limit_max_cu": 2.0}}'
+
+databricks postgres get-endpoint "$BRANCH/endpoints/ro-replica" -o json | jq -r .status.hosts.host
+```
+
+Add the replica settings to the Aidbox service:
+
+```yaml
+BOX_DB_RO_REPLICA_ENABLED: 'true'
+BOX_DB_RO_REPLICA_HOST: <replica host>
+BOX_DB_RO_REPLICA_PORT: '5432'
+BOX_DB_RO_REPLICA_DATABASE: databricks_postgres
+BOX_DB_RO_REPLICA_USER: <SP_CLIENT_ID>
+BOX_DB_RO_REPLICA_PASSWORD: placeholder
+BOX_DB_RO_REPLICA_AUTH_METHOD: databricks-autoscale
+BOX_DB_RO_REPLICA_DATABRICKS_HOST: https://<workspace>.cloud.databricks.com
+BOX_DB_RO_REPLICA_DATABRICKS_AUTOSCALE_ENDPOINT: projects/<project-id>/branches/production/endpoints/ro-replica
+BOX_DB_RO_REPLICA_DATABRICKS_CLIENT_ID: <SP_CLIENT_ID>
+BOX_DB_RO_REPLICA_DATABRICKS_CLIENT_SECRET: <SP_CLIENT_SECRET>
+```
+
+Aidbox sends a request to the replica when the request carries the `x-use-ro-replica` header. A write sent with this header fails with `cannot execute INSERT in a read-only transaction`.
 
 ## Verify the migration
 
@@ -283,7 +316,7 @@ Until Aidbox writes to Lakebase, rolling back means restoring the old `BOX_DB_*`
 
 | Symptom | Cause | Fix |
 | --- | --- | --- |
-| `Provided authentication token is not a valid JWT encoding` at startup | Aidbox 2608 or later | Use Aidbox 2607 or earlier until the fix is released. |
+| `Provided authentication token is not a valid JWT encoding` at startup | Aidbox 2608 or 2609 | Use Aidbox 2610 or later, or 2607 or earlier. |
 | Aidbox refuses to start: missing extension | `pg_trgm` or `unaccent` isn't in `BOX_DB_EXTENSION_SCHEMA` | Create the extension as the service principal in `public`. |
 | `permission denied for schema public` | The service principal lacks `CREATE` on `public` | Run the grants from the provisioning steps again. |
 | `must be owner of table ...` | Another role restored the tables | Restore again as the service principal with `--no-owner`. |
