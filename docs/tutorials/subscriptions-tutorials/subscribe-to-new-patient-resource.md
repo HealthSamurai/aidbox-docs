@@ -18,7 +18,7 @@ As external service to integrate Aidbox with, we will use [RequestCatcher](https
 Open [https://aidbox.requestcatcher.com/](https://aidbox.requestcatcher.com/) in new tab, then create next **SubsSubsription** resource in your Aidbox instance:
 
 ```yaml
-POST /SubsSubscription
+POST /fhir/SubsSubscription
 
 id: new-patient-sub
 status: active
@@ -41,9 +41,9 @@ After that, aidbox sends a handshake notification on channel.endpoint, which you
 Let's create a new patient then.
 
 ```yaml
-POST /Patient
+POST /fhir/Patient
 
-id: john-smith 
+id: john-smith
 name:
 - given: [John]
   family: Smith
@@ -58,7 +58,7 @@ Then you can back to RequestCatcher service and see a new notification.
 And next, you can see **SubsNotification** resource created for this notification in Aidbox.
 
 ```yaml
-GET /SubsNotification?_sort=-lastUpdated
+GET /fhir/SubsNotification?_sort=-_lastUpdated
 
 # Response
 
@@ -80,14 +80,14 @@ entry:
         - given: [John]
           family: Smith
         resourceType: Patient
-    subscription: {id: new-patient-sub, resourceType: SubsSubscription}
+    subscription: {reference: SubsSubscription/new-patient-sub}
 # ... other notification
 ```
 
 If you will update your patient, then the notification will not be created, because we subscribed only for the creation of a Patient resource.
 
 ```yaml
-PUT /Patient/john-smith
+PUT /fhir/Patient/john-smith
 
 name:
 - given: [John]

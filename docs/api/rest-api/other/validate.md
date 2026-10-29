@@ -9,13 +9,9 @@ description: Validate FHIR resources before committing changes using $validate o
 The tool introduced by FHIR to provide a separate validation mechanism for 2-steps commit workflow or for development needs. It works for create, update and delete operations, is called using `?mode=` query parameter with values `create`, `update`, `delete` but changes won't be committed. Instead a requester will get an `OperationOutcome` with information about validation results. See [http://hl7.org/fhir/resource-operation-validate.html](http://hl7.org/fhir/resource-operation-validate.html) for the official documentation.
 
 ```http
-#FHIR format endpoint:
+POST /fhir/$validate
 POST /fhir/<resourceType>/$validate
 POST /fhir/<resourceType>/<id>/$validate
-
-#Aidbox format endpoint:
-POST /<resourceType>/$validate
-POST /<resourceType>/<id>/$validate
 ```
 
 Such requests check the resource structure, internal business rules and return a list of problems if some exist.
@@ -27,14 +23,14 @@ $validate supports two ways to pass arguments:
 
 {% code title="By FHIR spec it receives a Parameters resource as a body:" %}
 ```yaml
-POST /$validate
+POST /fhir/$validate
 
 resourceType: Parameters
 parameter:
 - name: mode
-  value: {string: <mode>}
+  valueString: <mode>
 - name: profile
-  value: {uri: <StructureDefinition.url>}
+  valueUri: <StructureDefinition.url>
 - name: resource
   resource: <resource>
 
@@ -43,7 +39,7 @@ parameter:
 
 {% code title="Parameters are specified in query string; body is the resource to validate:" %}
 ```http
-POST /$validate?mode=<mode>&profile=<StructureDefinition.url>
+POST /fhir/$validate?mode=<mode>&profile=<StructureDefinition.url>
 
 <resource>
 ```
@@ -95,9 +91,9 @@ POST /fhir/Patient/$validate
 resourceType: Parameters
 parameter:
 - name: mode
-  value: {string: create}
+  valueString: create
 - name: resource
-  resource: {name: [{given: [John]}]}
+  resource: {resourceType: Patient, name: [{given: [John]}]}
 
 # Response
 HTTP 200 OK
@@ -140,19 +136,29 @@ issue:
 {% code title="Request contains same invalid Patient resource and passed as Parameters." %}
 ```yaml
 # Request:
-POST /fhir/Patient/$validate?mode=create
-
-name: "Bob"
-test: "foo"
-
-# Response
-HTTP 200 OK
+POST /fhir/Patient/$validate
 
 resourceType: Parameters
 parameter:
 - name: mode
-  value: {string: create}
+  valueString: create
 - name: resource
-  resource: {name: Bob, test: foo}
+  resource: {resourceType: Patient, name: Bob, test: foo}
+
+# Response
+HTTP 200 OK
+
+id: validationfail
+resourceType: OperationOutcome
+text: {status: generated, div: Invalid resource}
+issue:
+- severity: fatal
+  code: invalid
+  expression: [Patient.name]
+  diagnostics: The property must be an array
+- severity: fatal
+  code: invalid
+  expression: [Patient.test]
+  diagnostics: "Unrecognized property 'test'"
 ```
 {% endcode %}
