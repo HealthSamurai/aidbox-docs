@@ -7,7 +7,7 @@ description: Move an existing Aidbox database from self-hosted PostgreSQL to Dat
 This tutorial moves an existing Aidbox database from a self-hosted PostgreSQL to a [Databricks Lakebase](https://docs.databricks.com/aws/en/oltp/) Autoscaling project. You copy the data with `pg_dump` and `pg_restore`, then point Aidbox at Lakebase with Databricks OAuth authentication. The Aidbox image, its settings and FHIR packages stay the same.
 
 {% hint style="warning" %}
-Aidbox 2608 and later fail to start with `BOX_DB_AUTH_METHOD=databricks-autoscale` or `databricks-provisioned`: the main connection pool sends `BOX_DB_PASSWORD` instead of the OAuth token, and Lakebase rejects it with `Provided authentication token is not a valid JWT encoding`. Use Aidbox 2607 or earlier until a release with the fix is available.
+Aidbox 2608 and 2609 fail to start with `BOX_DB_AUTH_METHOD=databricks-autoscale` or `databricks-provisioned`: the main connection pool sends `BOX_DB_PASSWORD` instead of the OAuth token, and Lakebase rejects it with `Provided authentication token is not a valid JWT encoding`. Aidbox 2607 and earlier, and 2610 and later, work with Databricks authentication. If you run 2608 or 2609, move to 2610 or later before you switch to Lakebase.
 
 The ClickHouse topic destination can't run its initial export under Databricks authentication: it passes the database password to ClickHouse, and that password is the `BOX_DB_PASSWORD` placeholder.
 {% endhint %}
@@ -316,7 +316,7 @@ Until Aidbox writes to Lakebase, rolling back means restoring the old `BOX_DB_*`
 
 | Symptom | Cause | Fix |
 | --- | --- | --- |
-| `Provided authentication token is not a valid JWT encoding` at startup | Aidbox 2608 or later | Use Aidbox 2607 or earlier until the fix is released. |
+| `Provided authentication token is not a valid JWT encoding` at startup | Aidbox 2608 or 2609 | Use Aidbox 2610 or later, or 2607 or earlier. |
 | Aidbox refuses to start: missing extension | `pg_trgm` or `unaccent` isn't in `BOX_DB_EXTENSION_SCHEMA` | Create the extension as the service principal in `public`. |
 | `permission denied for schema public` | The service principal lacks `CREATE` on `public` | Run the grants from the provisioning steps again. |
 | `must be owner of table ...` | Another role restored the tables | Restore again as the service principal with `--no-owner`. |
