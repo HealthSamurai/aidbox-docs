@@ -163,7 +163,6 @@ A migration that runs outside a transaction cannot be part of a FHIR **transacti
 | How you send it | `execution-type: not-in-transaction` |
 |---|---|
 | `POST /fhir/AidboxMigration` | Runs outside a transaction |
-| `POST /AidboxMigration` (Aidbox format) | Runs outside a transaction |
 | Entry in a `batch` bundle | Runs outside a transaction |
 | Entry in a `transaction` bundle | Rejected with a 422 error |
 
