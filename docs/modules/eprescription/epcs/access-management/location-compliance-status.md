@@ -2,11 +2,11 @@
 description: Check whether a location has an EPCS administrator and an EPCS approver who are different users in the Aidbox ePrescription module.
 ---
 
-# Location Status
+# Location Compliance Status
 
-A **compliant location** has an administrator and an approver who are different users.
-The status operation reports whether a location is compliant.
-The module does not block controlled-substance prescribing at a location that is not compliant, so use the status to warn your users, for example on the prescribing screen.
+A **DEA-compliant location** has an administrator and an approver who are different users.
+The compliance status operation reports whether a location is DEA-compliant.
+The module does not block controlled-substance prescribing at a location that is not DEA-compliant, so use the compliance status to warn your users, for example on the prescribing screen.
 
 ```http
 GET /e-prescription/access/epcs/locations/<Location id>/status
@@ -23,8 +23,8 @@ Any [acting user](configure-access-policies.md#acting-user) can call it, includi
 }
 ```
 
-* `compliant`: `true` for a compliant location.
-* `issues`: every failed check, empty for a compliant location:
+* `compliant`: `true` for a DEA-compliant location.
+* `issues`: every failed check, empty for a DEA-compliant location:
   * `no-approver`: no user holds the approver role at the location.
   * `no-administrator`: no user holds the administrator role at the location.
   * `same-person`: one user holds both roles, and nobody else holds either.

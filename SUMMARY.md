@@ -442,7 +442,7 @@
       * [Bootstrap the First Administrator](modules/eprescription/epcs/access-management/bootstrap-the-first-administrator.md)
       * [List Permissions](modules/eprescription/epcs/access-management/list-permissions.md)
       * [Access-Change Requests](modules/eprescription/epcs/access-management/access-change-requests.md)
-      * [Location Status](modules/eprescription/epcs/access-management/location-status.md)
+      * [Location Compliance Status](modules/eprescription/epcs/access-management/location-compliance-status.md)
   * [Directory](modules/eprescription/directory/README.md)
     * [DirectoryDownload Message](modules/eprescription/directory/directorydownload-message.md)
     * [GetProviderLocation Message](modules/eprescription/directory/getproviderlocation-message.md)

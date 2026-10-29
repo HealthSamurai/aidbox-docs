@@ -23,6 +23,6 @@ The Aidbox App exposes the operations under `/e-prescription/access/epcs`:
 * [Bootstrap the First Administrator](bootstrap-the-first-administrator.md): grant a location's first administrator during deployment.
 * [Access-Change Requests](access-change-requests.md): change who holds an access manager role or the EPCS prescribing permission at a location.
 * [List Permissions](list-permissions.md): list your own permissions and those at the locations you administer.
-* [Location Status](location-status.md): check whether a location has an administrator and an approver who are different users.
+* [Location Compliance Status](location-compliance-status.md): check whether a location has an administrator and an approver who are different users.
 
 The operations work whether or not controlled-substance prescribing is enabled, so you can set up access managers and prescribers ahead of time.

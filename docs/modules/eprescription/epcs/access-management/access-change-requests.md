@@ -7,8 +7,8 @@ description: Change who holds an EPCS access manager role or the EPCS prescribin
 An **access-change request** grants or revokes one [access manager](README.md) role or the [EPCS prescribing permission](README.md) for one Aidbox `User` at one `Location`.
 An administrator at the location creates it, and the change takes effect when the request is approved.
 An administrator completes an [immediate revocation](#immediate-revocation) without a second person's approval.
-The user whose role or permission a request changes is its **target**.
-A request that grants a role or permission is a **nomination**, and its target is the **nominee**.
+The user whose role or permission a request changes is its **access-change target**.
+A request that grants a role or permission is a **nomination**, and its access-change target is the **nominee**.
 
 An **EPCS approver** approves requests with their two-factor code.
 They can approve only while they are [DEA-qualified](#dea-qualification) at the location.
@@ -24,7 +24,7 @@ Content-Type: application/json
 {
   "action": "grant",
   "permissionCode": "epcs-access-approver",
-  "userId": "<target's Aidbox User id>",
+  "userId": "<access-change target's Aidbox User id>",
   "locationId": "<Location id>"
 }
 ```
@@ -85,18 +85,18 @@ A request that grants `epcs-prescribing` is a **prescribing nomination**.
 Its nominee must be [DEA-qualified](#dea-qualification) at the location.
 An administrator may nominate themselves.
 
-Any approver at the location other than the requester can approve it through [second-person approval](#second-person-approval), including the nominee.
+Any approver at the location other than the administrator who requested it can approve it through [second-person approval](#second-person-approval), including the nominee.
 
 ### Prescribing Revocation
 
 A request that revokes `epcs-prescribing` is a **prescribing revocation**.
-Its target does not need to be DEA-qualified.
+Its access-change target does not need to be DEA-qualified.
 An administrator may revoke their own prescribing permission.
 
 When a practitioner must lose the permission, for example after a lost authentication factor or an expired DEA registration, an administrator requests the revocation.
 The module does not detect these events.
 
-Any approver at the location other than the requester can approve it through [second-person approval](#second-person-approval), including the target.
+Any approver at the location other than the administrator who requested it can approve it through [second-person approval](#second-person-approval), including the access-change target.
 At a location where no user holds the approver role, the revocation is an [immediate revocation](#immediate-revocation) and completes when it is created.
 
 ### Immediate Revocation
@@ -142,14 +142,14 @@ There, the nominee of an approver nomination accepts it with their own two-facto
 ### Second-Person Approval
 
 A DEA-qualified approver at the location approves the request with their two-factor code.
-The approver cannot be the requester.
-They cannot be the target either, unless the request is a [prescribing nomination](#prescribing-nomination) or a [prescribing revocation](#prescribing-revocation).
+The approver cannot be the administrator who requested it.
+They cannot be its access-change target either, unless the request is a [prescribing nomination](#prescribing-nomination) or a [prescribing revocation](#prescribing-revocation).
 
 ### Administrator Approval
 
 After the location's approvers change, a pending revocation can become an [immediate revocation](#immediate-revocation):
 
-* It revokes the approver role, and its target is now the only user who holds that role at the location.
+* It revokes the approver role, and its access-change target is now the only user who holds that role at the location.
 * It revokes `epcs-prescribing`, and no user holds the approver role at the location.
 
 Any administrator at the location can then approve it without `twoFactorCode`, including the administrator who requested it.
@@ -174,9 +174,9 @@ Errors:
 These users can cancel a pending, unexpired request:
 
 * Any access manager at the location.
-* The target of a request that changes their access manager role, such as a nominee who declines an administrator or approver nomination.
+* The access-change target of a request that changes their access manager role, such as a nominee who declines an administrator or approver nomination.
 
-The target of a revocation that someone else requested cannot cancel it.
+The access-change target of a revocation that someone else requested cannot cancel it.
 
 ```http
 POST /e-prescription/access/epcs/requests/<id>/cancel
@@ -190,8 +190,8 @@ POST /e-prescription/access/epcs/requests/<id>/cancel
 
 * `403`, in any of these cases:
   * The request has no [acting user](configure-access-policies.md#acting-user).
-  * The caller is neither an access manager at the location nor the target of a request that changes their access manager role.
-  * The caller is the target of a revocation that someone else requested.
+  * The caller is neither an access manager at the location nor the access-change target of a request that changes their access manager role.
+  * The caller is the access-change target of a revocation that someone else requested.
 * `409`: another call changed the request or the caller's role at the location at the same time. Reload the request and retry.
 * `422`: the request does not exist, or is resolved or expired.
 
@@ -207,7 +207,7 @@ GET /e-prescription/access/epcs/requests?location=<Location id>&status=pending
 `200 OK` returns a searchset `Bundle` with:
 
 * Requests at locations where the [acting user](configure-access-policies.md#acting-user) is an access manager.
-* Requests that name the acting user as the target and change an access manager role.
+* Requests that name the acting user as the access-change target and change an access manager role.
 
 Optional filters:
 
