@@ -54,7 +54,7 @@ Use the `far-migration-fhir-package-install` action to install a FHIR IG package
 
 The `package` parameter value follows the format `<package-name>@<version>`.
 
-After execution, the migration status changes to `done` and the `result` field contains the number of installed canonicals.
+After execution, the migration status changes to `done` and the `result` field holds the operation response. The `result.body` Parameters contain `result` (`valueBoolean: true`) and a `package` parameter whose `installedCanonicals` part is the number of installed canonicals.
 
 ### Uninstall a FHIR package
 
@@ -117,7 +117,17 @@ Available since the 2602 release.
 }
 ```
 
-After execution, the migration status changes to `done` and `result.valueBoolean` is `true`.
+After execution, the migration status changes to `done` and the `result` field holds the operation response:
+
+```json
+"result": {
+  "status": 200,
+  "body": {
+    "resourceType": "Parameters",
+    "parameter": [{ "name": "result", "valueBoolean": true }]
+  }
+}
+```
 
 {% hint style="warning" %}
 Invalid SQL causes the migration to fail with a 422 error. In a transaction bundle, this rolls back the entire transaction and prevents Aidbox from starting.
@@ -163,7 +173,6 @@ A migration that runs outside a transaction cannot be part of a FHIR **transacti
 | How you send it | `execution-type: not-in-transaction` |
 |---|---|
 | `POST /fhir/AidboxMigration` | Runs outside a transaction |
-| `POST /AidboxMigration` (Aidbox format) | Runs outside a transaction |
 | Entry in a `batch` bundle | Runs outside a transaction |
 | Entry in a `transaction` bundle | Rejected with a 422 error |
 
