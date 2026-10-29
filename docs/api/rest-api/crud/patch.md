@@ -71,10 +71,10 @@ The audit log records PATCH operations under the `fhir/patch` event type, distin
 
 ## Examples
 
-Let's suppose we've created a Patient resource with the id `pt-1`
+Let's suppose we've created a Patient resource with the id `pt-1`:
 
 ```json
-POST /Patient
+PUT /fhir/Patient/pt-1
 
 {
   "resourceType": "Patient",
@@ -108,7 +108,7 @@ POST /Patient
 Let's say we want to switch to an `active` flag to false and remove `telecom`:
 
 ```json
-PATCH /Patient/pt-1
+PATCH /fhir/Patient/pt-1
 
 {
   "active": false,
@@ -162,7 +162,7 @@ The JSON Patch body **must** be a JSON array of operation objects per [RFC 6902]
 {% endhint %}
 
 ```json
-PATCH /Patient/pt-1
+PATCH /fhir/Patient/pt-1
 
 [
   {"op": "replace", "path": "/name/0/given/0", "value": "Nikolai"},
@@ -195,7 +195,7 @@ Response:
 In JSON Pointer paths, `/-` refers to the end of an array and can be used with the `add` operation to append a new element:
 
 ```json
-PATCH /Patient/pt-1
+PATCH /fhir/Patient/pt-1
 
 [
   {
@@ -384,7 +384,7 @@ PATCH /fhir/Patient/pt-1
 Replace extension by id example:
 
 ```json
-PATCH /fhir/Patient/pt1
+PATCH /fhir/Patient/pt-1
 
 {
   "resourceType": "Parameters",
