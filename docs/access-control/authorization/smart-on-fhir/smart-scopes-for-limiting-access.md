@@ -407,65 +407,10 @@ Authorization: "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdHYiOjIsImF1ZCI6
 This functionality is available starting from version 2611.
 {% endhint %}
 
-The `security.smart.patient-compartment` setting (env `BOX_SECURITY_SMART_PATIENT_COMPARTMENT`) holds the canonical URL of the CompartmentDefinition with `code: Patient` that limits `patient/...` scopes. To pin a version, use `url|version`.
+The `security.smart.patient-compartment` setting (`BOX_SECURITY_SMART_PATIENT_COMPARTMENT`) holds the canonical URL (`url` or `url|version`) of the Patient CompartmentDefinition that limits `patient/...` scopes. A token reaches a resource type only if the compartment lists it with a search parameter. The default, `http://health-samurai.io/fhir/core/CompartmentDefinition/smart-patient`, is the FHIR core Patient compartment, plus `Device` in R3, R4, and R4B. If Aidbox can't resolve the URL, it denies patient-level access.
 
-A token with patient-level scopes gets access to a resource type only if the compartment lists that type with at least one search parameter. Within that type, the token reaches only the resources that point to the token's patient through those parameters.
-
-The default is `http://health-samurai.io/fhir/core/CompartmentDefinition/smart-patient`. Aidbox ships it for each FHIR version:
-
-* R3, R4, R4B: the FHIR core Patient compartment plus `Device` (search parameter `patient`).
-* R5, R6: a copy of the FHIR core Patient compartment. `Device` has no search parameter there, so patient apps can't read it.
-
-Both variants include `Group` and `List`, and these resources can reference other patients.
-
-If Aidbox can't resolve the URL or version, it denies patient-level access: reads return `404` and searches return an empty bundle.
-
-The setting supports hot reload, and you can edit it in Aidbox UI.
-
-### Deny Group and List to patient apps
-
-Upload a Patient compartment without `Group` and `List`, then point the setting at it.
-
-{% stepper %}
-{% step %}
-Create the CompartmentDefinition with the REST API or an [init bundle](../../../configuration/init-bundle.md). Copy the `resource` list from the FHIR core Patient compartment and remove `Group` and `List`:
-
-```yaml
-PUT /fhir/CompartmentDefinition/patient-no-group-list
-content-type: text/yaml
-
-resourceType: CompartmentDefinition
-id: patient-no-group-list
-url: http://example.org/fhir/CompartmentDefinition/patient-no-group-list
-name: PatientNoGroupList
-status: active
-code: Patient
-search: true
-resource:
-- code: Patient
-  param: [link]
-- code: Observation
-  param: [subject, performer]
-# ...the other types of the core Patient compartment, except Group and List
-```
-{% endstep %}
-
-{% step %}
-Set the setting to the compartment URL:
-
-```bash
-BOX_SECURITY_SMART_PATIENT_COMPARTMENT=http://example.org/fhir/CompartmentDefinition/patient-no-group-list
-```
-{% endstep %}
-{% endstepper %}
+To hide `Group` and `List` from patient apps, upload a CompartmentDefinition with `code: Patient` that omits them and set the setting to its URL. An uploaded `code: Patient` compartment also replaces the core one for `$everything`, audit, and `$purge`.
 
 {% hint style="warning" %}
-An uploaded CompartmentDefinition with `code: Patient` also replaces the FHIR core Patient compartment for the rest of Aidbox: `$everything`, `/Patient/{id}/{type}`, audit, `$purge`, and SQL on FHIR. See [Compartments API](../scoped-api/compartments-api.md).
+Before 2611, SMART used an uploaded `code: Patient` compartment on its own and added `Device`. If you have a custom Patient compartment, set the setting to its URL and list `Device` in it if needed.
 {% endhint %}
-
-### Migrate a custom Patient compartment
-
-Before 2611, SMART scopes used an uploaded CompartmentDefinition with `code: Patient` when one existed. Starting from 2611, SMART uses only the compartment from `security.smart.patient-compartment`. If you uploaded a custom Patient compartment:
-
-* Set `BOX_SECURITY_SMART_PATIENT_COMPARTMENT` to its URL. Without it, SMART uses the default `smart-patient` compartment.
-* List `Device` in your compartment with a search parameter (`patient` in R4) if patient apps need devices. Aidbox no longer adds `Device` on its own.

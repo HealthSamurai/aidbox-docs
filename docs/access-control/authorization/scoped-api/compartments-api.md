@@ -20,14 +20,7 @@ Aidbox uses the compartments from the FHIR core package of your FHIR version: Pa
 To change a compartment, upload your own CompartmentDefinition with the same `code`. Visit FHIR [documentation](https://www.hl7.org/fhir/compartmentdefinition-examples.html) for official CompartmentDefinition examples or use the following REST console snippets to create the resources.
 
 {% hint style="info" %}
-Aidbox picks the `CompartmentDefinition` by its `code`:
-
-1. If you uploaded a compartment with that `code`, Aidbox uses it instead of the FHIR core one.
-2. Otherwise Aidbox uses the FHIR core compartment.
-
-Aidbox ignores compartments from Aidbox IG packages, such as `smart-patient`. If you upload two compartments with the same `code`, `$everything` and `/Patient/{id}/{type}` fail with `500 Too many candidates of CompartmentDefinition for code: Patient`.
-
-SMART patient scopes use the compartment from a separate setting. See [SMART patient compartment](../smart-on-fhir/smart-scopes-for-limiting-access.md#smart-patient-compartment).
+Aidbox picks the `CompartmentDefinition` by `code`: an uploaded one replaces the FHIR core one. Two uploaded compartments with the same `code` cause `500 Too many candidates of CompartmentDefinition`. SMART scopes use a [separate setting](../smart-on-fhir/smart-scopes-for-limiting-access.md#smart-patient-compartment).
 {% endhint %}
 
 {% tabs %}
