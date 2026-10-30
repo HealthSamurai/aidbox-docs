@@ -9,7 +9,7 @@ The ePrescription module lets each location appoint its own **access managers** 
 
 * An **administrator access manager** at the location:
   * requests access changes
-  * requests the **EPCS prescribing permission** `epcs-prescribing` for practitioners (it covers all their DEA numbers at the location)
+  * requests grants and revocations of the **EPCS prescribing permission** `epcs-prescribing` for practitioners (it covers all their DEA numbers at the location)
   * lists access permissions
 * An **EPCS approver** approves access changes with two-factor authentication.
 
@@ -23,5 +23,6 @@ The Aidbox App exposes the operations under `/e-prescription/access/epcs`:
 * [Bootstrap the First Administrator](bootstrap-the-first-administrator.md): grant a location's first administrator during deployment.
 * [Access-Change Requests](access-change-requests.md): change who holds an access manager role or the EPCS prescribing permission at a location.
 * [List Permissions](list-permissions.md): list your own permissions and those at the locations you administer.
+* [Location Compliance Status](location-compliance-status.md): check whether a location has an administrator and an approver who are different users.
 
 The operations work whether or not controlled-substance prescribing is enabled, so you can set up access managers and prescribers ahead of time.
