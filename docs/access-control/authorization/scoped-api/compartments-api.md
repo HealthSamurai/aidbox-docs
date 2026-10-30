@@ -13,19 +13,21 @@ Each resource may belong to one or more compartments. A compartment is a logical
 
 Read more about compartments in the FHIR [documentation](https://www.hl7.org/fhir/compartmentdefinition.html). All examples in this tutorial are executable in Aidbox REST console.
 
-Aidbox supports 5 default FHIR compartments in FHIR versions 1.4.0, 1.8.0, 3.0.1, 3.2.0, 3.3.0, 4.0.0, 4.0.1
+Aidbox uses the compartments from the FHIR core package of your FHIR version: Patient, Encounter, RelatedPerson, Practitioner, and Device (R6 adds Group).
 
 ## Defining Compartments (FHIR R4)
 
-In order to use compartments, you will need to create CompartmentDefinition resources on your server. Visit FHIR [documentation](https://www.hl7.org/fhir/compartmentdefinition-examples.html) for official CompartmentDefinition examples or use the following REST console snippets to create the resources.
+To change a compartment, upload your own CompartmentDefinition with the same `code`. Visit FHIR [documentation](https://www.hl7.org/fhir/compartmentdefinition-examples.html) for official CompartmentDefinition examples or use the following REST console snippets to create the resources.
 
 {% hint style="info" %}
-Which `CompartmentDefinition`is used is determined by its code or id:
+Aidbox picks the `CompartmentDefinition` by its `code`:
 
-1. The compartment with`id` = `target resourceType`is used
-2. Else if not found compartment with`code` = `target resourceType`is used
+1. If you uploaded a compartment with that `code`, Aidbox uses it instead of the FHIR core one.
+2. Otherwise Aidbox uses the FHIR core compartment.
 
-If multiple compartments with the `code = traget resourceType` are found then it is not determined which one will be used since FHIR spec doesn't specify this case
+Aidbox ignores compartments from Aidbox IG packages, such as `smart-patient`. If you upload two compartments with the same `code`, `$everything` and `/Patient/{id}/{type}` fail with `500 Too many candidates of CompartmentDefinition for code: Patient`.
+
+SMART patient scopes use the compartment from a separate setting. See [SMART patient compartment](../smart-on-fhir/smart-scopes-for-limiting-access.md#smart-patient-compartment).
 {% endhint %}
 
 {% tabs %}

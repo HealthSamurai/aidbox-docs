@@ -39,11 +39,13 @@ This can be fixed in two ways:
 * Add `_timeout=<n-seconds>` search parameter;
 * Optimize the request by adding an index.
 
-Here's the list of search parameters that Aidbox uses to find everything about the patient.
+Aidbox finds everything about the patient with the search parameters listed in the Patient compartment. To see them, read the FHIR core Patient compartment:
 
-```sql
-select resource->'resource' from compartmentdefinition where id = 'patient'
+```http
+GET /fhir/CompartmentDefinition?url=http://hl7.org/fhir/CompartmentDefinition/patient
 ```
+
+If you uploaded your own CompartmentDefinition with `code: Patient`, Aidbox uses it instead. See [Compartments API](../../access-control/authorization/scoped-api/compartments-api.md).
 
 For example, we suspect, that $everything operation is slow because we have a lot of Observations. The internal search for Observations that refer Patient is:
 
