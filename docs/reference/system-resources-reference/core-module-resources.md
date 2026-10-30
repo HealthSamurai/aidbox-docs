@@ -8410,7 +8410,7 @@ Input parameters for the $configure-api operation.
   "desc" : ""
 }, {
   "path" : "parameter.part",
-  "name" : "part:mode",
+  "name" : "part:decryptValidation",
   "lvl" : 1,
   "min" : 0,
   "max" : 1,
@@ -9285,6 +9285,286 @@ Input parameters for the $create-api operation.
 }, {
   "path" : "parameter.part",
   "name" : "part:fhirpathToBase64BinaryElement",
+  "lvl" : 1,
+  "min" : 1,
+  "max" : "*",
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part.name",
+  "name" : "name",
+  "lvl" : 2,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part.value[x]",
+  "name" : "value[x]",
+  "lvl" : 2,
+  "min" : 1,
+  "max" : 1,
+  "type" : "string",
+  "desc" : ""
+}, {
+  "path" : "parameter.part.resource",
+  "name" : "resource",
+  "lvl" : 2,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part.part",
+  "name" : "part",
+  "lvl" : 2,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter:encryption",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.name",
+  "name" : "name",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.resource",
+  "name" : "resource",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part",
+  "name" : "part",
+  "lvl" : 1,
+  "min" : 2,
+  "max" : "*",
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part",
+  "name" : "part:jose",
+  "lvl" : 1,
+  "min" : 1,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part.name",
+  "name" : "name",
+  "lvl" : 2,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part.value[x]",
+  "name" : "value[x]",
+  "lvl" : 2,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part.resource",
+  "name" : "resource",
+  "lvl" : 2,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part.part",
+  "name" : "part",
+  "lvl" : 2,
+  "min" : 3,
+  "max" : "*",
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part.part",
+  "name" : "part:alg",
+  "lvl" : 2,
+  "min" : 1,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part.part.name",
+  "name" : "name",
+  "lvl" : 3,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part.part.value[x]",
+  "name" : "value[x]",
+  "lvl" : 3,
+  "min" : 1,
+  "max" : 1,
+  "type" : "code",
+  "desc" : ""
+}, {
+  "path" : "parameter.part.part.resource",
+  "name" : "resource",
+  "lvl" : 3,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part.part.part",
+  "name" : "part",
+  "lvl" : 3,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part.part",
+  "name" : "part:enc",
+  "lvl" : 2,
+  "min" : 1,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part.part.name",
+  "name" : "name",
+  "lvl" : 3,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part.part.value[x]",
+  "name" : "value[x]",
+  "lvl" : 3,
+  "min" : 1,
+  "max" : 1,
+  "type" : "code",
+  "desc" : ""
+}, {
+  "path" : "parameter.part.part.resource",
+  "name" : "resource",
+  "lvl" : 3,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part.part.part",
+  "name" : "part",
+  "lvl" : 3,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part.part",
+  "name" : "part:kid",
+  "lvl" : 2,
+  "min" : 1,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part.part.name",
+  "name" : "name",
+  "lvl" : 3,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part.part.value[x]",
+  "name" : "value[x]",
+  "lvl" : 3,
+  "min" : 1,
+  "max" : 1,
+  "type" : "string",
+  "desc" : ""
+}, {
+  "path" : "parameter.part.part.resource",
+  "name" : "resource",
+  "lvl" : 3,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part.part.part",
+  "name" : "part",
+  "lvl" : 3,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part",
+  "name" : "part:decryptValidation",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part.name",
+  "name" : "name",
+  "lvl" : 2,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part.value[x]",
+  "name" : "value[x]",
+  "lvl" : 2,
+  "min" : 1,
+  "max" : 1,
+  "type" : "code",
+  "desc" : ""
+}, {
+  "path" : "parameter.part.resource",
+  "name" : "resource",
+  "lvl" : 2,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part.part",
+  "name" : "part",
+  "lvl" : 2,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.part",
+  "name" : "part:fhirpath",
   "lvl" : 1,
   "min" : 1,
   "max" : "*",
