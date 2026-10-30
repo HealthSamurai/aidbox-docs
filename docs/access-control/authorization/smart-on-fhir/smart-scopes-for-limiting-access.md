@@ -409,7 +409,7 @@ This functionality is available starting from version 2611.
 
 The `security.smart.patient-compartment` setting (`BOX_SECURITY_SMART_PATIENT_COMPARTMENT`) holds the canonical URL (`url` or `url|version`) of the Patient CompartmentDefinition that limits `patient/...` scopes. A token reaches a resource type only if the compartment lists it with a search parameter. The default, `http://health-samurai.io/fhir/core/CompartmentDefinition/smart-patient`, is the FHIR core Patient compartment, plus `Device` in R3, R4, and R4B. If Aidbox can't resolve the URL, it denies patient-level access.
 
-To hide `Group` and `List` from patient apps, upload a CompartmentDefinition with `code: Patient` that omits them and set the setting to its URL. An uploaded `code: Patient` compartment also replaces the core one for `$everything`, audit, and `$purge`.
+To hide `Group` and `List` from patient apps, upload a CompartmentDefinition with `code: Patient` that omits them and set the setting to its URL. Give it your own `url`: with the FHIR core URL, SMART keeps using the core compartment. An uploaded `code: Patient` compartment also replaces the core one for `$everything`, audit, and `$purge`.
 
 {% hint style="warning" %}
 Before 2611, SMART used an uploaded `code: Patient` compartment on its own and added `Device`. If you have a custom Patient compartment, set the setting to its URL and list `Device` in it if needed.
