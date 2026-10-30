@@ -87,7 +87,7 @@ Any approver at the location other than the administrator who requested it can a
 ### Prescribing Revocation
 
 A request that revokes `epcs-prescribing` is a **prescribing revocation**.
-Its access-change target does not need to be DEA-qualified.
+The module revokes the permission even when its holder is no longer DEA-qualified.
 
 When a practitioner must lose the permission, for example after a lost authentication factor or an expired DEA registration, an administrator requests the revocation.
 The module does not detect these events.
