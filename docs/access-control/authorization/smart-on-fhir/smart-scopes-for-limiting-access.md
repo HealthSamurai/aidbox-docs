@@ -311,6 +311,8 @@ To achieve this behavior, the request must include:
 
 Aidbox limits access and filters the data with the Patient CompartmentDefinition set in the `security.smart.patient-compartment` setting. See [SMART patient compartment](#smart-patient-compartment).
 
+The in-context patient is part of the compartment, so `patient/Patient.*` scopes let the token read, search, and update its own `Patient` record. Creating a `Patient` (`POST`) stays denied.
+
 Aidbox also restricts access to a single patient without SMART scopes, using a session bound to a patient or the `X-Patient-id` header. That mechanism is described on a separate page:
 
 {% content-ref url="../scoped-api/patient-data-access-api.md" %}
@@ -407,10 +409,10 @@ Authorization: "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdHYiOjIsImF1ZCI6
 This functionality is available starting from version 2611.
 {% endhint %}
 
-The `security.smart.patient-compartment` setting (`BOX_SECURITY_SMART_PATIENT_COMPARTMENT`) holds the canonical URL (`url` or `url|version`) of the Patient CompartmentDefinition that limits `patient/...` scopes. A token reaches a resource type only if the compartment lists it with a search parameter. The default, `http://health-samurai.io/fhir/core/CompartmentDefinition/smart-patient`, is the FHIR core Patient compartment, plus `Device` in R3, R4, and R4B. If Aidbox can't resolve the URL, it denies patient-level access.
+The `security.smart.patient-compartment` setting (`BOX_SECURITY_SMART_PATIENT_COMPARTMENT`) holds the canonical URL (`url` or `url|version`) of the Patient CompartmentDefinition that limits `patient/...` scopes. A token reaches a resource type only if the compartment lists it with a search parameter. The default, `http://health-samurai.io/fhir/core/CompartmentDefinition/smart-patient`, is the FHIR core Patient compartment, plus `Device` and the patient itself (`{def}` on `Patient`) in R3, R4, and R4B. In R5 and R6 the core compartment already includes `{def}`. If Aidbox can't resolve the URL, it denies patient-level access.
 
-To hide `Group` and `List` from patient apps, upload a CompartmentDefinition with `code: Patient` that omits them and set the setting to its URL. Give it your own `url`: with the FHIR core URL, SMART keeps using the core compartment. An uploaded `code: Patient` compartment also replaces the core one for `$everything`, audit, and `$purge`.
+To hide `Group` and `List` from patient apps, copy the default compartment (`GET /fhir/CompartmentDefinition?url=http://health-samurai.io/fhir/core/CompartmentDefinition/smart-patient`), remove `Group` and `List`, keep `Patient` with `param: ["{def}", "link"]`, upload it, and set the setting to its URL. Give it your own `url`: with the FHIR core URL, SMART keeps using the core compartment. An uploaded `code: Patient` compartment also replaces the core one for `$everything`, audit, and `$purge`.
 
 {% hint style="warning" %}
-Before 2611, SMART used an uploaded `code: Patient` compartment on its own and added `Device`. If you have a custom Patient compartment, set the setting to its URL and list `Device` in it if needed.
+Before 2611, SMART used an uploaded `code: Patient` compartment on its own and added `Device`. If you have a custom Patient compartment, set the setting to its URL and list `Device` in it if needed. Add `{def}` to its `Patient` entry, otherwise patient apps can't read, search, or update their own `Patient` record.
 {% endhint %}
