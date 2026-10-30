@@ -6,12 +6,6 @@ description: Change who holds an EPCS access manager role or the EPCS prescribin
 
 An **access-change request** grants or revokes one [access manager](README.md) role or the [EPCS prescribing permission](README.md) for one Aidbox `User` at one `Location`.
 An administrator at the location creates it, and the change takes effect when the request is approved.
-An administrator completes an [immediate revocation](#immediate-revocation) without a second person's approval.
-The user whose role or permission a request changes is its **access-change target**.
-A request that grants a role or permission is a **nomination**, and its access-change target is the **nominee**.
-
-An **EPCS approver** approves requests with their two-factor code.
-They can approve only while they are [DEA-qualified](#dea-qualification) at the location.
 
 ## Request a Change
 
@@ -24,12 +18,15 @@ Content-Type: application/json
 {
   "action": "grant",
   "permissionCode": "epcs-access-approver",
-  "userId": "<access-change target's Aidbox User id>",
+  "userId": "<User id>",
   "locationId": "<Location id>"
 }
 ```
 
-* `action`: `grant` or `revoke`.
+* `userId`: the Aidbox `User` whose role or permission the request changes, its **access-change target**.
+* `action`, one of:
+  * `grant`: the request is a **nomination**, and its access-change target is the **nominee**.
+  * `revoke`
 * `permissionCode`, one of:
   * `epcs-access-admin` for the administrator role
   * `epcs-access-approver` for the approver role
@@ -91,13 +88,11 @@ Any approver at the location other than the administrator who requested it can a
 
 A request that revokes `epcs-prescribing` is a **prescribing revocation**.
 Its access-change target does not need to be DEA-qualified.
-An administrator may revoke their own prescribing permission.
 
 When a practitioner must lose the permission, for example after a lost authentication factor or an expired DEA registration, an administrator requests the revocation.
 The module does not detect these events.
 
 Any approver at the location other than the administrator who requested it can approve it through [second-person approval](#second-person-approval), including the access-change target.
-At a location where no user holds the approver role, the revocation is an [immediate revocation](#immediate-revocation) and completes when it is created.
 
 ### Immediate Revocation
 
@@ -107,8 +102,7 @@ A revocation is immediate in either of these cases:
 * It revokes the approver role while only one user holds that role at the location, DEA-qualified or not.
 * It revokes `epcs-prescribing` (the administrator's own included) while no user holds the approver role at the location.
 
-When a case holds as the administrator creates the request, the module removes the role or permission and returns the request with `status: approved`.
-A pending revocation that matches a case later needs [Administrator Approval](#administrator-approval).
+If either case applies when an administrator creates the revocation, the module removes the role or permission right away and returns the request with `status: approved`.
 
 ### DEA Qualification
 
