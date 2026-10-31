@@ -91,6 +91,8 @@ link:
 ...
 ```
 
+A reverse proxy that serves Aidbox under a URL path sends this header too, and Aidbox uses it for the UI, login pages, and redirects. See [Run Aidbox behind a reverse proxy](../../../deployment-and-maintenance/deploy-aidbox/run-aidbox-behind-a-reverse-proxy.md).
+
 See also:
 
 * [\_count](searchparameter.md#count)
