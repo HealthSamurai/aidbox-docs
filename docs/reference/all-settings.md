@@ -979,6 +979,37 @@ affiliation and hierarchy position.
 
 <details><summary>Details</summary><table data-header-hidden="true"><thead><tr><th width="200"></th><th></th></tr></thead><tbody><tr><td>ID</td><td><code>security.orgbac.enabled</code></td></tr><tr><td>Type</td><td>Bool</td></tr><tr><td>Default value</td><td><code>false</code></td></tr><tr><td>Environment variable</td><td><code>BOX_SECURITY_ORGBAC_ENABLED</code></td></tr><tr><td>Deprecated environment variables</td><td><code>BOX_FEATURES_ORGBAC_ENABLE</code></td></tr><tr><td>Sensitive</td><td><code>false</code> — value will be visible in plaintext in Admin UI</td></tr><tr><td>Set via</td><td>Admin UI → Settings<br />Environment variables</td></tr><tr><td>Hot reload</td><td><code>false</code> — setting requires system restart</td></tr></tbody></table></details>
 
+### SMART patient compartment<a href="#security.smart.patient-compartment" id="security.smart.patient-compartment"></a>
+
+```yaml
+BOX_SECURITY_SMART_PATIENT_COMPARTMENT: "http://health-samurai.io/fhir/core/CompartmentDefinition/smart-patient"
+```
+
+Canonical URL of the CompartmentDefinition (code `Patient`) that
+limits what a SMART on FHIR token with patient-level scopes (`patient/...`)
+can read and write.
+
+A resource type is available to such a token only if the compartment lists it
+with at least one search parameter, and only the resources that point to the
+token's patient through those parameters.
+
+Use `url|version` to pin a version.
+
+Examples:
+
+- `http://health-samurai.io/fhir/core/CompartmentDefinition/smart-patient`
+  (default, shipped with Aidbox) — the FHIR core Patient compartment plus
+  `Device`. Allows every type of the FHIR Patient compartment, including
+  `Group` and `List`, which also list other patients.
+- `http://hl7.org/fhir/CompartmentDefinition/patient` — the FHIR core
+  Patient compartment as is. Same as the default, but without `Device`.
+
+If the URL cannot be resolved, patient-level access is denied.
+
+Affects SMART scope filtering only.
+
+<details><summary>Details</summary><table data-header-hidden="true"><thead><tr><th width="200"></th><th></th></tr></thead><tbody><tr><td>ID</td><td><code>security.smart.patient-compartment</code></td></tr><tr><td>Type</td><td>String</td></tr><tr><td>Default value</td><td><code>http://health-samurai.io/fhir/core/CompartmentDefinition/smart-patient</code></td></tr><tr><td>Environment variable</td><td><code>BOX_SECURITY_SMART_PATIENT_COMPARTMENT</code></td></tr><tr><td>Available from</td><td><code>2611</code></td></tr><tr><td>Sensitive</td><td><code>false</code> — value will be visible in plaintext in Admin UI</td></tr><tr><td>Set via</td><td>Admin UI → Settings<br />Environment variables</td></tr><tr><td>Hot reload</td><td><code>true</code> — setting can be changed at runtime</td></tr></tbody></table></details>
+
 ### User password minimum length<a href="#security.user-password.min-length" id="security.user-password.min-length"></a>
 
 ```yaml
@@ -2306,6 +2337,8 @@ BOX_WEB_BASE_URL: "<base-url>"
 Base URL is the URL Aidbox is available at. It consists of scheme (HTTP, HTTPS), domain, port (optional) and URL path (optional). Trailing slash is not allowed.
 
 Aidbox uses this value to identify its own location. The Base URL is embedded in various generated artifacts, such as: tokens ("iss" field), links in search and notification bundles, and internal references. Some components validate that tokens, links , or requests originate from the same base URL, ensuring consistency and security.
+
+Behind a reverse proxy that serves Aidbox under a URL path, see [Run Aidbox behind a reverse proxy](https://www.health-samurai.io/docs/aidbox/deployment-and-maintenance/deploy-aidbox/run-aidbox-behind-a-reverse-proxy).
 
 <details><summary>Details</summary><table data-header-hidden="true"><thead><tr><th width="200"></th><th></th></tr></thead><tbody><tr><td>ID</td><td><code>web.base-url</code></td></tr><tr><td>Type</td><td>String</td></tr><tr><td>Recommended value</td><td><code>&lt;base-url&gt;</code></td></tr><tr><td>Default value</td><td>(no default)</td></tr><tr><td>Environment variable</td><td><code>BOX_WEB_BASE_URL</code></td></tr><tr><td>Deprecated environment variables</td><td><code>AIDBOX_BASE_URL</code></td></tr><tr><td>Sensitive</td><td><code>false</code> — value will be visible in plaintext in Admin UI</td></tr><tr><td>Set via</td><td>Admin UI → Settings<br />Environment variables</td></tr><tr><td>Hot reload</td><td><code>false</code> — setting requires system restart</td></tr></tbody></table></details>
 
