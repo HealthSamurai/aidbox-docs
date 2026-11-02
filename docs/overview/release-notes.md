@@ -22,6 +22,7 @@ description: >-
 
     **Bug fixes and improvements**
 
+    * SMART: [`u` without `r`](../access-control/authorization/smart-on-fhir/smart-scopes-for-limiting-access.md#scope-enforcement) is enough for PATCH and for `If-Match` on PUT and PATCH, and `d` without `r` is enough for `If-Match` on DELETE. Before, Aidbox answered PATCH with `404` and `If-Match` with `412`. A PATCH of a missing or inaccessible resource returns an `OperationOutcome` (`not-found`) instead of `{"message": ...}`.
     * SMART: a patient-level token with `patient/Patient.u` can update the in-context patient's own record (`PUT /fhir/Patient/<context id>`, also in transactions and batches). Before, Aidbox returned `403` unless the body had a self-referencing `link`. The default SMART patient compartment includes the patient through `{def}` on `Patient`. A custom compartment needs `{def}` too, see [SMART patient compartment](../access-control/authorization/smart-on-fhir/smart-scopes-for-limiting-access.md#smart-patient-compartment).
 
 ## September 2026 _`latest, 2609`_

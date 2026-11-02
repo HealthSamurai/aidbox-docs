@@ -106,7 +106,19 @@ Scopes do not replace [Access Policies](../access-policies.md). A request must p
 
 ## Scope enforcement
 
-A request is denied when no granted scope covers the requested resource type and interaction.
+A request is denied when no granted scope covers the requested resource type and interaction. Each permission covers these interactions:
+
+| Permission | Interactions |
+| --- | --- |
+| `c` | create |
+| `r` | read, vread, instance history |
+| `u` | update, patch |
+| `d` | delete |
+| `s` | search, type history |
+
+SMART v1 `read` equals `rs`, `write` equals `cud`, and `*` equals `cruds`.
+
+Update, patch, and delete don't need `r`. Aidbox loads the current version for PATCH and for the `If-Match` check under the `u` or `d` grant.
 
 Denied request based on allowed scopes:
 
@@ -195,7 +207,7 @@ Search parameters in scopes with `create/update/delete` permissions are supporte
 Search parameters constrain every interaction listed in the scope, not only read and search. For example, `patient/Basic.cruds?code=http://example.org|app-state` means:
 
 * **create** — the submitted resource must match the search parameters, otherwise the request is denied with `403`.
-* **update** — both the stored resource and the submitted one must match. A client can neither take over a resource that lies outside the scope, nor move a resource out of it.
+* **update** and **patch** — both the stored resource and the submitted one must match. A client can neither take over a resource that lies outside the scope, nor move a resource out of it.
 * **delete** — only resources matching the search parameters can be deleted.
 * **read**, **search** — results are filtered as described above.
 
