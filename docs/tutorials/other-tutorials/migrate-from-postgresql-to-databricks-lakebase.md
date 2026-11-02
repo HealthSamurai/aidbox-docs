@@ -316,7 +316,7 @@ Until Aidbox writes to Lakebase, rolling back means restoring the old `BOX_DB_*`
 
 | Symptom | Cause | Fix |
 | --- | --- | --- |
-| `Provided authentication token is not a valid JWT encoding` at startup | Aidbox 2608 or 2609 | Use Aidbox 2610 or later, or 2607 or earlier. |
+| `Provided authentication token is not a valid JWT encoding` at startup | Aidbox 2608 or 2609 | Use Aidbox 2610 or later. |
 | Aidbox refuses to start: missing extension | `pg_trgm` or `unaccent` isn't in `BOX_DB_EXTENSION_SCHEMA` | Create the extension as the service principal in `public`. |
 | `permission denied for schema public` | The service principal lacks `CREATE` on `public` | Run the grants from the provisioning steps again. |
 | `must be owner of table ...` | Another role restored the tables | Restore again as the service principal with `--no-owner`. |
