@@ -6,27 +6,62 @@ description: >-
 
 # Release Notes
 
-## October 2026 _`edge`_
+## November 2026 _`edge`_
+
+
+## October 2026 _`latest, 2610`_
 
 *   Aidbox FHIR server
 
     **Features**
 
-    * **[`$aidbox-audit` operation](../access-control/audit-and-logging.md#publish-audit-events-from-your-application)**: publishes an AuditEvent of your application to the audit events topic, so its destinations receive your events next to the ones Aidbox produces.
-    * **[Offloaded data in `$export`](../api/bulk-api/export.md#offloaded-base64binary-data)**: for each resource type with [offloaded base64Binary data](../configuration/storage-and-api-configuration/offload-base64binary-to-external-storage.md), `$export` uploads a `<Type>_offloaded_data.tar.gz` archive of the blobs next to the ndjson file. Exported resources point at their archive entries, and the type's `output` entry carries the archive URL and file count.
-    * **[Field-level encryption](../configuration/storage-and-api-configuration/field-level-encryption.md)**: the new `encryption` parameter of an API lists FHIRPath expressions for the elements to encrypt at rest. Aidbox stores each selected value as a JWE with a key from the Secrets API, and decrypts it on read, search, and history.
-
-    **Changes and deprecations**
-
-    * **[SMART patient compartment](../access-control/authorization/smart-on-fhir/smart-scopes-for-limiting-access.md#smart-patient-compartment)**: the `security.smart.patient-compartment` setting selects the compartment for `patient/...` scopes. SMART no longer picks up an uploaded `code: Patient` compartment or adds `Device` on its own.
+    * **[Field-level encryption](../configuration/storage-and-api-configuration/field-level-encryption.md)**: Aidbox encrypts selected elements of a resource at rest, such as a patient's name, birth date, or identifiers. The new `encryption` parameter of `$create-api` and `$configure-api` lists FHIRPath expressions for the elements and names a key from the [External Secrets](../configuration/secret-files.md) vault. Aidbox stores each value as a JWE (AES-256-GCM, AES-256-GCM-SIV, or XChaCha20-Poly1305) and decrypts it on read, search, and history. An upstream system can send the values already encrypted with the same key, so the plaintext never reaches Aidbox, and `decryptValidation: reject-undecryptable` makes Aidbox reject values it can't decrypt.
+    * **[Offloaded binary data in `$export`](../api/bulk-api/export.md#offloaded-base64binary-data)**: for each resource type with [offloaded base64Binary data](../configuration/storage-and-api-configuration/offload-base64binary-to-external-storage.md), `$export` uploads a `<Type>_offloaded_data.tar.gz` archive of the blobs next to the ndjson file. Exported resources point at their archive entries, and the type's `output` entry carries the archive URL and file count.
+    * **[Terminology support in SQL on FHIR](../modules/sql-on-fhir/operation-sqlquery-run.md)**: a SQLQuery or SQLView Library can list a ValueSet or a ConceptMap as a `depends-on` entry of `relatedArtifact` and refers to it by alias name in the SQL. 
+    * **[Turn off the Aidbox format API](../reference/all-settings.md#fhir.aidbox-format-api.enabled)**: set `BOX_FHIR_AIDBOX_FORMAT_API_ENABLED=false` to turn off the REST endpoints outside `/fhir`: CRUD, search, history, transaction, `$import`, `$load`, and the others.
+    * **[Streaming responses from Apps](../developer-experience/apps.md#streaming-responses)**: for an `http-rpc` App, Aidbox forwards the response body to the client as it reads it from your service, without buffering the whole body. CSV and NDJSON downloads and server-sent events reach the client before the App finishes the response. The operation `timeout` bounds connection setup and idle reads, so an active response can run longer than the timeout.
+    * **[Wildcard subdomains in CORS origins](../reference/all-settings.md#security.cors.origins)**: an origin with `*` as its leftmost label in `BOX_SECURITY_CORS_ORIGINS`, such as `https://*.portal.example.com`. 
+    * **[$aidbox-audit operation](../access-control/audit-and-logging.md#publish-audit-events-from-your-application)**: publishes an AuditEvent of your application to the audit events topic, so its destinations receive your events next to the ones Aidbox produces.
+    * **[SMART patient compartment](../access-control/authorization/smart-on-fhir/smart-scopes-for-limiting-access.md#smart-patient-compartment)**: the `security.smart.patient-compartment` setting selects the compartment for `patient/...` scopes. SMART no longer picks up an uploaded `code: Patient` compartment or adds `Device` on its own. Now you can directly specify the compartment you want, and Aidbox enforces it for all patient-level scopes.
+    * **[The patient's own record goes through `{def}`](../access-control/authorization/smart-on-fhir/smart-scopes-for-limiting-access.md#smart-patient-compartment)**: a `patient/...` token reaches the in-context `Patient` through `{def}` on the `Patient` entry of the SMART patient compartment, as in FHIR R5. Aidbox dropped its built-in match of the patient by context id. The default compartment lists `Patient` with `param: ["{def}", "link"]` in R3, R4, and R4B, and the R5 and R6 core compartments already include `{def}`. If you set a custom compartment, add `{def}` to its `Patient` entry. Without it, a patient app gets `404` when it reads its own `Patient`, an empty search result, and `403` on update.
 
     **Bug fixes and improvements**
 
+    * Fixed [Databricks OAuth database authentication](../tutorials/other-tutorials/migrate-from-postgresql-to-databricks-lakebase.md) (`BOX_DB_AUTH_METHOD=databricks-autoscale` or `databricks-provisioned`). Since 2608, the connection pool sent the `BOX_DB_PASSWORD` value instead of the OAuth token.
     * SMART: [`u` without `r`](../access-control/authorization/smart-on-fhir/smart-scopes-for-limiting-access.md#scope-enforcement) is enough for PATCH and for `If-Match` on PUT and PATCH, and `d` without `r` is enough for `If-Match` on DELETE. Before, Aidbox answered PATCH with `404` and `If-Match` with `412`. A SMART DELETE with `If-Match` of a missing or inaccessible resource answers `404`.
     * PATCH of a missing resource returns an `OperationOutcome` (`not-found`) instead of `{"message": ...}`. With `If-Match`, it answers `404` instead of `412`, following RFC 9110. A PUT with `If-Match` on a missing resource still answers `412`.
-    * SMART: a patient-level token with `patient/Patient.u` can update the in-context patient's own record (`PUT /fhir/Patient/<context id>`, also in transactions and batches). Before, Aidbox returned `403` unless the body had a self-referencing `link`. The default SMART patient compartment includes the patient through `{def}` on `Patient`. A custom compartment needs `{def}` too, see [SMART patient compartment](../access-control/authorization/smart-on-fhir/smart-scopes-for-limiting-access.md#smart-patient-compartment).
+    * SMART: a patient-level token with `patient/Patient.u` can update the in-context patient's own record (`PUT /fhir/Patient/<context id>`, also in transactions and batches). Before, Aidbox returned `403` unless the body had a self-referencing `link`. Creating a `Patient` and updating another patient stay denied.
+    * Type-level history (`GET /fhir/<type>/_history`) returns versions newest-first, as FHIR requires and as instance-level history does. Before, it returned them oldest-first.
+    * Fixed a `500` (`Unknown failure type`) for a transaction entry with several conditional references (`Patient?identifier=...`) where some resolve and some don't. Aidbox answers `400` with the unresolved reference.
+    * Fixed reference search, such as `GET /fhir/Condition?patient=<id>`, failing with `malformed array literal` when [`fhir.search.token-operator`](../reference/all-settings.md#fhir.search.token-operator) is `#>>`. The regression appeared in 2609, and 2609.4 has the fix too.
+    * `$sqlquery-run` accepts `_limit` and `_page` to page the result, as `$viewdefinition-run` does. Without `_limit`, it returns every row.
+    * FHIRPath decodes the escapes in string literals, quoted `%` variables, and delimited identifiers, so `'O\'Brien'`, `` %`intake.v2` ``, and `` text.`div` `` evaluate as the FHIRPath spec defines.
+    * Faster ValueSet `$expand` and `$validate-code` for ValueSets that include or exclude other ValueSets (`include.valueSet`, `exclude.valueSet`), which also speeds up validation of bindings to such ValueSets. 
+    * Fixed canonical resources in the FHIR Artifact Registry gaining another `ex:createdAt` extension in `meta` on every update.
+    * [`AidboxTopicDestination` updates](../modules/topic-based-subscriptions/aidbox-topic-based-subscriptions.md#updating-a-topicdestination): a `PUT` with a body equal to the stored destination returns `200` instead of `405`. Webhook, Kafka, GCP Pub/Sub, and FHIR subscription destinations accept a `PUT` that moves `meta.profile` from the legacy `http://aidbox.app/StructureDefinition/...` URL to the unified `http://health-samurai.io/fhir/core/StructureDefinition/...` URL. A webhook destination can change its `endpoint` in the same `PUT`, and the [endpoint update](../tutorials/subscriptions-tutorials/webhook-aidboxtopicdestination.md#update-the-endpoint) works for webhook destinations created with the legacy profile URL.
+    * Aidbox UI: the code editor's FHIR autocomplete follows profiles and the Aidbox format, and the REST console completes OrgBAC URLs (`/Organization/<id>/fhir/...`).
 
-## September 2026 _`latest, 2609`_
+*   Formbox
+
+    **Features**
+
+    * Security labels: on `$save`, `$submit`, `$process-response`, and `$populatelink`, Formbox copies the confidentiality labels of a Questionnaire to the QuestionnaireResponse and the inline labels of an item to its answers. With label-based access control, the renderer shows answers the user can't see as "Access restricted" and keeps them on save.
+    * Choice items support the SDC `choiceColumn` extension: answer options, references, and ValueSet lookups show in several columns that FHIRPath computes. The form builder has a column designer.
+    * Template-based extraction updates existing resources with a merge PATCH, and a root `allocateId` gets a new id per repetition.
+    * `$populate` resolves references in the launch context, and the form builder's debug panel has a separate Patient picker.
+    * The `module.sdc.dtr.ig-version` setting selects the Da Vinci DTR IG version that the `$questionnaire-package` response follows: `2.0.1`, `2.1.0`, or `2.2.0` (default). Each version uses its own name for the bundle output parameter.
+
+    **Bug fixes and improvements**
+
+    * `$populate` returns a `warning` issue for each item whose `initialExpression` failed to evaluate. Before, it returned `200` with an empty answer and no explanation.
+    * Formbox works with the [Aidbox format API](../reference/all-settings.md#fhir.aidbox-format-api.enabled) turned off.
+    * Fixed `enableWhen` in repeated group table rows, cell alignment in grids, and clipped row labels in Choice Matrix.
+
+    **Changes and deprecations**
+
+    * Health Samurai no longer publishes the standalone `healthsamurai/formbox` image. Formbox ships in the Aidbox image (`healthsamurai/aidboxone`).
+
+## September 2026 _`stable, 2609`_
 
 *   Aidbox FHIR server
 
@@ -59,7 +94,7 @@ description: >-
 
     * **[Topology spread constraints](https://github.com/HealthSamurai/helm-charts/tree/main/aidbox)**: the `aidbox` chart 0.2.20 accepts a `topologySpreadConstraints` value, which it passes to the pod spec. Use it to spread Aidbox replicas across zones or nodes. See [Pod Topology Spread Constraints](https://kubernetes.io/docs/concepts/scheduling-eviction/topology-spread-constraints/) in the Kubernetes docs.
 
-## August 2026 _`stable, 2608`_
+## August 2026 _`2608`_
 
 *   Aidbox FHIR server
 
