@@ -17,8 +17,8 @@ Each role and permission applies to an Aidbox `User` at a `Location`.
 
 ## Prescribing Controlled Substances
 
-A practitioner marks a controlled prescription ready to sign, and signs it, only while they hold the EPCS prescribing permission at the prescription's location.
-That location is the `Location` of the prescriber's `PractitionerRole` that has:
+A practitioner can mark a controlled prescription ready to sign and sign it only while they hold the EPCS prescribing permission at the prescription's location.
+That location is the `Location` that the prescriber's `PractitionerRole` references and that has:
 
 * `status` set to `active`, or no `status`
 * a tag with the system `urn:app:aidbox:e-prescriptions:surescripts:providerDirectory`
@@ -26,11 +26,11 @@ That location is the `Location` of the prescriber's `PractitionerRole` that has:
 For both steps, the module checks that:
 
 * the prescriber's `PractitionerRole` has such a `Location`
-* the [acting user](configure-access-policies.md#acting-user) is the prescriber: their `User.fhirUser` references the `Practitioner` of that `PractitionerRole`
+* `User.fhirUser` of the [acting user](configure-access-policies.md#acting-user) references the `Practitioner` of that `PractitionerRole`
 * the acting user is [DEA-qualified](access-change-requests.md#dea-qualification) at that `Location`
 * the acting user holds the EPCS prescribing permission at that `Location`
 
-The module checks the permission again at signing, so a revocation stops signing even after the practitioner marked the prescription ready.
+Because signing repeats these checks, revoking the permission after the practitioner marks the prescription ready stops signing.
 
 ## Operations
 
