@@ -18,7 +18,10 @@ Each role and permission applies to an Aidbox `User` at a `Location`.
 ## Prescribing Controlled Substances
 
 A practitioner marks a controlled prescription ready to sign, and signs it, only while they hold the EPCS prescribing permission at the prescription's location.
-That location is the active `Location` of the prescriber's `PractitionerRole` that has a tag with the system `urn:app:aidbox:e-prescriptions:surescripts:providerDirectory`.
+That location is the `Location` of the prescriber's `PractitionerRole` that has:
+
+* `status` set to `active`, or no `status`
+* a tag with the system `urn:app:aidbox:e-prescriptions:surescripts:providerDirectory`
 
 For both steps, the module checks that:
 
