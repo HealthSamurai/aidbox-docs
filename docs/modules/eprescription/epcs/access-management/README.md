@@ -27,8 +27,11 @@ For both steps, the module checks that:
 
 * the prescriber's `PractitionerRole` has such a `Location`
 * `User.fhirUser` of the [acting user](configure-access-policies.md#acting-user) references the `Practitioner` of that `PractitionerRole`
-* the acting user is [DEA-qualified](access-change-requests.md#dea-qualification) at that `Location`
+* that `Practitioner` does not have `active` set to `false`
+* the `PractitionerRole` has `active` set to `true` and a `period` that covers the current date
 * the acting user holds the EPCS prescribing permission at that `Location`
+
+A request without an acting user gets `401`, and a request that fails another check gets `403`.
 
 Because signing repeats these checks, revoking the permission after the practitioner marks the prescription ready stops signing.
 
