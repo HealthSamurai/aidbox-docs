@@ -17465,7 +17465,7 @@ versioning.
   "min" : 0,
   "max" : 1,
   "type" : "",
-  "desc" : "depends-on for ViewDefinition or SQLView references"
+  "desc" : "depends-on for ViewDefinition, SQLView, ValueSet or ConceptMap references"
 }, {
   "path" : "relatedArtifact.label",
   "name" : "label",
@@ -17481,7 +17481,7 @@ versioning.
   "min" : 1,
   "max" : 1,
   "type" : "canonical",
-  "desc" : "Canonical URL of a ViewDefinition or SQLView"
+  "desc" : "Canonical URL of a ViewDefinition, SQLView, ValueSet or ConceptMap"
 }, {
   "path" : "type",
   "name" : "type",
@@ -17530,6 +17530,54 @@ Parameters profile for $sqlquery-run at the instance level. The Library is ident
   "min" : 1,
   "max" : 1,
   "type" : "code",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter:_limit",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.name",
+  "name" : "name",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 1,
+  "max" : 1,
+  "type" : "integer",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter:_page",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.name",
+  "name" : "name",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 1,
+  "max" : 1,
+  "type" : "integer",
   "desc" : ""
 }, {
   "path" : "parameter",
@@ -17643,6 +17691,54 @@ Parameters profile for $sqlquery-run at the system and type levels. Exactly one 
   "min" : 1,
   "max" : 1,
   "type" : "code",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter:_limit",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.name",
+  "name" : "name",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 1,
+  "max" : 1,
+  "type" : "integer",
+  "desc" : ""
+}, {
+  "path" : "parameter",
+  "name" : "parameter:_page",
+  "lvl" : 0,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.name",
+  "name" : "name",
+  "lvl" : 1,
+  "min" : 0,
+  "max" : 1,
+  "type" : "",
+  "desc" : ""
+}, {
+  "path" : "parameter.value[x]",
+  "name" : "value[x]",
+  "lvl" : 1,
+  "min" : 1,
+  "max" : 1,
+  "type" : "integer",
   "desc" : ""
 }, {
   "path" : "parameter",
@@ -17831,7 +17927,7 @@ SQLView cannot declare parameters.
   "min" : 0,
   "max" : 1,
   "type" : "",
-  "desc" : "depends-on for ViewDefinition or SQLView references"
+  "desc" : "depends-on for ViewDefinition, SQLView, ValueSet or ConceptMap references"
 }, {
   "path" : "relatedArtifact.label",
   "name" : "label",
@@ -17847,7 +17943,7 @@ SQLView cannot declare parameters.
   "min" : 1,
   "max" : 1,
   "type" : "canonical",
-  "desc" : "Canonical URL of a ViewDefinition or SQLView"
+  "desc" : "Canonical URL of a ViewDefinition, SQLView, ValueSet or ConceptMap"
 }, {
   "path" : "type",
   "name" : "type",
