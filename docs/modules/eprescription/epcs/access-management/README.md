@@ -25,15 +25,22 @@ That location is the `Location` that the prescriber's `PractitionerRole` referen
 
 For both steps, the module checks that:
 
-* the prescriber's `PractitionerRole` has such a `Location`
-* `User.fhirUser` of the [acting user](configure-access-policies.md#acting-user) references the `Practitioner` of that `PractitionerRole`
+* the request has an [acting user](configure-access-policies.md#acting-user)
+* the prescriber's `PractitionerRole` references a `Location` that meets both conditions above
+* `User.fhirUser` of the acting user references the `Practitioner` of that `PractitionerRole`
 * that `Practitioner` does not have `active` set to `false`
-* the `PractitionerRole` has `active` set to `true` and a `period` that covers the current date
+* the `PractitionerRole` has:
+  * `active` set to `true`
+  * `period.start` in the past (required)
+  * `period.end` in the future (required)
 * the acting user holds the EPCS prescribing permission at that `Location`
 
-A request without an acting user gets `401`, and a request that fails another check gets `403`.
+The module returns:
 
-Because signing repeats these checks, revoking the permission after the practitioner marks the prescription ready stops signing.
+* `401` if the request has no acting user
+* `403` if the request fails any other check
+
+Signing runs these checks again, so if the permission is revoked after the practitioner marks the prescription ready, signing returns `403`.
 
 ## Operations
 
