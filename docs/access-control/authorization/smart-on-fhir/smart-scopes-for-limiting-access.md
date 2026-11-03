@@ -426,5 +426,5 @@ The `security.smart.patient-compartment` setting (`BOX_SECURITY_SMART_PATIENT_CO
 To hide `Group` and `List` from patient apps, copy the default compartment (`GET /fhir/CompartmentDefinition?url=http://health-samurai.io/fhir/core/CompartmentDefinition/smart-patient`), remove `Group` and `List`, keep `Patient` with `param: ["{def}", "link"]`, upload it, and set the setting to its URL. Give it your own `url`: with the FHIR core URL, SMART keeps using the core compartment. An uploaded `code: Patient` compartment also replaces the core one for `$everything`, audit, and `$purge`.
 
 {% hint style="warning" %}
-Before 2611, SMART used an uploaded `code: Patient` compartment on its own and added `Device`. If you have a custom Patient compartment, set the setting to its URL and list `Device` in it if needed. Add `{def}` to its `Patient` entry, otherwise patient apps can't read, search, or update their own `Patient` record.
+Before 2610, SMART used an uploaded `code: Patient` compartment on its own and added `Device`. If you have a custom Patient compartment, set the setting to its URL and list `Device` in it if needed. Add `{def}` to its `Patient` entry, otherwise patient apps can't read, search, or update their own `Patient` record.
 {% endhint %}
