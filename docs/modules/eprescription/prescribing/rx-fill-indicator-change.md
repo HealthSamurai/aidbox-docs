@@ -24,6 +24,17 @@ RxFill preferences are a list of `RxFillIndicator` values:
 `All` and `None` must be used alone.
 A value can appear only once, and the order of values does not matter.
 
+The EHR stores the RxFill preferences on the `MedicationRequest`, one `medication-request-rx-fill-indicator` extension per value:
+
+```json
+{
+  "url": "http://aidbox.app/ePrescription/FHIRSchema/medication-request-rx-fill-indicator",
+  "valueCode": "Dispensed"
+}
+```
+
+The module reads the values from these extensions when it sends a NewRx or a renewal or change response.
+
 ## When You Can Send a Change
 
 The module accepts a change when all of these conditions hold:
@@ -63,12 +74,12 @@ Example `200 OK` response:
 * `pendingSelection`: the RxFill preferences of a change that waits for its delivery result, or `null`.
 * `lastChange`: the latest change, or `null`:
   * `selection`: the RxFill preferences it requested.
-  * `result`: `pending`, `delivered`, `not-delivered`, or `failed`.
+  * `result`: `pending`, `delivered`, `not-delivered`, or `failed`. [Send a Change](#send-a-change) explains each value.
   * `failureReason`: the Surescripts error, for `not-delivered` and `failed`.
   * `transaction`: the change's transaction.
 
 The module reads `confirmedRxFillPreferences` only from the messages it sent and their delivery results.
-Your edits of the `RxFillIndicator` extensions on the `MedicationRequest` and an inbound `RxFill` do not change it.
+Your edits of the `medication-request-rx-fill-indicator` extensions and an inbound `RxFill` do not change it.
 
 `unavailableReason.reason` names the first unmet condition, in the order of the [conditions](#when-you-can-send-a-change):
 
@@ -101,13 +112,18 @@ Content-Type: application/json
 ```
 
 `202 Accepted` returns the change's transaction in `transactions[0]`.
-If you repeated the pending change, the module sent nothing new and returns the same transaction.
-`transactions[0].attempt.status` shows the delivery:
+Repeating the pending change returns its transaction and sends no second message.
 
-* `completed`: the pharmacy received the change.
-* `in-progress`: delivery is unresolved, so the change stays pending.
-* `on-hold`: the change did not reach the pharmacy. Repeat the same request to resend it.
-* `failed`: Surescripts refused the change, or the resend limit is spent.
+`transactions[0].attempt.status` shows the delivery.
+`lastChange.result` in the [current state](#check-the-current-state) names the same outcome as shown in parentheses:
+
+* `completed` (`delivered`): the pharmacy received the change.
+* `in-progress` (`pending`): delivery is unresolved, so the change stays pending.
+* `on-hold` (`not-delivered`): the change did not reach the pharmacy. Repeat the same request to resend it.
+* `failed` (`failed`): Surescripts refused the change, or the resend limit is spent.
+
+If Surescripts accepts the change with Status `000` and never sends the final answer, the change stays pending and blocks every later change for the prescription.
+The API cannot resolve such a change.
 
 `200 OK` with `{"transactions": []}` means the pharmacy already confirmed these RxFill preferences and no change is pending, so the module sent nothing.
 
@@ -119,7 +135,9 @@ If you repeated the pending change, the module sent nothing new and returns the 
 * `409`, in any of these cases:
   * Another change for the prescription is pending.
   * A CancelRx started.
-  * The module cannot resend this change.
+  * Another request is sending the same change.
+  * The resend limit for this change is spent.
+  * Surescripts refused this change.
 * `422`, in any of these cases:
   * The RxFill preferences are invalid.
   * The `MedicationRequest` does not exist.
@@ -134,10 +152,10 @@ If delivery fails, the previous RxFill preferences stay confirmed and the extens
 If a change response replaces the prescription while a change is pending, the change and its result stay with the original prescription.
 The new prescription gets its RxFill preferences only from the change response.
 
-## Example: Certification Step
+## Example: Switch to All
 
 The prescriber sent a NewRx with `Dispensed` and `PartiallyDispensed`, and the pharmacy received it.
-The certification step switches the RxFill preferences to `All`.
+Now the prescriber wants the pharmacy to report every fill event.
 
 1. Read the state. `available` is `true`, and `confirmedRxFillPreferences` is `["Dispensed", "PartiallyDispensed"]`.
 2. Send the change:
@@ -161,9 +179,3 @@ The certification step switches the RxFill preferences to `All`.
    ```
 
 4. After Surescripts confirms delivery, the read returns `confirmedRxFillPreferences: ["All"]` and `lastChange.result: "delivered"`.
-
-## Prior Authorization Approvals
-
-A prior authorization approval answers an [RxChange](pharmacy-initiated-messages/rx-change.md) request with **MessageRequestCode** `P`.
-While a change for the prescription is pending, the module sends such an approval without `RxFillIndicator`, so the approval cannot restore older RxFill preferences.
-In that case the module does not validate the `RxFillIndicator` values on the response `MedicationRequest`, and invalid values do not block the approval.
