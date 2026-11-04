@@ -9,20 +9,17 @@ The prescriber's **RxFill preferences** say which fill events the pharmacy shoul
 They travel as `RxFillIndicator` values in the [NewRx](newrx-message.md), or in the renewal or change response that created the prescription.
 
 RxFillIndicatorChange sends new RxFill preferences for a prescription the pharmacy already received.
-It sends no new prescription and does not change the medication order.
-
-The ePrescription module supports RxFillIndicatorChange for NCPDP SCRIPT 2023011.
+The ePrescription module supports it for NCPDP SCRIPT 2023011.
 
 ## RxFill Preferences
 
 RxFill preferences are a list of `RxFillIndicator` values:
 
 * `All`: report every fill event.
-* `None`: report no fill events. The prescription stays active.
+* `None`: report no fill events.
 * Any combination of `Dispensed`, `PartiallyDispensed`, `NotDispensed`, and `Transferred`.
 
-`All` and `None` must be used alone.
-A value can appear only once, and the order of values does not matter.
+`All` and `None` must be used alone, and a value can appear only once.
 
 The EHR stores the RxFill preferences on the `MedicationRequest`, one `medication-request-rx-fill-indicator` extension per value:
 
@@ -32,8 +29,6 @@ The EHR stores the RxFill preferences on the `MedicationRequest`, one `medicatio
   "valueCode": "Dispensed"
 }
 ```
-
-The module reads the values from these extensions when it sends a NewRx or a renewal or change response.
 
 ## When You Can Send a Change
 
@@ -46,8 +41,6 @@ The module accepts a change when all of these conditions hold:
 3. The pharmacy `Organization` has the Surescripts service level `RxFillIndicatorChange` in `meta.tag`.
 4. No [CancelRx](cancelrx-message.md) started, or the pharmacy denied it, or the module proved that no CancelRx message reached the pharmacy.
 5. No other change for the prescription is pending.
-
-A pending change does not block CancelRx.
 
 ## Check the Current State
 
@@ -78,8 +71,7 @@ Example `200 OK` response:
   * `failureReason`: the Surescripts error, for `not-delivered` and `failed`.
   * `transaction`: the change's transaction.
 
-The module reads `confirmedRxFillPreferences` only from the messages it sent and their delivery results.
-Your edits of the `medication-request-rx-fill-indicator` extensions and an inbound `RxFill` do not change it.
+Editing the `medication-request-rx-fill-indicator` extensions or receiving an inbound `RxFill` does not change `confirmedRxFillPreferences`.
 
 `unavailableReason.reason` names the first unmet condition, in the order of the [conditions](#when-you-can-send-a-change):
 
@@ -127,6 +119,8 @@ The API cannot resolve such a change.
 
 `200 OK` with `{"transactions": []}` means the pharmacy already confirmed these RxFill preferences and no change is pending, so the module sent nothing.
 
+After delivery, the module writes the new RxFill preferences to the `medication-request-rx-fill-indicator` extensions.
+
 <details>
 
 <summary>Error Responses</summary>
@@ -144,38 +138,3 @@ The API cannot resolve such a change.
   * The prescription does not meet conditions 1 to 3 of [When You Can Send a Change](#when-you-can-send-a-change).
 
 </details>
-
-Until Surescripts confirms delivery, `confirmedRxFillPreferences` keeps the previous RxFill preferences and `pendingSelection` shows the new ones.
-After delivery, the module writes the new RxFill preferences to the `medication-request-rx-fill-indicator` extensions of the `MedicationRequest`.
-If delivery fails, the previous RxFill preferences stay confirmed and the extensions keep their values.
-
-If a change response replaces the prescription while a change is pending, the change and its result stay with the original prescription.
-The new prescription gets its RxFill preferences only from the change response.
-
-## Example: Switch to All
-
-The prescriber sent a NewRx with `Dispensed` and `PartiallyDispensed`, and the pharmacy received it.
-Now the prescriber wants the pharmacy to report every fill event.
-
-1. Read the state. `available` is `true`, and `confirmedRxFillPreferences` is `["Dispensed", "PartiallyDispensed"]`.
-2. Send the change:
-
-   ```http
-   POST /e-prescription/rx/rx-fill-indicator-change
-   Content-Type: application/json
-
-   {
-     "medicationRequestId": "<MedicationRequest id>",
-     "rxFillIndicators": ["All"]
-   }
-   ```
-
-3. The module sends this message body to the pharmacy:
-
-   ```xml
-   <RxFillIndicatorChange>
-     <RxFillIndicator>All</RxFillIndicator>
-   </RxFillIndicatorChange>
-   ```
-
-4. After Surescripts confirms delivery, the read returns `confirmedRxFillPreferences: ["All"]` and `lastChange.result: "delivered"`.
