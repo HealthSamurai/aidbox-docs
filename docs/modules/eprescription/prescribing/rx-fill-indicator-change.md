@@ -30,6 +30,11 @@ The EHR stores the RxFill preferences on the `MedicationRequest`, one `medicatio
 }
 ```
 
+NewRx and renewal or change responses send the values of these extensions.
+Editing the extensions sends nothing to the pharmacy and does not change `confirmedRxFillPreferences` in the [current state](#check-the-current-state).
+To change the RxFill preferences, [send a change](#send-a-change).
+After Surescripts confirms delivery of the change, the module writes the new values to these extensions.
+
 ## When You Can Send a Change
 
 The module accepts a change when all of these conditions hold:
@@ -70,8 +75,6 @@ Example `200 OK` response:
   * `result`: `pending`, `delivered`, `not-delivered`, or `failed`. [Send a Change](#send-a-change) explains each value.
   * `failureReason`: the Surescripts error, for `not-delivered` and `failed`.
   * `transaction`: the change's transaction.
-
-Editing the `medication-request-rx-fill-indicator` extensions or receiving an inbound `RxFill` does not change `confirmedRxFillPreferences`.
 
 `unavailableReason.reason` names the first unmet condition, in the order of the [conditions](#when-you-can-send-a-change):
 
@@ -118,8 +121,6 @@ If Surescripts accepts the change with Status `000` and never sends the final an
 The API cannot resolve such a change.
 
 `200 OK` with `{"transactions": []}` means the pharmacy already confirmed these RxFill preferences and no change is pending, so the module sent nothing.
-
-After delivery, the module writes the new RxFill preferences to the `medication-request-rx-fill-indicator` extensions.
 
 <details>
 
