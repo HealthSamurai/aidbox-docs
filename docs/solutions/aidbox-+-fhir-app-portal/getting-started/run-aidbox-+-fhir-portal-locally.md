@@ -1,76 +1,52 @@
 ---
-description: This tutorial will guide you through Aidbox + FHIR App Portal installation
+description: Run Aidbox + FHIR App Portal locally with Docker Compose. The stack includes PostgreSQL, two Aidbox instances, and the Admin and Developer portals in multi-organization (OrgBAC) mode.
 ---
 
 # Run Aidbox + FHIR Portal locally
 
-### Prerequisites <a href="#prerequisites" id="prerequisites"></a>
+The compose below brings up the full stack in one command: PostgreSQL, two Aidbox instances, and the FHIR App Portal (Admin Portal and Developer Portal).
 
-#### Required Software <a href="#required-software" id="required-software"></a>
+* `aidbox-admin`: the admin and patient environment. It runs with [OrgBAC](../../../access-control/authorization/scoped-api/organization-based-hierarchical-access-control/README.md) enabled, so the portal works in multi-organization mode.
+* `aidbox-dev`: the developer sandbox with sample patient data.
 
-* **Docker** and **Docker Compose** - [Install Docker](https://docs.docker.com/get-docker/)
-* **Docker Compose** v2.0 or later
+## Prerequisites
 
-#### Required Licenses <a href="#required-licenses" id="required-licenses"></a>
+* [Docker and Docker Compose](https://docs.docker.com/get-docker/) (Docker Compose v2.0 or later)
+* Two Aidbox licenses from the [Aidbox User Portal](https://aidbox.app), one per Aidbox instance in the compose:
+  * License for the `aidbox-admin` instance
+  * License for the `aidbox-dev` instance
 
-You need two Aidbox licenses you can get from the [Aidbox User Portal](https://aidbox.app):
+Each license is a JWT string starting with `eyJhbGciOiJ...`. See [Run Aidbox locally](../../../getting-started/run-aidbox-locally.md) for how to obtain one.
 
-1. **Admin Aidbox License** - For the admin/patient management system
-2. **Developer Aidbox License** - For the developer sandbox environment
+## Step 1. Create docker-compose.yaml
 
-It is a JWT token that looks like:
-
-```
-eyJhbGciOiJ...
-```
-
-#### **Required: Email Provider Configuration** <a href="#required-email-provider-configuration" id="required-email-provider-configuration"></a>
-
-{% hint style="info" %}
-In this guide `mailgun` is used to send email. FHIR App Portal also supports different email providers and SMTP
-{% endhint %}
-
-Email provider is used to communicate with users (developers, patients). It sends emails for email verification, resetting of a password and etc.
-
-### Quick Start <a href="#quick-start" id="quick-start"></a>
-
-#### **Step 1: Create Project Directory** <a href="#step-1-create-project-directory" id="step-1-create-project-directory"></a>
+Create an empty project directory and save the contents below as `docker-compose.yaml` in it:
 
 ```bash
-mkdir fhir-app-portal
-cd fhir-app-portal
+mkdir fhir-app-portal && cd fhir-app-portal
 ```
 
-#### **Step 2: Create docker-compose.yaml** <a href="#step-2-create-docker-compose-yaml" id="step-2-create-docker-compose-yaml"></a>
-
-Create a `docker-compose.yaml` file and paste the following content:
-
-<details>
-
-<summary>Click to view docker-compose.yaml</summary>
-
+{% code title="docker-compose.yaml" %}
 ```yaml
-version: "3.7"
-
 volumes:
   postgres_data: {}
 
 services:
   postgres:
-    image: postgres:17
+    image: postgres:18
     restart: unless-stopped
     volumes:
-      - postgres_data:/var/lib/postgresql/data:delegated
+      - postgres_data:/var/lib/postgresql
     command:
       - postgres
       - -c
       - shared_preload_libraries=pg_stat_statements
     environment:
-      POSTGRES_USER: ${POSTGRES_USER:-aidbox}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-password}
-      POSTGRES_DB: ${POSTGRES_DB:-aidbox}
+      POSTGRES_USER: aidbox
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: aidbox
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-aidbox} -d postgres"]
+      test: ["CMD-SHELL", "pg_isready -U aidbox -d postgres"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -83,19 +59,18 @@ services:
       postgres:
         condition: service_healthy
     ports:
-      - "${AIDBOX_ADMIN_PORT:-8080}:8080"
-    volumes:
-      - ./initBundleAdmin.json:/tmp/initBundle.json:ro
+      - "8080:8080"
     environment:
-      BOX_ADMIN_PASSWORD: ${AIDBOX_ADMIN_PASSWORD:-password}
-      BOX_ROOT_CLIENT_SECRET: ${ADMIN_CLIENT_SECRET:-secret}
+      BOX_LICENSE: PASTE_AIDBOX_ADMIN_LICENSE
+      BOX_ADMIN_PASSWORD: password
+      BOX_ROOT_CLIENT_SECRET: secret
       BOX_DB_HOST: postgres
       BOX_DB_PORT: "5432"
-      BOX_DB_USER: ${POSTGRES_USER:-aidbox}
-      BOX_DB_PASSWORD: ${POSTGRES_PASSWORD:-password}
-      BOX_DB_DATABASE: ${ADMIN_DB_NAME:-aidbox-admin}
-      BOX_WEB_PORT: 8080
-      BOX_WEB_BASE_URL: ${ADMIN_BASE_URL:-http://localhost:8080}
+      BOX_DB_USER: aidbox
+      BOX_DB_PASSWORD: password
+      BOX_DB_DATABASE: aidbox-admin
+      BOX_WEB_PORT: "8080"
+      BOX_WEB_BASE_URL: http://localhost:8080
       BOX_FHIR_COMPLIANT_MODE: "true"
       BOX_FHIR_CORRECT_AIDBOX_FORMAT: "true"
       BOX_FHIR_SCHEMA_VALIDATION: "true"
@@ -108,25 +83,26 @@ services:
       BOX_FHIR_TERMINOLOGY_ENGINE: hybrid
       BOX_FHIR_TERMINOLOGY_ENGINE_HYBRID_EXTERNAL_TX_SERVER: https://tx.health-samurai.io/fhir
       BOX_FHIR_TERMINOLOGY_SERVICE_BASE_URL: https://tx.health-samurai.io/fhir
-      BOX_LICENSE: ${AIDBOX_ADMIN_LICENSE}
-      BOX_SECURITY_DEV_MODE: ${DEV_MODE:-true}
+      BOX_SECURITY_AUDIT_LOG_ENABLED: "true"
+      BOX_SECURITY_DEV_MODE: "true"
       BOX_SECURITY_ORGBAC_ENABLED: "true"
-      BOX_SECURITY_AUTH_KEYS_SECRET: ${AUTH_KEYS_SECRET:-change-this-secret}
+      BOX_SECURITY_AUTH_KEYS_SECRET: change-this-secret
       BOX_MODULE_SDC_STRICT_ACCESS_CONTROL: "true"
       BOX_SETTINGS_MODE: read-write
-      BOX_INIT_BUNDLE: "file:///tmp/initBundle.json"
-      BOX_MODULE_PROVIDER_DEFAULT_TYPE: ${EMAIL_PROVIDER_TYPE:-mailgun}
-      BOX_MODULE_PROVIDER_DEFAULT_URL: ${EMAIL_PROVIDER_URL}
-      BOX_MODULE_PROVIDER_DEFAULT_USERNAME: ${EMAIL_PROVIDER_USERNAME:-api}
-      BOX_MODULE_PROVIDER_DEFAULT_FROM: ${EMAIL_FROM:-noreply@example.com}
-      BOX_MODULE_PROVIDER_DEFAULT_PASSWORD: ${EMAIL_PROVIDER_PASSWORD}
+      BOX_INIT_BUNDLE: https://storage.googleapis.com/smartbox-public/init-bundle-admin.json
+      BOX_MODULE_PROVIDER_DEFAULT_TYPE: ""
+      BOX_MODULE_PROVIDER_DEFAULT_URL: ""
+      BOX_MODULE_PROVIDER_DEFAULT_USERNAME: ""
+      BOX_MODULE_PROVIDER_DEFAULT_FROM: ""
+      BOX_MODULE_PROVIDER_DEFAULT_PASSWORD: ""
       BOX_COMPATIBILITY_VALIDATION_JSON__SCHEMA_REGEX: "#{:fhir-datetime}"
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
       interval: 10s
       timeout: 5s
       retries: 30
-      start_period: 60s
+      start_period: 120s
+
   aidbox-dev:
     image: healthsamurai/aidboxone:edge
     pull_policy: always
@@ -135,19 +111,18 @@ services:
       postgres:
         condition: service_healthy
     ports:
-      - "${AIDBOX_DEV_PORT:-8090}:8090"
-    volumes:
-      - ./initBundleDeveloper.json:/tmp/initBundle.json:ro
+      - "8090:8090"
     environment:
-      BOX_ADMIN_PASSWORD: ${AIDBOX_ADMIN_PASSWORD:-password}
-      BOX_ROOT_CLIENT_SECRET: ${DEV_CLIENT_SECRET:-secret}
+      BOX_LICENSE: PASTE_AIDBOX_DEV_LICENSE
+      BOX_ADMIN_PASSWORD: password
+      BOX_ROOT_CLIENT_SECRET: secret
       BOX_DB_HOST: postgres
       BOX_DB_PORT: "5432"
-      BOX_DB_USER: ${POSTGRES_USER:-aidbox}
-      BOX_DB_PASSWORD: ${POSTGRES_PASSWORD:-changeme}
-      BOX_DB_DATABASE: ${DEV_DB_NAME:-aidbox-dev}
-      BOX_WEB_PORT: 8090
-      BOX_WEB_BASE_URL: ${DEV_BASE_URL:-http://localhost:8090}
+      BOX_DB_USER: aidbox
+      BOX_DB_PASSWORD: password
+      BOX_DB_DATABASE: aidbox-dev
+      BOX_WEB_PORT: "8090"
+      BOX_WEB_BASE_URL: http://localhost:8090
       BOX_FHIR_COMPLIANT_MODE: "true"
       BOX_FHIR_CORRECT_AIDBOX_FORMAT: "true"
       BOX_FHIR_SCHEMA_VALIDATION: "true"
@@ -160,22 +135,22 @@ services:
       BOX_FHIR_TERMINOLOGY_ENGINE: hybrid
       BOX_FHIR_TERMINOLOGY_ENGINE_HYBRID_EXTERNAL_TX_SERVER: https://tx.health-samurai.io/fhir
       BOX_FHIR_TERMINOLOGY_SERVICE_BASE_URL: https://tx.health-samurai.io/fhir
-      BOX_LICENSE: ${AIDBOX_DEV_LICENSE}
-      BOX_SECURITY_DEV_MODE: ${DEV_MODE:-true}
+      BOX_SECURITY_AUDIT_LOG_ENABLED: "true"
+      BOX_SECURITY_DEV_MODE: "true"
       BOX_MODULE_SDC_STRICT_ACCESS_CONTROL: "true"
       BOX_SETTINGS_MODE: read-write
-      BOX_INIT_BUNDLE: "file:///tmp/initBundle.json"
-      BOX_MODULE_PROVIDER_DEFAULT_URL: ${EMAIL_PROVIDER_URL}
-      BOX_MODULE_PROVIDER_DEFAULT_USERNAME: ${EMAIL_PROVIDER_USERNAME:-api}
-      BOX_MODULE_PROVIDER_DEFAULT_FROM: ${EMAIL_FROM:-noreply@example.com}
-      BOX_MODULE_PROVIDER_DEFAULT_PASSWORD: ${EMAIL_PROVIDER_PASSWORD}
+      BOX_INIT_BUNDLE: https://storage.googleapis.com/smartbox-public/init-bundle-developer.json
+      BOX_MODULE_PROVIDER_DEFAULT_URL: ""
+      BOX_MODULE_PROVIDER_DEFAULT_USERNAME: ""
+      BOX_MODULE_PROVIDER_DEFAULT_FROM: ""
+      BOX_MODULE_PROVIDER_DEFAULT_PASSWORD: ""
       BOX_COMPATIBILITY_VALIDATION_JSON__SCHEMA_REGEX: "#{:fhir-datetime}"
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8090/health"]
       interval: 10s
       timeout: 5s
       retries: 30
-      start_period: 60s
+      start_period: 120s
 
   fhir-app-portal:
     image: healthsamurai/fhir-app-portal:edge
@@ -187,1746 +162,88 @@ services:
       aidbox-dev:
         condition: service_healthy
     ports:
-      - "${ADMIN_PORTAL_PORT:-8095}:8095"
-      - "${DEV_PORTAL_PORT:-8096}:8096"
+      - "8095:8095"
+      - "8096:8096"
     environment:
       NODE_ENV: production
-      PORTAL_BACKEND_PORT: ${PORTAL_BACKEND_PORT:-8081}
-      SESSION_SECRET: ${SESSION_SECRET:-changeme-secure-session-secret}
+      PORTAL_BACKEND_PORT: "8081"
+      SESSION_SECRET: changeme-secure-session-secret
       DEPLOYMENT_MODE: prod
-      AIDBOX_DEV_URL: ${AIDBOX_DEV_URL:-http://aidbox-dev:8090}
-      AIDBOX_ADMIN_URL: ${AIDBOX_ADMIN_URL:-http://aidbox-admin:8080}
-      ADMIN_AIDBOX_PUBLIC_URL: ${ADMIN_AIDBOX_PUBLIC_URL:-http://localhost:8080}
-      DEVELOPER_AIDBOX_PUBLIC_URL: ${DEVELOPER_AIDBOX_PUBLIC_URL:-http://localhost:8090}
-      ADMIN_FRONTEND_URL: ${ADMIN_FRONTEND_URL:-http://localhost:8095}
-      DEVELOPER_FRONTEND_URL: ${DEVELOPER_FRONTEND_URL:-http://localhost:8096}
-      AIDBOX_DEV_PUBLIC_URL: ${AIDBOX_DEV_PUBLIC_URL:-http://localhost:8090}
-      AIDBOX_ADMIN_PUBLIC_URL: ${AIDBOX_ADMIN_PUBLIC_URL:-http://localhost:8080}
-      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:8095,http://localhost:8096}
+      AIDBOX_DEV_URL: http://aidbox-dev:8090
+      AIDBOX_ADMIN_URL: http://aidbox-admin:8080
+      ADMIN_AIDBOX_PUBLIC_URL: http://localhost:8080
+      DEVELOPER_AIDBOX_PUBLIC_URL: http://localhost:8090
+      ADMIN_FRONTEND_URL: http://localhost:8095
+      DEVELOPER_FRONTEND_URL: http://localhost:8096
+      AIDBOX_DEV_PUBLIC_URL: http://localhost:8090
+      AIDBOX_ADMIN_PUBLIC_URL: http://localhost:8080
+      CORS_ORIGINS: http://localhost:8095,http://localhost:8096
     healthcheck:
-      test:
-        [
-          "CMD",
-          "wget",
-          "--quiet",
-          "--tries=1",
-          "--spider",
-          "http://localhost:8095/health",
-        ]
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:8095/health"]
       interval: 10s
       timeout: 5s
       retries: 5
       start_period: 10s
 ```
+{% endcode %}
 
-</details>
+## Step 2. Fill in the license placeholders
 
-#### **Step 3: Create .env file** <a href="#step-3-create-env-file" id="step-3-create-env-file"></a>
+Open `docker-compose.yaml` and replace two values with the JWT licenses you obtained:
 
-Create `.env` file in the same folder alongside with `docker-compose.yaml` and copy environment variables:
+| Placeholder | Value |
+|---|---|
+| `PASTE_AIDBOX_ADMIN_LICENSE` | License JWT for the `aidbox-admin` instance |
+| `PASTE_AIDBOX_DEV_LICENSE` | License JWT for the `aidbox-dev` instance |
 
-<details>
+{% hint style="info" %}
+**Email provider is optional.** The FHIR App Portal sends developer sign-up verification and password reset emails through Mailgun, SendGrid, Postmark, or SMTP. To enable it, set `BOX_MODULE_PROVIDER_DEFAULT_TYPE`, `BOX_MODULE_PROVIDER_DEFAULT_URL`, `BOX_MODULE_PROVIDER_DEFAULT_USERNAME`, `BOX_MODULE_PROVIDER_DEFAULT_FROM`, and `BOX_MODULE_PROVIDER_DEFAULT_PASSWORD` on both Aidbox services. With the empty values shown above, the stack starts, but developers cannot complete sign-up in the Developer Portal.
+{% endhint %}
 
-<summary>Click to view .env file</summary>
+## Step 3. Start the stack
 
-```shell
-# -----------------------------------------------------------------------------
-# Licenses
-# -----------------------------------------------------------------------------
-# If license isn't provided then developer license will be applied automatically
-# If you want apply another licence simply uncomment variable and set it
-# AIDBOX_ADMIN_LICENSE=<YOUR-ADMIN-LICENCE-JWT-TOKEN>
-# AIDBOX_DEV_LICENSE=<YOUR-SANDBOX-LICENCE-JWT-TOKEN>
-
-# -----------------------------------------------------------------------------
-# PostgreSQL Database Configuration
-# -----------------------------------------------------------------------------
-POSTGRES_USER=aidbox
-POSTGRES_PASSWORD=password
-POSTGRES_DB=aidbox
-
-# Database names
-ADMIN_DB_NAME=aidbox-admin
-DEV_DB_NAME=aidbox-dev
-
-# -----------------------------------------------------------------------------
-# Admin Portal Configuration
-# -----------------------------------------------------------------------------
-AIDBOX_ADMIN_PORT=8080
-ADMIN_BASE_URL=http://localhost:8080
-
-# Admin credentials (used to login to Aidbox UI)
-AIDBOX_ADMIN_PASSWORD=secure-admin-password
-ADMIN_CLIENT_SECRET=secure-admin-client-secret
-
-# -----------------------------------------------------------------------------
-# Developer Sandbox Configuration
-# -----------------------------------------------------------------------------
-AIDBOX_DEV_PORT=8090
-DEV_BASE_URL=http://localhost:8090
-
-# Developer sandbox client secret
-DEV_CLIENT_SECRET=secure-developer-client-secret
-
-# -----------------------------------------------------------------------------
-# FHIR App Portal Configuration
-# -----------------------------------------------------------------------------
-# Admin portal port
-ADMIN_PORTAL_PORT=8095
-
-# Developer portal port  
-DEV_PORTAL_PORT=8096
-
-# Backend API port
-PORTAL_BACKEND_PORT=8081
-
-# Aidbox internal URLs (for backend-to-Aidbox API calls)
-AIDBOX_DEV_URL=http://aidbox-dev:8090
-AIDBOX_ADMIN_URL=http://aidbox-admin:8080
-
-# Aidbox public URLs (for browser redirects - accessible from user's machine)
-AIDBOX_DEV_PUBLIC_URL=http://localhost:8090
-AIDBOX_ADMIN_PUBLIC_URL=http://localhost:8080
-
-ADMIN_AIDBOX_PUBLIC_URL=http://localhost:8080
-DEVELOPER_AIDBOX_PUBLIC_URL=http://localhost:8090
-
-# Aidbox UI URLs
-ADMIN_FRONTEND_URL=http://localhost:8095
-DEVELOPER_FRONTEND_URL=http://localhost:8096
-
-# -----------------------------------------------------------------------------
-# Email Provider Configuration (Mailgun Example)
-# -----------------------------------------------------------------------------
-
-EMAIL_PROVIDER_TYPE=your-email-provider
-EMAIL_PROVIDER_URL=your-email-url
-EMAIL_PROVIDER_USERNAME=your-email-username
-EMAIL_PROVIDER_PASSWORD=your-email-password
-EMAIL_FROM=your-email-from
-
-# -----------------------------------------------------------------------------
-# Security Configuration
-# -----------------------------------------------------------------------------
-# Change this to a secure random string for production
-AUTH_KEYS_SECRET=change-this-secret
-SESSION_SECRET=changeme-secure-session-secret
-
-# Development mode (set to false for production)
-DEV_MODE=true
-
-# -----------------------------------------------------------------------------
-# Cloud Storage Configuration (Optional - for Bulk Export)
-# -----------------------------------------------------------------------------
-# Uncomment and configure one of the following based on your cloud provider:
-
-# --- Google Cloud Storage (GCP) ---
-# BOX_BULK__STORAGE_BACKEND=gcp
-# BOX_BULK__STORAGE_GCP_SERVICE__ACCOUNT=gcp-service-account-name
-# BOX_BULK__STORAGE_GCP_SERVICE__ACCOUNT__EMAIL=your-service-account@project.iam.gserviceaccount.com
-# BOX_BULK__STORAGE_GCP_SERVICE__ACCOUNT__PRIVATE__KEY=your-private-key-here
-# BOX_BULK__STORAGE_GCP_BUCKET=your-gcp-bucket-name
-
-# --- Amazon Web Services (AWS S3) ---
-# BOX_BULK__STORAGE_BACKEND=aws
-# BOX_BULK__STORAGE_AWS_ACCESS__KEY__ID=your-aws-access-key
-# BOX_BULK__STORAGE_AWS_SECRET__ACCESS__KEY=your-aws-secret-key
-# BOX_BULK__STORAGE_AWS_REGION=us-east-1
-# BOX_BULK__STORAGE_AWS_BUCKET=your-s3-bucket-name
-
-# --- Microsoft Azure Blob Storage ---
-# BOX_BULK__STORAGE_BACKEND=azure
-# BOX_BULK__STORAGE_AZURE_ACCOUNT__NAME=your-storage-account
-# BOX_BULK__STORAGE_AZURE_ACCOUNT__KEY=your-account-key
-# BOX_BULK__STORAGE_AZURE_CONTAINER=your-container-name
-```
-
-</details>
-
-#### **Step 4: Create initBundleDeveloper.json for Sandbox Aidbox** <a href="#step-4-create-initbundledeveloper-json-for-sandbox-aidbox" id="step-4-create-initbundledeveloper-json-for-sandbox-aidbox"></a>
-
-Create `initBundleDeveloper.json` file in the same folder alongside with `docker-compose.yaml` and copy the content:
-
-<details>
-
-<summary>Click to view Sandbox Init Bundle file</summary>
-
-```json
-{
-  "resourceType": "Bundle",
-  "type": "transaction",
-  "entry": [
-    {
-      "resource": {
-        "resourceType": "StructureDefinition",
-        "url": "http://aidbox.app/StructureDefinition/Client/created-by",
-        "id": "client-created-by",
-        "name": "client-created-by",
-        "status": "active",
-        "abstract": false,
-        "kind": "complex-type",
-        "type": "Extension",
-        "context": [
-          {
-            "type": "element",
-            "expression": "Client"
-          }
-        ],
-        "baseDefinition": "http://hl7.org/fhir/StructureDefinition/Extension",
-        "version": "0.0.1",
-        "derivation": "constraint",
-        "differential": {
-          "element": [
-            {
-              "id": "Extension",
-              "path": "Extension",
-              "min": 0,
-              "max": "1"
-            },
-            {
-              "id": "Extension.url",
-              "path": "Extension.url",
-              "min": 1,
-              "max": "1",
-              "fixedUri": "http://aidbox.app/StructureDefinition/Client/created-by"
-            },
-            {
-              "id": "Extension.value[x]",
-              "path": "Extension.value[x]",
-              "min": 1,
-              "max": "1",
-              "type": [
-                {
-                  "code": "Reference",
-                  "targetProfile": [
-                    "http://health-samurai.io/fhir/core/StructureDefinition/User"
-                  ]
-                }
-              ]
-            }
-          ]
-        }
-      },
-      "request": {
-        "method": "PUT",
-        "url": "StructureDefinition/client-created-by"
-      }
-    },
-    {
-      "resource": {
-        "resourceType": "SearchParameter",
-        "id": "Client.created-by",
-        "url": "http://aidbox.app/StructureDefinition/Client/created-by",
-        "name": "created-by",
-        "status": "active",
-        "code": "created-by",
-        "base": ["Client"],
-        "type": "token",
-        "description": "Client created-by User",
-        "expression": "Client.meta.extension.where(url='http://aidbox.app/StructureDefinition/Client/created-by').value.Reference.id"
-      },
-      "request": {
-        "method": "PUT",
-        "url": "SearchParameter/Client.created-by"
-      }
-    },
-    {
-      "resource": {
-        "resourceType": "StructureDefinition",
-        "url": "http://aidbox.app/StructureDefinition/Client/status",
-        "id": "client-status",
-        "name": "client-status",
-        "status": "active",
-        "abstract": false,
-        "kind": "complex-type",
-        "type": "Extension",
-        "context": [
-          {
-            "type": "element",
-            "expression": "Client"
-          }
-        ],
-        "baseDefinition": "http://hl7.org/fhir/StructureDefinition/Extension",
-        "version": "0.0.2",
-        "derivation": "constraint",
-        "differential": {
-          "element": [
-            {
-              "id": "Extension",
-              "path": "Extension",
-              "min": 0,
-              "max": "1"
-            },
-            {
-              "id": "Extension.url",
-              "path": "Extension.url",
-              "min": 1,
-              "max": "1",
-              "fixedUri": "http://aidbox.app/StructureDefinition/Client/status"
-            },
-            {
-              "id": "Extension.value[x]",
-              "path": "Extension.value[x]",
-              "min": 1,
-              "max": "1",
-              "type": [
-                {
-                  "code": "code"
-                }
-              ],
-              "constraint": [
-                {
-                  "key": "enum-client-status",
-                  "severity": "error",
-                  "human": "Status should be 'draft', 'review', 'active' or 'rejected'",
-                  "expression": "%context.subsetOf('draft' | 'review' | 'active' | 'rejected')"
-                }
-              ]
-            }
-          ]
-        }
-      },
-      "request": {
-        "method": "PUT",
-        "url": "StructureDefinition/client-status"
-      }
-    },
-    {
-      "resource": {
-        "resourceType": "SearchParameter",
-        "id": "Client.status",
-        "url": "http://aidbox.app/StructureDefinition/Client/status",
-        "name": "status",
-        "status": "active",
-        "code": "status",
-        "base": ["Client"],
-        "type": "token",
-        "description": "Client status (draft, review, active, rejected)",
-        "expression": "Client.meta.extension.where(url='http://aidbox.app/StructureDefinition/Client/status').value.code"
-      },
-      "request": {
-        "method": "PUT",
-        "url": "SearchParameter/Client.status"
-      }
-    },
-    {
-      "resource": {
-        "source": "https://storage.googleapis.com/aidbox-public/smartbox/all_data.ndjson.gz"
-      },
-      "request": {
-        "method": "POST",
-        "url": "/$load"
-      }
-    },
-    {
-      "resource": {
-        "resourceType": "Client",
-        "id": "smartbox-developer-portal",
-        "first_party": true,
-        "grant_types": ["code"],
-        "scope": ["openid", "profile", "email"],
-        "auth": {
-          "authorization_code": {
-            "redirect_uri": "http://localhost:8096/api/developer/auth/callback",
-            "access_token_expiration": 3600,
-            "token_format": "jwt",
-            "pkce": true,
-            "refresh_token": true,
-            "refresh_token_expiration": 86400
-          }
-        }
-      },
-      "request": {
-        "method": "PUT",
-        "url": "Client/smartbox-developer-portal"
-      }
-    },
-    {
-      "resource": {
-        "fhirUser": {
-          "reference": "Patient/test-pt-1"
-        }
-      },
-      "request": {
-        "method": "PATCH",
-        "url": "User/admin"
-      }
-    },
-    {
-      "request": {
-        "method": "PUT",
-        "url": "AccessPolicy/dev-can-get-launch-uri"
-      },
-      "resource": {
-        "resourceType": "AccessPolicy",
-        "id": "dev-can-get-launch-uri",
-        "type": "rpc",
-        "engine": "matcho-rpc",
-        "rpc": {
-          "aidbox.smart/get-launch-uri": {
-            "user": {
-              "fhirUser": {
-                "resourceType": "Patient"
-              }
-            }
-          }
-        }
-      }
-    },
-    {
-      "resource": {
-        "resourceType": "AccessPolicy",
-        "id": "allow-license-activation",
-        "engine": "matcho",
-        "description": "Allow unauthenticated access to license activation endpoints",
-        "matcho": {
-          "uri": {
-            "$one-of": [
-              "/api/v1/license/activate",
-              "/api/v1/license/status",
-              "/"
-            ]
-          }
-        }
-      },
-      "request": {
-        "method": "PUT",
-        "url": "AccessPolicy/allow-license-activation"
-      }
-    },
-    {
-      "request": {
-        "method": "PUT",
-        "url": "AccessPolicy/dev-smart-app-read"
-      },
-      "resource": {
-        "resourceType": "AccessPolicy",
-        "id": "dev-smart-app-read",
-        "type": "rest",
-        "engine": "matcho",
-        "matcho": {
-          "client": {
-            "type": "smart-app"
-          },
-          "operation": {
-            "id": {
-              "$one-of": ["FhirSearch", "FhirRead"]
-            }
-          }
-        }
-      }
-    },
-    {
-      "resource": {
-        "resourceType": "Client",
-        "id": "developer-api",
-        "secret": "developer-api-secret-change-in-production",
-        "grant_types": ["client_credentials"]
-      },
-      "request": {
-        "method": "PUT",
-        "url": "Client/developer-api"
-      }
-    },
-    {
-      "resource": {
-        "resourceType": "AccessPolicy",
-        "id": "developer-api",
-        "engine": "matcho",
-        "description": "Scoped access for developer API client (sessions, oauth state, orgs, users)",
-        "matcho": {
-          "client": {
-            "id": "developer-api"
-          },
-          "$one-of": [
-            {
-              "params": {
-                "resource/type": "Session"
-              },
-              "operation": {
-                "id": {
-                  "$one-of": [
-                    "FhirCreate",
-                    "FhirSearch",
-                    "FhirRead",
-                    "FhirUpdate",
-                    "FhirPatch"
-                  ]
-                }
-              }
-            },
-            {
-              "params": {
-                "resource/type": "Organization"
-              },
-              "operation": {
-                "id": {
-                  "$one-of": ["FhirSearch", "FhirRead"]
-                }
-              }
-            },
-            {
-              "params": {
-                "resource/type": "User"
-              },
-              "operation": {
-                "id": "FhirRead"
-              }
-            }
-          ]
-        }
-      },
-      "request": {
-        "method": "PUT",
-        "url": "AccessPolicy/developer-api"
-      }
-    },
-    {
-      "request": {
-        "method": "PUT",
-        "url": "AccessPolicy/dev-client-search-own"
-      },
-      "resource": {
-        "resourceType": "AccessPolicy",
-        "id": "dev-client-search-own",
-        "engine": "matcho",
-        "description": "Developers can search only their own Client apps",
-        "matcho": {
-          "user": {
-            "roles": {
-              "$contains": {
-                "type": "developer"
-              }
-            }
-          },
-          "operation": {
-            "id": "FhirSearch"
-          },
-          "params": {
-            "resource/type": "Client",
-            "created-by": ".user.id"
-          }
-        }
-      }
-    },
-    {
-      "request": {
-        "method": "PUT",
-        "url": "AccessPolicy/dev-client-read-write-own"
-      },
-      "resource": {
-        "resourceType": "AccessPolicy",
-        "id": "dev-client-read-write-own",
-        "engine": "sql",
-        "sql": {
-          "query": "select true from client where id = {{params.resource/id}}\n  and exists (\n  select 1\n  from jsonb_array_elements(resource->'meta'->'extension') ext\nwhere ext->>'url' = 'http://aidbox.app/StructureDefinition/Client/created-by'\n  and ext #>> '{value,Reference,id}' = {{user.id}});"
-        }
-      }
-    },
-    {
-      "request": {
-        "method": "PUT",
-        "url": "AccessPolicy/dev-client-create-self-owned"
-      },
-      "resource": {
-        "resourceType": "AccessPolicy",
-        "id": "dev-client-create-self-owned",
-        "engine": "matcho",
-        "description": "Developers can create Client apps only when created-by points to themselves",
-        "matcho": {
-          "user": {
-            "roles": {
-              "$contains": {
-                "type": "developer"
-              }
-            }
-          },
-          "operation": {
-            "id": "FhirCreate"
-          },
-          "params": {
-            "resource/type": "Client"
-          },
-          "resource": {
-            "meta": {
-              "extension": {
-                "$contains": {
-                  "url": "http://aidbox.app/StructureDefinition/Client/created-by",
-                  "value": {
-                    "Reference": {
-                      "id": ".user.id"
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    {
-      "request": {
-        "method": "PUT",
-        "url": "AccessPolicy/developer-user-read-self"
-      },
-      "resource": {
-        "resourceType": "AccessPolicy",
-        "id": "developer-user-read-self",
-        "engine": "matcho",
-        "description": "Developers can read only their own User resource",
-        "matcho": {
-          "user": {
-            "roles": {
-              "$contains": {
-                "type": "developer"
-              }
-            }
-          },
-          "operation": {
-            "id": "FhirRead"
-          },
-          "params": {
-            "resource/type": "User",
-            "resource/id": ".user.id"
-          }
-        }
-      }
-    },
-    {
-      "request": {
-        "method": "PUT",
-        "url": "AccessPolicy/admin-review-sandbox-clients"
-      },
-      "resource": {
-        "resourceType": "AccessPolicy",
-        "id": "admin-review-sandbox-clients",
-        "engine": "matcho",
-        "description": "Admins can review sandbox Clients (read/search only)",
-        "matcho": {
-          "user": {
-            "roles": {
-              "$contains": {
-                "type": "admin"
-              }
-            }
-          },
-          "params": {
-            "resource/type": "Client"
-          },
-          "operation": {
-            "id": {
-              "$one-of": ["FhirSearch", "FhirRead"]
-            }
-          }
-        }
-      }
-    },
-    {
-      "request": {
-        "method": "PUT",
-        "url": "AccessPolicy/admin-role-access"
-      },
-      "resource": {
-        "resourceType": "AccessPolicy",
-        "id": "admin-role-access",
-        "description": "Role-based access policy for administrators - allows full system access",
-        "engine": "matcho",
-        "matcho": {
-          "user": {
-            "roles": {
-              "contains": {
-                "type": "admin"
-              }
-            }
-          }
-        }
-      }
-    },
-    {
-      "request": {
-        "method": "PUT",
-        "url": "AccessPolicy/patient-role-access"
-      },
-      "resource": {
-        "resourceType": "AccessPolicy",
-        "id": "patient-role-access",
-        "description": "Role-based access policy for patients - allows access to own data and consent management",
-        "engine": "matcho",
-        "matcho": {
-          "user": {
-            "roles": {
-              "contains": {
-                "type": "patient"
-              }
-            }
-          },
-          "operation": {
-            "id": {
-              "$one-of": [
-                "FhirSearch",
-                "FhirRead",
-                "FhirPatch",
-                "FhirCreate",
-                "FhirUpdate"
-              ]
-            }
-          },
-          "$or": [
-            {
-              "params": {
-                "resource/type": "Patient"
-              },
-              "operation": {
-                "id": {
-                  "$one-of": ["FhirRead"]
-                }
-              }
-            },
-            {
-              "params": {
-                "resource/type": "Consent"
-              },
-              "operation": {
-                "id": {
-                  "$one-of": [
-                    "FhirSearch",
-                    "FhirRead",
-                    "FhirPatch",
-                    "FhirCreate",
-                    "FhirUpdate"
-                  ]
-                }
-              }
-            }
-          ]
-        }
-      }
-    },
-    {
-      "request": {
-        "method": "PUT",
-        "url": "NotificationTemplate/auth-signup-email"
-      },
-      "resource": {
-        "resourceType": "NotificationTemplate",
-        "template": "\n<h3>Confirm your email address </h3>\n<p>Hello {{params.data.name}}{{params.email}}{{params.username}}!</p>\n<p>We just need to verify that {{params.email}} {{params.username}} is your email address.</p>\n<p><a target=\"_blank\" href=\"{{params.base-url}}/auth/signup/confirm/{{id}}?redirect_to=aHR0cDovL2xvY2FsaG9zdDo4MDk2L2RldmVsb3Blci9hdXRoL3NpZ251cD9jb25maXJtUGFzc3dvcmQ9dHJ1ZQ==\">Confirm Email Address</a></p> \n<b>Didn't request this email?</b>\n<p>No worries! Your address may have been entered by mistake. If you ignore or delete this email, nothing further will happen.</p>\n<p>If you're having problems, please feel free to write to us at hello@health-samurai.io. We'll be glad to help.</p> "
-      }
-    },
-    {
-      "request": {
-        "method": "PUT",
-        "url": "TokenIntrospector/admin-aidbox"
-      },
-      "resource": {
-        "resourceType": "TokenIntrospector",
-        "id": "admin-aidbox",
-        "type": "jwt",
-        "jwt": {
-          "iss": "http://localhost:8080"
-        },
-        "jwks_uri": "http://aidbox-admin:8080/.well-known/jwks.json"
-      }
-    },
-    {
-      "request": {
-        "method": "PUT",
-        "url": "AccessPolicy/allow-admin-tokens"
-      },
-      "resource": {
-        "resourceType": "AccessPolicy",
-        "id": "allow-admin-tokens",
-        "description": "Allow requests authenticated with Admin Aidbox JWT tokens",
-        "engine": "json-schema",
-        "schema": {
-          "required": ["jwt"],
-          "properties": {
-            "jwt": {
-              "required": ["iss"],
-              "properties": {
-                "iss": {
-                  "constant": "http://localhost:8080"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    {
-      "request": {
-        "method": "PUT",
-        "url": "AccessPolicy/dev-client-search-communication"
-      },
-      "resource": {
-        "engine": "matcho",
-        "matcho": {
-          "user": {
-            "roles": {
-              "$contains": {
-                "type": "developer"
-              }
-            }
-          },
-          "params": {
-            "resource/type": "Communication",
-            ".about.0.reference": "present?"
-          },
-          "operation": {
-            "id": "FhirSearch"
-          }
-        },
-        "description": "Developers can search communication for sertain app",
-        "id": "dev-client-search-communication",
-        "resourceType": "AccessPolicy"
-      }
-    },
-    {
-      "request": {
-        "method": "PUT",
-        "url": "AccessPolicy/smart-app-can-read-patient-api"
-      },
-      "resource": {
-        "resourceType": "AccessPolicy",
-        "id": "smart-app-can-read-patient-api",
-        "engine": "matcho",
-        "matcho": {
-          "jwt": {
-            "atv": 2,
-            "scope": "present?",
-            "context": {
-              "patient": "present?"
-            }
-          },
-          "client": {
-            "type": "smart-app",
-            "active": true
-          }
-        }
-      }
-    },
-    {
-      "resource": {
-        "engine": "matcho",
-        "matcho": {
-          "user": {
-            "roles": [
-              {
-                "type": "developer"
-              }
-            ]
-          },
-          "params": {
-            "resource/type": "Client"
-          }
-        },
-        "description": "Admin access to Client resources",
-        "id": "developer-role-client",
-        "resourceType": "AccessPolicy",
-        "meta": {
-          "lastUpdated": "2025-12-11T17:05:59.203507Z",
-          "versionId": "2895",
-          "extension": [
-            {
-              "url": "https://aidbox.app/ex/createdAt",
-              "valueInstant": "2025-12-11T17:05:59.203507Z"
-            }
-          ]
-        }
-      },
-      "request": {
-        "method": "PUT",
-        "url": "AccessPolicy/developer-role-client"
-      }
-    }
-  ]
-}
-```
-
-</details>
-
-#### **Step 5: Create Init Bundle for Admin Aidbox** <a href="#step-5-create-init-bundle-for-admin-aidbox" id="step-5-create-init-bundle-for-admin-aidbox"></a>
-
-Create `initBundleAdmin.json` file in the same folder alongside with `docker-compose.yaml` and copy the content:
-
-<details>
-
-<summary>Click to view Admin Init Bundle file</summary>
-
-```json
-{
-  "resourceType": "Bundle",
-  "type": "transaction",
-  "entry": [
-    {
-      "resource": {
-        "resourceType": "StructureDefinition",
-        "url": "http://aidbox.app/StructureDefinition/Client/created-by",
-        "id": "client-created-by",
-        "name": "client-created-by",
-        "status": "active",
-        "abstract": false,
-        "kind": "complex-type",
-        "type": "Extension",
-        "context": [
-          {
-            "type": "element",
-            "expression": "Client"
-          }
-        ],
-        "baseDefinition": "http://hl7.org/fhir/StructureDefinition/Extension",
-        "version": "0.0.1",
-        "derivation": "constraint",
-        "differential": {
-          "element": [
-            {
-              "id": "Extension",
-              "path": "Extension",
-              "min": 0,
-              "max": "1"
-            },
-            {
-              "id": "Extension.url",
-              "path": "Extension.url",
-              "min": 1,
-              "max": "1",
-              "fixedUri": "http://aidbox.app/StructureDefinition/Client/created-by"
-            },
-            {
-              "id": "Extension.value[x]",
-              "path": "Extension.value[x]",
-              "min": 1,
-              "max": "1",
-              "type": [
-                {
-                  "code": "Reference",
-                  "targetProfile": [
-                    "http://health-samurai.io/fhir/core/StructureDefinition/User"
-                  ]
-                }
-              ]
-            }
-          ]
-        }
-      },
-      "request": {
-        "method": "PUT",
-        "url": "StructureDefinition/client-created-by"
-      }
-    },
-    {
-      "resource": {
-        "resourceType": "SearchParameter",
-        "id": "Client.created-by",
-        "url": "http://aidbox.app/StructureDefinition/Client/created-by",
-        "name": "created-by",
-        "status": "active",
-        "code": "created-by",
-        "base": ["Client"],
-        "type": "token",
-        "description": "Client created-by User",
-        "expression": "Client.meta.extension.where(url='http://aidbox.app/StructureDefinition/Client/created-by').value.Reference.id"
-      },
-      "request": {
-        "method": "PUT",
-        "url": "SearchParameter/Client.created-by"
-      }
-    },
-    {
-      "resource": {
-        "resourceType": "StructureDefinition",
-        "url": "http://aidbox.app/StructureDefinition/Client/status",
-        "id": "client-status",
-        "name": "client-status",
-        "status": "active",
-        "abstract": false,
-        "kind": "complex-type",
-        "type": "Extension",
-        "context": [
-          {
-            "type": "element",
-            "expression": "Client"
-          }
-        ],
-        "baseDefinition": "http://hl7.org/fhir/StructureDefinition/Extension",
-        "version": "0.0.2",
-        "derivation": "constraint",
-        "differential": {
-          "element": [
-            {
-              "id": "Extension",
-              "path": "Extension",
-              "min": 0,
-              "max": "1"
-            },
-            {
-              "id": "Extension.url",
-              "path": "Extension.url",
-              "min": 1,
-              "max": "1",
-              "fixedUri": "http://aidbox.app/StructureDefinition/Client/status"
-            },
-            {
-              "id": "Extension.value[x]",
-              "path": "Extension.value[x]",
-              "min": 1,
-              "max": "1",
-              "type": [
-                {
-                  "code": "code"
-                }
-              ],
-              "constraint": [
-                {
-                  "key": "enum-client-status",
-                  "severity": "error",
-                  "human": "Status should be 'draft', 'review', 'active' or 'rejected'",
-                  "expression": "%context.subsetOf('draft' | 'review' | 'active' | 'rejected')"
-                }
-              ]
-            }
-          ]
-        }
-      },
-      "request": {
-        "method": "PUT",
-        "url": "StructureDefinition/client-status"
-      }
-    },
-    {
-      "resource": {
-        "resourceType": "SearchParameter",
-        "id": "Client.status",
-        "url": "http://aidbox.app/StructureDefinition/Client/status",
-        "name": "status",
-        "status": "active",
-        "code": "status",
-        "base": ["Client"],
-        "type": "token",
-        "description": "Client status (draft, review, active, rejected)",
-        "expression": "Client.meta.extension.where(url='http://aidbox.app/StructureDefinition/Client/status').value.code"
-      },
-      "request": {
-        "method": "PUT",
-        "url": "SearchParameter/Client.status"
-      }
-    },
-    {
-      "resource": {
-        "resourceType": "Client",
-        "id": "smartbox-admin-portal",
-        "first_party": true,
-        "grant_types": ["code"],
-        "scope": ["openid", "profile", "email"],
-        "auth": {
-          "authorization_code": {
-            "redirect_uri": "http://localhost:8095/api/admin/auth/callback",
-            "access_token_expiration": 3600,
-            "token_format": "jwt",
-            "pkce": true,
-            "refresh_token": true,
-            "refresh_token_expiration": 86400
-          }
-        }
-      },
-      "request": {
-        "method": "PUT",
-        "url": "Client/smartbox-admin-portal"
-      }
-    },
-    {
-      "resource": {
-        "resourceType": "Client",
-        "id": "admin-api",
-        "secret": "admin-api-secret-change-in-production",
-        "grant_types": ["client_credentials"]
-      },
-      "request": {
-        "method": "PUT",
-        "url": "Client/admin-api"
-      }
-    },
-    {
-      "resource": {
-        "resourceType": "AccessPolicy",
-        "id": "admin-api",
-        "engine": "matcho",
-        "description": "Scoped access for admin API client (sessions, orgs, clients, users, tos/privacy)",
-        "matcho": {
-          "client": { "id": "admin-api" },
-          "$one-of": [
-            {
-              "params": { "resource/type": "Session" },
-              "operation": {
-                "id": {
-                  "$one-of": [
-                    "FhirCreate",
-                    "FhirSearch",
-                    "FhirRead",
-                    "FhirUpdate",
-                    "FhirPatch"
-                  ]
-                }
-              }
-            },
-            {
-              "params": { "resource/type": "Organization" },
-              "operation": { "id": { "$one-of": ["FhirSearch", "FhirRead"] } }
-            },
-            {
-              "params": { "resource/type": "Client" },
-              "operation": { "id": { "$one-of": ["FhirSearch", "FhirRead"] } }
-            },
-            {
-              "params": { "resource/type": "User" },
-              "operation": { "id": "FhirRead" }
-            },
-            {
-              "params": {
-                "resource/type": "DocumentReference",
-                "resource/id": {
-                  "$one-of": ["smartbox-tos", "smartbox-privacy"]
-                }
-              },
-              "operation": {
-                "id": { "$one-of": ["FhirRead", "FhirUpdate", "FhirCreate"] }
-              }
-            }
-          ]
-        }
-      },
-      "request": {
-        "method": "PUT",
-        "url": "AccessPolicy/admin-api"
-      }
-    },
-    {
-      "resource": {
-        "resourceType": "AccessPolicy",
-        "id": "allow-license-activation",
-        "engine": "matcho",
-        "description": "Allow unauthenticated access to license activation endpoints",
-        "matcho": {
-          "uri": {
-            "$one-of": [
-              "/api/v1/license/activate",
-              "/api/v1/license/status",
-              "/"
-            ]
-          }
-        }
-      },
-      "request": {
-        "method": "PUT",
-        "url": "AccessPolicy/allow-license-activation"
-      }
-    },
-    {
-      "resource": {
-        "resourceType": "AccessPolicy",
-        "id": "allow-read-settings",
-        "engine": "matcho",
-        "description": "Allow admin-api client to read Aidbox settings",
-        "matcho": {
-          "client": { "id": "admin-api" },
-          "uri": {
-            "$one-of": ["/api/v1/settings/introspect", "^/api/v1/settings/.*"]
-          }
-        }
-      },
-      "request": {
-        "method": "PUT",
-        "url": "AccessPolicy/allow-read-settings"
-      }
-    },
-    {
-      "resource": {
-        "resourceType": "SearchParameter",
-        "id": "Communication.about",
-        "url": "http://smartbox.hs/sp/Communication-about",
-        "name": "communication-about",
-        "status": "active",
-        "code": "about",
-        "base": ["Communication"],
-        "type": "reference",
-        "description": "Search Communication by Communication.about (any reference, incl. Aidbox system resources)",
-        "expression": "Communication.about"
-      },
-      "request": {
-        "method": "PUT",
-        "url": "SearchParameter/Communication.about"
-      }
-    },
-    {
-      "resource": {
-        "resourceType": "SearchParameter",
-        "id": "Session.client",
-        "url": "http://smartbox.hs/sp/Session-client",
-        "name": "session-client",
-        "status": "active",
-        "code": "client",
-        "base": ["Session"],
-        "type": "reference",
-        "description": "Search Session by client reference",
-        "expression": "Session.client",
-        "target": ["Client"]
-      },
-      "request": {
-        "method": "PUT",
-        "url": "SearchParameter/Session.client"
-      }
-    },
-    {
-      "resource": {
-        "roles": [
-          {
-            "type": "admin"
-          }
-        ]
-      },
-      "request": {
-        "method": "PATCH",
-        "url": "User/admin"
-      }
-    },
-    {
-      "request": {
-        "method": "PUT",
-        "url": "AccessPolicy/patient-can-get-launch-uri"
-      },
-      "resource": {
-        "resourceType": "AccessPolicy",
-        "id": "patient-can-get-launch-uri",
-        "type": "rpc",
-        "engine": "matcho-rpc",
-        "rpc": {
-          "aidbox.smart/get-launch-uri": {
-            "user": {
-              "fhirUser": {
-                "resourceType": "Patient"
-              }
-            }
-          }
-        }
-      }
-    },
-    {
-      "request": {
-        "method": "PUT",
-        "url": "AccessPolicy/smart-app-can-read-patient-api"
-      },
-      "resource": {
-        "resourceType": "AccessPolicy",
-        "id": "smart-app-can-read-patient-api",
-        "engine": "matcho",
-        "matcho": {
-          "jwt": {
-            "atv": 2,
-            "scope": "present?",
-            "context": {
-              "patient": "present?"
-            }
-          },
-          "client": {
-            "type": "smart-app",
-            "active": true
-          }
-        }
-      }
-    },
-    {
-      "resource": {
-        "resourceType": "DocumentReference",
-        "id": "smartbox-tos",
-        "status": "current",
-        "type": {
-          "text": "Terms of Service"
-        },
-        "category": [
-          {
-            "text": "legal"
-          }
-        ],
-        "content": [
-          {
-            "attachment": {
-              "contentType": "text/html"
-            }
-          }
-        ]
-      },
-      "request": {
-        "method": "PUT",
-        "url": "DocumentReference/smartbox-tos"
-      }
-    },
-    {
-      "resource": {
-        "resourceType": "DocumentReference",
-        "id": "smartbox-privacy",
-        "status": "current",
-        "type": {
-          "text": "Privacy Policy"
-        },
-        "category": [
-          {
-            "text": "legal"
-          }
-        ],
-        "content": [
-          {
-            "attachment": {
-              "contentType": "text/html"
-            }
-          }
-        ]
-      },
-      "request": {
-        "method": "PUT",
-        "url": "DocumentReference/smartbox-privacy"
-      }
-    },
-    {
-      "resource": {
-        "resourceType": "AuthConfig",
-        "id": "smartbox",
-        "theme": {
-          "styleUrl": "http://localhost:3001/auth.css"
-        }
-      },
-      "request": {
-        "method": "PUT",
-        "url": "AuthConfig/smartbox"
-      }
-    },
-    {
-      "resource": {
-        "engine": "matcho",
-        "description": "Admin access to Client resources",
-        "matcho": {
-          "user": {
-            "roles": [
-              {
-                "type": "admin"
-              }
-            ]
-          },
-          "params": {
-            "resource/type": "Client"
-          }
-        },
-        "id": "admin-role-client",
-        "resourceType": "AccessPolicy"
-      },
-      "request": {
-        "method": "PUT",
-        "url": "AccessPolicy/admin-role-client"
-      }
-    },
-    {
-      "resource": {
-        "engine": "matcho",
-        "description": "Admin search and read Session resources",
-        "matcho": {
-          "user": {
-            "roles": [
-              {
-                "type": "admin"
-              }
-            ]
-          },
-          "params": {
-            "resource/type": "Session"
-          },
-          "operation": {
-            "id": {
-              "$one-of": ["FhirSearch", "FhirRead"]
-            }
-          }
-        },
-        "id": "admin-role-session",
-        "resourceType": "AccessPolicy"
-      },
-      "request": {
-        "method": "PUT",
-        "url": "AccessPolicy/admin-role-session"
-      }
-    },
-    {
-      "resource": {
-        "engine": "matcho",
-        "description": "Admin access to Organization resources",
-        "matcho": {
-          "user": {
-            "roles": [
-              {
-                "type": "admin"
-              }
-            ]
-          },
-          "params": {
-            "resource/type": "Organization"
-          }
-        },
-        "id": "admin-role-organization",
-        "resourceType": "AccessPolicy"
-      },
-      "request": {
-        "method": "PUT",
-        "url": "AccessPolicy/admin-role-organization"
-      }
-    },
-    {
-      "resource": {
-        "engine": "matcho",
-        "description": "Admin read Patient with ORGBAC",
-        "matcho": {
-          "user": {
-            "roles": [
-              {
-                "type": "admin"
-              }
-            ]
-          },
-          "params": {
-            "resource/type": "Patient"
-          },
-          "operation": {
-            "id": {
-              "$one-of": [
-                "FhirSearch",
-                "FhirRead",
-                "orgbac-fhir-search",
-                "orgbac-fhir-read"
-              ]
-            }
-          }
-        },
-        "id": "admin-role-patient",
-        "resourceType": "AccessPolicy"
-      },
-      "request": {
-        "method": "PUT",
-        "url": "AccessPolicy/admin-role-patient"
-      }
-    },
-    {
-      "resource": {
-        "engine": "matcho",
-        "description": "Admin read User with ORGBAC",
-        "matcho": {
-          "user": {
-            "roles": [
-              {
-                "type": "admin"
-              }
-            ]
-          },
-          "params": {
-            "resource/type": "User"
-          },
-          "operation": {
-            "id": {
-              "$one-of": [
-                "FhirSearch",
-                "FhirRead",
-                "orgbac-fhir-search",
-                "orgbac-fhir-read"
-              ]
-            }
-          }
-        },
-        "id": "admin-role-user",
-        "resourceType": "AccessPolicy"
-      },
-      "request": {
-        "method": "PUT",
-        "url": "AccessPolicy/admin-role-user"
-      }
-    },
-    {
-      "resource": {
-        "engine": "matcho",
-        "description": "Admin read Group with ORGBAC",
-        "matcho": {
-          "user": {
-            "roles": [
-              {
-                "type": "admin"
-              }
-            ]
-          },
-          "params": {
-            "resource/type": "Group"
-          },
-          "operation": {
-            "id": {
-              "$one-of": [
-                "FhirSearch",
-                "FhirRead",
-                "orgbac-fhir-search",
-                "orgbac-fhir-read"
-              ]
-            }
-          }
-        },
-        "id": "admin-role-group",
-        "resourceType": "AccessPolicy"
-      },
-      "request": {
-        "method": "PUT",
-        "url": "AccessPolicy/admin-role-group"
-      }
-    },
-    {
-      "resource": {
-        "engine": "matcho",
-        "description": "Admin manage DocumentReference",
-        "matcho": {
-          "user": {
-            "roles": [
-              {
-                "type": "admin"
-              }
-            ]
-          },
-          "params": {
-            "resource/type": "DocumentReference"
-          },
-          "operation": {
-            "id": {
-              "$one-of": ["FhirSearch", "FhirRead", "FhirUpdate"]
-            }
-          }
-        },
-        "id": "admin-role-document-reference",
-        "resourceType": "AccessPolicy"
-      },
-      "request": {
-        "method": "PUT",
-        "url": "AccessPolicy/admin-role-document-reference"
-      }
-    },
-    {
-      "resource": {
-        "engine": "matcho",
-        "description": "Admin access to settings endpoints",
-        "matcho": {
-          "user": {
-            "roles": [
-              {
-                "type": "admin"
-              }
-            ]
-          },
-          "request": {
-            "uri": {
-              "$one-of": ["/api/v1/settings/introspect", "^/api/v1/settings/.*"]
-            }
-          },
-          "operation": {
-            "id": {
-              "$one-of": ["FhirSearch", "FhirRead", "FhirUpdate"]
-            }
-          }
-        },
-        "id": "admin-role-settings-introspect",
-        "resourceType": "AccessPolicy"
-      },
-      "request": {
-        "method": "PUT",
-        "url": "AccessPolicy/admin-role-settings-introspect"
-      }
-    },
-    {
-      "resource": {
-        "engine": "matcho",
-        "description": "Admin access to AwsAccount resources",
-        "matcho": {
-          "user": {
-            "roles": [
-              {
-                "type": "admin"
-              }
-            ]
-          },
-          "params": {
-            "resource/type": "AwsAccount"
-          }
-        },
-        "id": "admin-role-aws-account",
-        "resourceType": "AccessPolicy"
-      },
-      "request": {
-        "method": "PUT",
-        "url": "AccessPolicy/admin-role-aws-account"
-      }
-    },
-    {
-      "resource": {
-        "engine": "matcho",
-        "description": "Admin access to GcpServiceAccount resources",
-        "matcho": {
-          "user": {
-            "roles": [
-              {
-                "type": "admin"
-              }
-            ]
-          },
-          "params": {
-            "resource/type": "GcpServiceAccount"
-          }
-        },
-        "id": "admin-role-gcp-service-account",
-        "resourceType": "AccessPolicy"
-      },
-      "request": {
-        "method": "PUT",
-        "url": "AccessPolicy/admin-role-gcp-service-account"
-      }
-    },
-    {
-      "resource": {
-        "engine": "matcho",
-        "description": "Admin search and read AuditEvent resources",
-        "matcho": {
-          "user": {
-            "roles": [
-              {
-                "type": "admin"
-              }
-            ]
-          },
-          "params": {
-            "resource/type": "AuditEvent"
-          },
-          "operation": {
-            "id": {
-              "$one-of": ["FhirSearch", "FhirRead"]
-            }
-          }
-        },
-        "id": "admin-role-audit-event",
-        "resourceType": "AccessPolicy"
-      },
-      "request": {
-        "method": "PUT",
-        "url": "AccessPolicy/admin-role-audit-event"
-      }
-    },
-    {
-      "resource": {
-        "roles": [
-          {
-            "type": "admin"
-          }
-        ],
-        "password": "$s0$f0801$B3jOpXU2PUyd3iHLOi1qnw==$AJkfwK1Xu+dYkXWS5dRtrJK2CR3ztWos7NuNDIdtVAU=",
-        "id": "portal-admin",
-        "resourceType": "User"
-      },
-      "request": {
-        "method": "PUT",
-        "url": "User/portal-admin"
-      }
-    },
-    {
-      "resource": {
-        "url": "http://aidbox.app/StructureDefinition/AuditEvent/client",
-        "id": "AuditEvent.client",
-        "base": ["AuditEvent"],
-        "expression": "AuditEvent.agent.who.identifier.value",
-        "name": "client",
-        "status": "active",
-        "type": "token",
-        "resourceType": "SearchParameter",
-        "code": "client",
-        "description": "Filter AuditEvent by client identifier (agent.who.identifier.value)"
-      },
-      "request": {
-        "method": "PUT",
-        "url": "SearchParameter/AuditEvent.client"
-      }
-    }
-  ]
-}
-```
-
-</details>
-
-#### **Step 6: Launch Aidbox** <a href="#step-6-launch-aidbox" id="step-6-launch-aidbox"></a>
-
-Run the following command:
-
-```shell
+```bash
 docker compose up
 ```
 
-#### **Step 7: How to access services** <a href="#step-7-how-to-access-services" id="step-7-how-to-access-services"></a>
+The first start takes several minutes. Both Aidbox instances download the FHIR packages listed in `BOX_BOOTSTRAP_FHIR_PACKAGES` and apply their init bundles, and the developer sandbox loads sample patient data. The FHIR App Portal starts once both Aidbox instances report healthy.
 
-Now Aidboxes and FHIR App Portal are ready. They're accessible by the following URLs:
+{% hint style="info" %}
+The init bundles create the portal OAuth clients, API clients, access policies, search parameters, and the `portal-admin` user. You can review them before the start: [init-bundle-admin.json](https://storage.googleapis.com/smartbox-public/init-bundle-admin.json) and [init-bundle-developer.json](https://storage.googleapis.com/smartbox-public/init-bundle-developer.json).
+{% endhint %}
 
-* **Admin/Patient Portal** ([http://localhost:8095](http://localhost:8095)) - Manage users, review apps, monitor the system as admin and also access App Gallery as patient
-* **Developer Sandbox Portal** ([http://localhost:8096](http://localhost:8096)) - Register and test SMART on FHIR applications
-* **Admin/Patient Aidbox Instance** - ([http://admin.localhost:8080](http://admin.localhost:8080)) - Separate FHIR server for Admin/Patient environment
-* **Sanbox Aidbox Instance** - ([http://localhost:8090](http://localhost:8090)) - Separate FHIR server for Developer Sandbox environment
+## Step 4. Open the UIs
 
-#### **Step 8: How To Sign In** <a href="#step-8-how-to-sign-in" id="step-8-how-to-sign-in"></a>
+| Service | URL | Credentials |
+|---|---|---|
+| Admin Portal | http://localhost:8095 | `portal-admin` / `password` |
+| Developer Portal | http://localhost:8096 | Sign up as a new developer |
+| Admin Aidbox UI | http://localhost:8080 | `admin` / `password` |
+| Developer Sandbox Aidbox UI | http://localhost:8090 | `admin` / `password` |
 
-* To sign in into **Admin/Patient Aidbox Instance** ([http://admin.localhost:8080](http://admin.localhost:8080)) as admin use `admin` username and `AIDBOX_ADMIN_PASSWORD` password
-* To sign in into **Sanbox Aidbox Instance** - ([http://localhost:8090](http://localhost:8090)) as admin use `admin` username and `AIDBOX_ADMIN_PASSWORD` password
+## Explore the portals
 
-#### **Step 9: Manually upload Bundle** <a href="#step-9-manually-upload-bundle" id="step-9-manually-upload-bundle"></a>
+* **Admin Portal** at http://localhost:8095. Sign in with `portal-admin` / `password` to manage organizations, patients, and users, review developer apps, and configure the platform. With OrgBAC on, the portal works in multi-organization mode: each Organization has its own patients, users, and FHIR endpoint `http://localhost:8080/Organization/<id>/fhir`.
+* **Developer Portal** at http://localhost:8096. External developers sign up here, register SMART on FHIR apps and backend services, and test them against the sandbox. A developer picks the Organization when registering a backend service.
+* **FHIR App Gallery**: the patient-facing catalog of approved SMART apps.
 
-Open Sandbox Aidbox Instance at [http://localhost:8090/ui/console#/rest](http://localhost:8090/ui/console#/rest) and run the following command in REST Console:
+## Stop and reset
 
-<details>
-
-<summary>Click to view Bundle</summary>
-
-```json
-POST /
-content-type: application/json
-accept: application/json
-
-{
-  "resourceType": "Bundle",
-  "type": "transaction",
-  "entry": [
-    {
-      "fullUrl": "AccessPolicy/dev-client-create-self-owned",
-      "resource": {
-        "resourceType": "AccessPolicy",
-        "id": "dev-client-create-self-owned",
-        "engine": "matcho",
-        "description": "Developers can create Client apps only when created-by points to themselves",
-        "matcho": {
-          "user": { "roles": { "$contains": { "type": "developer" } } },
-          "operation": { "id": "FhirCreate" },
-          "params": { "resource/type": "Client" },
-          "resource": {
-            "meta": {
-              "extension": {
-                "$contains": {
-                  "url": "http://aidbox.app/StructureDefinition/Client/created-by",
-                  "value": {
-                    "Reference": {
-                      "id": ".user.id"
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      },
-      "request": {
-        "method": "PUT",
-        "url": "AccessPolicy/dev-client-create-self-owned"
-      }
-    }
-  ]
-}
+```bash
+docker compose down      # stop containers, keep data
+docker compose down -v   # stop and delete the PostgreSQL volume
 ```
 
-</details>
+## Next steps
+
+{% content-ref url="../tutorials/admin-portal.md" %}
+[Admin Portal](../tutorials/admin-portal.md)
+{% endcontent-ref %}
+
+{% content-ref url="../tutorials/developer-sandbox.md" %}
+[Developer Sandbox](../tutorials/developer-sandbox.md)
+{% endcontent-ref %}
+
+{% content-ref url="../tutorials/app-gallery.md" %}
+[FHIR App Gallery](../tutorials/app-gallery.md)
+{% endcontent-ref %}

@@ -872,3 +872,4 @@ redirects:
   overview/aidbox-ui/db-tables: overview/aidbox-ui/README.md
   overview/aidbox-ui/db-queries: overview/aidbox-ui/README.md
   modules/eprescription/epcs/access-management/approver-nominations: modules/eprescription/epcs/access-management/access-change-requests.md
+  solutions/aidbox-+-fhir-app-portal/developer-sandbox: solutions/aidbox-+-fhir-app-portal/tutorials/developer-sandbox.md

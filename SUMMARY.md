@@ -700,7 +700,6 @@
       * [Aidbox JavaScript SDK](deprecated/deprecated/other/aidbox-sdk/aidbox-javascript-sdk.md)
       * [NodeJs SDK](deprecated/deprecated/other/aidbox-sdk/nodejs-sdk.md)
       * [Python SDK](deprecated/deprecated/other/aidbox-sdk/python-sdk.md)
-    * [Developer Sandbox Portal Flow Description](solutions/aidbox-+-fhir-app-portal/developer-sandbox.md)
   * [SMARTbox | FHIR API for EHRs](deprecated/deprecated/smartbox/README.md)
     * [Get started](deprecated/deprecated/smartbox/get-started/README.md)
       * [Set up Smartbox locally](deprecated/deprecated/smartbox/get-started/set-up-smartbox-locally.md)
