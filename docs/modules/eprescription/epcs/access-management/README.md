@@ -17,16 +17,13 @@ Each role and permission applies to an Aidbox `User` at a `Location`.
 
 ## Prescribing Controlled Substances
 
-A practitioner can mark a controlled prescription ready to sign and sign it only while they hold the EPCS prescribing permission at the prescription's location.
-That location is the `Location` that the prescriber's `PractitionerRole` references and that has:
-
-* `status` set to `active`, or no `status`
-* a tag with the system `urn:app:aidbox:e-prescriptions:surescripts:providerDirectory`
-
+Only the prescriber of a controlled prescription can mark it ready to sign and sign it, and only while they hold the EPCS prescribing permission at the prescription's location.
 For both steps, the module checks that:
 
 * the request has an [acting user](configure-access-policies.md#acting-user)
-* the prescriber's `PractitionerRole` references a `Location` that meets both conditions above
+* the prescriber's `PractitionerRole` references a `Location` that has:
+  * `status` set to `active`, or no `status`
+  * a tag with the system `urn:app:aidbox:e-prescriptions:surescripts:providerDirectory`
 * `User.fhirUser` of the acting user references the `Practitioner` of that `PractitionerRole`
 * that `Practitioner` does not have `active` set to `false`
 * the `PractitionerRole` has:
@@ -37,10 +34,11 @@ For both steps, the module checks that:
 
 The module returns:
 
-* `401` if the request has no acting user, or the acting user is not a stored `User`
+* `401` if the request has no acting user
+* `401` if the acting user is not a stored `User`
 * `403` if the request fails any other check
 
-Signing runs these checks again, so if the permission is revoked after the practitioner marks the prescription ready, signing returns `403`.
+Signing runs these checks again, so if the permission is revoked after the prescriber marks the prescription ready, signing returns `403`.
 
 ## Operations
 
