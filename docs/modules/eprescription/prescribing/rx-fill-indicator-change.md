@@ -1,14 +1,14 @@
 ---
-description: Change which fill notifications a pharmacy sends for a delivered prescription with the RxFillIndicatorChange NCPDP SCRIPT message.
+description: Change which fill events a pharmacy reports for a delivered prescription with the RxFillIndicatorChange NCPDP SCRIPT message.
 ---
 
 # RxFillIndicatorChange Message
 
 A pharmacy reports fill events for a prescription in `RxFill` messages.
 The prescriber's **RxFill preferences** say which fill events the pharmacy should report.
-The [NewRx](newrx-message.md), or the renewal or change response that created the prescription, carries them to the pharmacy.
+The [NewRx](newrx-message.md), RxRenewalResponse, or RxChangeResponse that created the prescription carries them to the pharmacy.
 
-RxFillIndicatorChange sends new RxFill preferences for a prescription the pharmacy already received.
+RxFillIndicatorChange sends new RxFill preferences for a prescription the pharmacy has already received.
 The ePrescription module supports it for NCPDP SCRIPT 2023011.
 
 ## RxFill Preferences
@@ -30,19 +30,20 @@ The EHR stores the RxFill preferences on the `MedicationRequest`, one `medicatio
 }
 ```
 
-After the pharmacy received the prescription, editing these extensions sends nothing to the pharmacy.
+After the pharmacy has received the prescription, the pharmacy keeps the RxFill preferences it received, even if you edit these extensions.
 To change the RxFill preferences, [send a change](#send-a-change).
 After the pharmacy receives the change, the module updates the extensions.
 
 ## When You Can Send a Change
 
-The module accepts a change when all of these conditions hold:
+The module accepts a change when all of these conditions hold.
+If a condition fails, the [current state](#check-the-current-state) returns its code in parentheses as `unavailableReason.reason`:
 
-1. The prescription is not cancelled.
-2. Surescripts confirmed that the pharmacy received the prescription.
-3. The pharmacy `Organization` has the Surescripts service level `RxFillIndicatorChange` in `meta.tag`.
-4. No [CancelRx](cancelrx-message.md) was sent for the prescription, or the pharmacy denied it.
-5. No other change for the prescription is pending.
+1. The prescription is not cancelled (`prescription-cancelled`).
+2. Surescripts confirmed that the pharmacy received the prescription (`prescription-delivery-not-confirmed`).
+3. The pharmacy supports the Surescripts service level `RxFillIndicatorChange` (`pharmacy-does-not-support-rx-fill-indicator-change`).
+4. No [CancelRx](cancelrx-message.md) was sent for the prescription, or the pharmacy denied it (`cancellation-started`).
+5. No other change for the prescription is pending (`rx-fill-indicator-change-pending`).
 
 ## Check the Current State
 
@@ -62,30 +63,18 @@ Example `200 OK` response:
 }
 ```
 
-* `available`: whether you can send a change now.
-  If not, `unavailableReason.reason` names the first failed condition:
-  1. `prescription-cancelled`
-  2. `prescription-delivery-not-confirmed`
-  3. `pharmacy-does-not-support-rx-fill-indicator-change`
-  4. `cancellation-started`
-  5. `rx-fill-indicator-change-pending`
+* `available`: `true` if you can send a change now.
+  Otherwise, `unavailableReason` holds a readable `message` and the `reason` code of the first [condition](#when-you-can-send-a-change) that blocks the change.
 * `confirmedRxFillPreferences`: the RxFill preferences the pharmacy last received.
-  `null` means the module does not know them, and `["None"]` means no fill notifications.
-* `pendingSelection`: the RxFill preferences of a change that is not delivered yet, or `null`.
+  `null` means the module does not know them, and `["None"]` means the pharmacy reports no fill events.
+* `pendingSelection`: the RxFill preferences of the pending change, or `null`.
 * `lastChange`: the latest change, or `null`.
   Its `result` is one of:
   * `pending`: the module waits for Surescripts to confirm delivery.
   * `delivered`: the pharmacy received the change.
   * `not-delivered`: the change did not reach the pharmacy. Send the same request again to resend it.
   * `failed`: the module cannot deliver the change. `failureReason` holds the Surescripts error.
-
-<details>
-
-<summary>Error Responses</summary>
-
-* `422`: the `MedicationRequest` does not exist.
-
-</details>
+    If you send the same change again, the module returns an error.
 
 ## Send a Change
 
@@ -103,21 +92,6 @@ Content-Type: application/json
 
 `202 Accepted` means the module accepted the change for delivery.
 Follow the delivery in `lastChange.result` of the [current state](#check-the-current-state).
-Sending the same request again while the change is pending sends no second message.
+If you repeat the request while the change is pending, the module returns `202 Accepted` again without a second message.
 
-If the pharmacy already has these RxFill preferences and no change is pending, the module sends nothing and returns `200 OK` with `{"transactions": []}`.
-
-<details>
-
-<summary>Error Responses</summary>
-
-* `409`, in any of these cases:
-  * Another change for the prescription is pending.
-  * A CancelRx was sent for the prescription.
-  * The same change already failed.
-* `422`, in any of these cases:
-  * The RxFill preferences are invalid.
-  * The `MedicationRequest` does not exist.
-  * The prescription does not meet conditions 1 to 3 of [When You Can Send a Change](#when-you-can-send-a-change).
-
-</details>
+If the pharmacy already has these RxFill preferences and no change is pending, the module sends nothing and returns `200 OK`.
