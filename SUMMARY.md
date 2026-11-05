@@ -483,6 +483,7 @@
     * [Highly Available Aidbox](deployment-and-maintenance/deploy-aidbox/run-aidbox-in-kubernetes/highly-available-aidbox.md)
     * [Self-signed SSL Certificates](deployment-and-maintenance/deploy-aidbox/run-aidbox-in-kubernetes/self-signed-ssl-certificates.md)
   * [Run Aidbox on managed PostgreSQL](deployment-and-maintenance/deploy-aidbox/run-aidbox-on-managed-postgresql.md)
+  * [Run Aidbox behind a reverse proxy](deployment-and-maintenance/deploy-aidbox/run-aidbox-behind-a-reverse-proxy.md)
   * [How to inject env variables into Init Bundle](deployment-and-maintenance/deploy-aidbox/how-to-inject-env-variables-into-init-bundle.md)
 * [Backup and Restore](deployment-and-maintenance/backup-and-restore/README.md)
   * [Crunchy Operator (/pgbackrest)](deployment-and-maintenance/backup-and-restore/crunchy-operator-docs-pgbackrest.md)
