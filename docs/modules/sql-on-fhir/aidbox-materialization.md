@@ -76,7 +76,7 @@ Each run writes an `AidboxMaterializationStatus` sharing the id of its AidboxMat
 - **`target`**: reference to the AidboxMaterialization this status belongs to.
 - **`targetVersion`**: `AidboxMaterialization.meta.versionId` at the time of the run.
 - **`sqlHash`**: SHA-256 of the SQL the target compiled to during that run.
-- **`duration`**: milliseconds the run took, from the `in-progress` write to `done` or `error`. Absent while a run is in progress.
+- **`duration`**: milliseconds the run took, from the `in-progress` write to `done` or `error`. Absent while a run is in progress. It leaves out the time `$materialize` spends [expanding ValueSets](#valueset-and-conceptmap-dependencies) before it answers 202.
 - **`error`**: the message of the failure that ended the run. Present only on a status of `error`.
 
 ```json
@@ -178,7 +178,7 @@ graph TD
 
 Running `$materialize` on any one of the four covers all four.
 
-1. **Build the graph.** Aidbox walks `relatedArtifact[depends-on]` down from the target and, through the `depends-on` search parameter on Library, back up to everything that stands on it. A dependency canonical that resolves to nothing fails the request with 422.
+1. **Build the graph.** Aidbox walks `relatedArtifact[depends-on]` down from the target. From each ViewDefinition and Library in the graph, it then walks up to the SQL Libraries in FAR (those with a `url` and an `application/sql` attachment) that depend on it, and adds the ones with an AidboxMaterialization of their own, along with their dependencies. A dependent without an AidboxMaterialization has no object to drop: Aidbox passes through it to the dependents above and leaves its other dependencies out. ValueSet and ConceptMap nodes are leaves, and Aidbox doesn't walk up from them. A dependency canonical that resolves to nothing fails the request with 422.
 2. **Group into levels.** Aidbox orders nodes leaves first, so a node always follows what it depends on. A node with no AidboxMaterialization drops out of the plan, and Aidbox inlines its SQL into the dependents that have one.
 3. **Validate with EXPLAIN.** Aidbox compiles each planned node with every dependency inlined and runs `EXPLAIN` on it. A ViewDefinition edit that leaves a dependent unable to compile, a dropped column a SQLQuery still selects, fails here with 422, and Aidbox touches nothing.
 4. **Build level by level.** Each level runs as a background task that schedules the next one. Within a level, Aidbox skips nodes that are current and rebuilds the rest.
@@ -217,6 +217,28 @@ SELECT ... FROM "patient_flat"
 Without the materialization, the same SQLView inlines the ViewDefinition's generated SQL into that CTE. The switch is per dependency. A graph materialized at the top alone inlines everything beneath it; give an intermediate node its own AidboxMaterialization and its dependents read that object instead.
 
 This applies to [`$sqlquery-run`](operation-sqlquery-run.md) and to the SQL that `$materialize` itself builds.
+
+### ValueSet and ConceptMap dependencies
+
+A SQLView or SQLQuery can depend on a [ValueSet or a ConceptMap](operation-sqlquery-run.md#valueset-and-conceptmap-dependencies). Both are leaves of the graph and take no AidboxMaterialization. The object of a dependent reads their rows from the `aidbox_sof` schema:
+
+```sql
+WITH "cvd_codes" AS NOT MATERIALIZED (
+  SELECT system, version, code, display, inactive FROM aidbox_sof.valueset_member WHERE key = 'http://example.org/ValueSet/cardiovascular-disease|2026'
+)
+SELECT ... FROM "cvd_codes"
+```
+
+`$materialize` brings every ValueSet and ConceptMap in the graph up to date while it plans the run, before it answers 202:
+
+- A cold expansion of a large ValueSet holds the request. In a test on `hybrid`, a ValueSet of SNOMED CT `<< 64572001` (92,670 codes) delayed the 202 by 19.5 seconds.
+- `AidboxMaterializationStatus.duration` leaves that time out.
+- A ValueSet or ConceptMap that fails the [checks of `$sqlquery-run`](operation-sqlquery-run.md#errors) fails the plan: `$materialize` returns 422 and writes no AidboxMaterializationStatus.
+
+How a materialized object follows a change in membership depends on its `materializationType`:
+
+- A `view` reads the stored members at query time. Aidbox updates them on the next `$sqlquery-run` or `$materialize` that uses the ValueSet. A `SELECT` from the view doesn't trigger an update.
+- A `materialized-view` keeps the membership of its last build or refresh. `$materialize` without `refresh` updates the stored members but skips the object, since its SQL hash stays the same. The materialized view then holds the old membership while `$sqlquery-run` returns the new one. Run `$materialize` with [`refresh`](#parameters) set to `true` to bring it up to date.
 
 ## Limitations
 

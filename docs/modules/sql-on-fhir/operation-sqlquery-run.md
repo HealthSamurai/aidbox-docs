@@ -19,11 +19,11 @@ SQL on FHIR specification [defines $sqlquery-run operation](https://build.fhir.o
 
 SQLQuery is a profile on `Library` that bundles SQL, dependencies, and parameters for sharing and versioning. Its key elements are:
 
-- **`meta.profile`** — `https://sql-on-fhir.org/ig/StructureDefinition/SQLQuery`.
-- **`type`** — fixed coding `https://sql-on-fhir.org/ig/CodeSystem/LibraryTypesCodes#sql-query`.
-- **`parameter`** — declared input parameters. Each parameter has `name`, `use = "in"`, and FHIR `type` (`string`, `integer`, `boolean`, `decimal`, `date`, `dateTime`).
-- **`relatedArtifact`** — dependencies of `type = "depends-on"`. The `resource` is a canonical URL pointing to a ViewDefinition or another SQLQuery Library; the `label` becomes the table name used in SQL.
-- **`content`** — one or more SQL attachments. `content.contentType` starts with `application/sql`; `content.data` is the base64-encoded SQL. The optional [sql-text](https://build.fhir.org/ig/HL7/sql-on-fhir/StructureDefinition-sql-text.html) extension carries a plain-text copy for human readability. When several attachments are provided, Aidbox prefers `application/sql;dialect=postgresql` and falls back to `application/sql`.
+- **`meta.profile`**: `https://sql-on-fhir.org/ig/StructureDefinition/SQLQuery`.
+- **`type`**: fixed coding `https://sql-on-fhir.org/ig/CodeSystem/LibraryTypesCodes#sql-query`.
+- **`parameter`**: declared input parameters. Each parameter has `name`, `use = "in"`, and FHIR `type` (`string`, `integer`, `boolean`, `decimal`, `date`, `dateTime`).
+- **`relatedArtifact`**: dependencies of `type = "depends-on"`. The `resource` is the canonical URL of a ViewDefinition, another SQLQuery or SQLView Library, a ValueSet, or a ConceptMap, and may carry a `|version` suffix. The `label` becomes the table name used in SQL. See [ValueSet and ConceptMap dependencies](#valueset-and-conceptmap-dependencies).
+- **`content`**: one or more SQL attachments. `content.contentType` starts with `application/sql`; `content.data` is the base64-encoded SQL. The optional [sql-text](https://build.fhir.org/ig/HL7/sql-on-fhir/StructureDefinition-sql-text.html) extension carries a plain-text copy for human readability. When several attachments are provided, Aidbox prefers `application/sql;dialect=postgresql` and falls back to `application/sql`.
 
 A dependency declared with an [AidboxMaterialization](aidbox-materialization.md) reads its database object: `$sqlquery-run` compiles it to `SELECT * FROM <schema>.<name>` instead of inlining its SQL. See [How dependents read a materialized object](aidbox-materialization.md#how-dependents-read-a-materialized-object).
 
@@ -458,4 +458,234 @@ Response:
   ]
 }
 ```
+
+## ValueSet and ConceptMap dependencies
+
+{% hint style="info" %}
+This functionality is available in Aidbox versions 2610 and later.
+{% endhint %}
+
+A SQLQuery or SQLView can depend on a ValueSet or a ConceptMap, as the SQL on FHIR [Terminology in SQL](https://build.fhir.org/ig/HL7/sql-on-fhir/terminology-in-sql.html) page defines. You declare it in `relatedArtifact` like any other dependency, and the SQL reads it as a table named after its `label`:
+
+```json
+"relatedArtifact": [
+  {"type": "depends-on", "resource": "https://example.org/ViewDefinition/condition_view",         "label": "conditions"},
+  {"type": "depends-on", "resource": "http://example.org/ValueSet/cardiovascular-disease|2026", "label": "cvd_codes"},
+  {"type": "depends-on", "resource": "http://example.org/ConceptMap/sct-to-icd10|2026",         "label": "sct_to_icd10"}
+]
+```
+
+Before any SQL runs, Aidbox expands each ValueSet with `$expand`, turns each ConceptMap into rows, and stores both in the database. The query reads the stored rows.
+
+### Terminology engine
+
+ValueSet dependencies need [`fhir.terminology.engine`](../../reference/all-settings.md#fhir.terminology.engine) set to `local` or `hybrid`. On `legacy`, a query with a ValueSet dependency fails with 422.
+
+A ConceptMap dependency doesn't use the engine: Aidbox takes the rows from the ConceptMap resource. Aidbox resolves both kinds of dependency in the FHIR Artifact Registry (FAR). On `legacy`, ConceptMaps you create through the API live outside FAR, and a dependency on one returns 404.
+
+### ValueSet relation
+
+A ValueSet dependency reads as a table with these columns:
+
+| Column     | SQL type  | Content                                                       |
+|------------|-----------|---------------------------------------------------------------|
+| `system`   | `text`    | Code system URL. Never null                                   |
+| `version`  | `text`    | Code system version. Null when the expansion records none     |
+| `code`     | `text`    | The code. Never null                                          |
+| `display`  | `text`    | Display text                                                  |
+| `inactive` | `boolean` | `true` for an inactive code, null for an active one           |
+
+Each row is a member of the expansion: a non-abstract `expansion.contains` entry at any depth of nesting. The table holds one row per (`system`, `version`, `code`). An abstract entry adds no row.
+
+Aidbox takes `version` from the entry or from the expansion's `used-codesystem` parameter. When the expansion uses two versions of one code system, Aidbox can't tell which version a code came from and leaves `version` null.
+
+`$expand` leaves out a code that `compose.include.concept` lists but its code system doesn't define. Aidbox adds such a code to the table when the ValueSet definition takes it in, with the version of its `include`.
+
+`inactive` is null for an active code, so a filter on it must admit null:
+
+```sql
+SELECT system, code FROM cvd_codes WHERE inactive IS NULL OR inactive = FALSE
+```
+
+### ConceptMap relation
+
+A ConceptMap dependency reads as a table with these columns, all of type `text`. Aidbox splits the canonicals in `group.source` and `group.target` at `|` into a system and a version:
+
+| Column           | Content                                                                    |
+|------------------|----------------------------------------------------------------------------|
+| `source_system`  | `group.source` without its version suffix. Never null                      |
+| `source_version` | The version suffix of `group.source`, or `group.sourceVersion` in R4       |
+| `source_code`    | `group.element.code`. Never null                                           |
+| `source_display` | `group.element.display`                                                    |
+| `target_system`  | `group.target` without its version suffix                                  |
+| `target_version` | The version suffix of `group.target`, or `group.targetVersion` in R4       |
+| `target_code`    | `group.element.target.code`. Null on a noMap row                           |
+| `target_display` | `group.element.target.display`                                             |
+| `relationship`   | `group.element.target.relationship`. Null on a noMap row                   |
+
+The table holds one row per `group.element.target`, and one noMap row per `group.element` with `noMap: true`. A noMap row keeps the group's `target_system`, so test for it with `target_code IS NULL`. `group.unmapped` adds no rows, and Aidbox drops duplicate rows.
+
+For an R4 ConceptMap, Aidbox converts `target.equivalence` to an R5 `relationship`:
+
+| R4 `equivalence`          | `relationship`                   |
+|---------------------------|----------------------------------|
+| `relatedto`, `inexact`    | `related-to`                     |
+| `equivalent`, `equal`     | `equivalent`                     |
+| `wider`, `subsumes`       | `source-is-narrower-than-target` |
+| `narrower`, `specializes` | `source-is-broader-than-target`  |
+| `disjoint`                | `not-related-to`                 |
+| `unmatched`               | noMap row                        |
+
+### Filter by a ValueSet
+
+The examples below read Conditions through this ViewDefinition, one row per coding:
+
+```json
+{
+  "resourceType": "ViewDefinition",
+  "id": "condition_view",
+  "url": "https://example.org/ViewDefinition/condition_view",
+  "status": "active",
+  "resource": "Condition",
+  "select": [
+    {"column": [
+      {"name": "patient_id", "path": "subject.getReferenceKey(Patient)"}
+    ]},
+    {"forEach": "code.coding", "column": [
+      {"name": "system", "path": "system", "type": "uri"},
+      {"name": "code",   "path": "code",   "type": "code"}
+    ]}
+  ]
+}
+```
+
+The Library below returns the conditions whose code belongs to the `cardiovascular-disease` ValueSet:
+
+```json
+{
+  "resourceType": "Library",
+  "id": "cvd-conditions",
+  "url": "https://example.org/Library/cvd-conditions",
+  "meta": {
+    "profile": ["https://sql-on-fhir.org/ig/StructureDefinition/SQLQuery"]
+  },
+  "status": "active",
+  "type": {
+    "coding": [{
+      "system": "https://sql-on-fhir.org/ig/CodeSystem/LibraryTypesCodes",
+      "code": "sql-query"
+    }]
+  },
+  "relatedArtifact": [
+    {"type": "depends-on", "resource": "https://example.org/ViewDefinition/condition_view",         "label": "conditions"},
+    {"type": "depends-on", "resource": "http://example.org/ValueSet/cardiovascular-disease|2026", "label": "cvd_codes"}
+  ],
+  "content": [{
+    "contentType": "application/sql",
+    "extension": [{
+      "url": "https://sql-on-fhir.org/ig/StructureDefinition/sql-text",
+      "valueString": "select conditions.patient_id, conditions.code from conditions where exists (select 1 from cvd_codes where cvd_codes.system = conditions.system and cvd_codes.code = conditions.code)"
+    }],
+    "data": "U0VMRUNUIGNvbmRpdGlvbnMucGF0aWVudF9pZCwgY29uZGl0aW9ucy5jb2RlCkZST00gY29uZGl0aW9ucwpXSEVSRSBFWElTVFMgKAogIFNFTEVDVCAxCiAgRlJPTSBjdmRfY29kZXMKICBXSEVSRSBjdmRfY29kZXMuc3lzdGVtID0gY29uZGl0aW9ucy5zeXN0ZW0KICAgIEFORCBjdmRfY29kZXMuY29kZSA9IGNvbmRpdGlvbnMuY29kZQop"
+  }]
+}
+```
+
+The SQL tests membership with `EXISTS`:
+
+```sql
+SELECT conditions.patient_id, conditions.code
+FROM conditions
+WHERE EXISTS (
+  SELECT 1
+  FROM cvd_codes
+  WHERE cvd_codes.system = conditions.system
+    AND cvd_codes.code = conditions.code
+)
+```
+
+Use `EXISTS` rather than `JOIN` for a membership test. The table can hold one code under two versions of its code system, and a `JOIN` on `system` and `code` would then return the condition twice. `NOT EXISTS` excludes the members of a ValueSet.
+
+### Translate with a ConceptMap
+
+A Library that declares `sct_to_icd10` the same way translates SNOMED CT codes to ICD-10. A `LEFT JOIN` keeps the conditions the map doesn't translate:
+
+```sql
+SELECT conditions.patient_id,
+       conditions.code,
+       sct_to_icd10.target_code,
+       sct_to_icd10.relationship
+FROM conditions
+LEFT JOIN sct_to_icd10
+  ON sct_to_icd10.source_system = conditions.system
+ AND sct_to_icd10.source_code = conditions.code
+ AND (sct_to_icd10.relationship IS NULL
+      OR sct_to_icd10.relationship <> 'not-related-to')
+```
+
+A `not-related-to` row states that the target is not a translation of the source, yet it carries a target code. Exclude it in the `ON` clause: in `WHERE`, the filter would also drop the conditions the `LEFT JOIN` keeps. The filter admits null because a noMap row has no `relationship`.
+
+The result has three kinds of rows:
+
+- a translated condition has a `target_code`;
+- a condition the map marks as noMap has a `source_code` in the map and a null `target_code`;
+- a condition the map doesn't mention has every column of `sct_to_icd10` null.
+
+### Versions
+
+- A canonical without `|version` resolves to the latest version of the ValueSet or ConceptMap in FAR.
+- Aidbox stores the content under the canonical as written in `relatedArtifact`. `url`, `url|2025` and `url|2026` are three separate entries.
+- An unversioned dependency picks up a new version on the first run after you publish it. A pinned one stays on its version.
+
+### Storage and freshness
+
+Aidbox keeps the content in the `aidbox_sof` schema:
+
+| Table                             | Content                                                                         |
+|-----------------------------------|---------------------------------------------------------------------------------|
+| `aidbox_sof.valueset_expansion`   | One row per ValueSet dependency, keyed by the canonical as written (`key`)     |
+| `aidbox_sof.valueset_member`      | The ValueSet members                                                            |
+| `aidbox_sof.conceptmap_snapshot`  | One row per ConceptMap dependency, keyed by the canonical as written (`key`)   |
+| `aidbox_sof.conceptmap_mapping`   | The ConceptMap rows                                                             |
+
+For each expansion, Aidbox records:
+
+- `url` and `version` of the ValueSet the canonical resolved to;
+- `sources`: the FAR resources the expansion came from with their timestamps, the terminology engine, and the external server;
+- `expansion`: the expansion without `contains`, with its `identifier`, `timestamp`, `total` and `parameter`.
+
+On each `$sqlquery-run` and [`$materialize`](aidbox-materialization.md#valueset-and-conceptmap-dependencies), Aidbox checks the stored content against its sources. It expands a ValueSet again after a change in FAR to the ValueSet, to a CodeSystem it uses, or to a ValueSet it includes, and after a change of the terminology engine or the external server. It rebuilds the rows of a ConceptMap after a change to the ConceptMap.
+
+Aidbox doesn't detect changes on the external terminology server. To drop a stored expansion, delete its row, and the members go with it:
+
+```sql
+DELETE FROM aidbox_sof.valueset_expansion
+WHERE key = 'http://example.org/ValueSet/cardiovascular-disease|2026';
+```
+
+The next run expands the ValueSet again.
+
+### Errors
+
+Aidbox checks every ValueSet and ConceptMap dependency before any SQL runs, so a dependency it can't resolve fails the request instead of matching nothing.
+
+| Status | Condition                                                                                                                         |
+|--------|-----------------------------------------------------------------------------------------------------------------------------------|
+| 404    | The canonical doesn't resolve in FAR                                                                                              |
+| 422    | The dependency is another resource type, such as a CodeSystem                                                                     |
+| 422    | The dependency is a ValueSet and `fhir.terminology.engine` is `legacy`                                                            |
+| 422    | `$expand` returns an error, or the expansion lists fewer codes than its `total`                                                   |
+| 422    | The ValueSet lists a code its code system doesn't define, and a filter in its definition leaves open whether the code is a member |
+| 422    | The ConceptMap has a group without `source`, an element without `code`, a `valueSet` on an element or a target, or a target with `dependsOn` or `product` |
+
+{% hint style="warning" %}
+On `hybrid`, a failed request to the external server doesn't fail the query. When the external server returns an error for the first page of the expansion, Aidbox treats its part of the expansion as empty, and the query returns 200. For example, a ValueSet that includes all of a code system neither Aidbox nor the external server knows returns 422 on `local` and an empty table on `hybrid`. Aidbox stores that result like any other, so it stays until you [delete the stored expansion](#storage-and-freshness).
+{% endhint %}
+
+### Limitations
+
+- **ValueSets outside FAR.** A ValueSet that the external terminology server knows and FAR doesn't returns 404.
+- **No inline artifacts.** You can't send a ValueSet or ConceptMap with the request, as the `context` parameter of the specification's `$sql-run` allows. Store it in Aidbox first.
+- **`ValueSet.expansion` is ignored.** `$expand` evaluates `compose` and ignores `ValueSet.expansion`, so a ValueSet with an `expansion` and no `compose` reads as an empty table.
+- **No API for stored content.** No operation refreshes or deletes what Aidbox keeps in `aidbox_sof`, and rows for canonicals that no query uses anymore stay there. Use SQL.
 
