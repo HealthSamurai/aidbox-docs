@@ -37,7 +37,7 @@ For both steps, the module checks that:
 
 The module returns:
 
-* `401` if the request has no acting user, or the acting user's `User` is not stored
+* `401` if the request has no acting user, or the acting user is not a stored `User`
 * `403` if the request fails any other check
 
 Signing runs these checks again, so if the permission is revoked after the practitioner marks the prescription ready, signing returns `403`.
