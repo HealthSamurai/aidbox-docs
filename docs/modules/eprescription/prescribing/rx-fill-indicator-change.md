@@ -51,15 +51,22 @@ If a condition fails, the [current state](#check-the-current-state) returns its 
 GET /e-prescription/rx/rx-fill-indicator-change?medicationRequestId=<MedicationRequest id>
 ```
 
-Example `200 OK` response:
+Example `200 OK` response while a change is pending:
 
 ```json
 {
-  "available": true,
-  "unavailableReason": null,
+  "available": false,
+  "unavailableReason": {
+    "reason": "rx-fill-indicator-change-pending",
+    "message": "Another pharmacy notification change for this prescription is pending"
+  },
   "confirmedRxFillPreferences": ["Dispensed", "PartiallyDispensed"],
-  "pendingSelection": null,
-  "lastChange": null
+  "pendingSelection": ["All"],
+  "lastChange": {
+    "selection": ["All"],
+    "result": "pending",
+    "failureReason": null
+  }
 }
 ```
 
@@ -68,7 +75,7 @@ Example `200 OK` response:
 * `confirmedRxFillPreferences`: the RxFill preferences the pharmacy last received.
   `null` means the module does not know them, and `["None"]` means the pharmacy reports no fill events.
 * `pendingSelection`: the RxFill preferences of the pending change, or `null`.
-* `lastChange`: the latest change, or `null`.
+* `lastChange`: the latest change with its `selection` and `result`, or `null`.
   Its `result` is one of:
   * `pending`: the module waits for Surescripts to confirm delivery.
   * `delivered`: the pharmacy received the change.
