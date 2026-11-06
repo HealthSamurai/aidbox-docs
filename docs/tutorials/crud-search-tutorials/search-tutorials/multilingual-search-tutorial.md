@@ -48,13 +48,13 @@ BOX_FHIR_SEARCH_MULTILINGUAL_ENABLE=true
 To search locations by name in French:
 
 ```http
-GET /Location?_search-language=fr-CA&name=Clinique
+GET /fhir/Location?_search-language=fr-CA&name=Clinique
 ```
 
 To search in English:
 
 ```http
-GET /Location?_search-language=en-CA&name=Downtown
+GET /fhir/Location?_search-language=en-CA&name=Downtown
 ```
 
 ### Using Accept-Language header
@@ -68,7 +68,7 @@ BOX_FHIR_SEARCH_MULTILINGUAL_USE_ACCEPT_LANGUAGE_HEADER=true
 Now we can use the header instead:
 
 ```http
-GET /Location?name=Clinique
+GET /fhir/Location?name=Clinique
 Accept-Language: fr-CA
 ```
 
@@ -89,7 +89,7 @@ Note on field overwriting: Aidbox returns resource in FHIR format without any re
 [`_sort` search parameter](../../../api/rest-api/fhir-search/searchparameter.md#_sort) will use the desired language if `Accept-Language` or `_search-language` are present.
 
 ```
-GET [/fhir]/<resourceType>?_search-language=<locale>&_sort=<string-search-param>
+GET /fhir/<resourceType>?_search-language=<locale>&_sort=<string-search-param>
 ```
 
 ### **Collation**
@@ -114,7 +114,7 @@ Accept-Language: fr-CA
 Get all locations and sort by their names in French, using French locale for sort order (COLLATE):
 
 ```http
-GET /fhir/Location?_search-language=fr-CA%_sort=name
+GET /fhir/Location?_search-language=fr-CA&_sort=name
 ```
 
 ### **Array search**

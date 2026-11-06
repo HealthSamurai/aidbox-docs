@@ -66,7 +66,7 @@ If you need to assign the same role to multiple users, then just create multiple
 Create an `AccessPolicy` which allows practitioners to read their own data
 
 ```yaml
-POST /AccessPolicy
+POST /fhir/AccessPolicy
 
 id: practitioner-role
 resourceType: AccessPolicy
@@ -74,13 +74,12 @@ resourceType: AccessPolicy
 roleName: practitioner
 engine: matcho
 link:
-  - id: FhirRead
-    resourceType: Operation
+  - reference: Operation/FhirRead
 matcho:
   uri: '#/fhir/Practitioner/.*'
   request-method: get
   params:
-    resource/id: .session.role.0.links.practitioner.id
+    resource/id: .role.links.practitioner.id
 ```
 
 ## Try it

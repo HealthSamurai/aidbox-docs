@@ -859,14 +859,25 @@ Learn more: [Import and FHIR Import](../api/bulk-api/import-and-fhir-import.md)
 
 ### How do I import from S3?
 
-Configure S3 credentials and use the `$import` operation with S3 URLs:
+Generate a presigned URL for each S3 object and pass it to `$import`:
 
 ```http
-POST /$import
+POST /fhir/$import
 Content-Type: application/json
 
-{"source": [{"url": "s3://bucket/patients.ndjson"}]}
+{
+  "id": "s3-import",
+  "contentEncoding": "gzip",
+  "inputs": [
+    {
+      "resourceType": "Patient",
+      "url": "https://bucket.s3.amazonaws.com/Patient.ndjson.gz?X-Amz-Signature=..."
+    }
+  ]
+}
 ```
+
+To load every file in a bucket with AWS credentials, use the `aidbox.bulk/load-from-bucket` RPC method.
 
 Learn more: [Bulk Import from S3](../api/bulk-api/bulk-import-from-an-s3-bucket.md)
 
@@ -875,7 +886,7 @@ Learn more: [Bulk Import from S3](../api/bulk-api/bulk-import-from-an-s3-bucket.
 Use the `$dump-csv` operation for CSV export:
 
 ```http
-GET /fhir/Patient/$dump-csv
+GET /Patient/$dump-csv
 ```
 
 Learn more: [$dump-csv](../api/bulk-api/dump-csv.md)
@@ -885,7 +896,7 @@ Learn more: [$dump-csv](../api/bulk-api/dump-csv.md)
 `$dump` streams FHIR resources in NDJSON format in real-time, ideal for data pipelines:
 
 ```http
-GET /fhir/Patient/$dump
+GET /Patient/$dump?fhir=true
 ```
 
 Learn more: [$dump](../api/bulk-api/dump.md)

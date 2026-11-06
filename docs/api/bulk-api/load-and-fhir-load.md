@@ -8,6 +8,10 @@ You can efficiently load data into Aidbox in _ndjson_ _gz_ format from external 
 
 There are two versions of this operation - `/fhir/$load` accepts data in FHIR format, `/$load` works with [Aidbox format](../rest-api/other/aidbox-and-fhir-formats.md).
 
+{% hint style="info" %}
+To turn off the Aidbox format API, set `BOX_FHIR_AIDBOX_FORMAT_API_ENABLED` to `false`. See [Turn off the Aidbox format API](../rest-api/other/aidbox-and-fhir-formats.md#turn-off-the-aidbox-format-api).
+{% endhint %}
+
 #### Resource requirements for all load operations:
 
 | Operation                    | id       | resourceType |

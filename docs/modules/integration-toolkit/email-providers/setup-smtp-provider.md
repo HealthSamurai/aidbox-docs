@@ -7,7 +7,7 @@ description: Set up SMTP email provider configuration for Aidbox notifications a
 Aidbox allows you to configure SMTP email provider to manage your email communications.
 
 {% hint style="info" %}
-To enable SMTP please specify optional environment variable [**BOX_WEB_BASE_URLL**](../../../reference/all-settings.md#web.base-url)**.**
+To enable SMTP please specify optional environment variable [**BOX_WEB_BASE_URL**](../../../reference/all-settings.md#web.base-url)**.**
 {% endhint %}
 
 ## Configuring Mailgun
@@ -58,7 +58,7 @@ BOX_MODULE_PROVIDER_DEFAULT_TLS: true
 To send an email notification, create a Notification resource:
 
 ```yaml
-PUT /Notification/notification-1
+PUT /fhir/Notification/notification-1
 
 provider: smtp-provider
 providerData:

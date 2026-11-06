@@ -533,7 +533,7 @@ link:
   - reference: User/ca57d5ad-22de-4cce-aaba-b5d6c50a88e8
 engine: matcho
 matcho:
-  uri: /$sql
+  uri: /fhir/$sql
   body:
     sql: "#^(?i)(?!.*(INSERT|UPDATE|DELETE|MERGE|COPY|CREATE|ALTER|DROP|GRANT|REVOKE|TRUNCATE|CALL|DO|COMMENT|VACUUM|ANALYZE)).*"
   request-method: post

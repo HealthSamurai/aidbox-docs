@@ -21,11 +21,11 @@ Rx-Norm, SNOMED-CT and basic FHIR CodeSystems/ValueSets packages are in progress
 
 In this tutorial, we will load ICD-10 deceases codes into Aidbox and see how we can look up codes using Concept resource Search API.
 
-To import these terminology packs, you can use `terminology/$import` operation. Let's load ICD-10 (Classification of Deceases): just copy-paste the following snippet into REST console in Aidbox UI:
+To import these terminology packs, you can use `/fhir/terminology/$import` operation. To load ICD-10 (Classification of Diseases), paste the following snippet into the REST Console in Aidbox UI:
 
 {% code title="request.yalm" %}
 ```yaml
-POST /terminology/$import
+POST /fhir/terminology/$import
 
 url: 'https://storage.googleapis.com/aidbox-public/icd10/icd10cm.ndjson.gz'
 ```
@@ -45,7 +45,7 @@ As you can see, a package consists of one CodeSystem, one ValueSet and about 40K
 Let's go to REST console and see what we have:
 
 ```yaml
-GET /CodeSystem
+GET /fhir/CodeSystem
 
 # response 200
 
@@ -65,7 +65,7 @@ entry:
 ```
 
 ```yaml
-GET /ValueSet
+GET /fhir/ValueSet
 
 # response 200
 
@@ -89,7 +89,7 @@ entry:
 Now we can search diagnoses with, for example, [\_ilike](../../api/rest-api/fhir-search/searchparameter.md#ilike) parameter:
 
 ```yaml
-GET /Concept?system=ICD-10&_ilike=flue
+GET /fhir/Concept?system=ICD-10&_ilike=flue
 
 # response 200
 resourceType: Bundle

@@ -9,7 +9,7 @@ description: >-
 ### Create a patient
 
 ```yaml
-POST /Patient
+POST /fhir/Patient
 
 id: pt-1
 resourceType: Patient
@@ -20,16 +20,15 @@ name:
 
 ### Create an access policy
 
-Create an access policy which allows only `[Fhir]Read` operation on Patient.
+Create an access policy which allows only `FhirRead` operation on Patient.
 
 ```yaml
-POST /AccessPolicy
+POST /fhir/AccessPolicy
 
 engine: matcho
 matcho:
   operation:
-    id:
-      $enum: [Read, FhirRead]
+    id: FhirRead
   params:
     resource/type: Patient
 ```
@@ -38,12 +37,12 @@ matcho:
 
 #### Create
 
-We won't be able to create new patient because we're not allowed to use `[Fhir]Create` operation
+We won't be able to create new patient because we're not allowed to use `FhirCreate` operation
 
 {% tabs %}
 {% tab title="Request" %}
 ```yaml
-POST /Patient
+POST /fhir/Patient
 
 id: pt-2
 resourceType: Patient
@@ -70,12 +69,12 @@ issue:
 
 #### Read
 
-`[Fhir]Read` operation works as expected and you are able to read previously created patient
+`FhirRead` operation works as expected and you are able to read previously created patient
 
 {% tabs %}
 {% tab title="Request" %}
 ```yaml
-GET /Patient/pt-1
+GET /fhir/Patient/pt-1
 ```
 {% endtab %}
 
@@ -94,14 +93,14 @@ resourceType: Patient
 When you make a query
 
 ```http
-GET /{resource-type}/{resource-id}
+GET /fhir/{resource-type}/{resource-id}
 ```
 
 Aidbox router stores data in the request object:
 
-* Reference to the `Read` operation in the `operation` property.
-* Resource type `Patient` from the url to the `params.recource/type` property.
+* Reference to the `FhirRead` operation in the `operation` property.
+* Resource type `Patient` from the url to the `params.resource/type` property.
 
-Access policy engine evaluates request object. And here it checks that `operation.id` property contains either `Read` or `FhirRead` string.
+Access policy engine evaluates request object. And here it checks that `operation.id` property equals `FhirRead`.
 
 You can inspect request object [using `__debug` query parameter](debug-access-control.md#__debug-query-string-parameter).

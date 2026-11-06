@@ -14,11 +14,11 @@ Writes through Aidbox invalidate the caches they affect, so this is not part of 
 
 {% code title="Example request" %}
 ```http
-POST /$drop-cache
+POST /fhir/$drop-cache
 ```
 {% endcode %}
 
-The response is `200 OK` with no body.
+The response is `200 OK` with the text `Success` in the body.
 
 ### What gets cleared
 

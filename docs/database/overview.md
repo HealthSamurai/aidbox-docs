@@ -499,7 +499,7 @@ PostgreSQL provides powerful capabilities for querying JSONB data directly. Aidb
 The [`$sql` endpoint](../api/rest-api/other/sql-endpoints.md) allows direct SQL execution via REST API:
 
 ```yaml
-POST /$sql?_format=yaml
+POST /fhir/$sql?_format=yaml
 
 SELECT 
   id,
@@ -513,7 +513,7 @@ LIMIT 10
 For parameterized queries use JDBC-style arrays:
 
 ```yaml
-POST /$sql
+POST /fhir/$sql
 
 ["SELECT count(*) FROM patient WHERE resource->>'gender' = ?", "female"]
 ```

@@ -114,8 +114,7 @@ id: export-container
 storage: mystorageaccount
 container: exports
 account:
-  resourceType: AzureAccount
-  id: azure-account
+  reference: AzureAccount/azure-account
 ```
 
 Configure environment variables:

@@ -13,7 +13,7 @@ description: Block user authentication in Aidbox by setting the inactive propert
 #### Lock a user account
 
 ```http
-PATCH /User/my-user
+PATCH /fhir/User/my-user
 Content-Type: application/json
 
 {
@@ -24,7 +24,7 @@ Content-Type: application/json
 #### Unlock a user account
 
 ```http
-PATCH /User/my-user
+PATCH /fhir/User/my-user
 Content-Type: application/json
 
 {

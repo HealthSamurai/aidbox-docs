@@ -188,9 +188,8 @@ This approach uses explicit service account credentials stored in Aidbox. It rem
 Create a resource containing service account credentials with read/write access to Cloud Storage.
 
 ```http
-PUT /GcpServiceAccount
+PUT /fhir/GcpServiceAccount/my-account
 
-id: my-account
 service-account-email: storage-access@myproject.iam.gserviceaccount.com
 private-key: "-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----"
 ```

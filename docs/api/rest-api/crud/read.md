@@ -4,8 +4,8 @@ description: Retrieve a single FHIR resource by ID using the read interaction wi
 
 # Read
 
-```
-GET [base]/[type]/[id]
+```http
+GET [base]/fhir/[type]/[id]
 ```
 
 One of the most basic interactions is used to obtain a resource by a given `id`. For more advanced options for getting resources, check out [Search](../fhir-search/README.md).
@@ -120,8 +120,8 @@ issue:
 
 ## vread
 
-```
-GET [base]/[type]/[id]/_history/[vid]
+```http
+GET [base]/fhir/[type]/[id]/_history/[vid]
 ```
 
 This one is another read interaction, but it returns a specific version resource. Similar to read, but it additionally requires to specify version id.

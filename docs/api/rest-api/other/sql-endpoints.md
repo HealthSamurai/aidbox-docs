@@ -16,7 +16,7 @@ Example request:
 {% tabs %}
 {% tab title="Without jdbc params" %}
 ```yaml
-POST /$sql?_format=yaml
+POST /fhir/$sql?_format=yaml
 
 SELECT count(*) FROM patient
 
@@ -28,9 +28,9 @@ SELECT count(*) FROM patient
 
 {% tab title="With jdbc params" %}
 ```yaml
-POST /$sql?_format=yaml
+POST /fhir/$sql?_format=yaml
 
-["SELECT count(*) FROM patient where resource->'status' = ?", true]
+["SELECT count(*) FROM patient where resource->>'gender' = ?", "female"]
 
 # Response
 #
@@ -38,6 +38,10 @@ POST /$sql?_format=yaml
 ```
 {% endtab %}
 {% endtabs %}
+
+{% hint style="info" %}
+To turn off the Aidbox format API, set `BOX_FHIR_AIDBOX_FORMAT_API_ENABLED` to `false`. See [Turn off the Aidbox format API](aidbox-and-fhir-formats.md#turn-off-the-aidbox-format-api).
+{% endhint %}
 
 ## $psql
 

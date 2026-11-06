@@ -153,10 +153,11 @@ request:
 operation:
   request:
   - get
+  - fhir
   - {name: resource/type}
-  action: proto.operations/search
-  module: proto
-  id: Search
+  action: fhir.core/search
+  module: fhir-fhir-schema
+  id: FhirSearch
 policy:
   engine: sql
   sql: {query: 'SELECT {{user.role}} FROM {{!params.resource/type}}'}

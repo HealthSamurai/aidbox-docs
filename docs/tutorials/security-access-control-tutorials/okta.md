@@ -40,7 +40,7 @@ Using REST Console create an IdentityProvider config. Replace **\<okta-domain>**
 * `authorization_endpoint,` `token_endpoint`can be found in Authorization Server Settings (**Security -> API -> \<your server> -> Settings -> Metadata URI**)
 
 ```yaml
-PUT /IdentityProvider/okta?_format=yaml&_pretty=true
+PUT /fhir/IdentityProvider/okta?_format=yaml&_pretty=true
 content-type: text/yaml
 
 type: okta

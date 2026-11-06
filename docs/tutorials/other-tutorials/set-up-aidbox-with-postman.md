@@ -56,8 +56,7 @@ Create an access policy to define what operations your Postman client can perfor
  "id": "postman-access-policy",
  "link": [
    {
-     "id": "postman",
-     "resourceType": "Client"
+     "reference": "Client/postman"
    }
  ]
 }
@@ -75,8 +74,7 @@ Content-Type: application/json
  "id": "postman-access-policy",
  "link": [
    {
-     "id": "postman",
-     "resourceType": "Client"
+     "reference": "Client/postman"
    }
  ]
 }

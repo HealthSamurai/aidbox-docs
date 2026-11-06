@@ -7,7 +7,7 @@ description: Replace or create FHIR resources using PUT request with conditional
 This interaction allows for modifying an existing resource. If a resource with `id` (provided in the URL) doesn't exist, a new resource will be created.
 
 ```http
-PUT [base]/[type]/[id]
+PUT [base]/fhir/[type]/[id]
 ```
 
 After performing this interaction, the resource will be replaced with a new version of the resource provided in the body of the request.
@@ -59,8 +59,8 @@ The following codes can be returned by the server:
 
 ## Conditional Update
 
-```
-PUT [base]/[type]?[search parameters]
+```http
+PUT [base]/fhir/[type]?[search parameters]
 ```
 
 This is a more complex way to update a resource, but it gives more power. You can update a resource without knowing the `id` , but it requires the knowledge of [Search](../fhir-search/README.md). Different response codes will be returned (based on the number of search results):

@@ -51,7 +51,7 @@ So you can use Aidbox's JWKS or your own.
 Before a SMART client can run against a FHIR server, the client SHALL generate or obtain an asymmetric key pair and register its public key set as `jsks_uri` in Client resource. Aidbox provides  `.well-known/jwks.json` endpoint so you can use it.
 
 ```json
-PUT /Client/inferno-my-clinic-bulk-client
+PUT /fhir/Client/inferno-my-clinic-bulk-client
 content-type: application/json
 accept: application/json
 

@@ -10,9 +10,9 @@ The history operation retrieves the history of either a particular resource, all
 
 | Operation Scope   | Request                                                                 | Aidbox          |
 | ----------------- | ----------------------------------------------------------------------- | --------------- |
-| Specific Resource | `GET /<RESOURCE_TYPE>/<ID>/_history{?[parameters]&_format=[mime-type]}` | `Supported`     |
-| Resource Type     | `GET /<RESOURCE_TYPE>/_history{?[parameters]&_format=[mime-type]}`      | `Supported`     |
-| All Resources     | `GET /_history{?[parameters]&_format=[mime-type]}`                      | `Not Supported` |
+| Specific Resource | `GET /fhir/<RESOURCE_TYPE>/<ID>/_history{?[parameters]&_format=[mime-type]}` | `Supported`     |
+| Resource Type     | `GET /fhir/<RESOURCE_TYPE>/_history{?[parameters]&_format=[mime-type]}`      | `Supported`     |
+| All Resources     | `GET /fhir/_history{?[parameters]&_format=[mime-type]}`                      | `Not Supported` |
 
 The result of the history operation is a Bundle with type `history` containing links section for pagination, the specified version history, sorted with newest versions first, and including deleted resources.
 
@@ -153,10 +153,10 @@ The parameters to the history interaction may include:
 
 ### Examples of the history requests with parameters:
 
-`{{base}}/Patient/_history?_count=3`
+`{{base}}/fhir/Patient/_history?_count=3`
 
-`{{base}}/Patient/_history?_since=2018-11-27T22:00:16.609Z`
+`{{base}}/fhir/Patient/_history?_since=2018-11-27T22:00:16.609Z`
 
-`{{base}}/Patient/_history?_at=2018-11-27`
+`{{base}}/fhir/Patient/_history?_at=2018-11-27`
 
-`{{base}}/Patient/_history?_format=yaml`
+`{{base}}/fhir/Patient/_history?_format=yaml`

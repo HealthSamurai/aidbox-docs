@@ -26,7 +26,7 @@ Configure Access Control within the Aidbox UI using the integrated REST console 
 #### **Register Client for the sample app:**
 
 ```http
-POST /Client
+POST /fhir/Client
 content-type: text/yaml
 accept: text/yaml
 
@@ -38,11 +38,11 @@ grant_types: ["basic"]
 #### Add Access Policy for the sample app:
 
 ```http
-POST /AccessPolicy
+POST /fhir/AccessPolicy
 content-type: text/yaml
 accept: text/yaml
 
-link: [{ id: <client-name>, resourceType: Client }]
+link: [{ reference: Client/<client-name> }]
 engine: allow
 ```
 

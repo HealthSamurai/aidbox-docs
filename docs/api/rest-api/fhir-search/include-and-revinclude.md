@@ -81,7 +81,7 @@ Aidbox enhances FHIR `_elements` parameter to support fields from included resou
 Example:
 
 ```http
-GET /Encounter?_include=Encounter:patient&_elements=id,status,Patient.name,Patient.birthDate
+GET /fhir/Encounter?_include=Encounter:patient&_elements=id,status,Patient.name,Patient.birthDate
 ```
 
 ## :logical modifier

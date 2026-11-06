@@ -140,7 +140,7 @@ Configure Azure AD application and Aidbox resources:
 3. **Create [AzureAccount](../reference/system-resources-reference/core-module-resources.md#azureaccount) resource** in Aidbox with application credentials:
 
 ```http
-POST /AzureAccount
+POST /fhir/AzureAccount
 Content-Type: application/json
 
 {
@@ -155,15 +155,14 @@ Content-Type: application/json
 4. **Create [AzureContainer](../reference/system-resources-reference/core-module-resources.md#azurecontainer) resource** to link Aidbox to your storage container:
 
 ```http
-POST /AzureContainer
+POST /fhir/AzureContainer
 Content-Type: application/json
 
 {
   "resourceType": "AzureContainer",
   "id": "my-container",
   "account": {
-    "id": "my-azure-account",
-    "resourceType": "AzureAccount"
+    "reference": "AzureAccount/my-azure-account"
   },
   "storage": "<storage-account-name>",
   "container": "<container-name>"
@@ -234,7 +233,7 @@ Configure storage account keys and Aidbox resources:
 3. **Create [AzureAccount](../reference/system-resources-reference/core-module-resources#azureaccount) resource** with account name and key:
 
 ```http
-POST /AzureAccount
+POST /fhir/AzureAccount
 Content-Type: application/json
 
 {
@@ -246,15 +245,14 @@ Content-Type: application/json
 4. **Create [AzureContainer](../reference/system-resources-reference/core-module-resources#azurecontainer) resource** to link Aidbox to your storage container:
 
 ```http
-POST /AzureContainer
+POST /fhir/AzureContainer
 Content-Type: application/json
 
 {
   "resourceType": "AzureContainer",
   "id": "my-container",
   "account": {
-    "id": "my-storage-account",
-    "resourceType": "AzureAccount"
+    "reference": "AzureAccount/my-storage-account"
   },
   "storage": "<storage-account-name>",
   "container": "<container-name>"

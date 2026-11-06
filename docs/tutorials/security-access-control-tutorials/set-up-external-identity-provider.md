@@ -33,7 +33,7 @@ All examples in this tutorial are executable in Aidbox REST Console
 ### Create `IdentityProvider`
 
 ```yaml
-POST /IdentityProvider
+POST /fhir/IdentityProvider
 Accept: text/yaml
 Content-Type: text/yaml
 
@@ -70,7 +70,7 @@ client:
 Next, we have to create a `Client` resource which receives access token from Aidbox backend later on and uses Aidbox API on behalf of the user. We enable the `authorization_code` flow for the application and provide the `redirect_uri`.
 
 ```yaml
-POST /Client
+POST /fhir/Client
 Accept: text/yaml
 Content-Type: text/yaml
 
@@ -115,7 +115,7 @@ GET <your app redirect uri>?code=...
 By default, everything that is returned by provider's `userinfo` endpoint gets stored into `User.data`. You can also configure mapping to other `User` attributes by adding `toScim` object into `IdentityProvider`.
 
 ```yaml
-PUT /IdentityProvider/<provider-id>
+PUT /fhir/IdentityProvider/<provider-id>
 Accept: text/yaml
 Content-Type: text/yaml
 

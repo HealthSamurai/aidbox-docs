@@ -59,7 +59,7 @@ To create application group for Aidbox:
 To create IdentityProvider in Aidbox use REST Console
 
 ```yaml
-POST /IdentityProvider
+POST /fhir/IdentityProvider
 
 id: adfs
 resourceType: IdentityProvider

@@ -53,7 +53,7 @@ schema:
   properties:
     uri:
       enum:
-        - /User
+        - /fhir/User
       type: string
     request-method:
       constant: get
@@ -102,21 +102,16 @@ Authorization: Bearer eyJ0...1eAo
 
 {% tab title="Response" %}
 ```yaml
-entry: []
+resourceType: Bundle
+type: searchset
+meta:
+  versionId: '0'
+total: 0
 link:
 - relation: first
-  url: "/User?page=1"
+  url: http://localhost:8080/fhir/User?_page=1
 - relation: self
-  url: "/User?page=1"
-query-sql:
-- 'SELECT "user".* FROM "user" LIMIT ? OFFSET ? '
-- 100
-- 0
-query-time: 4
-query-timeout: 60000
-resourceType: Bundle
-total: 0
-type: searchset
+  url: http://localhost:8080/fhir/User?_page=1
 ```
 {% endtab %}
 {% endtabs %}

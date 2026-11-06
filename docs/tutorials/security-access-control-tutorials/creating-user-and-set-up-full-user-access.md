@@ -13,7 +13,7 @@ Aidbox `user` resources conforms to following [schema](../../reference/system-re
 {% tabs %}
 {% tab title="Request" %}
 ```yaml
-PUT /User/exampleuser
+PUT /fhir/User/exampleuser
 content-type: text/yaml
 accept: text/yaml
 
@@ -49,23 +49,20 @@ For this purpose you need to create `AccessPolicy` resource that grants full use
 {% tabs %}
 {% tab title="Request" %}
 ```yaml
-PUT /AccessPolicy/allow-all
+PUT /fhir/AccessPolicy/allow-all
 content-type: text/yaml
 accept: text/yaml
 
 engine: allow
 link:
-  - resourceType: User
-    id: exampleuser
+  - reference: User/exampleuser
 ```
 {% endtab %}
 
 {% tab title="Response" %}
 ```yaml
 link:
-  - id: >-
-      exampleuser
-    resourceType: User
+  - reference: User/exampleuser
 engine: allow
 id: >-
   allow-all

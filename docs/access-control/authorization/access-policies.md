@@ -28,9 +28,9 @@ schema: {}
 
 # References to either Client, User, or Operation resources
 link:
-- { resourceType: Operation, id: op-id }
-- { resourceType: User, id: user-1 }
-- { resourceType: Client, id: client-1 }
+- { reference: Operation/op-id }
+- { reference: User/user-1 }
+- { reference: Client/client-1 }
 ```
 
 It supports various evaluation engines: Allow, JSON Schema, SQL, Matcho, and Complex, as well as Allow-RPC and Matcho-RPC. They specify how checks are implemented — with an SQL statement, with a JSON Schema, or as a list of allowed endpoints.
@@ -87,6 +87,10 @@ client:
 headers: {x-original-uri: '/fhir/Patient?name=John' ...}
 ```
 
+{% hint style="info" %}
+The `uri` pattern `/Patient` matches only the Aidbox format route. To match FHIR API requests, write `/fhir/Patient`. To turn off the Aidbox format API, set `BOX_FHIR_AIDBOX_FORMAT_API_ENABLED` to `false`. See [Turn off the Aidbox format API](../../api/rest-api/other/aidbox-and-fhir-formats.md#turn-off-the-aidbox-format-api).
+{% endhint %}
+
 ## AccessPolicy links
 
 AccessPolicy instance can be linked to User, Client or Operation resources with the AccessPolicy.link field. If AccessPolicy has no links, it’s considered a global policy. To authorize a request, Aidbox uses global policies in addition to all AccessPolicy rules linked to User, Client, and Operation associated with the current request.
@@ -136,7 +140,7 @@ resourceType: AccessPolicy
 id: this-policy-allows-everything
 engine: allow
 link:
-- { resourceType: User, id: admin }
+- { reference: User/admin }
 ```
 
 ### Matcho engine
@@ -221,7 +225,7 @@ For dynamic queries — to parameterize table name, for example — you have to 
 In this example, `User` as a `Practitioner` is only allowed to see the conditions of his patients — those who reference him as their `generalPractitioner`.
 
 ```http
-PUT /AccessPolicy/practitioner-only-allowed-to-see-his-patients-conditions
+PUT /fhir/AccessPolicy/practitioner-only-allowed-to-see-his-patients-conditions
 
 resourceType: AccessPolicy
 id: practitioner-only-allowed-to-see-his-patients-conditions

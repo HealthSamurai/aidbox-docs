@@ -24,8 +24,7 @@ AccessPolicy to make your data publicly available via FHIR read operation:
 id: allow-read-all-resources
 resourceType: AccessPolicy
 link:
-  - id: FhirRead
-    resourceType: Operation
+  - reference: Operation/FhirRead
 engine: allow
 ```
 

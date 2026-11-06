@@ -55,7 +55,7 @@ flowchart TD
     end
     
     subgraph "Explicit Validation"
-        B1(Client: POST /$validate)
+        B1(Client: POST /fhir/$validate)
         B2(FHIR Schema Validation)
         B3(Return Validation Results)
         
@@ -257,7 +257,7 @@ Healthcare applications need to retrieve and analyze patient data efficiently, f
 
 When building healthcare applications, you often need to find patients by name, retrieve recent lab results, or search for medications prescribed within a date range. FHIR Search provides a standardized way to query resources using familiar REST patterns, with Aidbox implementing the complete [FHIR Search specification](https://www.hl7.org/fhir/search.html) including all standard search parameters, modifiers, and chaining capabilities.
 
-The search API follows RESTful conventions where each resource type has its own search endpoint. For example, `GET /Patient?name=smith&gender=male` finds all male patients with "smith" in their name, while `GET /Observation?patient=Patient/123&date=gt2024-01-01` retrieves all observations for a specific patient after January 1st, 2024. Search results include pagination controls, total counts, and can be sorted by any searchable parameter.
+The search API follows RESTful conventions where each resource type has its own search endpoint. For example, `GET /fhir/Patient?name=smith&gender=male` finds all male patients with "smith" in their name, while `GET /fhir/Observation?patient=Patient/123&date=gt2024-01-01` retrieves all observations for a specific patient after January 1st, 2024. Search results include pagination controls, total counts, and can be sorted by any searchable parameter.
 
 See also:
 
@@ -372,7 +372,7 @@ sequenceDiagram
     participant Aidbox
     participant Database
     
-    Client->>+Aidbox: GET /Patient/123/$everything
+    Client->>+Aidbox: GET /fhir/Patient/123/$everything
     
     Note over Aidbox: Resource Discovery Phase
     Aidbox->>+Database: Query Patient/123
@@ -461,7 +461,7 @@ Healthcare analytics, research, and regulatory reporting often require complete 
 
 ```mermaid
 flowchart LR
-    CLIENT(Client Request<br/>POST /$export)
+    CLIENT(Client Request<br/>GET /fhir/$export)
     
     subgraph "Aidbox"
         JOB(Export Job<br/>Created)

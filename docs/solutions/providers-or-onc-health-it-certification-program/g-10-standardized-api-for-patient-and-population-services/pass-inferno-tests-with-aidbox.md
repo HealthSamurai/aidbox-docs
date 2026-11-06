@@ -52,7 +52,7 @@ Once you have your Aidbox instance up and running you need to
 
 ### Prepare fixtures
 
-Demo patient record with all USCDIv3 elements for Inferno test is available on Google Storage and maintained by Health Samurai team. You can upload with `/$load` endpoint:
+Demo patient record with all USCDIv3 elements for Inferno test is available on Google Storage and maintained by Health Samurai team. You can upload with `/fhir/$load` endpoint:
 
 ```json
 POST /fhir/$load

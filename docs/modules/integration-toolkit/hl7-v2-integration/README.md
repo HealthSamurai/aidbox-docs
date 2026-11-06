@@ -33,7 +33,7 @@ Here is an example of a mapping which creates a new Patient resource with a name
 each time a new message is received:
 
 ```yaml
-PUT /Mapping/test
+PUT /fhir/Mapping/test
 Content-Type: text/yaml
 
 resourceType: Mapping
@@ -56,20 +56,23 @@ body:
 Please note that Mapping returns [FHIR Transaction Bundle](../../../api/batch-transaction.md), so it can produce as many CRUD operations as you need.
 {% endhint %}
 
+{% hint style="info" %}
+Use `/fhir/<Type>` URLs in `request.url` of the transaction entries your mapping returns. If you turn off the Aidbox format API (`BOX_FHIR_AIDBOX_FORMAT_API_ENABLED=false`), Aidbox can't resolve entries with Aidbox URLs such as `/Patient`, and the message gets `status: error`. See [Turn off the Aidbox format API](../../../api/rest-api/other/aidbox-and-fhir-formats.md#turn-off-the-aidbox-format-api).
+{% endhint %}
+
 ### Creating a Hl7v2Config Resource
 
 To start ingesting HL7 v2 messages, you need to create `Hl7v2Config` first:
 
 ```yaml
-PUT /Hl7v2Config/default
+PUT /fhir/Hl7v2Config/default
 Content-Type: text/yaml
 
 resourceType: Hl7v2Config
 id: default
 isStrict: false
 mapping:
-  resourceType: Mapping
-  id: test
+  reference: Mapping/test
 ```
 
 #### Strict and Non-strict Parsing
@@ -125,7 +128,7 @@ You'll see a newly created message with additional information like status, pars
 To submit a new HL7 v2 Message, just create it with the REST API:
 
 ```yaml
-POST /Hl7v2Message
+POST /fhir/Hl7v2Message
 Content-Type: text/yaml
 
 resourceType: Hl7v2Message
@@ -141,8 +144,7 @@ src: |-
   IN2||353333833|0000003333^RETIRED|||||||||||||||||||||||||||||||||Y|||CHR||||W|||RETIRED|||||||||||||||||(818)333-3333||||||||C
 status: received
 config:
-  resourceType: Hl7v2Config
-  id: default
+  reference: Hl7v2Config/default
 ```
 
 {% hint style="warning" %}
@@ -159,7 +161,7 @@ Newly created messages should have `received` status, otherwise they won't be pr
 
 #### Other message types (ORU, ORM, VXU)
 
-Besides ADT (Admission/Discharge/Transfer), the parser supports common types such as **ORU^R01** (Observation Results), **ORM^O01** (Orders), and **VXU^V04** (Vaccination Update). Use the same `POST /Hl7v2Message` or `POST /fhir/Hl7v2Message` with `src` containing the raw message and `config` referencing your `Hl7v2Config`. The response includes `type` and `event` (e.g. `ORU` / `R01`) and a structured `parsed` object.
+Besides ADT (Admission/Discharge/Transfer), the parser supports common types such as **ORU^R01** (Observation Results), **ORM^O01** (Orders), and **VXU^V04** (Vaccination Update). Use the same `POST /fhir/Hl7v2Message` with `src` containing the raw message and `config` referencing your `Hl7v2Config`. The response includes `type` and `event` (e.g. `ORU` / `R01`) and a structured `parsed` object.
 
 **ORU^R01 (Observation Result)** — minimal lab result example:
 
@@ -171,7 +173,7 @@ Content-Type: application/json
   "resourceType": "Hl7v2Message",
   "src": "MSH|^~\\&|SEND|FAC|REC|REC|20230101120000||ORU^R01|1|P|2.3|||\nPID|1||123^^^MR||Doe^John^^^L||19800101|M\nOBR|1||ORD001|GLU^Glucose^LN|||20230101100000\nOBX|1|NM|GLU^Glucose^LN||5.5|mmol/L^^LN|||||F",
   "status": "received",
-  "config": { "resourceType": "Hl7v2Config", "id": "default" }
+  "config": { "reference": "Hl7v2Config/default" }
 }
 ```
 
@@ -227,7 +229,7 @@ A FHIR-prefixed endpoint is also available: `POST /fhir/Hl7v2Message/$execute-on
 You can try to submit a malformed message (truncated) to see what the result will be:
 
 ```yaml
-POST /Hl7v2Message
+POST /fhir/Hl7v2Message
 Content-Type: text/yaml
 
 resourceType: Hl7v2Message
@@ -235,8 +237,7 @@ src: |-
   MSH|^~
 status: received
 config:
-  resourceType: Hl7v2Config
-  id: default
+  reference: Hl7v2Config/default
 ```
 
 The message is still created with **201**; the response body has `status: error` and `outcome` containing the parsing error (e.g. "Message is too short (MSH truncated)"). For request-level validation failures (e.g. missing `config` or invalid reference), the API returns **422** with an `OperationOutcome`.
@@ -273,7 +274,7 @@ Follow the `hl7proxy`'s [README](https://github.com/HealthSamurai/hl7proxy) for 
 Most likely you'll want to authenticate `hl7proxy` requests with basic auth using Aidbox's Client resource. Also it's a good idea to forbid everything except for POSTing new Hl7Messages. You can do both things by submitting the following Bundle. It will create a Client resource and AccessPolicy for it.
 
 ```yaml
-POST /
+POST /fhir
 Content-Type: text/yaml
 
 resourceType: Bundle
@@ -285,32 +286,31 @@ entry:
       grant_types: ["basic"]
       secret: <PUT SECRET STRING HERE>
     request:
-      url: /Client/hl7proxy
+      url: Client/hl7proxy
       method: PUT
   - resource:
       resourceType: AccessPolicy
       id: allow-hl7proxy-to-create-hl7v2message
       link:
-        - id: hl7proxy
-          resourceType: Client
+        - reference: Client/hl7proxy
       engine: json-schema
       schema:
         type: object
         required: ["uri", "request-method"]
         properties:
           uri:
-            const: "/Hl7v2Message"
+            const: "/fhir/Hl7v2Message"
           request-method:
             const: post
     request:
-      url: /AccessPolicy/allow-hl7proxy-to-create-hl7v2message
+      url: AccessPolicy/allow-hl7proxy-to-create-hl7v2message
       method: PUT
 ```
 
-To authorize `hl7proxy` requests, one needs to pass an `Authorization` header with every request to Aidbox. You can provide a value for this header with the `-header` command-line flag:
+To authorize `hl7proxy` requests, one needs to pass an `Authorization` header with every request to Aidbox. You can provide a value for this header with the `-header` command-line flag. `hl7proxy` posts each message to `<url>/Hl7v2Message`, so pass the `/fhir` base URL in `-url`:
 
 ```yaml
-./hl7proxy -port 5000 -config default -url https://your-box.edge.aidbox.app/ -header "Authorization: Basic xxxxxxxxxxxxx"
+./hl7proxy -port 5000 -config default -url https://your-box.edge.aidbox.app/fhir -header "Authorization: Basic xxxxxxxxxxxxx"
 ```
 
 To calculate a value for the `Authorization` header, you need to do `base64encode(clientId + ":" clientSecret)`. You can do it in bash:
@@ -345,10 +345,9 @@ Each field:
 
 ```yaml
 mapping:
-  id: example
-  resourceType: Mapping
+  reference: Mapping/example
 isStrict: false
-sortTopLevelExtension: false
+sortTopLevelExtensions: false
 extensions:
   - msh: ADT_A01
     fields:

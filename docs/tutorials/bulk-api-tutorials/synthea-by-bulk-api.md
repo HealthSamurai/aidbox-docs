@@ -61,7 +61,7 @@ source: 'https://storage.googleapis.com/aidbox-public/synthea/100/Observation.nd
 Let see the data in Aidbox:
 
 ```yaml
-GET /Patient?_ilike=John&_revinclude=Observation:patient
+GET /fhir/Patient?_ilike=John&_revinclude=Observation:patient
 ```
 
 ### Load all at once with $load
@@ -176,5 +176,5 @@ inputs:
 Operation will return 200 instantly and you can monitor import status with:
 
 ```yaml
-GET /BulkImportStatus/synthea
+GET /fhir/BulkImportStatus/synthea
 ```

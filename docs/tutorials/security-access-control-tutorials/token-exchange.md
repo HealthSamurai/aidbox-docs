@@ -21,7 +21,7 @@ Token Exchange enables secure access delegation by exchanging an incoming token 
 Define the client configuration to support the `urn:ietf:params:oauth:grant-type:token-exchange` grant type.
 
 ```json
-PUT /Client/tokenexchange
+PUT /fhir/Client/tokenexchange
 content-type: application/json
 accept: application/json
 
@@ -57,7 +57,7 @@ accept: application/json
 A Token Introspector validates incoming tokens from external issuers.
 
 ```json
-PUT /TokenIntrospector/external-auth-server
+PUT /fhir/TokenIntrospector/external-auth-server
 content-type: application/json
 accept: application/json
 
@@ -80,7 +80,7 @@ accept: application/json
 Define the user resource that will participate in the token exchange process:
 
 ```json
-POST /User
+POST /fhir/User
 content-type: application/json
 accept: application/json
 

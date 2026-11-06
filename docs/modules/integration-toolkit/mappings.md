@@ -23,6 +23,10 @@ skipReferenceValidation: false
 
 If the `scopeSchema` attribute is provided, incoming mapping data (also called a scope) will be validated against it first. Then, a JUTE template from the `body` will be executed. Mapping should return a valid [Transaction Bundle](../../api/batch-transaction.md), so when applied, it will be able to operate with multiple resources not just single one.
 
+{% hint style="info" %}
+Use `/fhir/<Type>` URLs in `request.url` of the transaction entries your mapping returns. If you turn off the Aidbox format API (`BOX_FHIR_AIDBOX_FORMAT_API_ENABLED=false`), `$apply` fails on entries with Aidbox URLs such as `/Patient`. See [Turn off the Aidbox format API](../../api/rest-api/other/aidbox-and-fhir-formats.md#turn-off-the-aidbox-format-api).
+{% endhint %}
+
 ### Example
 
 Let's do a simple mapping which will create a Patient resource from the following data structure:
@@ -40,7 +44,7 @@ If you're not familiar with JUTE, please check out [JUTE Tutorial](https://githu
 {% endhint %}
 
 ```http
-PUT /Mapping/example
+PUT /fhir/Mapping/example
 Content-Type: text/yaml
 
 resourceType: Mapping
@@ -78,7 +82,7 @@ body:
 When a template is created, you can invoke the $apply operation on it to generate a Patient resource and save it into the database:
 
 ```yaml
-POST /Mapping/example/$apply
+POST /fhir/Mapping/example/$apply
 Content-Type: text/yaml
 
 firstName: John
@@ -91,7 +95,7 @@ birthDate: '2010-12-12'
 To execute Mapping and store its result to the Aidbox database, do a POST request to the $apply endpoint. Request's body will be passed to a JUTE as an incoming data (scope):
 
 ```http
-POST /Mapping/<mapping-id>/$apply
+POST /fhir/Mapping/<mapping-id>/$apply
 Content-Type: application/json
 
 { "foo": 42, "bar": "hello" }
@@ -106,7 +110,7 @@ Make sure that your Mapping returns a Transaction Bundle, otherwise its result w
 To check Mapping's result without actual persisting, you can do a POST request to the $debug endpoint:
 
 ```http
-POST /Mapping/<mapping-id>/$debug
+POST /fhir/Mapping/<mapping-id>/$debug
 Content-Type: text/yaml
 
 foo: 42
@@ -120,7 +124,7 @@ Response will contain a mapping result or an error if evaluation failed for some
 There is a way to check a mapping result without persisting it as a resource:
 
 ```http
-POST /Mapping/$debug
+POST /fhir/Mapping/$debug
 Content-Type: text/yaml
 
 mapping:
@@ -149,7 +153,7 @@ You pass both Mapping and incoming data (scope) in a request body. Request respo
 In Aidbox, there is the `$include` directive which allows you to include a Mapping within another one:
 
 ```http
-PUT /Mapping/index
+PUT /fhir/Mapping/index
 Content-Type: text/yaml
 
 resourceType: Mapping
@@ -176,12 +180,12 @@ Because potentially there is a way to create an infinite recursion using the`$in
 Let's say we want to specify request depending on the gender field:
 
 ```yaml
-PATCH /Mapping/pat-example
+PATCH /fhir/Mapping/pat-example
 
 body:
   entry:
     - request:
-        url: $ '/Patient/' + patientId
+        url: $ '/fhir/Patient/' + patientId
         method: PATCH
       resource:
         resourceType: "Patient"
@@ -196,14 +200,14 @@ JUTE will remove all empty values (nulls and empty arrays) and Aidbox will answe
 Passing `omit-drop-blanks` parameter will solve the issue.
 
 ```yaml
-PATCH /Mapping/pat-example
+PATCH /fhir/Mapping/pat-example
 
 params:
   omit-drop-blanks: true
 body:
   entry:
     - request:
-        url: $ '/Patient/' + patientId
+        url: $ '/fhir/Patient/' + patientId
         method: PATCH
       resource:
         resourceType: "Patient"

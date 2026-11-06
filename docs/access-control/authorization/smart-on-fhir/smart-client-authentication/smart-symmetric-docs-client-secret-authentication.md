@@ -9,7 +9,7 @@ This page describes SMART's `client-confidential-symmetric` authentication mecha
 ## Register Client
 
 ```json
-PUT /Client/client-confidential-symmetric
+PUT /fhir/Client/client-confidential-symmetric
 content-type: application/json
 accept: application/json
 
@@ -27,7 +27,7 @@ accept: application/json
 ## Create AccessPolicy
 
 ```json
-PUT /AccessPolicy/client-confidential-symmetric-allow
+PUT /fhir/AccessPolicy/client-confidential-symmetric-allow
 content-type: application/json
 accept: application/json
 
@@ -36,8 +36,7 @@ accept: application/json
   "engine": "allow",
   "link": [
     {
-      "resourceType": "Client",
-      "id": "client-confidential-symmetric"
+      "reference": "Client/client-confidential-symmetric"
     }
   ]
 }

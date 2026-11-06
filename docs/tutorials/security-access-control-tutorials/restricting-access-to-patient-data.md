@@ -707,7 +707,7 @@ Content-Type: application/json
 Create AccessPolicy resource which will allow all GET requests for `/fhir/Patient/*`
 
 ```http
-PUT /AccessPolicy/allow-to-get-patient-compartment
+PUT /fhir/AccessPolicy/allow-to-get-patient-compartment
 Content-Type: application/json
 
 {

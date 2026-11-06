@@ -24,7 +24,7 @@ Create an [AwsAccount](../reference/system-resources-reference/core-module-resou
 > **Note**: Available since Aidbox version 2601.
 
 ```http
-PUT /AwsAccount/my-aws
+PUT /fhir/AwsAccount/my-aws
 
 region: us-east-1
 ```
@@ -32,7 +32,7 @@ region: us-east-1
 **Access keys mode** (for S3-compatible services or legacy):
 
 ```http
-PUT /AwsAccount/my-aws
+PUT /fhir/AwsAccount/my-aws
 
 region: us-east-1
 access-key-id: AKIAIOSFODNN7EXAMPLE
@@ -200,7 +200,7 @@ When using explicit access keys, create an IAM user with the [S3 permissions](#i
 ### Create AwsAccount with credentials
 
 ```http
-PUT /AwsAccount/my-aws
+PUT /fhir/AwsAccount/my-aws
 
 region: us-east-1
 access-key-id: AKIAIOSFODNN7EXAMPLE
@@ -212,7 +212,7 @@ secret-access-key: wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY
 Services like [MinIO](https://min.io/) or [Garage](https://garagehq.deuxfleurs.fr/) provide S3-compatible APIs. Use access keys with custom host settings:
 
 ```http
-PUT /AwsAccount/my-minio
+PUT /fhir/AwsAccount/my-minio
 
 host: 127.0.0.1:9000
 path-style: true

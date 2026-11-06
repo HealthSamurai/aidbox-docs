@@ -9,7 +9,7 @@ This operation returns all the information related to one or more patients descr
 Run Patient-everything:
 
 ```yaml
-GET [base]/Patient/[id]/$everything
+GET [base]/fhir/Patient/[id]/$everything
 ```
 
 ## Patient-everything supported parameters <a href="#patient-everything-parameters" id="patient-everything-parameters"></a>
@@ -21,13 +21,13 @@ GET [base]/Patient/[id]/$everything
 Get all resources directly linked to the patient `pt-1`:
 
 ```http
-GET /Patient/pt-1/$everything
+GET /fhir/Patient/pt-1/$everything
 ```
 
 Get all resources directly linked to the patient `pt-1` that were created or updated after Jan 1st 2021:
 
 ```http
-GET /Patient/pt-1/$everything?_since=2021-01-01T00:00:00Z
+GET /fhir/Patient/pt-1/$everything?_since=2021-01-01T00:00:00Z
 ```
 
 ## Performance note

@@ -107,7 +107,7 @@ When Aidbox starts, navigate to the [http://localhost:8888](http://localhost:888
 
 Use Aidbox UI Rest Console to load Scope resources.
 
-<pre class="language-yaml"><code class="lang-yaml"><strong>POST /$load
+<pre class="language-yaml"><code class="lang-yaml"><strong>POST /fhir/$load
 </strong>Content-Type: text/yaml
 
 source: 'https://storage.googleapis.com/aidbox-public/smart-on-fhir/scopes.ndjson.gz'
@@ -117,32 +117,45 @@ source: 'https://storage.googleapis.com/aidbox-public/smart-on-fhir/scopes.ndjso
 
 Use Aidbox UI Rest Console to create AccessPoliciy resources.
 
-<pre class="language-yaml"><code class="lang-yaml"><strong>PUT /
+<pre class="language-yaml"><code class="lang-yaml"><strong>POST /fhir
 </strong>Content-Type: text/yaml
 
-- id: allow-public-operation
-  resourceType: AccessPolicy
-  engine: matcho
-  matcho:
-    uri:
-      $one-of:
-      - /patient/fhir/metadata
-      - /patient/fhir/style-v1.json
-      - /patient/fhir/.well-known/smart-configuration
-      - /patient/auth/login
-      - /patient/auth/authorize
-      - /patient/auth/authenticate
-      - /patient/auth/grant
-- id: allow-patient-access-api-over-smart-on-fhir
-  resourceType: AccessPolicy
-  engine: complex
-  and:
-  - engine: matcho
+resourceType: Bundle
+type: transaction
+entry:
+- fullUrl: AccessPolicy/allow-public-operation
+  request:
+    method: PUT
+    url: AccessPolicy/allow-public-operation
+  resource:
+    resourceType: AccessPolicy
+    id: allow-public-operation
+    engine: matcho
     matcho:
-      uri: '#/patient/fhir/.+'
-      client:
-        type: smart-app
-  - engine: smart-on-fhir
+      uri:
+        $one-of:
+        - /patient/fhir/metadata
+        - /patient/fhir/style-v1.json
+        - /patient/fhir/.well-known/smart-configuration
+        - /patient/auth/login
+        - /patient/auth/authorize
+        - /patient/auth/authenticate
+        - /patient/auth/grant
+- fullUrl: AccessPolicy/allow-patient-access-api-over-smart-on-fhir
+  request:
+    method: PUT
+    url: AccessPolicy/allow-patient-access-api-over-smart-on-fhir
+  resource:
+    resourceType: AccessPolicy
+    id: allow-patient-access-api-over-smart-on-fhir
+    engine: complex
+    and:
+    - engine: matcho
+      matcho:
+        uri: '#/patient/fhir/.+'
+        client:
+          type: smart-app
+    - engine: smart-on-fhir
 </code></pre>
 
 ### Create Patient and User resources
@@ -150,17 +163,29 @@ Use Aidbox UI Rest Console to create AccessPoliciy resources.
 Use Aidbox UI Rest Console to create the Patient and User resources.
 
 ```yaml
-PUT /
+POST /fhir
 Content-Type: text/yaml
 
-- id: my-patient
-  resourceType: Patient
-- id: my-user              # my-user is a patient login
-  resourceType: User
-  password: password       # password is a patient password
-  fhirUser:
-    id: my-patient
+resourceType: Bundle
+type: transaction
+entry:
+- fullUrl: Patient/my-patient
+  request:
+    method: PUT
+    url: Patient/my-patient
+  resource:
     resourceType: Patient
+    id: my-patient
+- fullUrl: User/my-user
+  request:
+    method: PUT
+    url: User/my-user
+  resource:
+    resourceType: User
+    id: my-user              # my-user is a patient login
+    password: password       # password is a patient password
+    fhirUser:
+      reference: Patient/my-patient
 ```
 
 ### Create Client resource
@@ -168,68 +193,68 @@ Content-Type: text/yaml
 To make Client support SMART App launch 1.0.0 and SMART App launch 2.0.0 add scopes for both versions.
 
 ```yaml
-PUT /
+PUT /fhir/Client/smart-app
 Content-Type: text/yaml
 
-- fhir-base-url: /patient/fhir
-  type: smart-app
-  grant_types: [authorization_code]
-  resourceType: Client
-  auth:
-    authorization_code:
-      pkce: false
-      redirect_uri: https://inferno.healthit.gov/suites/custom/smart/redirect
-      refresh_token: true
-      secret_required: false
-      access_token_expiration: 3600
-  secret: secret
-  active: true
-  id: smart-app
-  allowed-scopes:
-  - {resourceType: Scope, id: patient-medication-rs}
-  - {resourceType: Scope, id: patient-allergyintolerance-rs}
-  - {resourceType: Scope, id: patient-careplan-rs}
-  - {resourceType: Scope, id: patient-careteam-rs}
-  - {resourceType: Scope, id: patient-condition-rs}
-  - {resourceType: Scope, id: patient-device-rs}
-  - {resourceType: Scope, id: patient-diagnosticreport-rs}
-  - {resourceType: Scope, id: patient-documentreference-rs}
-  - {resourceType: Scope, id: patient-encounter-rs}
-  - {resourceType: Scope, id: patient-goal-rs}
-  - {resourceType: Scope, id: patient-immunization-rs}
-  - {resourceType: Scope, id: patient-location-rs}
-  - {resourceType: Scope, id: patient-medicationrequest-rs}
-  - {resourceType: Scope, id: patient-observation-rs}
-  - {resourceType: Scope, id: patient-organization-rs}
-  - {resourceType: Scope, id: patient-patient-rs}
-  - {resourceType: Scope, id: patient-practitioner-rs}
-  - {resourceType: Scope, id: patient-procedure-rs}
-  - {resourceType: Scope, id: patient-provenance-rs}
-  - {resourceType: Scope, id: patient-practitionerrole-rs}
-  - {resourceType: Scope, id: patient-medication-read}
-  - {resourceType: Scope, id: patient-allergyintolerance-read}
-  - {resourceType: Scope, id: patient-careplan-read}
-  - {resourceType: Scope, id: patient-careteam-read}
-  - {resourceType: Scope, id: patient-condition-read}
-  - {resourceType: Scope, id: patient-device-read}
-  - {resourceType: Scope, id: patient-diagnosticreport-read}
-  - {resourceType: Scope, id: patient-documentreference-read}
-  - {resourceType: Scope, id: patient-encounter-read}
-  - {resourceType: Scope, id: patient-goal-read}
-  - {resourceType: Scope, id: patient-immunization-read}
-  - {resourceType: Scope, id: patient-location-read}
-  - {resourceType: Scope, id: patient-medicationrequest-read}
-  - {resourceType: Scope, id: patient-observation-read}
-  - {resourceType: Scope, id: patient-organization-read}
-  - {resourceType: Scope, id: patient-patient-read}
-  - {resourceType: Scope, id: patient-practitioner-read}
-  - {resourceType: Scope, id: patient-procedure-read}
-  - {resourceType: Scope, id: patient-provenance-read}
-  - {resourceType: Scope, id: patient-practitionerrole-read}
-  - {resourceType: Scope, id: openid}
-  - {resourceType: Scope, id: launch-patient}
-  - {resourceType: Scope, id: fhiruser}
-  - {resourceType: Scope, id: offline-access}
+fhir-base-url: /patient/fhir
+type: smart-app
+grant_types: [authorization_code]
+resourceType: Client
+auth:
+  authorization_code:
+    pkce: false
+    redirect_uri: https://inferno.healthit.gov/suites/custom/smart/redirect
+    refresh_token: true
+    secret_required: false
+    access_token_expiration: 3600
+secret: secret
+active: true
+id: smart-app
+allowed-scopes:
+- {reference: Scope/patient-medication-rs}
+- {reference: Scope/patient-allergyintolerance-rs}
+- {reference: Scope/patient-careplan-rs}
+- {reference: Scope/patient-careteam-rs}
+- {reference: Scope/patient-condition-rs}
+- {reference: Scope/patient-device-rs}
+- {reference: Scope/patient-diagnosticreport-rs}
+- {reference: Scope/patient-documentreference-rs}
+- {reference: Scope/patient-encounter-rs}
+- {reference: Scope/patient-goal-rs}
+- {reference: Scope/patient-immunization-rs}
+- {reference: Scope/patient-location-rs}
+- {reference: Scope/patient-medicationrequest-rs}
+- {reference: Scope/patient-observation-rs}
+- {reference: Scope/patient-organization-rs}
+- {reference: Scope/patient-patient-rs}
+- {reference: Scope/patient-practitioner-rs}
+- {reference: Scope/patient-procedure-rs}
+- {reference: Scope/patient-provenance-rs}
+- {reference: Scope/patient-practitionerrole-rs}
+- {reference: Scope/patient-medication-read}
+- {reference: Scope/patient-allergyintolerance-read}
+- {reference: Scope/patient-careplan-read}
+- {reference: Scope/patient-careteam-read}
+- {reference: Scope/patient-condition-read}
+- {reference: Scope/patient-device-read}
+- {reference: Scope/patient-diagnosticreport-read}
+- {reference: Scope/patient-documentreference-read}
+- {reference: Scope/patient-encounter-read}
+- {reference: Scope/patient-goal-read}
+- {reference: Scope/patient-immunization-read}
+- {reference: Scope/patient-location-read}
+- {reference: Scope/patient-medicationrequest-read}
+- {reference: Scope/patient-observation-read}
+- {reference: Scope/patient-organization-read}
+- {reference: Scope/patient-patient-read}
+- {reference: Scope/patient-practitioner-read}
+- {reference: Scope/patient-procedure-read}
+- {reference: Scope/patient-provenance-read}
+- {reference: Scope/patient-practitionerrole-read}
+- {reference: Scope/openid}
+- {reference: Scope/launch-patient}
+- {reference: Scope/fhiruser}
+- {reference: Scope/offline-access}
 ```
 
 ## Run Inferno test session

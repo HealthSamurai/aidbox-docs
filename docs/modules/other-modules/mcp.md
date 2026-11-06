@@ -70,7 +70,7 @@ Aidbox MCP endpoints are not public, so you need to set up Access Control for th
 The easiest way (but not the safest) is to create allow `AccessPolicy` for mcp operations:
 
 ```http
-PUT /AccessPolicy/allow-mcp-endpoints
+PUT /fhir/AccessPolicy/allow-mcp-endpoints
 content-type: application/json
 accept: application/json
 
@@ -78,13 +78,13 @@ accept: application/json
   "resourceType": "AccessPolicy",
   "id": "allow-mcp-endpoints",
   "link": [
-    { "id": "mcp", "resourceType": "Operation" },
-    { "id": "mcp-sse", "resourceType": "Operation" },
-    { "id": "mcp-post", "resourceType": "Operation" },
-    { "id": "mcp-sse-post", "resourceType": "Operation" },
-    { "id": "mcp-delete", "resourceType": "Operation" },
-    { "id": "mcp-sse-delete", "resourceType": "Operation" },
-    { "id": "mcp-client-messages", "resourceType": "Operation" }
+    { "reference": "Operation/mcp" },
+    { "reference": "Operation/mcp-sse" },
+    { "reference": "Operation/mcp-post" },
+    { "reference": "Operation/mcp-sse-post" },
+    { "reference": "Operation/mcp-delete" },
+    { "reference": "Operation/mcp-sse-delete" },
+    { "reference": "Operation/mcp-client-messages" }
   ],
   "engine": "allow"
 }
@@ -102,7 +102,7 @@ The second way (safer one) is to create `Client`, `AccessPolcy`, get a token and
 Create `Client` resource
 
 ```http
-PUT /Client/mcp-client
+PUT /fhir/Client/mcp-client
 content-type: application/json
 accept: application/json
 
@@ -116,13 +116,13 @@ accept: application/json
 Create AccessPolicy resource:
 
 ```http
-PUT /AccessPolicy/allow-mcp-endpoints
+PUT /fhir/AccessPolicy/allow-mcp-endpoints
 content-type: application/json
 accept: application/json
 
 {
   "resourceType": "AccessPolicy",
-  "id": "mcp-endpoints",
+  "id": "allow-mcp-endpoints",
   "engine": "matcho",
   "matcho": {
     "client": {

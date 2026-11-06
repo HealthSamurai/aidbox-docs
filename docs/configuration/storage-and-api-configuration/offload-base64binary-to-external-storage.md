@@ -124,7 +124,7 @@ PUT /fhir/AzureContainer/my-container
 Content-Type: application/json
 
 {
-  "account": { "id": "my-account", "resourceType": "AzureAccount" },
+  "account": { "reference": "AzureAccount/my-account" },
   "storage": "mystorageaccount",
   "container": "my-container"
 }

@@ -125,9 +125,9 @@ or:
     matcho:
       uri:
         $one-of:
-          - /Patient
-          - '#/Patient/[^/]+$'
-        request-method: get
+          - /fhir/Patient
+          - '#/fhir/Patient/[^/]+$'
+      request-method: get
   - engine: matcho
     matcho:
       uri: /$graphql
@@ -145,8 +145,8 @@ engine: matcho
 matcho:
   uri:
     $one-of:
-      - /Patient
-      - '#/Patient/[^/]+$'
+      - /fhir/Patient
+      - '#/fhir/Patient/[^/]+$'
   request-method: get
 
 # grant access to graphql
@@ -163,8 +163,8 @@ matcho:
 
 Replacing RegEx patterns with plain string comparison can improve policy readability.
 
-```
-"#^/Observation$" → "/Observation"
+```text
+"#^/fhir/Observation$" → "/fhir/Observation"
 ```
 
 ### `$one-of` instead of `|` operator
@@ -181,13 +181,13 @@ $one-of:
 
 By default access policy in Aidbox allows all the search parameters. Access policies check only fields specified in the policy and ignore others. It does nothing with the semantics of the operation.
 
-Let's say you want to make GET /Practitioner publicly available, and you make the following AccessPolicy.
+Let's say you want to make GET /fhir/Practitioner publicly available, and you make the following AccessPolicy.
 
 ```yaml
 engine: matcho
 matcho:
-  uri: /Practitioner
-  request-method: GET
+  uri: /fhir/Practitioner
+  request-method: get
 ```
 
 This policy accepts `GET /fhir/Practitioner` request with any search parameter, including unsafe ones (e.g. `_include`, `_revinclude`, `_with`, `_assoc`).
@@ -198,7 +198,7 @@ You may explicitly restrict _unsafe_ search parameters.
 engine: matcho
 matcho:
   uri: /fhir/Practitioner
-  request-method: GET
+  request-method: get
   params:
     _include: nil?
     _revinclude: nil?

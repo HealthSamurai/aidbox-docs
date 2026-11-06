@@ -77,7 +77,7 @@ Or you can make a REST endpoint from SQL query using AidboxQuery.
 Example:
 
 ```yaml
-PUT /AidboxQuery/remove-patient-history
+PUT /fhir/AidboxQuery/remove-patient-history
 
 params:
   id:
@@ -108,16 +108,16 @@ truncate Patient_history;
 Similarly you can create an endpoint for this
 
 ```yaml
-PUT /AidboxQuery/truncate
+PUT /fhir/AidboxQuery/truncate
 
-query: 'TRUNCATE "{{resourceType}}"; TRUNCATE "{{resourceType}}_history"'
+query: 'TRUNCATE {{resourceType}}; TRUNCATE {{resourceType}}_history'
 type: execute
 ```
 
 And then run it with
 
 ```http
-GET /Patient?_query=truncate
+GET /fhir/Patient?_query=truncate
 ```
 
 Note that AidboxQuery with variable `resourceType` can only be called with `_query` parameter.

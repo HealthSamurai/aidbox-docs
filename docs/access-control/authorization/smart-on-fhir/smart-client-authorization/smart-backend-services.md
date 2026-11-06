@@ -13,7 +13,7 @@ Before a SMART client can run against a FHIR server, the client SHALL generate o
 **Request:**
 
 ```json
-PUT /Client/inferno-my-clinic-bulk-client
+PUT /fhir/Client/inferno-my-clinic-bulk-client
 content-type: application/json
 accept: application/json
 
@@ -63,7 +63,7 @@ accept: application/json
   }
  },
  "active": true,
- "id": "",
+ "id": "inferno-my-clinic-bulk-client",
  "jwks_uri": "http://localhost:8082/.well-known/jwks.json"
 }
 ```
@@ -73,7 +73,7 @@ accept: application/json
 **Request:**
 
 ```json
-PUT /AccessPolicy/inferno-my-clinic-bulk-client
+PUT /fhir/AccessPolicy/inferno-my-clinic-bulk-client
 accept: application/json
 content-type: application/json
 
@@ -81,8 +81,7 @@ content-type: application/json
   "engine": "allow",
   "link": [
     {
-      "id": "inferno-my-clinic-bulk-client",
-      "resourceType": "Client"
+      "reference": "Client/inferno-my-clinic-bulk-client"
     }
   ]
 }
@@ -95,8 +94,7 @@ content-type: application/json
  "id": "inferno-my-clinic-bulk-client",
  "link": [
   {
-   "id": "inferno-my-clinic-bulk-client",
-   "resourceType": "Client"
+   "reference": "Client/inferno-my-clinic-bulk-client"
   }
  ],
  "engine": "allow",

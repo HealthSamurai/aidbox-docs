@@ -8,7 +8,7 @@ description: >-
 
 ## Overview
 
-Using `GET /metadata` you can access [FHIR capabilities](https://www.hl7.org/fhir/http.html#capabilities) interaction.
+Using `GET /fhir/metadata` you can access [FHIR capabilities](https://www.hl7.org/fhir/http.html#capabilities) interaction.
 
 Response is a `CapabilityStatement` generated from _meta resources_ created in an Aidbox instance. The list of this _meta resource_ types used for the response generation:
 
@@ -130,7 +130,7 @@ Servers MAY ignore the mode parameter and return a CapabilityStatement resource.
 You can reconfigure specific parts of CapabilityStatement by creating `AidboxConfig/box` resource:
 
 ```yaml
-PUT /AidboxConfig/box
+PUT /fhir/AidboxConfig/box
 
 metadata:
   # override name and title of CapabilityStatement
