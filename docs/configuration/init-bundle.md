@@ -41,6 +41,8 @@ Examples of URLs:
 - `file:///tmp/bundle.json`
 - `https://storage.googleapis.com/<BUCKET_NAME>/<OBJECT_NAME>`
 
+Multibox reads `MULTIBOX_INIT_BUNDLE` for the manager and `BOX_INIT_BUNDLE` for boxes. See [Init Bundle in Multibox](#init-bundle-in-multibox).
+
 ## Example
 
 If a Bundle file is created at `/tmp/bundle.json`:
@@ -139,6 +141,69 @@ Put this entry before the resources that depend on the package (profiles, custom
    ```
 
    To change configuration of an already-created destination, delete it manually and let the next bundle run recreate it. See [Updating a TopicDestination](../modules/topic-based-subscriptions/aidbox-topic-based-subscriptions.md#updating-a-topicdestination).
+
+## Init Bundle in Multibox
+
+{% hint style="info" %}
+Available since the 2611 release.
+{% endhint %}
+
+Multibox reads two init bundles:
+
+| Variable               | Applies to                                                                                                             | Runs                                                                                  |
+| ---------------------- | ---------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------- |
+| `MULTIBOX_INIT_BUNDLE` | The Multibox manager: its own `Client`, `AccessPolicy`, `User` and `Box` resources, and boxes created by `rpc` entries | On every manager start                                                                |
+| `BOX_INIT_BUNDLE`      | Every box that doesn't set a bundle of its own                                                                         | Each time a box starts: on its first request after a manager start, and on `multibox/reload-box` |
+
+The manager doesn't apply `BOX_INIT_BUNDLE`, and boxes don't apply `MULTIBOX_INIT_BUNDLE`. A box replaces `BOX_INIT_BUNDLE` with its own bundle when its `Box` resource sets `box-init-bundle` in `env`.
+
+### Create boxes from the init bundle
+
+Multibox sends the entries of `MULTIBOX_INIT_BUNDLE` to the [manager API](configure-aidbox-and-multibox.md#multibox-manager-api). An entry with `POST rpc` calls a Multibox RPC, such as `multibox/create-box`. The bundle below creates a client with an access policy for the manager API and two boxes. The second box gets its own init bundle:
+
+```json
+{
+  "resourceType": "Bundle",
+  "type": "transaction",
+  "entry": [
+    {
+      "request": {"method": "PUT", "url": "Client/deploy-client"},
+      "resource": {"resourceType": "Client", "secret": "<secret>", "grant_types": ["basic"]}
+    },
+    {
+      "request": {"method": "PUT", "url": "AccessPolicy/deploy-client-policy"},
+      "resource": {"resourceType": "AccessPolicy", "engine": "allow", "link": [{"reference": "Client/deploy-client"}]}
+    },
+    {
+      "request": {"method": "POST", "url": "rpc"},
+      "resource": {"method": "multibox/create-box",
+                   "params": {"id": "clinicone", "fhirVersion": "fhir-4.0.1"}}
+    },
+    {
+      "request": {"method": "POST", "url": "rpc"},
+      "resource": {"method": "multibox/create-box",
+                   "params": {"id": "clinictwo", "fhirVersion": "fhir-4.0.1",
+                              "env": {"box-init-bundle": "file:///init/clinictwo.json"}}}
+    }
+  ]
+}
+```
+
+Multibox runs `rpc` entries as the `AIDBOX_SUPERUSER` user, so set that variable, and the boxes belong to that user. On every start, the entries behave as follows:
+
+- **Restarts are safe.** When the `Box` resource and the box database exist, `create-box` returns the existing box and changes nothing.
+- **`create-box` entries are create-only.** Multibox ignores changed `params` of an existing box, such as a new `env.box-init-bundle`, and logs nothing. Removing an entry doesn't delete the box. To change a box, update its `Box` resource through the manager API.
+- **A deleted box comes back empty.** After `multibox/delete-box`, the next manager start creates the box again from its entry, without the data it had.
+- **A failed transaction leaves the box database.** Multibox creates the database of a box outside the bundle transaction. When a later entry fails, the `Box` resource rolls back and the database stays, and the next start fails with `Database <id> already exists`.
+- **One bad entry stops every box.** A failing `create-box` entry in a `transaction` bundle stops Multibox. In a `batch` bundle, Multibox logs a warning and starts with the other boxes.
+- **A box id must not match another database in the PostgreSQL cluster**, the manager's own database included. `create-box` never takes over an existing database.
+
+### Recover from a failed start
+
+| Error                          | Cause                                                                                                                                                                       | Fix                                                                                                                                                                                                                                                                                                  |
+| ------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `Database <id> already exists` | A database named after the box exists without a `Box` resource. A failed `transaction` start leaves one, and so does `DELETE /fhir/Box/<id>`, which keeps the database.     | To discard the data, drop the database (`DROP DATABASE <id>`) and start again. To keep it, start Multibox without the `create-box` entry for that box, restore the resource with `PUT /fhir/Box/<id>`, and restart with the full bundle. If the database belongs to another application, choose another box id. |
+| `Box <id> already exists`      | The `Box` resource exists and its database doesn't, for example after you restore the manager database into a new cluster.                                                  | Start Multibox without the `create-box` entry for that box, call `multibox/delete-box`, and restart with the full bundle. Multibox creates the box again, empty.                                                                                                                                      |
 
 ## See also
 

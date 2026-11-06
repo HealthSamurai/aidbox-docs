@@ -14,7 +14,7 @@ There is no automated migration tool for this direction. Use the steps below, an
 
 * You need a Multibox license. A standalone Aidbox license does not work with Multibox. The license also caps how many boxes you can run.
 * Note your source instance's FHIR version. You set the same version on the box you create in Multibox, since Multibox fixes the FHIR version per box at creation time and does not change it afterward. Unlike standalone Aidbox, different boxes in the same Multibox deployment can run different FHIR versions.
-* Any custom resources, modules, subscriptions, and AidboxConfig/zen project settings are per-box in Multibox. They are not inherited from other boxes, so plan to redeclare them for the new box.
+* Any custom resources, modules, subscriptions, and AidboxConfig/zen project settings are per-box in Multibox. They are not inherited from other boxes, so plan to redeclare them for the new box, for example in an [init bundle](../../configuration/init-bundle.md#init-bundle-in-multibox) of its own.
 * Clients connect to a box through its own subdomain (`<box-id>.<cluster-domain>`), not through the standalone instance's URL. Plan to update client configuration once the box is live.
 
 {% hint style="info" %}
@@ -75,6 +75,8 @@ params:
 * `id` becomes the box's subdomain and its database name. It must match `^[a-z][a-z0-9]{4,}$`: lowercase letters and digits only, at least 5 characters, no hyphens.
 * `fhirVersion` must match your source Aidbox's FHIR version, in the `fhir-<version>` format (for example `fhir-4.0.1`, `fhir-5.0.0`). Call `multibox/fhir-versions` to see which versions your Multibox deployment supports.
 * You don't need to set a `participant`: Multibox assigns the calling user as the box's `owner`. Grant teammates access afterward with `multibox/add-collaborator`, choosing an `admin`, `writer`, or `reader` role.
+
+Since 2611, the same RPC works at `POST /fhir/rpc`. To create the box when Multibox starts, declare it as a `create-box` entry in `MULTIBOX_INIT_BUNDLE`. See [Init Bundle in Multibox](../../configuration/init-bundle.md#init-bundle-in-multibox).
 
 Before creating the box, you can call `multibox/check-id` (no authentication required) to confirm the id is free and avoid a failed creation:
 

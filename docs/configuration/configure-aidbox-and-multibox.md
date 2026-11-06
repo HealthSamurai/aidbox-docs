@@ -215,6 +215,41 @@ use next env var to pass secret param:
 BOX_SECURITY_AUTH_KEYS_SECRET=<rand_string>
 ```
 
+## Multibox manager API
+
+{% hint style="info" %}
+Available since the 2611 release.
+{% endhint %}
+
+The Multibox manager serves an API for its own resources, such as `Box`, `User`, `Client` and `AccessPolicy`, and for Multibox RPCs:
+
+| Endpoint                          | Purpose                                                                                     |
+| --------------------------------- | ------------------------------------------------------------------------------------------- |
+| `/fhir/<type>`, `/fhir/<type>/<id>` | Create, read, update, conditional update, patch, delete, search, history and vread          |
+| `POST /fhir`                      | `batch` and `transaction` bundles                                                           |
+| `POST /fhir/rpc`                  | Multibox RPCs, such as `multibox/create-box`. Works the same as `POST /rpc`                 |
+
+These requests reach the manager. To reach a box, use the box subdomain or the `x-box` header.
+
+```http
+POST /fhir/rpc
+Content-Type: application/json
+
+{
+  "method": "multibox/create-box",
+  "params": {"id": "clinicone", "fhirVersion": "fhir-4.0.1"}
+}
+```
+
+CRUD and RPCs check access in different ways:
+
+- **CRUD, search and bundles** need a client or a user that an AccessPolicy on the manager allows. A new manager has no such policy, and the `AIDBOX_SUPERUSER` credentials get 403. Create the first client and policy in [`MULTIBOX_INIT_BUNDLE`](init-bundle.md#init-bundle-in-multibox), which runs without access checks.
+- **RPCs** check the caller themselves. `multibox/create-box` needs a user, such as the `AIDBOX_SUPERUSER` user, and makes that user the owner of the box. `multibox/delete-box` accepts the owner alone.
+
+{% hint style="warning" %}
+The manager's `/fhir` accepts any resource type. A `Patient` sent there lands in the manager database, not in a box. Put box data in `BOX_INIT_BUNDLE` or send it to the box.
+{% endhint %}
+
 ## References
 
 Refer to the following pages for the specific image description and the list of available configuration options.
