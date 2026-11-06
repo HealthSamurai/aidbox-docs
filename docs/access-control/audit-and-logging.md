@@ -191,7 +191,7 @@ When you update a Patient resource, the generated AuditEvent uses the `IHE.Basic
 
 Aidbox generates an AuditEvent with DICOM subtype `110139` ("User password changed") when:
 
-* `PUT /User/:id` sets a password that differs from the stored one;
+* `PUT /fhir/User/:id` sets a password that differs from the stored one;
 * a user changes their own password with `/auth/change-password`;
 * an administrator resets a password (extra subtype `password-force-reset`);
 * a user resets their password through a reset link (extra subtype `password-self-reset`).
@@ -239,7 +239,7 @@ Aidbox generates an AuditEvent with DICOM subtype `110139` ("User password chang
 }
 ```
 
-A `PUT` with the unchanged password produces a regular `update` event, and `PATCH /User/:id` produces a regular `patch` event, both without subtype `110139`. A rejected self-service change or reset produces the event with `outcome` `4`.
+A `PUT` with the unchanged password produces a regular `update` event, and `PATCH /fhir/User/:id` produces a regular `patch` event, both without subtype `110139`. A rejected self-service change or reset produces the event with `outcome` `4`.
 
 ### Aidbox as an Audit record repository
 

@@ -137,7 +137,7 @@ The `resource` field is an `AllResource` union. You can use it to fetch the refe
 The following query is similar to
 
 ```http
-GET /Patient?_include=organization:Organization
+GET /fhir/Patient?_include=Patient:organization:Organization
 ```
 
 Request:
@@ -261,7 +261,7 @@ _Note: unlike FHIR revincludes, GraphQL revincludes use field path, not paramete
 The following query is similar to
 
 ```http
-GET /Organization?_revinclude=CareTeam:participant
+GET /fhir/Practitioner?_revinclude=CareTeam:participant
 ```
 
 The request:
@@ -369,7 +369,7 @@ This query accepts a single argument `id` and returns a resource with the specif
 The following query is similar to
 
 ```http
-GET /Patient/pt-1
+GET /fhir/Patient/pt-1
 ```
 
 Request:
@@ -419,7 +419,7 @@ The query accepts an `id` argument (GraphQL type **`ID`**) and returns the histo
 The following query is similar to
 
 ```http
-GET /Practitioner/pr-1/_history
+GET /fhir/Practitioner/pr-1/_history
 ```
 
 Request:
@@ -479,7 +479,7 @@ Each search parameter leads to 2 arguments:
 The following query is similar to
 
 ```http
-GET /Practitioner?name=another
+GET /fhir/Practitioner?name=another
 ```
 
 Request
@@ -818,13 +818,12 @@ query { PatientList(_count: 1) { id } }
 the AccessPolicy which allows `GET /Patient` is required.
 
 ```yaml
-PUT /AccessPolicy/my-client-allow-patient
+PUT /fhir/AccessPolicy/my-client-allow-patient
 Content-Type: text/yaml
 Accept: text/yaml
 
 link:
-  - id: my-client
-    resourceType: Client
+  - reference: Client/my-client
 engine: matcho
 matcho:
   request-method: get
@@ -834,7 +833,7 @@ matcho:
 Of course, any [AccessPolicy engine](../access-control/authorization/access-policies.md) can be used. For example, using `sql` engine to allow the request if `organization_id` in the JWT is the same as `Patient.managingOrganization`:
 
 ```yaml
-PUT /AccessPolicy/my-client-allow-patient
+PUT /fhir/AccessPolicy/my-client-allow-patient
 Content-Type: text/yaml
 Accept: text/yaml
 

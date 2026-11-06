@@ -29,7 +29,7 @@ This guide explains how to set-up Azure AD identity provider in Aidbox with an a
 Open REST console in Aidbox UI and create `IdentityProvider`
 
 ```yaml
-POST /IdentityProvider
+POST /fhir/IdentityProvider
 content-type: text/yaml
 accept: text/yaml
 

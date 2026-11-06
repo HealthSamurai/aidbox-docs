@@ -48,7 +48,7 @@ In table below you can see the most popular log events:
 | **ev**        | string | **w/req** - start request, **w/resp** - end of request |
 | **ctx**       | string | request id                                             |
 | **w_url**     | url    | request URL                                            |
-| **w_r**       | string | request URL template (i.e. GET /Patient/?)             |
+| **w_r**       | string | request URL template (i.e. GET /fhir/Patient/?)        |
 | **w_m**       | string | HTTP method in lower-case                              |
 | **w_qs**      | string | request query string                                   |
 | **w_st**      | int    | HTTP response status                                   |

@@ -23,7 +23,7 @@ Aidbox automatically hashes passwords using scrypt before storing them. You can 
 #### Creating a user with a password
 
 ```http
-PUT /User/my-user
+PUT /fhir/User/my-user
 Content-Type: application/json
 
 {
@@ -39,7 +39,7 @@ The response contains the scrypt hash (format `$s0$...`) instead of the plaintex
 Update the `password` field via `PUT` or `PATCH`:
 
 ```http
-PATCH /User/my-user
+PATCH /fhir/User/my-user
 Content-Type: application/json
 
 {
@@ -182,7 +182,7 @@ Aidbox intentionally does not enforce password complexity, expiry, or reuse rule
 ### Security considerations
 
 {% hint style="warning" %}
-**Password hash exposure**: `GET /User/:id` and `GET /User?` return the scrypt password hash in the response body. Only the `/auth/userinfo` endpoint strips the password field. Use an AccessPolicy to restrict read access to the `User` resource for non-admin clients.
+**Password hash exposure**: `GET /fhir/User/:id` and `GET /fhir/User?` return the scrypt password hash in the response body. Only the `/auth/userinfo` endpoint strips the password field. Use an AccessPolicy to restrict read access to the `User` resource for non-admin clients.
 {% endhint %}
 
 {% hint style="info" %}

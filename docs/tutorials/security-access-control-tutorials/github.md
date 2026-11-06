@@ -19,7 +19,7 @@ Open your organization's page on GitHub then **Settings > Developer Settings > O
 Using REST Console create an IdentityProvider config.
 
 ```yaml
-PUT /IdentityProvider/github?_format=yaml&_pretty=true
+PUT /fhir/IdentityProvider/github?_format=yaml&_pretty=true
 content-type: text/yaml
 
 type: github

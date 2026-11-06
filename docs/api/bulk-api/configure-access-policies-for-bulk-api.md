@@ -11,34 +11,37 @@ The `$dump`, `$dump-csv`, and `$dump-sql` operations are available only on **Aid
 {% endhint %}
 
 ```yaml
-PUT /
+POST /fhir
+Content-Type: text/yaml
 
-- resourceType: Client
-  id: bulk-client
-  secret: secret
-  grant_types: ['basic']
-
-- resourceType: AccessPolicy
-  id: bulk-client-dump
-  engine: matcho
-  matcho:
-    $one-of:
-    - uri: /$dump-sql
-      request-method: post
-    - uri: "#/.*/\\$dump$"
-      request-method: get
-    - uri: "#/.*/\\$dump-csv$"
-      request-method: get
-    - uri:
-        $one-of:
-          - /$import
-          - /fhir/$import
-      request-method: post
-    - uri:
-        $one-of:
-          - /$load
-          - /fhir/$load
-          - "#/.*/\\$load$"
-  link:
-  - {id: 'bulk-client', resourceType: 'Client'}
+resourceType: Bundle
+type: transaction
+entry:
+- request: {method: PUT, url: Client/bulk-client}
+  resource:
+    resourceType: Client
+    id: bulk-client
+    secret: secret
+    grant_types: ['basic']
+- request: {method: PUT, url: AccessPolicy/bulk-client-dump}
+  resource:
+    resourceType: AccessPolicy
+    id: bulk-client-dump
+    engine: matcho
+    matcho:
+      $one-of:
+      - uri: /$dump-sql
+        request-method: post
+      - uri: "#/.*/\\$dump$"
+        request-method: get
+      - uri: "#/.*/\\$dump-csv$"
+        request-method: get
+      - uri: /fhir/$import
+        request-method: post
+      - uri:
+          $one-of:
+            - /fhir/$load
+            - "#/.*/\\$load$"
+    link:
+    - reference: Client/bulk-client
 ```

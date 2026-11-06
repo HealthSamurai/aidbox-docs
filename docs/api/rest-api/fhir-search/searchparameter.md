@@ -98,13 +98,13 @@ The parameter matches answers down to the deepest level in the union. Add levels
 For unbounded depth, define an Aidbox [Search resource](../aidbox-search.md#search-resource) with a PostgreSQL `jsonpath` predicate. `$.**` matches at any depth, and you can combine the parameter with other search parameters in the same request:
 
 ```http
-PUT /Search/QuestionnaireResponse.answer-any-depth
+PUT /fhir/Search/QuestionnaireResponse.answer-any-depth
 content-type: application/json
 
 {
   "resourceType": "Search",
   "name": "answer-any-depth",
-  "resource": {"id": "QuestionnaireResponse", "resourceType": "Entity"},
+  "resource": {"reference": "Entity/QuestionnaireResponse"},
   "where": "jsonb_path_exists({{table}}.resource, 'lax $.**.answer.value.* ? (@ == $v)', jsonb_build_object('v', {{param}}::text))"
 }
 ```

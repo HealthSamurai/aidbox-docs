@@ -7,7 +7,7 @@ description: Configure email providers for sending notifications and alerts from
 Aidbox supports sending emails through using `Notification`, `NotificationTemplate`.
 
 It is possible to setup any SMTP provider using Aidbox settings, also there's separate integration for [Postmark](../../../tutorials/integration-toolkit-tutorials/postmark-integration-tutorial.md)\
-and [Mailgun](../../../tutorials/integration-toolkit-tutorials/postmark-integration-tutorial.md).
+and [Mailgun](../../../tutorials/integration-toolkit-tutorials/mailgun-integration-tutorial.md).
 
 ## Sending email
 
@@ -26,7 +26,7 @@ Explained in the following page:
 The Notification resource is used to send notifications using a specified provider. Simplest notification can be created like this:
 
 ```http
-PUT /Notification/notification-1
+PUT /fhir/Notification/notification-1
 
 provider: '<yourProviderId>'
 providerData:
@@ -38,7 +38,7 @@ providerData:
 It is also possible to create a predefined notification template. The resource supports dynamic content by including a payload that is merged into the template.
 
 ```http
-PUT /Notification/notification-1
+PUT /fhir/Notification/notification-1
 
 provider: '<yourProviderId>'
 providerData:
@@ -59,7 +59,7 @@ The NotificationTemplate resource is used to store and manage the body of email 
 NotificationTemplate example:
 
 ```http
-PUT /NotificationTemplate/notification-template-1
+PUT /fhir/NotificationTemplate/notification-template-1
 
 # foo.bar value is placed in the Notification.providerData.payload object
 template: <b>Hello world! {{foo.bar}}</b>

@@ -129,11 +129,11 @@ sourceType: AccessPolicy
 engine: matcho
 matcho:
   request-method: delete
-  uri: '#^/Patient.*$'
+  uri: '#^/fhir/Patient.*$'
   user: {$not: {data: {role: guest}}}
 ```
 
-While the original intent was to prevent Guest users from deleting Patient resources, this AccessPolicy allows them to perform DELETE /Patient/ for all other users, including unauthorized ones. In this case, it is better to explicitly list allowed roles with **\$enum**.
+While the original intent was to prevent Guest users from deleting Patient resources, this AccessPolicy allows them to perform DELETE /fhir/Patient/ for all other users, including unauthorized ones. In this case, it is better to explicitly list allowed roles with **\$enum**.
 {% endhint %}
 
 - **\$present-all** — checks that every element in `$present-all` is present in the original array, with no sort check. It can be combined with `$length`.

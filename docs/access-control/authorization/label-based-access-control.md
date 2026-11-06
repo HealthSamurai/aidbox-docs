@@ -260,14 +260,13 @@ To avoid the need to label all resources displayed in the UI console, use the `s
 Create a `Role` resource with the name `superadmin` and reference to the User used to log in to the UI console before enabling Label-based Access Control.
 
 ```yaml
-POST /Role
+POST /fhir/Role
 content-type: text/yaml
 accept: text/yaml
 
 name: superadmin
 user:
-  id: <user-id>
-  resourceType: User
+  reference: User/<user-id>
 ```
 
 ## Postman Demo

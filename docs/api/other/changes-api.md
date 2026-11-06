@@ -56,7 +56,7 @@ Accept: text/yaml
 Let's add 2 patients to change version of Patient resource.
 
 ```yaml
-POST /Patient
+POST /fhir/Patient
 Accept: text/yaml
 Content-Type: text/yaml
 
@@ -67,14 +67,14 @@ name:
 ```
 
 ```yaml
-POST /Patient
+POST /fhir/Patient
 Accept: text/yaml
 Content-Type: text/yaml
 
 id: pt-2
 name:
 - family: Wood
-  given: [Amanda]-a
+  given: [Amanda]
 ```
 
 Since version 1, two events happened: created 2 patients.

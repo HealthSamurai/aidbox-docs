@@ -24,10 +24,10 @@ Once you have your Aidbox instance up and running you need to upload necessary r
 
 ### Patient's data
 
-Test patient data for Inferno test is available on Google Storage and maintained by Health Samurai team. You can upload it with `/$load` endpoint:
+Test patient data for Inferno test is available on Google Storage and maintained by Health Samurai team. You can upload it with `/fhir/$load` endpoint:
 
 ```http
-POST /$load
+POST /fhir/$load
 content-type: application/json
 accept: application/json
 
@@ -38,8 +38,8 @@ accept: application/json
 
 ### User resource, associated with the patient record
 
-```yaml
-PUT /User/test-user
+```http
+PUT /fhir/User/test-user
 content-type: application/json
 accept: application/json
 
@@ -52,8 +52,7 @@ accept: application/json
   },
   "active": true,
   "fhirUser": {
-    "id": "test-pt-1",
-    "resourceType": "Patient"
+    "reference": "Patient/test-pt-1"
   },
   "id": "test-user"
 }
@@ -63,47 +62,64 @@ Now you can login to Aidbox as a patient with `example@mail.com / password`.
 
 ### Client resource for smart launch flows and Access Policy
 
-```yaml
-PUT /
+```http
+POST /fhir
 content-type: application/json
 accept: application/json
 
-[
-  {
-    "id": "inferno-patient-smart-app",
-    "resourceType": "Client",
-    "type": "smart-app",
-    "active": true,
-    "grant_types": [
-      "authorization_code",
-      "basic"
-    ],
-    "auth": {
-      "authorization_code": {
-        "pkce": true,
-        "redirect_uri": "https://inferno.healthit.gov/suites/custom/smart/redirect",
-        "refresh_token": true,
-        "token_format": "jwt",
-        "access_token_expiration": 300
-      }
-    },
-    "smart": {
-      "launch_uri": "https://inferno.healthit.gov/suites/custom/smart/launch"
-    },
-    "secret": "verysecret"
-  },
-  {
-    "id": "inferno-client-allow",
-    "link": [
-      {
+{
+  "resourceType": "Bundle",
+  "type": "transaction",
+  "entry": [
+    {
+      "fullUrl": "Client/inferno-patient-smart-app",
+      "request": {
+        "method": "PUT",
+        "url": "Client/inferno-patient-smart-app"
+      },
+      "resource": {
+        "resourceType": "Client",
         "id": "inferno-patient-smart-app",
-        "resourceType": "Client"
+        "type": "smart-app",
+        "active": true,
+        "grant_types": [
+          "authorization_code",
+          "basic"
+        ],
+        "auth": {
+          "authorization_code": {
+            "pkce": true,
+            "redirect_uri": "https://inferno.healthit.gov/suites/custom/smart/redirect",
+            "refresh_token": true,
+            "token_format": "jwt",
+            "access_token_expiration": 300
+          }
+        },
+        "smart": {
+          "launch_uri": "https://inferno.healthit.gov/suites/custom/smart/launch"
+        },
+        "secret": "verysecret"
       }
-    ],
-    "engine": "allow",
-    "resourceType": "AccessPolicy"
-  }
-]
+    },
+    {
+      "fullUrl": "AccessPolicy/inferno-client-allow",
+      "request": {
+        "method": "PUT",
+        "url": "AccessPolicy/inferno-client-allow"
+      },
+      "resource": {
+        "resourceType": "AccessPolicy",
+        "id": "inferno-client-allow",
+        "engine": "allow",
+        "link": [
+          {
+            "reference": "Client/inferno-patient-smart-app"
+          }
+        ]
+      }
+    }
+  ]
+}
 ```
 
 ## Create Inferno test session

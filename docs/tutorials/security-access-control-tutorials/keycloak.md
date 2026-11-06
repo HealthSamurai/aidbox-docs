@@ -37,7 +37,7 @@ description: This guide shows how to set-up Keycloak identity provider with Aidb
 * Open REST console in AidboxUI and create IdentityProvider resource
 
 ```yaml
-POST /IdentityProvider
+POST /fhir/IdentityProvider
 
 scopes:
   - profile

@@ -18,23 +18,23 @@ You may send `X-Correlation-Id` header and Aidbox will propagate it to `w/req` &
 ```yaml
 # without X-Correlation-Id
 
-GET /Patient
+GET /fhir/Patient
 
 # in logs
 
-{"ev": "w/req", "w_url": "/Patient", "w_m": "get", ...}
-{"ev": "w/resp", "w_url": "/Patient", "w_m": "get", "w_st": 200, ...}
+{"ev": "w/req", "w_url": "/fhir/Patient", "w_m": "get", ...}
+{"ev": "w/resp", "w_url": "/fhir/Patient", "w_m": "get", "w_st": 200, ...}
 
 
 # with X-Correlation-Id
 
-POST /Patient
-X-Correlation-Id: some-uuid
+GET /fhir/Patient
+X-Correlation-Id: my-corr-id
 
 # in logs
 
-{"ev": "w/req", "w_url": "/Patient", "w_m": "get", "w_corr_id": "my-corr-id", ...}
-{"ev": "w/resp", "w_url": "/Patient", "w_m": "get", "w_st": 200, "w_corr_id": "my-corr-id", ...}
+{"ev": "w/req", "w_url": "/fhir/Patient", "w_m": "get", "w_corr_id": "my-corr-id", ...}
+{"ev": "w/resp", "w_url": "/fhir/Patient", "w_m": "get", "w_st": 200, "w_corr_id": "my-corr-id", ...}
 ```
 
 ## X-Audit-Req-Body
@@ -46,44 +46,44 @@ In case you want Aidbox to log request body (for example, [FHIR Search over POST
 ```yaml
 # without X-Audit-Req-Body
 
-POST /Patient/_search
+POST /fhir/Patient/_search
 Content-Type: application/x-www-form-urlencoded
 
 name=John
 
 # in logs
 
-{"ev": "w/req", "w_url": "/Patient/_search", "w_m": "post", ...}
-{"ev": "w/resp", "w_url": "/Patient/_search", "w_m": "post", "w_st": 200, ...}
+{"ev": "w/req", "w_url": "/fhir/Patient/_search", "w_m": "post", ...}
+{"ev": "w/resp", "w_url": "/fhir/Patient/_search", "w_m": "post", "w_st": 200, ...}
 
 
 # with X-Audit-Req-Body
 
-POST /Patient/_search
+POST /fhir/Patient/_search
 Content-Type: application/x-www-form-urlencoded
 X-Audit-Req-Body: true
 
 name=John
 
 # in logs
-{"ev": "w/req", "w_url": "/Patient/_search", "w_m": "post", "w_b": "{\"name\":\"John\"}", ...}
-{"ev": "w/resp", "w_url": "/Patient/_search", "w_m": "post", "w_st": 200, ...}
+{"ev": "w/req", "w_url": "/fhir/Patient/_search", "w_m": "post", "w_b": "{\"name\":\"John\"}", ...}
+{"ev": "w/resp", "w_url": "/fhir/Patient/_search", "w_m": "post", "w_st": 200, ...}
 ```
 
 ## X-Audit Header
 
-If you want to add custom data to logs, you can use `X-Audit` header in the format `base64(json)` — all properties from this json will be merged with `w/req` and `w/resp` events.
+If you want to add custom data to logs, you can use `X-Audit` header in the format `base64(json)`. Aidbox adds this JSON to `w/req` and `w/resp` events as the `w_audit` field.
 
 ```yaml
-POST /Operation
+POST /fhir/Patient
 X-Audit: eyJyb2xlIjogIm51cnNlIn0=
 # base64({"role": "nurse"})
 
 ...body
 
 # in logs
-{ev: 'w/req', role: 'nurse', ...}
-{ev: 'w/resp', role: 'nurse', ...}
+{ev: 'w/req', w_audit: {role: 'nurse'}, ...}
+{ev: 'w/resp', w_audit: {role: 'nurse'}, ...}
 ```
 
 ## $loggy Endpoint

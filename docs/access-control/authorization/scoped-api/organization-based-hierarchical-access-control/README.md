@@ -481,7 +481,7 @@ GET <AIDBOX_BASE_URL>/Organization/<org-id>/fhir/metadata
 To use `$query` endpoint under organization-based hierarchical access control, it is necessary to create explicitly `organization` param in `AidboxQuery`.
 
 ```yaml
-PUT /AidboxQuery/<query-name>
+PUT /fhir/AidboxQuery/<query-name>
 
 params:
   organization:

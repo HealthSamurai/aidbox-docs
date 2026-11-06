@@ -153,7 +153,7 @@ It is a good idea to perform this flow in the `Incognito mode` (Chrome) or `Priv
 
 ### 1. Register an application with a custom URL schema
 
-<pre class="language-yaml"><code class="lang-yaml">PUT /Client/for-refresh-token
+<pre class="language-yaml"><code class="lang-yaml">PUT /fhir/Client/for-refresh-token
 content-type: text/yaml
 
 id: for-refresh-token

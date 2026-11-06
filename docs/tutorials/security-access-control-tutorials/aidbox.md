@@ -22,7 +22,7 @@ In this guide Identity Provider Aidbox URL is `https://provider.example.com`
 Client Aidbox instance will use these Client to access Provider instance when authenticating users
 
 ```http
-PUT /Client/local-client
+PUT /fhir/Client/local-client
 Content-Type: text/yaml
 Accept: text/yaml
 
@@ -52,7 +52,7 @@ In this guide Client Aidbox URL is `https://client.example.com`
 `IdentityProvider` resource defies external authentication server
 
 ```http
-PUT /IdentityProvider/global-provider
+PUT /fhir/IdentityProvider/global-provider
 Accept: text/yaml
 Content-Type: text/yaml
 

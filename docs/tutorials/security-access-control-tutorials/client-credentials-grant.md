@@ -22,7 +22,7 @@ The easiest way to test Client Credentials Grant flow is to run through the [Aid
 
 To start using this flow, you have to create and configure a Client. The only required parameter is `secret` and you also have to enable this flow for the client by `grant_types: ['client_credentials']`
 
-<pre class="language-yaml"><code class="lang-yaml"><strong>PUT /Client/api-client
+<pre class="language-yaml"><code class="lang-yaml"><strong>PUT /fhir/Client/api-client
 </strong>Accept: text/yaml
 Content-Type: text/yaml
 
@@ -41,7 +41,7 @@ You can also configure token's format and expiration, as well refresh the token:
 | _auth.client\_credentials_**.refresh\_token\_expiration** | int (seconds) | refresh token expiration time from issued or last usage |
 
 ```yaml
-PUT /Client/api-client
+PUT /fhir/Client/api-client
 Accept: text/yaml
 Content-Type: text/yaml
 
@@ -61,7 +61,7 @@ auth:
 For SMART on FHIR backend services, create a Client with `type: smart-app` and list the allowed scopes:
 
 ```yaml
-PUT /Client/my-smart-client
+PUT /fhir/Client/my-smart-client
 Accept: text/yaml
 Content-Type: text/yaml
 
@@ -80,14 +80,13 @@ Only `system/` scopes are allowed for `client_credentials` grant. Scopes with `p
 Since by default new client has no access to any resources, you probably want to configure AccessPolicy for this specific client:
 
 ```yaml
-PUT /AccessPolicy/api-client
+PUT /fhir/AccessPolicy/api-client
 Accept: text/yaml
 Content-Type: text/yaml
 
 engine: allow
 link:
-  - id: api-client
-    resourceType: Client
+  - reference: Client/api-client
 ```
 
 ### Get Access Token
@@ -206,7 +205,7 @@ Authorization: Bearer ZjQyNGFhY2EtNTY2MS00NjVjLWEzYmEtMjIwYjFkNDI5Yjhi
 
 {% code fullWidth="false" %}
 ```bash
-curl -H 'Authorization: Bearer ZjQyNGFhY2EtNTY2MS00NjVjLWEzYmEtMjIwYjFkNDI5Yjhi' /Patient
+curl -H 'Authorization: Bearer ZjQyNGFhY2EtNTY2MS00NjVjLWEzYmEtMjIwYjFkNDI5Yjhi' /fhir/Patient
 ```
 {% endcode %}
 
@@ -242,13 +241,13 @@ status: 200
 
 ### Revoke Access Token (Close Session)
 
-Aidbox createsa  Session (resource) for each Access Token that can be closed with the special endpoint `DELETE /Session` with the token in the Authorization header:
+Aidbox creates a Session (resource) for each Access Token that can be closed with the special endpoint `DELETE /Session` with the token in the Authorization header:
 
 {% code title="close-session" %}
 ```yaml
-DELETE /fhir/Session
+DELETE /Session
 Authorization: Bearer ZjQyNGFhY2EtNTY2MS00NjVjLWEzYmEtMjIwYjFkNDI5Yjhi
 ```
 {% endcode %}
 
-Session is just a Resource, and you can inspect and manipulate sessions by standard Search & CRUD API, for exampl,e get all sessions - `GET /Session`
+Session is a resource, so you can inspect and manipulate sessions with the standard Search and CRUD API. For example, to get all sessions: `GET /fhir/Session`

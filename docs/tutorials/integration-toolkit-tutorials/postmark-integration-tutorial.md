@@ -24,7 +24,7 @@ You can find more about Postmark environment variables [here.](../../reference/e
 NotificationTemplate is a resource that stores the body of a mail message.
 
 ```yaml
-PUT /NotificationTemplate/notification-template-1
+PUT /fhir/NotificationTemplate/notification-template-1
 content-type: text/yaml
 accept: text/yaml
 
@@ -34,7 +34,7 @@ template: <b>Hello world! Mustache value from Notification.providerData.payload 
 ### Creating `Notification` resource
 
 ```yaml
-PUT /Notification/notification-1
+PUT /fhir/Notification/notification-1
 content-type: text/yaml
 accept: text/yaml
 

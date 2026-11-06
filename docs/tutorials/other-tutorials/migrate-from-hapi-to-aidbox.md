@@ -141,7 +141,7 @@ Interceptors that change data on the way in, apply business rules, or call other
 For example, a HAPI interceptor that tags new patients and assigns an MRN on create becomes a `$register` operation:
 
 ```yaml
-PUT /App/myorg.registration
+PUT /fhir/App/myorg.registration
 content-type: text/yaml
 
 resourceType: App

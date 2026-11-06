@@ -43,24 +43,41 @@ Let's create two patients and Observations for a first patient.
 
 {% code title="status: 200 OK" %}
 ```yaml
-PUT /
+POST /fhir
 content-type: text/yaml
 
-- id: pt-1
-  resourceType: Patient
-- id: pt-2
-  resourceType: Patient
-- id: obs-1
-  resourceType: Observation
-  status: registered
-  code:
-    coding:
-    - system: http://loinc.org
-      code: 15074-8
-      display: Glucose [Moles/volume] in Blood
-  subject:
+resourceType: Bundle
+type: transaction
+entry:
+- fullUrl: Patient/pt-1
+  request:
+    method: PUT
+    url: Patient/pt-1
+  resource:
     resourceType: Patient
     id: pt-1
+- fullUrl: Patient/pt-2
+  request:
+    method: PUT
+    url: Patient/pt-2
+  resource:
+    resourceType: Patient
+    id: pt-2
+- fullUrl: Observation/obs-1
+  request:
+    method: PUT
+    url: Observation/obs-1
+  resource:
+    resourceType: Observation
+    id: obs-1
+    status: registered
+    code:
+      coding:
+      - system: http://loinc.org
+        code: 15074-8
+        display: Glucose [Moles/volume] in Blood
+    subject:
+      reference: Patient/pt-1
 ```
 {% endcode %}
 

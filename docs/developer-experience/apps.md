@@ -12,7 +12,7 @@ An App is a standalone service that handles custom business logic. To enable thi
 
 To define the App, we should provide the app manifest.
 
-<pre class="language-yaml"><code class="lang-yaml"><strong>PUT /App/myorg.myapp
+<pre class="language-yaml"><code class="lang-yaml"><strong>PUT /fhir/App/myorg.myapp
 </strong>
 <strong>resourceType: App
 </strong>id: myorg.myapp
@@ -24,6 +24,10 @@ endpoint:
    secret: &#x3C;your-sercret>
 operations: &#x3C;Operations-definitions>
 </code></pre>
+
+{% hint style="info" %}
+To turn off the Aidbox format API, set `BOX_FHIR_AIDBOX_FORMAT_API_ENABLED` to `false`. See [Turn off the Aidbox format API](../api/rest-api/other/aidbox-and-fhir-formats.md#turn-off-the-aidbox-format-api).
+{% endhint %}
 
 ## App manifest structure
 

@@ -46,10 +46,14 @@ You can get Aidbox hosted in the cloud (Aidbox Sandbox or AWS) or get self-hoste
 
 Aidbox implements most of the [FHIR specification](https://www.hl7.org/fhir/) and supports all official versions of the standard. We designed Aidbox to be FHIR-compatible, but it uses its own framework. Besides FHIR, Aidbox offers many useful additions. The key differences are listed below:
 
-* Aidbox stores Resources in [Aidbox format](architecture.md#aidbox-and-fhir-formats), which is isomorphic to FHIR, but not the same.
-* Aidbox serves two sets of API: **Aidbox API** from "/" and **FHIR API** from "/fhir\*\*"\*\*. Aidbox API works with Aidbox format, and FHIR API works with FHIR format. When you interact with FHIR endpoints, Aidbox does on-the-fly conversion between these two formats.
+* Aidbox stores Resources in [Aidbox format](api/rest-api/other/aidbox-and-fhir-formats.md), which is isomorphic to FHIR, but not the same.
+* Aidbox serves two sets of API: **FHIR API** from `/fhir` and **Aidbox API** from `/`. FHIR API works with FHIR format, and Aidbox API works with Aidbox format. When you interact with FHIR endpoints, Aidbox does on-the-fly conversion between these two formats.
 * Aidbox offers **First-Class Extensions** and **Custom Resources**, which FHIR doesn't support, but these additions are very handy for designing real-world systems.
 * Aidbox uses [FHIR Schema](modules/profiling-and-validation/fhir-schema-validator/) for validation and profiling. The legacy Entity/Attribute and AidboxProfile framework has been replaced by FHIR StructureDefinitions and FHIR Schema.
+
+{% hint style="info" %}
+To turn off the Aidbox format API, set `BOX_FHIR_AIDBOX_FORMAT_API_ENABLED` to `false`. See [Turn off the Aidbox format API](api/rest-api/other/aidbox-and-fhir-formats.md#turn-off-the-aidbox-format-api).
+{% endhint %}
 
 ### Resources
 

@@ -25,7 +25,7 @@ The first step is to configure Client for Authorization Grant with `secret` and 
 {% tabs %}
 {% tab title="Secret" %}
 ```yaml
-PUT /Client/webapp
+PUT /fhir/Client/webapp
 Accept: text/yaml
 Content-Type: text/yaml
 
@@ -46,7 +46,7 @@ auth:
 
 {% tab title="PKCE" %}
 ```yaml
-PUT /Client/webapp
+PUT /fhir/Client/webapp
 Accept: text/yaml
 Content-Type: text/yaml
 
@@ -191,12 +191,12 @@ status: 200
 You can use access token in the Authorization header for Aidbox API calls:
 
 ```yaml
-GET /Patient
+GET /fhir/Patient
 Authorization: Bearer ZjQyNGFhY2EtNTY2MS00NjVjLWEzYmEtMjIwYjFkNDI5Yjhi
 ```
 
 ```bash
-curl -H 'Authorization: Bearer ZjQyNGFhY2EtNTY2MS00NjVjLWEzYmEtMjIwYjFkNDI5Yjhi' /Patient
+curl -H 'Authorization: Bearer ZjQyNGFhY2EtNTY2MS00NjVjLWEzYmEtMjIwYjFkNDI5Yjhi' /fhir/Patient
 ```
 
 ### Refresh Access Token
@@ -240,4 +240,4 @@ DELETE /Session
 Authorization: Bearer ZjQyNGFhY2EtNTY2MS00NjVjLWEzYmEtMjIwYjFkNDI5Yjhi
 ```
 
-Session is just a resource and you can inspect and manipulate sessions with standard Search & CRUD API. For example, use `GET /Session` to get all sessions.
+Session is a resource, so you can inspect and manipulate sessions with the standard Search and CRUD API. For example, use `GET /fhir/Session` to get all sessions.

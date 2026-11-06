@@ -70,7 +70,7 @@ It will generate static FHIR Client and the set of types for your FHIR package. 
      "resourceType": "AccessPolicy",
      "engine": "allow",
      "link": [
-       { "id": "my-client", "resourceType": "Client" }
+       { "reference": "Client/my-client" }
      ]
    }
    ```

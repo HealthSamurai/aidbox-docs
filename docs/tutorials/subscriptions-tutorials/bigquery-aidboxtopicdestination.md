@@ -282,7 +282,7 @@ The table **must** include an `is_deleted` column (`INT64 NOT NULL`). The module
 | `boolean` | `BOOL` |
 
 {% hint style="info" %}
-If unsure about types, materialize the ViewDefinition first, then check the SQL view column types: `SELECT column_name, data_type FROM information_schema.columns WHERE table_schema = 'sof' AND table_name = 'patient_flat'` via the Aidbox `/$sql` endpoint.
+If unsure about types, materialize the ViewDefinition first, then check the SQL view column types: `SELECT column_name, data_type FROM information_schema.columns WHERE table_schema = 'sof' AND table_name = 'patient_flat'` via the Aidbox `/fhir/$sql` endpoint.
 {% endhint %}
 
 ### Step 5: Configure Authentication

@@ -1,5 +1,5 @@
 ---
-description: Create new FHIR resources using POST request with optional custom ID support in Aidbox API.
+description: Create new FHIR resources using POST request with optional custom ID support.
 ---
 
 # Create
@@ -8,7 +8,7 @@ description: Create new FHIR resources using POST request with optional custom I
 POST [base]/fhir/[type]
 ```
 
-FHIR API [ignores](https://www.hl7.org/fhir/http.html#create) `id` in `POST` requests, but Aidbox API respects `id` inside the request body and creates a resource with a specific `id`. This decision was made because we didn't find any reasons to ignore it and to make Aidbox API be closer to the SQL `INSERT` query. As a result, a new response code `409 Conflict` appeared.
+The FHIR specification [says](https://www.hl7.org/fhir/http.html#create) to ignore `id` in `POST` requests. Aidbox respects `id` inside the request body and creates a resource with this `id`, which makes `create` closer to the SQL `INSERT` query. If a resource with this `id` already exists, Aidbox returns `409 Conflict`.
 
 | Response code | Text              | Description                                                                      |
 | ------------- | ----------------- | -------------------------------------------------------------------------------- |
@@ -35,7 +35,7 @@ This is one of the most basic interactions which gives an ability to create reso
 A successful response (`2xx`) also contains a created resource as a body and additional headers `Location`, `ETag`, `Last-Modified` which contain the full path to a resource (base url, resource type and id of a newly created resource), additionally information about version (vid) and modification time of that resource.
 
 ```yaml
-Location: [base]/[type]/[id]/_history/[vid]
+Location: [base]/fhir/[type]/[id]/_history/[vid]
 ETag: [vid]
 Last-Modified: [modification-datetime]
 ```
@@ -102,7 +102,7 @@ issue:
 {% endtabs %}
 
 {% hint style="info" %}
-Aidbox REST API doesn't ignore`id` and treats it as all other attributes in contrast to FHIR API. Read more about differences [here](../other/aidbox-and-fhir-formats.md).
+To turn off the Aidbox format API, set `BOX_FHIR_AIDBOX_FORMAT_API_ENABLED` to `false`. See [Turn off the Aidbox format API](../other/aidbox-and-fhir-formats.md#turn-off-the-aidbox-format-api).
 {% endhint %}
 
 ## Conditional Create

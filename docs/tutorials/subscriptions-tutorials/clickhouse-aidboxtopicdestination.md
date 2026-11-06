@@ -439,7 +439,7 @@ Both delivery modes provide:
 ### Status API
 
 ```http
-GET /AidboxTopicDestination/{id}/$status
+GET /fhir/AidboxTopicDestination/{id}/$status
 ```
 
 Returns current status for the destination.

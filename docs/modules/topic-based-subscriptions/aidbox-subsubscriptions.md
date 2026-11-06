@@ -26,7 +26,7 @@ See tutorial ["Subscribe to new Patient resource"](../../tutorials/subscriptions
 Your service can register subscription by POST **SubsSubscription** resource:
 
 ```yaml
-POST /SubsSubscription
+POST /fhir/SubsSubscription
 Accept: text/yaml
 Content-Type: text/yaml
 
@@ -111,12 +111,12 @@ Content-Type: application/json
 Results of all notifications are logged into **SubsNotification** resource:
 
 ```yaml
-GET /SubsNotification
+GET /fhir/SubsNotification
 Accept: text/yaml
 
 ---
 id: <unique-id>
-subscription: { id: 'myservice-subs', resourceType: SubsSubscription }
+subscription: {reference: SubsSubscription/myservice-subs}
 duration: 23 # hook duration in ms
 status: success # fail
 notification: <notification content>
@@ -202,7 +202,7 @@ response: ...
 You can subscribe one instance of Aidbox to notifications from another instance and replicate data between boxes by using `/subs/webhook/<source-id>` endpoint:
 
 ```yaml
-POST /SubsSubscription
+POST /fhir/SubsSubscription
 Accept: text/yaml
 Content-Type: text/yaml
 

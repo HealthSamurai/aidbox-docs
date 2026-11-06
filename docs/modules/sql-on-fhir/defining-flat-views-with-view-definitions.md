@@ -70,7 +70,7 @@ As ViewDefinition is a resource, it can be created via REST API. For example:
 {% tabs %}
 {% tab title="Request" %}
 ```yaml
-POST /ViewDefinition/
+POST /fhir/ViewDefinition
 
 name: patient_view
 resource: Patient

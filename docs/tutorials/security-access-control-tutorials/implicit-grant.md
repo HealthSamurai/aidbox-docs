@@ -53,7 +53,7 @@ After granting access the user is redirected to the redirect\_uri from the clien
 {% tabs %}
 {% tab title="Create client" %}
 ```yaml
-POST /Client
+POST /fhir/Client
 Accept: text/yaml
 Content-Type: text/yaml
 

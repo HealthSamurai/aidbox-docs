@@ -23,8 +23,8 @@ Aidbox TokenIntrospector supports two main types of tokens:
 See [TokenIntrospector schema](../../reference/system-resources-reference/core-module-resources.md#tokenintrospector).
 
 Example: 
-```
-PUT /TokenIntrospector/external-auth-server
+```yaml
+PUT /fhir/TokenIntrospector/external-auth-server
 content-type: text/yaml
 
 resourceType: TokenIntrospector

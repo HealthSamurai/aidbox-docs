@@ -151,7 +151,7 @@ This example allows an org-based user (created by `PUT /Organization/<org-id>/fh
 {% tabs %}
 {% tab title="Recommended way" %}
 ```http
-PUT /AccessPolicy/as-user-allow-org-patients
+PUT /fhir/AccessPolicy/as-user-allow-org-patients
 
 description: A user should be able to get every patient in their organization.
 engine: matcho
@@ -173,7 +173,7 @@ matcho:
 {% tab title="Correct Aidbox format is false" %}
 **We do not recommend setting** [**Correct Aidbox format**](../../reference/all-settings.md#fhir.validation.correct-aidbox-format) **to false.**
 
-<pre><code><strong>PUT /AccessPolicy/as-user-allow-org-patients
+<pre><code><strong>PUT /fhir/AccessPolicy/as-user-allow-org-patients
 </strong>
 description: A user should be able to get every patient in their organization.
 engine: matcho

@@ -7,7 +7,7 @@ description: Configure Basic Access Authentication in Aidbox to programmatically
 The simplest way to programmatically interact with Aidbox API is to use [Basic Access Authentication](https://tools.ietf.org/html/rfc7617). In this scheme you provide client credentials with every HTTP request in the special header - `Authorization: Basic <credentials>`, where `<credentials>` is the base64 encoding of Client.id and Client.secret joined by a colon:
 
 ```yaml
-GET /Patient
+GET /fhir/Patient
 Accept: text/yaml
 Authorization: Basic {base64(Client.id + ':' + Client.secret)}
 ```
@@ -57,22 +57,22 @@ Now you can make HTTP requests with `Authorization` header set to `'Basic ' + ba
 ```yaml
 GET /fhir/Patient
 Accept: text/yaml
-Authorization: Basic YmFzaWM6c2VjcmV0Cg==
+Authorization: Basic YmFzaWM6c2VjcmV0
 ```
 {% endcode %}
 
 Example with curl:
 
 ```bash
-curl -u basic:secret https://yourbox/Patient
-curl -H 'Authorization: Basic YmFzaWM6c2VjcmV0Cg==' https://yourbox/Patient
+curl -u basic:secret https://yourbox/fhir/Patient
+curl -H 'Authorization: Basic YmFzaWM6c2VjcmV0' https://yourbox/fhir/Patient
 ```
 
 Most HTTP clients will do `Authorization` header construction for you:
 
 {% code title="js-example" %}
 ```javascript
-axios.get('<box>/Patient', {
+axios.get('<box>/fhir/Patient', {
   auth: {
     username: client.id,
     password: client.secret
@@ -84,7 +84,7 @@ axios.get('<box>/Patient', {
 });
 
 // or you can always do it by manualy set headers
-fetch('<box>/Patient', {
+fetch('<box>/fhir/Patient', {
    headers: {"Authorization": 'Basic ' + btoa(client.id + ':' + client.secret)}
 }).then(resp) { ... }
 

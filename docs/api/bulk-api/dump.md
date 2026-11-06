@@ -291,7 +291,7 @@ curl -u bulk-client:secret $AIDBOX_BASE_URL/Patient/\$dump?fhir=true
 ```json
 {"id":"pt-1","meta":{"versionId":"481","lastUpdated":"2021-06-10T08:26:10.707454Z","extension":[{"url":"ex:createdAt","valueInstant":"2021-06-10T08:26:10.707454Z"}]},"name":[{"given":["Alice"]}],"resourceType":"Patient"}
 {"id":"pt-2","meta":{"versionId":"482","lastUpdated":"2021-06-10T08:26:10.707454Z","extension":[{"url":"ex:createdAt","valueInstant":"2021-06-10T08:26:10.707454Z"}]},"name":[{"given":["Bob"]}],"resourceType":"Patient"}
-{"id":"pt-3","meta":{"versionId":"483","lastUpdated":"2021-06-10T08:26:10.707454Z","extension":[{"url":"ex:createdAt","valueInstant":"2021-06-10T08:26:10.707454Z"}]},"name":[{"given":["Charles"]}],"citizenship":[{"code":{"text":"ru"}}],"resourceType":"Patient"}
+{"id":"pt-3","meta":{"versionId":"483","lastUpdated":"2021-06-10T08:26:10.707454Z","extension":[{"url":"ex:createdAt","valueInstant":"2021-06-10T08:26:10.707454Z"}]},"name":[{"given":["Charles"]}],"extension":[{"url":"http://hl7.org/fhir/StructureDefinition/patient-citizenship","extension":[{"url":"code","valueCodeableConcept":{"text":"ru"}}]}],"resourceType":"Patient"}
 ```
 
 **Body (manually formatted)**
@@ -358,11 +358,17 @@ curl -u bulk-client:secret $AIDBOX_BASE_URL/Patient/\$dump?fhir=true
       ]
     }
   ],
-  "citizenship": [
+  "extension": [
     {
-      "code": {
-        "text": "ru"
-      }
+      "url": "http://hl7.org/fhir/StructureDefinition/patient-citizenship",
+      "extension": [
+        {
+          "url": "code",
+          "valueCodeableConcept": {
+            "text": "ru"
+          }
+        }
+      ]
     }
   ],
   "resourceType": "Patient"

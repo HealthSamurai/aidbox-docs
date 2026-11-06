@@ -148,8 +148,8 @@ Aidbox uses the SHA256 hashing algorithm for fields such as:
 
 Upon first start after upgrading to 2410, Aidbox automatically hashes existing records in the database through a migration process. However, original values remain accessible in the resource's history tables:
 
-* `GET /Client/<id>/_history`
-* `GET /Session/<id>/_history`
+* `GET /fhir/Client/<id>/_history`
+* `GET /fhir/Session/<id>/_history`
 
 {% hint style="warning" %}
 It is strongly recommended to delete the history tables for the `Client` and `Session` resources to prevent access to the original un-hashed secret values.\\

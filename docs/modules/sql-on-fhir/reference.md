@@ -118,8 +118,7 @@ First observation:
 {
   ...
   subject: {
-    id: pt1,
-    resourceType: Patient
+    reference: Patient/pt1
   }
 }
 ```
@@ -130,8 +129,7 @@ Second observation:
 {
   ...
   subject: {
-    id: gr1,
-    resourceType: Group
+    reference: Group/gr1
   }
 }
 ```

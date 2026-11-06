@@ -99,7 +99,7 @@ id: 9ed444a3-8344-40f5-bba2-d9a5728e7471
 {% tabs %}
 {% tab title="Request" %}
 ```http
-GET AidboxArchive/08b0004b-e383-4c43-bacd-d05c5e2d1560
+GET /fhir/AidboxArchive/08b0004b-e383-4c43-bacd-d05c5e2d1560
 ```
 {% endtab %}
 
@@ -113,8 +113,10 @@ serviceAccount:
   resourceType: GcpServiceAccount
 meta:
   lastUpdated: '2023-01-11T10:28:16.545888Z'
-  createdAt: '2023-01-11T10:28:16.545888Z'
   versionId: '141'
+  extension:
+    - url: https://aidbox.app/ex/createdAt
+      valueInstant: '2023-01-11T10:28:16.545888Z'
 storageBackend: gcp
 resourceType: AidboxArchive
 id: >-

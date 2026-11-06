@@ -11,19 +11,26 @@ description: >-
 Create Client & AccessPolicy for your API agent - in our case curl
 
 ```yaml
-PUT /
+POST /fhir
 Accept: text/yaml
 Content-Type: text/yaml
 
-- resourceType: Client
-  id: bulk-client
-  secret: secret
-  grant_types: ['basic']
-- resourceType: AccessPolicy
-  id: bulk-client
-  engine: allow
-  link:
-  - {id: 'bulk-client', resourceType: 'Client'}
+resourceType: Bundle
+type: transaction
+entry:
+- request: {method: PUT, url: Client/bulk-client}
+  resource:
+    resourceType: Client
+    id: bulk-client
+    secret: secret
+    grant_types: ['basic']
+- request: {method: PUT, url: AccessPolicy/bulk-client}
+  resource:
+    resourceType: AccessPolicy
+    id: bulk-client
+    engine: allow
+    link:
+    - reference: Client/bulk-client
 ```
 
 Generate some number of patients using SQL - in DB Console:

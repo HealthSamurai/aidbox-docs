@@ -68,14 +68,13 @@ To avoid the need to label all resources displayed in the UI console, use the `s
 Create a `Role` resource with the name `superadmin` and reference to the User used to log in to the UI console before enabling Label-based Access Control.
 
 ```yaml
-POST /Role
+POST /fhir/Role
 content-type: text/yaml
 accept: text/yaml
 
 name: superadmin
 user:
-  id: <user-id>
-  resourceType: User
+  reference: User/<user-id>
 ```
 
 ## Ensure the security labels access control works
@@ -85,7 +84,7 @@ user:
 To make Aidbox trust `JWT` issued by external server token introspection is used, run the following request in the [REST Console](../../overview/aidbox-ui/README.md).
 
 ```yaml
-PUT /TokenIntrospector/security-labels-demo-client
+PUT /fhir/TokenIntrospector/security-labels-demo-client
 content-type: text/yaml
 
 resourceType: TokenIntrospector
@@ -107,16 +106,14 @@ This access policy allows `FhirRead` and `FhirSearch` operations for requesters 
 To create the access policy, run the following request in the REST Console.
 
 ```yaml
-PUT /AccessPolicy/as-security-labels-demo-client-do-read-search
+PUT /fhir/AccessPolicy/as-security-labels-demo-client-do-read-search
 content-type: text/yaml
 
 resourceType: AccessPolicy
 id: as-security-labels-demo-client-do-read-search
 link:
-- resourceType: Operation
-  id: FhirRead
-- resourceType: Operation
-  id: FhirSearch
+- reference: Operation/FhirRead
+- reference: Operation/FhirSearch
 engine: matcho
 matcho:
   jwt:

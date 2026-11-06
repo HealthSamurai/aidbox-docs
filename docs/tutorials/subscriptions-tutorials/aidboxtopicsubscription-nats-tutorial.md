@@ -694,7 +694,7 @@ If you are using `nats-jetstream-at-least-once` delivery, the at-least-once guar
 To update a topic, use a standard `PUT` request:
 
 ```http
-PUT /AidboxSubscriptionTopic/your-topic-id
+PUT /fhir/AidboxSubscriptionTopic/your-topic-id
 Content-Type: application/json
 
 {

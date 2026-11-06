@@ -34,7 +34,7 @@ Client shall be [Authorization Code Grant](../../../authentication/oauth-2-0.md)
 {% tabs %}
 {% tab title="Public" %}
 ```json
-PUT /Client/my-public-smart-app-client-id
+PUT /fhir/Client/my-public-smart-app-client-id
 content-type: application/json
 accept: application/json
 
@@ -68,7 +68,7 @@ accept: application/json
 
 {% tab title="Confidential" %}
 ```json
-PUT /Client/my-confidential-smart-app-client-id
+PUT /fhir/Client/my-confidential-smart-app-client-id
 content-type: application/json
 accept: application/json
 
@@ -106,7 +106,7 @@ accept: application/json
 ## Create AccessPolicy
 
 ```json
-PUT /AccessPolicy/my-confidential-smart-app-client-id
+PUT /fhir/AccessPolicy/my-smart-app-client-id-allow
 content-type: application/json
 accept: application/json
 
@@ -115,8 +115,7 @@ accept: application/json
   "id": "my-smart-app-client-id-allow",
   "engine": "allow",
   "link": [{
-    "id": "my-public-smart-app-client-id",
-    "resourceType": "Client"
+    "reference": "Client/my-public-smart-app-client-id"
   }]
 }
 ```

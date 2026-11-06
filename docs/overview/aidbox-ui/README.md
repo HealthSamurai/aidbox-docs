@@ -25,6 +25,10 @@ Some resource types have specialized views:
 
 An interactive HTTP client built into Aidbox. Use it to execute REST API requests, inspect responses, and build collections of saved queries.
 
+{% hint style="info" %}
+To turn off the Aidbox format API, set `BOX_FHIR_AIDBOX_FORMAT_API_ENABLED` to `false`. See [Turn off the Aidbox format API](../../api/rest-api/other/aidbox-and-fhir-formats.md#turn-off-the-aidbox-format-api).
+{% endhint %}
+
 <video src="../../../assets/overview/aidbox-ui/rest-4k.mp4" autoplay loop muted playsinline controls class="w-full rounded-lg" loading="lazy"></video>
 
 ### SQL Console

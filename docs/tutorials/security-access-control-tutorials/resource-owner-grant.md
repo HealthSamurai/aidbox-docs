@@ -104,7 +104,7 @@ Authorization: Bearer ZjQyNGFhY2EtNTY2MS00NjVjLWEzYmEtMjIwYjFkNDI5Yjhi
 {% endcode %}
 
 ```bash
-curl -H 'Authorization: Bearer ZjQyNGFhY2EtNTY2MS00NjVjLWEzYmEtMjIwYjFkNDI5Yjhi' /Patient
+curl -H 'Authorization: Bearer ZjQyNGFhY2EtNTY2MS00NjVjLWEzYmEtMjIwYjFkNDI5Yjhi' /fhir/Patient
 ```
 
 ### Revoke Access Token (Close Session)
@@ -118,4 +118,4 @@ Authorization: Bearer ZjQyNGFhY2EtNTY2MS00NjVjLWEzYmEtMjIwYjFkNDI5Yjhi
 ```
 {% endcode %}
 
-Session is just a Resource and you can inspect and manipulate sessions by a standard Search & CRUD API. For example, to get all sessions: `GET /Session`
+Session is a resource, so you can inspect and manipulate sessions with the standard Search and CRUD API. For example, to get all sessions: `GET /fhir/Session`

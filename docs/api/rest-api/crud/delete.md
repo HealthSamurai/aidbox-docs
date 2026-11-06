@@ -4,8 +4,8 @@ description: Remove FHIR resources using DELETE request with ETag support and co
 
 # Delete
 
-```
-DELETE [base]/[type]/[id]
+```http
+DELETE [base]/fhir/[type]/[id]
 ```
 
 Responds with `200 OK` on the successful deletion, but when removing a resource deleted earlier, responds with `204 No Content` (conforming FHIR specification). This feature was added to make deletion work the same way as in SQL `DELETE RETURNING *`.
@@ -26,8 +26,8 @@ Delete of non-existing resource will return 204 status and no body. Read [this t
 
 ## delete
 
-```
-DELETE [base]/[type]/[id]
+```http
+DELETE [base]/fhir/[type]/[id]
 ```
 
 This interaction deletes a resource, responds with `200 OK` on the successful deletion, but when removing an already deleted resource, it responds with `204 No Content`.
@@ -44,7 +44,7 @@ Delete a patient by id:
 {% tabs %}
 {% tab title="Request" %}
 ```http
-DELETE /Patient/tom-id
+DELETE /fhir/Patient/tom-id
 ```
 {% endtab %}
 
@@ -71,7 +71,7 @@ Attempt to delete an already deleted resource:
 {% tabs %}
 {% tab title="Request" %}
 ```http
-DELETE /Patient/tom-id
+DELETE /fhir/Patient/tom-id
 ```
 {% endtab %}
 
@@ -83,8 +83,8 @@ DELETE /Patient/tom-id
 
 ## Conditional delete
 
-```
-DELETE [base]/[type]?[search parameters]
+```http
+DELETE [base]/fhir/[type]?[search parameters]
 ```
 
 Depending on the number of resources meeting the search criteria, different actions will be performed and response codes will be returned:
