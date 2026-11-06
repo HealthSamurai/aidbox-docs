@@ -97,7 +97,11 @@ Content-Type: application/json
 }
 ```
 
+<details>
+
+<summary>Response</summary>
+
 `202 Accepted` means the module accepted the change for delivery; the [current state](#check-the-current-state) shows the result.
 If you repeat the request while the change is pending, the module returns `202 Accepted` again without a second message.
 
-If the pharmacy already has these RxFill preferences and no change is pending, the module sends nothing and returns `200 OK`.
+</details>
