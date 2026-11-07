@@ -2396,7 +2396,7 @@ Logs settings
 BOX_OBSERVABILITY_DISABLE_HEALTH_LOGS: false
 ```
 
-Disable `/health` endpoint requests logging. Default value is `false`
+Disable `/health` endpoint requests logging and trace export. Default value is `false`
 
 <details><summary>Details</summary><table data-header-hidden="true"><thead><tr><th width="200"></th><th></th></tr></thead><tbody><tr><td>ID</td><td><code>observability.disable-health-logs</code></td></tr><tr><td>Type</td><td>Bool</td></tr><tr><td>Default value</td><td><code>false</code></td></tr><tr><td>Environment variable</td><td><code>BOX_OBSERVABILITY_DISABLE_HEALTH_LOGS</code></td></tr><tr><td>Deprecated environment variables</td><td><code>BOX_LOGGING_DISABLE__HEALTH__LOGS</code></td></tr><tr><td>Sensitive</td><td><code>false</code> — value will be visible in plaintext in Admin UI</td></tr><tr><td>Set via</td><td>Admin UI → Settings<br />Environment variables</td></tr><tr><td>Hot reload</td><td><code>true</code> — setting can be changed at runtime</td></tr></tbody></table></details>
 
