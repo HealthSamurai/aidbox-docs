@@ -4,8 +4,8 @@ description: Retrieve the log of controlled prescriptions a practitioner signed 
 
 # Practitioner Log
 
-The practitioner log lists the controlled prescriptions one practitioner signed during a period, with the [NewRx](../prescribing/newrx-message.md) and [CancelRx](../prescribing/cancelrx-message.md) outcome of each one.
-It provides the log of a requested period that [21 CFR 1311.120(b)(27)](https://www.ecfr.gov/current/title-21/section-1311.120) describes.
+The practitioner log lists the controlled prescriptions one practitioner signed during a period, one entry per prescription, with the [NewRx](../prescribing/newrx-message.md) and [CancelRx](../prescribing/cancelrx-message.md) outcome of each one.
+[21 CFR 1311.120(b)(27)](https://www.ecfr.gov/current/title-21/section-1311.120) requires an EPCS application to generate this log for a period the practitioner requests.
 
 ```http
 GET /e-prescription/audit/practitioner-log/<Practitioner id>?from=2026-05-01&to=2026-05-31
@@ -15,14 +15,13 @@ Query parameters:
 
 * `from` and `to` (required): the first and the last day of the period, as ISO dates. The period includes both days.
 * `format=csv`: returns the log as CSV instead of JSON.
-* `refresh=true`: builds the log again, see [Archives and Refresh](#archives-and-refresh).
+* `refresh=true`: builds the log again (see [Archives and Refresh](#archives-and-refresh)).
 
-The log has one entry for each controlled prescription the practitioner signed in the period.
 The module places a prescription in the period by its signing date in UTC, so a prescription written in April and signed in May belongs to May.
 
-## Values From Signing Time
+## Values Saved at Signing
 
-Each entry shows these values as the practitioner signed them:
+When the practitioner signs a controlled prescription, the module saves these values, and the log shows them:
 
 * patient name
 * drug name
@@ -30,10 +29,9 @@ Each entry shows these values as the practitioner signed them:
 * location address
 * dispensing pharmacy name
 
-The module saves these values when the practitioner signs the prescription, and the log reads them from that record.
-A later change to the `Patient`, `MedicationRequest`, `Location`, or pharmacy `Organization` does not change the log.
+A later change to the `Patient`, `Medication`, `MedicationRequest`, `Location`, or pharmacy `Organization` does not change the log.
 
-The transmission, callback, timeout, and cancellation statuses come from the prescription's activity after signing, so a [refreshed](#archives-and-refresh) log can show newer statuses.
+The transmission, callback, timeout, and cancellation statuses come from the prescription's NewRx and CancelRx messages after signing, so a [refreshed](#archives-and-refresh) log can show newer statuses.
 
 ## JSON Response
 
@@ -84,21 +82,22 @@ The transmission, callback, timeout, and cancellation statuses come from the pre
 }
 ```
 
-`metadata` describes the log: when the module built it, for which practitioner and period, and the fingerprints it compares on [refresh](#archives-and-refresh).
+`metadata` says when the module built the log and for which practitioner and period.
+`auditEvents` counts and fingerprints the `AuditEvent` resources the log reads, and `snapshotDataFingerprint` fingerprints those events together with the values saved at signing.
 
 The module sorts `entries` by patient name, then drug name, then issue date. Each entry holds:
 
 * `medicationRequestId`: the signed `MedicationRequest`.
-* `patient`: the `Patient` id and the signed patient name, as "Family Given".
-* `medication.name`: the signed drug name.
-* `quantity`: the signed dispense quantity.
+* `patient`: the `Patient` id and the patient name at signing, as "Family Given".
+* `medication.name`: the drug name at signing.
+* `quantity`: the dispense quantity at signing.
 * `deaSchedule`: the DEA schedule of the signed prescription.
 * `issueDate`: the signing date in UTC.
 * `signedAt`: the signing time.
 * `selectedDeaNumber`: the DEA number the practitioner signed under.
 * `practitioner` and `practitionerRole`: the ids of the signing `Practitioner` and `PractitionerRole`.
-* `location`: the `Location` id and the signed location address.
-* `pharmacy`: the pharmacy `Organization` id and the signed pharmacy name.
+* `location`: the `Location` id and the location address at signing.
+* `pharmacy`: the pharmacy `Organization` id and the pharmacy name at signing.
 * `transmissionStatus`, `callbackStatus`, and `timeoutStatus`: the latest NewRx statuses.
 * `cancellationStatus`: the latest CancelRx status.
 * `reconciliationIdentifiers`: the `prescriberOrderNumber` and `surescriptsMessageId` of the NewRx, to match the entry with Surescripts records.
@@ -114,9 +113,14 @@ Patient,Drug Name,Issue Date,Signed Time,DEA Schedule,Quantity,Selected DEA Numb
 Carter Alice,Adderall 10 MG Oral Tablet,2026-05-08,2026-05-08T16:42:03Z,II,60 Tablet C48542,BJ1234563,prole-987,loc-55,Springfield Community Pharmacy,active,completed,,,PON-2026-000812,f47ac10b-58cc-4372-a567-0e02b2c3d479,med-req-7a1c
 ```
 
-`Practitioner Role` and `Location` hold ids, and `Pharmacy` holds the signed pharmacy name.
+Some columns hold one part of an entry field:
 
-The `metadata` comes in response headers:
+* `Patient`: the patient name
+* `Quantity`: the value, unit, and unit code of the dispense quantity
+* `Practitioner Role` and `Location`: the ids
+* `Pharmacy`: the pharmacy name
+
+The response headers carry the `metadata` fields:
 
 * `X-Practitioner-Log-Generated-At`: `generatedAt`
 * `X-Practitioner-Log-Generator-Version`: `generatorVersion`
@@ -135,12 +139,15 @@ Later requests for the same practitioner and period return the archived log unch
 An archive is a `DocumentReference` with the type code `practitioner-log`, whose attachment points to a `Binary` that holds the log JSON.
 The module keeps every archive and never changes one.
 
-With `refresh=true`, the module builds the log again and compares it with the newest archive:
+With `refresh=true`, the module builds the log again and compares its `snapshotDataFingerprint` with the newest archive's.
+It archives and returns the new log when either is true:
 
-* when the module recorded a new `AuditEvent` for a prescription in the log, or the practitioner signed another prescription in the period, it archives the new log and returns it
-* otherwise, it returns the newest archive
+* the practitioner signed another controlled prescription in the period
+* the module recorded a new `AuditEvent` for a prescription in the log
 
-A change to a `Patient`, `MedicationRequest`, `Location`, or pharmacy `Organization` after signing does not add an archive, because the log shows the [values from signing time](#values-from-signing-time).
+Otherwise, it returns the newest archive.
+
+The log shows the [values saved at signing](#values-saved-at-signing), so a change to a `Patient`, `Medication`, `MedicationRequest`, `Location`, or pharmacy `Organization` after signing does not add an archive.
 
 <details>
 
