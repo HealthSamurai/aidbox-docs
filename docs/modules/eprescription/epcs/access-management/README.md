@@ -32,11 +32,15 @@ For both steps, the module checks that:
   * `period.end` in the future (required)
 * the acting user holds the EPCS prescribing permission at that `Location`
 
-The module returns:
+<details>
 
-* `401` if the request has no acting user
-* `401` if the acting user is not a stored `User`
-* `403` if the request fails any other check
+<summary>Error Responses</summary>
+
+* `401`: the request has no acting user.
+* `401`: the acting user is not a stored `User`.
+* `403`: the request fails any other check.
+
+</details>
 
 Signing runs these checks again, so if the permission is revoked after the prescriber marks the prescription ready, signing returns `403`.
 
