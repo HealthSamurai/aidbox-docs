@@ -15,6 +15,35 @@ The ePrescription module lets each location appoint its own **access managers** 
 
 Each role and permission applies to an Aidbox `User` at a `Location`.
 
+## Prescribing Controlled Substances
+
+Only the prescriber of a controlled prescription can mark it ready to sign and sign it, and only while they hold the EPCS prescribing permission at the prescription's location.
+For both steps, the module checks that:
+
+* the request has an [acting user](configure-access-policies.md#acting-user)
+* the prescriber's `PractitionerRole` references a `Location` that has:
+  * `status` set to `active`, or no `status`
+  * a tag with the system `urn:app:aidbox:e-prescriptions:surescripts:providerDirectory`
+* `User.fhirUser` of the acting user references the `Practitioner` of that `PractitionerRole`
+* that `Practitioner` does not have `active` set to `false`
+* the `PractitionerRole` has:
+  * `active` set to `true`
+  * `period.start` in the past (required)
+  * `period.end` in the future (required)
+* the acting user holds the EPCS prescribing permission at that `Location`
+
+<details>
+
+<summary>Error Responses</summary>
+
+* `401`: the request has no acting user.
+* `401`: the acting user is not a stored `User`.
+* `403`: the request fails any other check.
+
+</details>
+
+Signing runs these checks again, so if the permission is revoked after the prescriber marks the prescription ready, signing returns `403`.
+
 ## Operations
 
 The Aidbox App exposes the operations under `/e-prescription/access/epcs`:
