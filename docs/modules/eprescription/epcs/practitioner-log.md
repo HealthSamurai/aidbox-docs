@@ -4,7 +4,8 @@ description: Retrieve the log of controlled prescriptions a practitioner signed 
 
 # Practitioner Log
 
-The practitioner log lists the controlled prescriptions one practitioner signed during a period, one entry per prescription, with the [NewRx](../prescribing/newrx-message.md) and [CancelRx](../prescribing/cancelrx-message.md) outcome of each one.
+The **practitioner log** lists the controlled prescriptions one practitioner signed during a period, one entry per prescription.
+Each entry also shows the latest [NewRx](../prescribing/newrx-message.md) and [CancelRx](../prescribing/cancelrx-message.md) statuses of its prescription.
 [21 CFR 1311.120(b)(27)](https://www.ecfr.gov/current/title-21/section-1311.120) requires an EPCS application to generate this log for a period the practitioner requests.
 
 ```http
@@ -13,7 +14,7 @@ GET /e-prescription/audit/practitioner-log/<Practitioner id>?from=2026-05-01&to=
 
 Query parameters:
 
-* `from` and `to` (required): the first and the last day of the period, as ISO dates. The period includes both days.
+* `from` and `to` (required): the first and the last day of the period, as ISO dates.
 * `format=csv`: returns the log as CSV instead of JSON.
 * `refresh=true`: builds the log again (see [Archives and Refresh](#archives-and-refresh)).
 
@@ -83,11 +84,13 @@ The transmission, callback, timeout, and cancellation statuses come from the pre
 ```
 
 `metadata` says when the module built the log and for which practitioner and period.
-`auditEvents` counts and fingerprints the `AuditEvent` resources the log reads, and `snapshotDataFingerprint` fingerprints those events together with the values saved at signing.
+`auditEvents` counts and fingerprints the `AuditEvent` resources the log reads.
+`snapshotDataFingerprint` fingerprints those events together with the values saved at signing.
 
-The module sorts `entries` by patient name, then drug name, then issue date. Each entry holds:
+The module sorts `entries` by patient name, then drug name, then issue date.
+Each entry holds:
 
-* `medicationRequestId`: the signed `MedicationRequest`.
+* `medicationRequestId`: the id of the signed `MedicationRequest`.
 * `patient`: the `Patient` id and the patient name at signing, as "Family Given".
 * `medication.name`: the drug name at signing.
 * `quantity`: the dispense quantity at signing.
@@ -113,7 +116,7 @@ Patient,Drug Name,Issue Date,Signed Time,DEA Schedule,Quantity,Selected DEA Numb
 Carter Alice,Adderall 10 MG Oral Tablet,2026-05-08,2026-05-08T16:42:03Z,II,60 Tablet C48542,BJ1234563,prole-987,loc-55,Springfield Community Pharmacy,active,completed,,,PON-2026-000812,f47ac10b-58cc-4372-a567-0e02b2c3d479,med-req-7a1c
 ```
 
-Some columns hold one part of an entry field:
+Some columns hold only part of an entry field:
 
 * `Patient`: the patient name
 * `Quantity`: the value, unit, and unit code of the dispense quantity
@@ -134,18 +137,19 @@ The response headers carry the `metadata` fields:
 ## Archives and Refresh
 
 The first request for a practitioner and period builds the log and archives it.
-Later requests for the same practitioner and period return the archived log unchanged, in JSON or CSV.
+Later requests for the same practitioner and period return the log from the newest archive unchanged, in JSON or CSV.
 
 An archive is a `DocumentReference` with the type code `practitioner-log`, whose attachment points to a `Binary` that holds the log JSON.
 The module keeps every archive and never changes one.
 
-With `refresh=true`, the module builds the log again and compares its `snapshotDataFingerprint` with the newest archive's.
-It archives and returns the new log when either is true:
+With `refresh=true`, the module builds the log again.
+It archives and returns the new log when its `snapshotDataFingerprint` differs from the newest archive's.
+The fingerprint changes when either is true:
 
 * the practitioner signed another controlled prescription in the period
 * the module recorded a new `AuditEvent` for a prescription in the log
 
-Otherwise, it returns the newest archive.
+Otherwise, it returns the log from the newest archive.
 
 The log shows the [values saved at signing](#values-saved-at-signing), so a change to a `Patient`, `Medication`, `MedicationRequest`, `Location`, or pharmacy `Organization` after signing does not add an archive.
 
@@ -153,8 +157,8 @@ The log shows the [values saved at signing](#values-saved-at-signing), so a chan
 
 <summary>Error Responses</summary>
 
-* `400` when `from` or `to` is missing
-* `422` when any of these is true:
+* `400`: `from` or `to` is missing.
+* `422`: any of these is true:
   * `from` or `to` is not an ISO date
   * `from` is after `to`
   * `format` has a value other than `csv`
