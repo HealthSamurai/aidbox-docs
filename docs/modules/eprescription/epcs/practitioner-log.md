@@ -146,8 +146,8 @@ A change to a `Patient`, `MedicationRequest`, `Location`, or pharmacy `Organizat
 
 <summary>Error Responses</summary>
 
+* `400` when `from` or `to` is missing
 * `422` when any of these is true:
-  * `from` or `to` is missing
   * `from` or `to` is not an ISO date
   * `from` is after `to`
   * `format` has a value other than `csv`
