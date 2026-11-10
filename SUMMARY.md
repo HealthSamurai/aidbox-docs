@@ -445,6 +445,7 @@
       * [List Permissions](modules/eprescription/epcs/access-management/list-permissions.md)
       * [Access-Change Requests](modules/eprescription/epcs/access-management/access-change-requests.md)
       * [Location Compliance Status](modules/eprescription/epcs/access-management/location-compliance-status.md)
+    * [Practitioner Log](modules/eprescription/epcs/practitioner-log.md)
   * [Directory](modules/eprescription/directory/README.md)
     * [DirectoryDownload Message](modules/eprescription/directory/directorydownload-message.md)
     * [GetProviderLocation Message](modules/eprescription/directory/getproviderlocation-message.md)
