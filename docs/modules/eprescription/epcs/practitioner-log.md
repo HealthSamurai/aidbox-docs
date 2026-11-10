@@ -20,14 +20,14 @@ Query parameters:
 
 The module places a prescription in the period by its signing date in UTC, so a prescription written in April and signed in May belongs to May.
 
-## Values Saved at Signing
+## Issued Values
 
-When the practitioner signs a controlled prescription, the module saves these values, and the log shows them:
+When the practitioner signs a controlled prescription, the module saves its **issued values**, and the log shows them:
 
 * patient name
 * drug name
 * dispense quantity
-* location address
+* address of the prescribing location
 * dispensing pharmacy name
 
 A later change to the `Patient`, `Medication`, `MedicationRequest`, `Location`, or pharmacy `Organization` does not change the log.
@@ -85,7 +85,7 @@ The transmission, callback, timeout, and cancellation statuses come from the pre
 
 `metadata` says when the module built the log and for which practitioner and period.
 `auditEvents` counts and fingerprints the `AuditEvent` resources the log reads.
-`snapshotDataFingerprint` fingerprints those events together with the values saved at signing.
+`snapshotDataFingerprint` fingerprints those events together with the issued values.
 
 The module sorts `entries` by patient name, then drug name, then issue date.
 Each entry holds:
@@ -142,16 +142,17 @@ Later requests for the same practitioner and period return the log from the newe
 An archive is a `DocumentReference` with the type code `practitioner-log`, whose attachment points to a `Binary` that holds the log JSON.
 The module keeps every archive and never changes one.
 
-With `refresh=true`, the module builds the log again.
-It archives and returns the new log when its `snapshotDataFingerprint` differs from the newest archive's.
+With `refresh=true`, the module builds the log again and compares its `snapshotDataFingerprint` with the newest archive's:
+
+* The fingerprints differ: the module archives the new log and returns it.
+* The fingerprints match: the module returns the log from the newest archive.
+
 The fingerprint changes when either is true:
 
 * the practitioner signed another controlled prescription in the period
 * the module recorded a new `AuditEvent` for a prescription in the log
 
-Otherwise, it returns the log from the newest archive.
-
-The log shows the [values saved at signing](#values-saved-at-signing), so a change to a `Patient`, `Medication`, `MedicationRequest`, `Location`, or pharmacy `Organization` after signing does not add an archive.
+An edit to the prescription's resources after signing does not change the fingerprint, because the log shows the [issued values](#issued-values).
 
 <details>
 
