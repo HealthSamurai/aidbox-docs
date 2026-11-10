@@ -20,6 +20,31 @@ Query parameters:
 
 The module places a prescription in the period by its signing date in UTC, so a prescription written in April and signed in May belongs to May.
 
+## Access Policy
+
+The module does not check who calls this route.
+It returns any practitioner's log to any request that your AccessPolicies allow.
+
+Write an AccessPolicy that allows this route only to the people who may read a practitioner's log, typically the practitioner themselves.
+[Configure Access Policies](access-management/configure-access-policies.md) shows how to write policies for the EPCS routes.
+
+This example policy lets a user read only their own log.
+It requires the route's `practitioner-id` to be the id of the `Practitioner` that the user's `User.fhirUser` references:
+
+```yaml
+resourceType: AccessPolicy
+id: erx-epcs-practitioner-log-own
+engine: matcho
+matcho:
+  uri: '#/e-prescription/audit/practitioner-log/.*'
+  request-method: get
+  user:
+    fhirUser:
+      resourceType: Practitioner
+  params:
+    practitioner-id: .user.fhirUser.id
+```
+
 ## Issued Values
 
 When the practitioner signs a controlled prescription, the module saves its **issued values**, and the log shows them:
