@@ -32,7 +32,6 @@ SBOMs for recent supported releases:
 - [2605.15](https://storage.googleapis.com/aidbox_sbom/release/2605.15-sbom.json)
 - [2512.10](https://storage.googleapis.com/aidbox_sbom/release/2512.10-sbom.json)
 - [2507.11](https://storage.googleapis.com/aidbox_sbom/release/2507.11-sbom.json)
-- [2410.15](https://storage.googleapis.com/aidbox_sbom/release/2410.15-sbom.json)
 <!-- sbom-links:end -->
 
 ## Vulnerability scanning
