@@ -8,6 +8,11 @@ description: >-
 
 ## November 2026 _`edge`_
 
+*   Aidbox FHIR server
+
+    **Changes and deprecations**
+
+    * **Legacy AidboxJob scheduler removed**: Aidbox no longer runs `AidboxJob` resources, including jobs started through `$run` with `action: "aidboxjobs/start"`. `POST /AidboxJob/<id>/$run` and `POST /AidboxJob/<id>/$stop` return `404`. The `AidboxJob` and `AidboxJobStatus` definitions moved to the `io.health-samurai.legacy` package, and CRUD and search on both resource types keep working, so you can still read and delete stored jobs.
 
 ## October 2026 _`latest, 2610`_
 
