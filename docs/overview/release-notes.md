@@ -12,7 +12,7 @@ description: >-
 
     **Changes and deprecations**
 
-    * **Legacy AidboxJob scheduler removed**: Aidbox no longer runs `AidboxJob` resources, including jobs started through `$run` with `action: "aidboxjobs/start"`. `POST /AidboxJob/<id>/$run` and `POST /AidboxJob/<id>/$stop` return `404`. The `AidboxJob` and `AidboxJobStatus` definitions moved to the `io.health-samurai.legacy` package, and CRUD and search on both resource types keep working, so you can still read and delete stored jobs.
+    * Removed the legacy `AidboxJob` scheduler: existing jobs no longer run, and `AidboxJob/<id>/$run` and `$stop` return `404`. `AidboxJob` and `AidboxJobStatus` moved to `io.health-samurai.legacy` and keep CRUD and search.
 
 ## October 2026 _`latest, 2610`_
 
