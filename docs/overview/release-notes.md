@@ -8,6 +8,10 @@ description: >-
 
 ## November 2026 _`edge`_
 
+**Bug fixes and improvements**
+
+* Fixed PATCH of resources stored in the [FHIR Artifact Registry](../artifact-registry/artifact-registry-overview.md) failing with `500 Resource violates unique constraint`. This affected CodeSystem, ValueSet, and ConceptMap with the `hybrid` or `local` terminology engine, and Library, ViewDefinition, SearchParameter, StructureDefinition, and the other Artifact Registry resources with any engine. The fix covers JSON Patch, FHIRPath Patch, Merge Patch, and PATCH entries in transaction and batch bundles. Before 2605, the same PATCH returned `404` (resource not found).
+
 **Changes and deprecations**
 
 * Removed the legacy `AidboxJob` scheduler: existing jobs no longer run, and `AidboxJob/<id>/$run` and `$stop` return `404`. `AidboxJob` and `AidboxJobStatus` moved to `io.health-samurai.legacy` and keep CRUD and search.
