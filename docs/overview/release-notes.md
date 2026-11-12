@@ -8,11 +8,9 @@ description: >-
 
 ## November 2026 _`edge`_
 
-*   Aidbox FHIR server
+**Changes and deprecations**
 
-    **Changes and deprecations**
-
-    * Removed the legacy `AidboxJob` scheduler: existing jobs no longer run, and `AidboxJob/<id>/$run` and `$stop` return `404`. `AidboxJob` and `AidboxJobStatus` moved to `io.health-samurai.legacy` and keep CRUD and search.
+* Removed the legacy `AidboxJob` scheduler: existing jobs no longer run, and `AidboxJob/<id>/$run` and `$stop` return `404`. `AidboxJob` and `AidboxJobStatus` moved to `io.health-samurai.legacy` and keep CRUD and search.
 
 ## October 2026 _`latest, 2610`_
 
