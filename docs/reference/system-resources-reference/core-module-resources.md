@@ -2443,14 +2443,6 @@ Authorization rule that grants access to incoming requests matching its conditio
   "type" : "Object",
   "desc" : "A list of conditions that must all be satisfied for the policy to grant access."
 }, {
-  "path" : "clj",
-  "name" : "clj",
-  "lvl" : 0,
-  "min" : 0,
-  "max" : 1,
-  "type" : "string",
-  "desc" : "Clojure code that defines access policy rules. DEPRECATED. DO NOT USE IT."
-}, {
   "path" : "description",
   "name" : "description",
   "lvl" : 0,
@@ -2465,7 +2457,7 @@ Authorization rule that grants access to incoming requests matching its conditio
   "min" : 0,
   "max" : 1,
   "type" : "string",
-  "desc" : "Specifies the evaluation engine used for the policy. \n\n**Allowed values**: `json-schema` | `allow` | `sql` | `complex` | `matcho` | `clj` | `matcho-rpc` | `allow-rpc` | `signed-rpc` | `smart-on-fhir`"
+  "desc" : "Specifies the evaluation engine used for the policy. \n\n**Allowed values**: `json-schema` | `allow` | `sql` | `complex` | `matcho` | `matcho-rpc` | `allow-rpc` | `signed-rpc` | `smart-on-fhir`"
 }, {
   "path" : "link",
   "name" : "link",
@@ -15482,39 +15474,6 @@ Kafka best-effort delivery profile for AidboxTopicDestination.
   "max" : 1,
   "type" : "",
   "desc" : ""
-} ]
-```
-
-
-## Lambda
-
-Lambda function resource for hook-based code execution.
-
-```fhir-structure
-[ {
-  "path" : "_source",
-  "name" : "_source",
-  "lvl" : 0,
-  "min" : 0,
-  "max" : 1,
-  "type" : "string",
-  "desc" : "System Property. DO NOT USE IT."
-}, {
-  "path" : "code",
-  "name" : "code",
-  "lvl" : 0,
-  "min" : 1,
-  "max" : 1,
-  "type" : "string",
-  "desc" : "Code to be executed by the lambda."
-}, {
-  "path" : "hook",
-  "name" : "hook",
-  "lvl" : 0,
-  "min" : 1,
-  "max" : 1,
-  "type" : "code",
-  "desc" : "Type of hook this lambda responds to. \n\n**Allowed values**: `audit`"
 } ]
 ```
 
