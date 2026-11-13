@@ -202,6 +202,34 @@ When `_format=fhir`, each result column is rendered using a FHIR `value[x]` type
 
 If a result column has a SQL type not listed above (for example `jsonb`, `interval`, `array`, `xml`), the operation returns `422 Unprocessable Entity`. Cast the column to a supported type inside the SQL query to work around this.
 
+## SQL execution
+
+Aidbox runs the Library's SQL in a read-only transaction. SQL that changes data fails with 422 and leaves the database as it was. This covers `INSERT`, `UPDATE`, `DELETE`, `MERGE`, a `WITH` query that modifies data, a function that writes, `nextval()` and `SELECT … FOR UPDATE`.
+
+The SQL must be a single statement. A trailing semicolon is fine, but Aidbox counts any text after it as another statement, even a comment, and refuses SQL with more than one statement with 422.
+
+Aidbox fetches the whole result before it sends the response, so an error in the SQL returns an error status with an `OperationOutcome` in every `_format`.
+
+| Status | Condition                                                                                                                          |
+|--------|------------------------------------------------------------------------------------------------------------------------------------|
+| 422    | The SQL has more than one statement                                                                                                |
+| 422    | The SQL changes data                                                                                                               |
+| 422    | Postgres rejects the SQL: a syntax error, an unknown table or column, a missing privilege, or a data error such as division by zero or an invalid cast |
+| 422    | With `_format=fhir`, a result column has a SQL type that [Output format](#output-format) doesn't list                              |
+| 500    | Any other database failure, such as a lost connection                                                                              |
+
+The `diagnostics` of the `OperationOutcome` carries the reason, for example:
+
+```text
+SQL on FHIR runs queries read-only: ERROR: cannot execute INSERT in a read-only transaction
+The SQL has 2 statements; SQL on FHIR runs a single one
+ERROR: division by zero
+```
+
+{% hint style="warning" %}
+The read-only transaction protects the data. The SQL still runs as Aidbox's database user, so it can read every table that user can read, Aidbox's own tables included. When that user is a Postgres superuser, a read-only transaction also lets the SQL read files and run programs on the database server. Grant `$sqlquery-run` to clients you would trust with read access to the whole database, and restrict it with an [AccessPolicy](../../access-control/authorization/access-policies.md).
+{% endhint %}
+
 ## Examples
 
 The examples below assume the following ViewDefinitions and supporting resources exist on the server:
