@@ -8,6 +8,10 @@ description: >-
 
 ## November 2026 _`edge`_
 
+**Features**
+
+* **[Organization-scoped batch validation](../modules/profiling-and-validation/batch-resource-validation.md#organization-scoped-runs)**: with OrgBAC enabled, `POST /Organization/<org-id>/fhir/<type>/$batch-validate` validates the resources of the organization and its nested organizations. A run resolves references as the organization's API does, and the organization that started it or a root client can read and cancel it.
+
 **Bug fixes and improvements**
 
 * Fixed PATCH of resources stored in the [FHIR Artifact Registry](../artifact-registry/artifact-registry-overview.md) failing with `500 Resource violates unique constraint`. This affected CodeSystem, ValueSet, and ConceptMap with the `hybrid` or `local` terminology engine, and Library, ViewDefinition, SearchParameter, StructureDefinition, and the other Artifact Registry resources with any engine. The fix covers JSON Patch, FHIRPath Patch, Merge Patch, and PATCH entries in transaction and batch bundles. Before 2605, the same PATCH returned `404` (resource not found).

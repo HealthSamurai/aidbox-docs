@@ -563,6 +563,19 @@ Cancels an active export job for the specified organization.
 
 See also [$export](../../../../api/bulk-api/export.md#system-level-export)
 
+### $batch-validate
+
+```http
+POST <AIDBOX_BASE_URL>/Organization/<org-id>/fhir/<resource-type>/$batch-validate
+GET <AIDBOX_BASE_URL>/Organization/<org-id>/fhir/$batch-validate/<task-id>
+DELETE <AIDBOX_BASE_URL>/Organization/<org-id>/fhir/$batch-validate/<task-id>
+GET <AIDBOX_BASE_URL>/Organization/<org-id>/fhir/$batch-validate/<task-id>/invalid-resources
+```
+
+Validates the stored resources of one type that the organization and its nested organizations own, and resolves their references as the organization's API does. You can read and cancel a run through the routes of the organization that started it or through the root `/fhir/$batch-validate` routes; any other organization gets `404`. Available starting from version 2611.
+
+See also [Batch resource validation](../../../../modules/profiling-and-validation/batch-resource-validation.md#organization-scoped-runs)
+
 ## Authentication
 
 ### Login View
