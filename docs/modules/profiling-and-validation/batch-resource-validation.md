@@ -231,6 +231,76 @@ DELETE /fhir/$batch-validate/<task-id>
 
 Responds `202 Accepted`. Cancellation removes the run's **pending** tasks and marks it **cancelled** (a later poll reports `cancelled`). Aidbox does not interrupt a task already running, and keeps partial results.
 
+## Organization-scoped runs
+
+{% hint style="info" %}
+Available in Aidbox starting from version **2611**.
+{% endhint %}
+
+With [organization-based hierarchical access control](../../access-control/authorization/scoped-api/organization-based-hierarchical-access-control/README.md) (OrgBAC) enabled, each organization gets its own `$batch-validate` routes under `/Organization/<org-id>/fhir`. A tenant validates its data without a root client, and the summary counts cover that tenant alone.
+
+| Route | Operation id |
+| --- | --- |
+| `POST /Organization/<org-id>/fhir/<type>/$batch-validate` | `orgbac-fhir-batch-validate` |
+| `GET /Organization/<org-id>/fhir/$batch-validate/<task-id>` | `orgbac-fhir-batch-validate-status` |
+| `DELETE /Organization/<org-id>/fhir/$batch-validate/<task-id>` | `orgbac-fhir-batch-validate-cancel` |
+| `GET /Organization/<org-id>/fhir/$batch-validate/<task-id>/invalid-resources` | `orgbac-fhir-batch-validate-invalid-resources` |
+
+The routes accept the same body, query parameters, and `Prefer` header as the root routes, and answer with the same responses. To let an organization's users run them, link an AccessPolicy to these operation ids, as in the [OrgBAC policy example](../../tutorials/security-access-control-tutorials/accesspolicy-examples.md#10-organization-based-hierarchical-access-control-policy-for-a-end-user).
+
+```yaml
+POST /Organization/org-a/fhir/Patient/$batch-validate
+prefer: respond-async
+content-type: application/json
+
+resourceType: Parameters
+parameter:
+  - {name: _since, valueInstant: '1970-01-01T00:00:00Z'}
+```
+
+### What an organization run validates
+
+A run covers the resources the organization owns, `shared` ones included, and the resources of the organizations nested under it through `partOf`. Aidbox reads ownership from the tenant tag in `meta.extension`, by the same rules as [`$purge`](../../access-control/authorization/scoped-api/organization-based-hierarchical-access-control/organization-purge.md#what-the-operation-deletes). A run leaves out:
+
+* `shared` resources of ancestor organizations, even though the organization can read them
+* `system-shared` resources, even when they carry the organization's tag
+* resources of sibling organizations and resources without a tenant tag
+
+For the `Organization` type, Aidbox matches by id: a run validates the organization and its `partOf` subtree. A run skips an `Organization` that carries the tenant tag but has no `partOf` link into the tree, as `$purge` does.
+
+### References
+
+A run resolves references the way the organization's API does and applies the same check as a write through `/Organization/<org-id>/fhir`. A reference to a resource the organization can't read gets a `reference` issue (`referenced resource does not exist`), even when the target exists in another tenant. A root run checks that the target exists in the database.
+
+One resource can get different verdicts in different runs. An Observation of `org-b` that references a Practitioner private to its parent `org-a` is invalid in `org-b`'s run and valid in `org-a`'s run, because `org-a` reads both.
+
+A run of a nested organization flags its resources that reference the parent `Organization`, such as a Patient of `org-b` with `managingOrganization` pointing at `Organization/org-a`. A write of that Patient through `org-b`'s API fails with `422` as well. A root client can write such a reference into a tagged resource, so expect these issues in organization runs.
+
+### Who can see a run
+
+Aidbox records which organization started a run. You can read, page through, and cancel the run through that organization's routes or through the root routes, which cover all runs. Any other organization gets `404`, the parent organization included, and an organization route returns `404` for a run started at root.
+
+### Links in the report
+
+The summary links, the paging links, and the async `Content-Location` point at the organization's routes, `/Organization/<org-id>/fhir/$batch-validate/<task-id>/...`. Each `fullUrl` uses the organization's FHIR base, so it resolves through that organization's API:
+
+```text
+/Organization/<org-id>/fhir/Observation/<id>/_history/<version>
+```
+
+The root routes report the same run with the Aidbox-format `fullUrl` (`/Observation/<id>/_history/<version>`).
+
+### Errors
+
+| Status | Condition |
+| --- | --- |
+| `404` | The organization does not exist |
+| `404` | The task is unknown, or another organization or a root client started it |
+| `422` | The type is one OrgBAC does not support: an Aidbox configuration type such as `App` or `AidboxSubscription`, or a canonical that Aidbox keeps in the FHIR Artifact Registry, such as `StructureDefinition` |
+| `422` | Any error a root run returns: unknown type, invalid body, or missing `_since` |
+
+With OrgBAC disabled, Aidbox does not register these routes, and they return `404`.
+
 ## Profiles
 
 Pass `profile` (as `valueCanonical`) to validate every resource against those URLs (via `meta.profile`), say to check the impact of a new profile version on existing data. The profiles must be loaded (an installed IG package, or a `StructureDefinition` you created).
