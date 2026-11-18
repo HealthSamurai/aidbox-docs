@@ -9,3 +9,4 @@ The module does not support prescribing controlled substances yet, but we are wo
 {% endhint %}
 
 * [EPCS Access Management](access-management/README.md): appoint the people who manage EPCS access at each location.
+* [Practitioner Log](practitioner-log.md): retrieve the controlled prescriptions a practitioner signed in a period.
