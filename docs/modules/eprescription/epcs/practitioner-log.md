@@ -5,7 +5,7 @@ description: Retrieve the log of controlled prescriptions a practitioner signed 
 # Practitioner Log
 
 The **practitioner log** lists the controlled prescriptions one practitioner signed during a period, one entry per prescription.
-[21 CFR 1311.120(b)(27)](https://www.ecfr.gov/current/title-21/section-1311.120) requires an EPCS application to generate this log for a period the practitioner requests.
+Each entry also shows the latest [NewRx](../prescribing/newrx-message.md) and [CancelRx](../prescribing/cancelrx-message.md) statuses of its prescription.
 
 ```http
 GET /e-prescription/audit/practitioner-log/<Practitioner id>?from=2026-05-01&to=2026-05-31
@@ -36,7 +36,7 @@ When the practitioner signs a controlled prescription, the module saves its **is
 
 A later change to the `Patient`, `Medication`, `MedicationRequest`, `Location`, or pharmacy `Organization` does not change the log.
 
-The transmission, callback, timeout, and cancellation statuses come from the prescription's [NewRx](../prescribing/newrx-message.md) and [CancelRx](../prescribing/cancelrx-message.md) messages after signing, so a [refreshed](#refresh) log can show newer statuses.
+The transmission, callback, timeout, and cancellation statuses come from the prescription's NewRx and CancelRx messages after signing, so a [refreshed](#refresh) log can show newer statuses.
 
 ## JSON Response
 
@@ -44,7 +44,7 @@ Without `format`, `200 OK` returns the log as JSON.
 
 <details>
 
-<summary>Response</summary>
+<summary>Response example</summary>
 
 ```json
 {
@@ -106,7 +106,7 @@ With `format=csv`, `200 OK` returns `text/csv` with a header row and one row per
 
 <details>
 
-<summary>Response</summary>
+<summary>Response example</summary>
 
 ```csv
 Patient,Drug Name,Issue Date,Signed Time,DEA Schedule,Quantity,Selected DEA Number,Practitioner Role,Location,Pharmacy,Transmission Status,Callback Status,Timeout Status,Cancellation Status,Prescriber Order Number,Surescripts Message ID,MedicationRequest ID
