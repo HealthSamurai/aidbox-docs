@@ -176,6 +176,15 @@ For example, if you specify `Accept: application/fhir+json` and `_format`: JSON,
 
 If you specify `Accept: application/json` and `_format`: JSON, the server will return the processed data (without wrapping inside Binary resource).
 
+## SQL errors
+
+Aidbox fetches the whole result of the SQL it builds from the ViewDefinition before it sends the response. When that SQL fails, the response has an error status and an `OperationOutcome` in every `_format`, with the Postgres error in `diagnostics`.
+
+| Status | Condition                                                                                                              |
+|--------|------------------------------------------------------------------------------------------------------------------------|
+| 422    | The ViewDefinition can't be processed, for example a column declared as `integer` whose values are text, such as `gender` |
+| 500    | The database fails for a reason outside the ViewDefinition, such as a lost connection                                  |
+
 ## Examples
 
 ### Provided resources and ViewDefinition
