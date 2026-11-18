@@ -5,7 +5,6 @@ description: Retrieve the log of controlled prescriptions a practitioner signed 
 # Practitioner Log
 
 The **practitioner log** lists the controlled prescriptions one practitioner signed during a period, one entry per prescription.
-Each entry also shows the latest [NewRx](../prescribing/newrx-message.md) and [CancelRx](../prescribing/cancelrx-message.md) statuses of its prescription.
 [21 CFR 1311.120(b)(27)](https://www.ecfr.gov/current/title-21/section-1311.120) requires an EPCS application to generate this log for a period the practitioner requests.
 
 ```http
@@ -16,34 +15,14 @@ Query parameters:
 
 * `from` and `to` (required): the first and the last day of the period, as ISO dates.
 * `format=csv`: returns the log as CSV instead of JSON.
-* `refresh=true`: builds the log again (see [Archives and Refresh](#archives-and-refresh)).
+* `refresh=true`: builds the log again (see [Refresh](#refresh)).
 
 The module places a prescription in the period by its signing date in UTC, so a prescription written in April and signed in May belongs to May.
 
 ## Access Policy
 
-The module does not check who calls this route.
-It returns any practitioner's log to any request that your AccessPolicies allow.
-
-Write an AccessPolicy that allows this route only to the people who may read a practitioner's log, typically the practitioner themselves.
+The module returns any practitioner's log to any request your AccessPolicies allow, so write a policy that allows this route only to the users who may read the log.
 [Configure Access Policies](access-management/configure-access-policies.md) shows how to write policies for the EPCS routes.
-
-This example policy lets a user read only their own log.
-It requires the route's `practitioner-id` to be the id of the `Practitioner` that the user's `User.fhirUser` references:
-
-```yaml
-resourceType: AccessPolicy
-id: erx-epcs-practitioner-log-own
-engine: matcho
-matcho:
-  uri: '#/e-prescription/audit/practitioner-log/.*'
-  request-method: get
-  user:
-    fhirUser:
-      resourceType: Practitioner
-  params:
-    practitioner-id: .user.fhirUser.id
-```
 
 ## Issued Values
 
@@ -57,11 +36,15 @@ When the practitioner signs a controlled prescription, the module saves its **is
 
 A later change to the `Patient`, `Medication`, `MedicationRequest`, `Location`, or pharmacy `Organization` does not change the log.
 
-The transmission, callback, timeout, and cancellation statuses come from the prescription's NewRx and CancelRx messages after signing, so a [refreshed](#archives-and-refresh) log can show newer statuses.
+The transmission, callback, timeout, and cancellation statuses come from the prescription's [NewRx](../prescribing/newrx-message.md) and [CancelRx](../prescribing/cancelrx-message.md) messages after signing, so a [refreshed](#refresh) log can show newer statuses.
 
 ## JSON Response
 
-`200 OK` returns the log:
+Without `format`, `200 OK` returns the log as JSON.
+
+<details>
+
+<summary>Response</summary>
 
 ```json
 {
@@ -108,45 +91,29 @@ The transmission, callback, timeout, and cancellation statuses come from the pre
 }
 ```
 
+</details>
+
 `metadata` says when the module built the log and for which practitioner and period.
 `auditEvents` counts and fingerprints the `AuditEvent` resources the log reads.
 `snapshotDataFingerprint` fingerprints those events together with the issued values.
 
 The module sorts `entries` by patient name, then drug name, then issue date.
-Each entry holds:
-
-* `medicationRequestId`: the id of the signed `MedicationRequest`.
-* `patient`: the `Patient` id and the patient name at signing, as "Family Given".
-* `medication.name`: the drug name at signing.
-* `quantity`: the dispense quantity at signing.
-* `deaSchedule`: the DEA schedule of the signed prescription.
-* `issueDate`: the signing date in UTC.
-* `signedAt`: the signing time.
-* `selectedDeaNumber`: the DEA number the practitioner signed under.
-* `practitioner` and `practitionerRole`: the ids of the signing `Practitioner` and `PractitionerRole`.
-* `location`: the `Location` id and the location address at signing.
-* `pharmacy`: the pharmacy `Organization` id and the pharmacy name at signing.
-* `transmissionStatus`, `callbackStatus`, and `timeoutStatus`: the latest NewRx statuses.
-* `cancellationStatus`: the latest CancelRx status.
-* `reconciliationIdentifiers`: the `prescriberOrderNumber` and `surescriptsMessageId` of the NewRx, to match the entry with Surescripts records.
-
 The module leaves out empty fields, so an entry without a cancellation has no `cancellationStatus`.
 
 ## CSV Response
 
-With `format=csv`, `200 OK` returns `text/csv` with a header row and one row per entry, in the order of the JSON entries:
+With `format=csv`, `200 OK` returns `text/csv` with a header row and one row per entry, in the order of the JSON entries.
+
+<details>
+
+<summary>Response</summary>
 
 ```csv
 Patient,Drug Name,Issue Date,Signed Time,DEA Schedule,Quantity,Selected DEA Number,Practitioner Role,Location,Pharmacy,Transmission Status,Callback Status,Timeout Status,Cancellation Status,Prescriber Order Number,Surescripts Message ID,MedicationRequest ID
 Carter Alice,Adderall 10 MG Oral Tablet,2026-05-08,2026-05-08T16:42:03Z,II,60 Tablet C48542,BJ1234563,prole-987,loc-55,Springfield Community Pharmacy,active,completed,,,PON-2026-000812,f47ac10b-58cc-4372-a567-0e02b2c3d479,med-req-7a1c
 ```
 
-Some columns hold only part of an entry field:
-
-* `Patient`: the patient name
-* `Quantity`: the value, unit, and unit code of the dispense quantity
-* `Practitioner Role` and `Location`: the ids
-* `Pharmacy`: the pharmacy name
+</details>
 
 The response headers carry the `metadata` fields:
 
@@ -159,13 +126,63 @@ The response headers carry the `metadata` fields:
 * `X-Practitioner-Log-Audit-Events-Count` and `X-Practitioner-Log-Audit-Events-Fingerprint`: `auditEvents`
 * `X-Practitioner-Log-Snapshot-Data-Fingerprint`: `snapshotDataFingerprint`
 
-## Archives and Refresh
+## Archives
 
 The first request for a practitioner and period builds the log and archives it.
 Later requests for the same practitioner and period return the log from the newest archive unchanged, in JSON or CSV.
 
-An archive is a `DocumentReference` with the type code `practitioner-log`, whose attachment points to a `Binary` that holds the log JSON.
 The module keeps every archive and never changes one.
+
+<details>
+
+<summary>Archive DocumentReference</summary>
+
+The attachment points to the `Binary` that holds the log JSON.
+
+```json
+{
+  "resourceType": "DocumentReference",
+  "id": "practitioner-log-1b9d6bcd-bbfd-4b2d-9b5d-ab8dfbbd4bed",
+  "status": "current",
+  "docStatus": "final",
+  "type": {
+    "coding": [{ "system": "urn:app:aidbox:e-prescriptions", "code": "practitioner-log" }]
+  },
+  "subject": { "reference": "Practitioner/pr-12345" },
+  "date": "2026-06-01T09:15:42.317Z",
+  "context": { "period": { "start": "2026-05-01", "end": "2026-05-31" } },
+  "identifier": [
+    {
+      "system": "urn:app:aidbox:e-prescriptions:practitioner-log:archive-key",
+      "value": "practitioner-log|on-demand|pr-12345|2026-05-01|2026-05-31"
+    },
+    {
+      "system": "urn:app:aidbox:e-prescriptions:practitioner-log:generator-version",
+      "value": "v1"
+    },
+    {
+      "system": "urn:app:aidbox:e-prescriptions:practitioner-log:audit-events-fingerprint",
+      "value": "3a7bd3e2360a3d29eea436fcfb7e44c735d117c42d1c1835420b6b9942dd4f1b"
+    },
+    {
+      "system": "urn:app:aidbox:e-prescriptions:practitioner-log:snapshot-data-fingerprint",
+      "value": "9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08"
+    }
+  ],
+  "content": [
+    {
+      "attachment": {
+        "contentType": "application/json",
+        "url": "Binary/practitioner-log-payload-6f1c2a9e-3d4b-4e8f-9a1b-2c3d4e5f6a7b"
+      }
+    }
+  ]
+}
+```
+
+</details>
+
+### Refresh
 
 With `refresh=true`, the module builds the log again and compares its `snapshotDataFingerprint` with the newest archive's:
 
