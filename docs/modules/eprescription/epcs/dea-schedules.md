@@ -12,7 +12,7 @@ The EHR stores the schedule the practitioner reviewed, and the module reads it f
 Store the schedule in the `http://aidbox.app/ePrescription/FHIRSchema/medication-dea-schedule` extension of the medication code:
 
 * `MedicationRequest.medicationCodeableConcept` for a prescription without a `Medication` resource
-* `Medication.code` for a `Medication` that is not a compound
+* `Medication.code` for a `Medication` that is not a [compound](#compound-medications)
 * `Medication.ingredient.itemCodeableConcept` for each scheduled ingredient of a compound
 
 The extension's `valueCodeableConcept` holds one coding under `http://terminology.hl7.org/CodeSystem/v2-0477` with one of the codes `I`, `II`, `III`, `IV`, or `V`.
@@ -48,7 +48,7 @@ The module treats a `Medication` as a compound when either is true:
 * it has `ingredient` entries and `Medication.code` has no NDC coding
 
 The ingredients decide the schedule of a compound.
-A compound with at least one scheduled ingredient is a **controlled prescription**, and the strictest ingredient schedule is its schedule.
+A prescription whose compound has at least one scheduled ingredient is a **controlled prescription**, and the strictest ingredient schedule is its schedule.
 `I` is the strictest and `V` the least strict, so a compound with a Schedule II and a Schedule IV ingredient follows the rules of Schedule II.
 
 A schedule on `Medication.code` of a compound is optional.
@@ -114,14 +114,14 @@ Only an active ingredient can have a schedule, so leave the extension out of an 
 
 ### Ingredient NDCs
 
-When EPCS is enabled (`EPCS_MODE=full`), each scheduled ingredient of a controlled compound needs an 11-digit NDC.
+When EPCS is enabled (`EPCS_MODE=full`), each scheduled ingredient of a compound needs an 11-digit NDC.
 Store it as a coding under `http://hl7.org/fhir/sid/ndc` in the ingredient's `itemCodeableConcept`.
 
 The module sends every 11-digit ingredient NDC to the pharmacy in `CompoundIngredient/ItemNumber`, whether or not the ingredient has a schedule.
 
 ## Schedules in NCPDP Messages
 
-The module sends each schedule in `DEASchedule/Code` as the NCPDP DEASchedule code:
+The module sends each schedule in `DEASchedule/Code` as its NCI Thesaurus (NCIt) code:
 
 * `I`: `C48672`
 * `II`: `C48675`
@@ -129,18 +129,29 @@ The module sends each schedule in `DEASchedule/Code` as the NCPDP DEASchedule co
 * `IV`: `C48677`
 * `V`: `C48679`
 
-`DrugCoded/DEASchedule` carries the schedule that classifies the prescription, and `CompoundIngredient/DEASchedule` carries the schedule of each ingredient.
+`DrugCoded/DEASchedule` carries the schedule of the prescription:
+
+* for a compound, the strictest ingredient schedule
+* for any other medication, the schedule stored on its code
+
+`CompoundIngredient/DEASchedule` carries the schedule of each ingredient.
 
 ## Schedule Checks
 
 The module checks the schedules when you send a [NewRx](../prescribing/newrx-message.md) or respond to a [renewal](../prescribing/pharmacy-initiated-messages/rx-renewal.md) or [change](../prescribing/pharmacy-initiated-messages/rx-change.md) request.
-It skips the compound checks for a denied or pending response and for an approved prior-authorization change response.
+It runs every check below for a NewRx and for a response that lets the pharmacy fill the prescription.
+For these responses, the module runs only `medication-has-multiple-dea-schedules` and `dea-schedule-coding-system-is-not-supported`:
+
+* a denied response
+* a pending response
+* an approved prior-authorization change response
 
 When EPCS is disabled (`EPCS_MODE=disabled`), the module rejects a controlled prescription with `epcs-disabled`, including a compound with a scheduled ingredient.
 
-A request for one prescription that fails a check returns `422` with an `OperationOutcome`.
-For a group submission that still sends other prescriptions, `failures[].reason` holds the error code of each prescription the module did not send.
-For an error about a compound, `in` in the issue's `diagnostics` points to the root medication (`["Medication"]`) or to the ingredient (`["Medication", "ingredient", <index>]`).
+A request that fails a check returns `422` with an `OperationOutcome`.
+For an error about a compound, the issue's `diagnostics` holds a JSON object whose `in` field points to the root medication (`["Medication"]`) or to the ingredient (`["Medication", "ingredient", <index>]`).
+
+When the module sent other prescriptions of a group earlier, a group submission that fails a check returns `202` instead, and `failures[].reason` holds the error code of each prescription it did not send.
 
 <details>
 
@@ -155,9 +166,9 @@ For an error about a compound, `in` in the issue's `diagnostics` points to the r
 * A compound ingredient:
   * `compound-ingredient-has-multiple-dea-schedules`: the ingredient has more than one schedule extension, or more than one coding under `http://terminology.hl7.org/CodeSystem/v2-0477` in one extension.
   * `compound-ingredient-dea-schedule-coding-system-is-not-supported`: a schedule extension has codings, and none of them is under `http://terminology.hl7.org/CodeSystem/v2-0477`.
-  * `compound-ingredient-invalid-dea-schedule`: the schedule is not one of `I` to `V`, or its coding has no code.
+  * `compound-ingredient-invalid-dea-schedule`: the schedule is not one of `I` to `V`, or a schedule extension's codings under `http://terminology.hl7.org/CodeSystem/v2-0477` have no code.
   * `compound-inactive-ingredient-has-dea-schedule`: an ingredient with `isActive: false` has a schedule.
-* A scheduled ingredient of a controlled compound, when EPCS is enabled:
+* A scheduled ingredient of a compound, when EPCS is enabled:
   * `controlled-compound-ingredient-missing-ndc`: the ingredient has no coding under `http://hl7.org/fhir/sid/ndc`.
   * `controlled-compound-ingredient-invalid-ndc`: the ingredient's NDC coding has no code, or its code does not have 11 digits.
 
