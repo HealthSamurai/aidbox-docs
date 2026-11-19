@@ -439,6 +439,7 @@
     * [DetectedIssue](modules/eprescription/prescribing/detected-issue.md)
     * [How to test Callback](modules/eprescription/prescribing/how-to-test-callback.md)
   * [EPCS](modules/eprescription/epcs/README.md)
+    * [Enable EPCS](modules/eprescription/epcs/enable-epcs.md)
     * [EPCS Access Management](modules/eprescription/epcs/access-management/README.md)
       * [Configure Access Policies](modules/eprescription/epcs/access-management/configure-access-policies.md)
       * [Bootstrap the First Administrator](modules/eprescription/epcs/access-management/bootstrap-the-first-administrator.md)
