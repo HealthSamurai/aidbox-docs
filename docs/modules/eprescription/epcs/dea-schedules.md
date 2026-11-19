@@ -158,7 +158,7 @@ For an error about a compound, `in` in the issue's `diagnostics` points to the r
   * `compound-ingredient-invalid-dea-schedule`: the schedule is not one of `I` to `V`, or its coding has no code.
   * `compound-inactive-ingredient-has-dea-schedule`: an ingredient with `isActive: false` has a schedule.
 * A scheduled ingredient of a controlled compound, when EPCS is enabled:
-  * `controlled-compound-ingredient-missing-ndc`: the ingredient has no NDC.
-  * `controlled-compound-ingredient-invalid-ndc`: the ingredient's NDC does not have 11 digits.
+  * `controlled-compound-ingredient-missing-ndc`: the ingredient has no coding under `http://hl7.org/fhir/sid/ndc`.
+  * `controlled-compound-ingredient-invalid-ndc`: the ingredient's NDC coding has no code, or its code does not have 11 digits.
 
 </details>
