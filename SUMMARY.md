@@ -431,6 +431,7 @@
   * [Pharmacies Synchronization](modules/eprescription/pharmacies-synchronization.md)
   * [Prescribing](modules/eprescription/prescribing/README.md)
     * [NewRx Message](modules/eprescription/prescribing/newrx-message.md)
+    * [Compound Medications](modules/eprescription/prescribing/compound-medications.md)
     * [CancelRx Message](modules/eprescription/prescribing/cancelrx-message.md)
     * [RxFillIndicatorChange Message](modules/eprescription/prescribing/rx-fill-indicator-change.md)
     * [Pharmacy-initiated messages](modules/eprescription/prescribing/pharmacy-initiated-messages/README.md)

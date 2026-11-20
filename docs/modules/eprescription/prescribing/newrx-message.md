@@ -28,7 +28,7 @@ The following FHIR resources are needed to create a NewRx message:
    * Must be in "draft" status initially
    * Must include requester medication details and dispense details
    * Must have `dosageInstruction.text` non-empty
-   * Must include **Medication**
+   * Must include **Medication** (for a compound, see [Compound Medications](compound-medications.md))
      * as a reference to resource <sub>_(since 2.0)_</sub>
      * as a reference to `contained` resource
      * as a codeable concept <sub>_(since 2.0)_</sub>
