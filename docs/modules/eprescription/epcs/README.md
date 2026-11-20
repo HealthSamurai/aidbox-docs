@@ -10,5 +10,5 @@ The module does not support prescribing controlled substances yet, but we are wo
 
 * [Enable EPCS](enable-epcs.md): configure the module and your EHR so that prescribers can sign controlled prescriptions.
 * [EPCS Access Management](access-management/README.md): appoint the people who manage EPCS access at each location.
-* [DEA Schedules](dea-schedules.md): store and validate medication schedules.
+* [DEA Schedules](dea-schedules.md): store DEA schedules on medications and compound ingredients.
 * [Practitioner Log](practitioner-log.md): retrieve the controlled prescriptions a practitioner signed in a period.
