@@ -16383,7 +16383,7 @@ Notebook resource for interactive documentation and code execution.
   "min" : 1,
   "max" : 1,
   "type" : "string",
-  "desc" : "Type of cell content. \n\n**Allowed values**: `rpc` | `rest` | `empty` | `markdown` | `sql` | `view-definition` | `sql-query` | `sql-view`"
+  "desc" : "Type of cell content. \n\n**Allowed values**: `rpc` | `rest` | `empty` | `markdown` | `sql` | `view-definition` | `sql-query` | `sql-view` | `measure`"
 }, {
   "path" : "cells.nb-title",
   "name" : "nb-title",
