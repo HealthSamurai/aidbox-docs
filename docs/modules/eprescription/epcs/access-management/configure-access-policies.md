@@ -22,12 +22,14 @@ Write a policy for each operation and grant it to the smallest group that needs 
 
 * `POST /e-prescription/access/epcs/bootstrap-admin`: the operators who set up locations during deployment.
 * `GET /e-prescription/access/epcs/permissions`: administrators.
-* `GET /e-prescription/access/epcs/permissions/mine`: the users who work in the prescribing UI.
+* `GET /e-prescription/access/epcs/permissions/mine`: access managers and the users who work in the prescribing UI.
 * `GET /e-prescription/access/epcs/requests`: access managers and the users named in access-change requests.
 * `POST /e-prescription/access/epcs/requests`: administrators.
 * `POST /e-prescription/access/epcs/requests/<id>/approve`: approvers, nominees, and administrators.
 * `POST /e-prescription/access/epcs/requests/<id>/cancel`: access managers and the users named in access-change requests.
 * `GET /e-prescription/access/epcs/locations/<Location id>/status`: access managers and the users who work in the prescribing UI.
+
+To match a path with an id in a `matcho` policy, write `uri` as a regular expression that starts with `#`, such as `"#/e-prescription/access/epcs/requests/.*/approve"`.
 
 The module checks each caller's role as described in [Access-Change Requests](access-change-requests.md).
 

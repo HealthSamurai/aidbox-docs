@@ -34,6 +34,7 @@ Each location where practitioners prescribe controlled substances needs an admin
 
 1. Appoint the administrator with [Bootstrap the First Administrator](access-management/bootstrap-the-first-administrator.md).
 2. Ask the administrator to nominate the approver with an [access-change request](access-management/access-change-requests.md#request-a-change).
+   The nominee must be [DEA-qualified](access-management/access-change-requests.md#dea-qualification) at the location.
 3. Ask the nominee to accept the request as the [first approver](access-management/access-change-requests.md#first-approver).
 4. Check that [Location Compliance Status](access-management/location-compliance-status.md) returns `compliant: true` for the location.
 
@@ -47,9 +48,36 @@ For each practitioner who prescribes controlled substances, at each location whe
 4. Ask an approver other than the nominating administrator to give [second-person approval](access-management/access-change-requests.md#second-person-approval) before it [expires](access-management/access-change-requests.md#expiration).
 5. Signed in as the practitioner, check that [`GET /e-prescription/access/epcs/permissions/mine`](access-management/list-permissions.md#list-your-own-permissions) returns `epcs-prescribing` at the location.
 
+## Register the Prescriber for Controlled Prescriptions
+
+For each `PractitionerRole` that prescribes controlled substances:
+
+1. Check that the prescriber's records have the data a [NewRx message](../prescribing/newrx-message.md) requires, including the SPI on the `PractitionerRole`, the NPI on the `Practitioner`, and the address and phone number on the `Location`.
+2. Add the `ControlledSubstance` service level to the `PractitionerRole`:
+
+   ```json
+   {
+     "meta": {
+       "tag": [
+         {
+           "system": "urn:app:aidbox:e-prescriptions:surescripts:serviceLevel",
+           "code": "ControlledSubstance"
+         }
+       ]
+     }
+   }
+   ```
+
+   Keep the service levels the role already has.
+3. Send the updated role to the Surescripts directory with an [UpdateProviderLocation message](../directory/updateproviderlocation-message.md).
+
+The module rejects a controlled prescription to a pharmacy whose `Organization` does not have the `ControlledSubstance` service level.
+[Pharmacies Synchronization](../pharmacies-synchronization.md) copies the service levels of each pharmacy from the Surescripts directory.
+
 ## Verify the Setup
 
 Sign in as a practitioner who holds the permission, mark one of their controlled prescriptions ready to sign, and sign it.
+A controlled prescription is one whose medication has a [DEA schedule](dea-schedules.md).
 If the module rejects a step:
 
 * `401`: check that the EHR uses the signed-in user's credentials. If every call from Aidbox returns `401`, check `AIDBOX_RPC_CREDENTIALS` in [Configure the Module](#configure-the-module).
