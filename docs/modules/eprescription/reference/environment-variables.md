@@ -21,6 +21,11 @@ Here is a full list of environment variables used by the module:
 
 
 
+* `EPCS_MODE` – Accepts `disabled` (default) or `full`. Set to `full` to enable controlled-substance prescribing. See [Enable EPCS](../epcs/enable-epcs.md).
+* `EPCS_PROOF_SECRET` – Required when `EPCS_MODE` is `full`.
+
+
+
 * `QUEUE_DB_SERVER` - Queue database server address
 * `QUEUE_DB_PORT` - Queue database server port
 * `QUEUE_DB_NAME` - Queue database name
