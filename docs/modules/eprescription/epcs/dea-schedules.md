@@ -1,27 +1,28 @@
 ---
-description: Store DEA schedules on FHIR medication and ingredient codes and read the corresponding schedules in NCPDP messages.
+description: Store a DEA schedule on a medication and check how the ePrescription module validates and sends it to the pharmacy.
 ---
 
 # DEA Schedules
 
-The EHR records the DEA schedule the practitioner reviewed. The ePrescription module treats a prescription for a scheduled medication as a **controlled prescription**.
-For a compound, any scheduled ingredient makes the prescription controlled. The strictest ingredient schedule determines the prescription's schedule.
+The module treats a prescription as a **controlled prescription** when its medication has a DEA schedule.
+The EHR stores the schedule the practitioner reviewed, and the module reads it from the prescription's medication.
 
 ## Store a DEA Schedule
 
-Store the schedule in the `http://aidbox.app/ePrescription/FHIRSchema/medication-dea-schedule` extension on the appropriate FHIR field.
+Store the schedule in the `http://aidbox.app/ePrescription/FHIRSchema/medication-dea-schedule` extension of the medication code:
 
-* If the prescription specifies the drug by code, use `MedicationRequest.medicationCodeableConcept`.
-* If the prescription references or contains a `Medication` resource, use `Medication.code` for the medication's schedule. For a compound, omit the schedule here or repeat the strictest ingredient schedule.
-* For each scheduled ingredient of a [compound medication](../prescribing/compound-medications.md#ingredient-schedules), use `Medication.ingredient.itemCodeableConcept`.
+* `MedicationRequest.medicationCodeableConcept` for a prescription without a `Medication` resource
+* `Medication.code` for a `Medication` that is not a compound
 
-Use at most one schedule extension on each medication or ingredient code.
-In its `valueCodeableConcept.coding`, use the system `http://terminology.hl7.org/CodeSystem/v2-0477` and one code from `I` through `V`.
-A `valueCodeableConcept` with only `text` supplies no schedule.
+For a compound, store the schedule on each scheduled ingredient as described in [Compound Medications](../prescribing/compound-medications.md#ingredient-schedules).
+
+The extension's `valueCodeableConcept` holds one coding under `http://terminology.hl7.org/CodeSystem/v2-0477` with one of the codes `I`, `II`, `III`, `IV`, or `V`.
+Give each medication code at most one schedule extension.
+An extension that holds only `text` stores no schedule.
 
 <details>
 
-<summary>Schedule II extension</summary>
+<summary>Schedule extension</summary>
 
 ```json
 {
@@ -42,35 +43,39 @@ A `valueCodeableConcept` with only `text` supplies no schedule.
 
 ## Schedules in NCPDP Messages
 
-The module sends the prescription's schedule in `DrugCoded/DEASchedule/Code` and each scheduled compound ingredient's schedule in `CompoundIngredient/DEASchedule/Code`.
-Both fields use NCI Thesaurus codes.
+The module sends each schedule in `DEASchedule/Code` as its NCI Thesaurus (NCIt) code:
 
-* Schedule I maps to `C48672`.
-* Schedule II maps to `C48675`.
-* Schedule III maps to `C48676`.
-* Schedule IV maps to `C48677`.
-* Schedule V maps to `C48679`.
+* `I`: `C48672`
+* `II`: `C48675`
+* `III`: `C48676`
+* `IV`: `C48677`
+* `V`: `C48679`
+
+`DrugCoded/DEASchedule` carries the prescription's schedule.
 
 ## Schedule Checks
 
-When `EPCS_MODE=disabled`, the module rejects a controlled [NewRx](../prescribing/newrx-message.md) with `epcs-disabled`.
-It also rejects a [renewal](../prescribing/pharmacy-initiated-messages/rx-renewal.md) or [change](../prescribing/pharmacy-initiated-messages/rx-change.md) response for a controlled prescription unless the prescriber denies the request.
+The module checks the schedules when you send a [NewRx](../prescribing/newrx-message.md) or respond to a [renewal](../prescribing/pharmacy-initiated-messages/rx-renewal.md) or [change](../prescribing/pharmacy-initiated-messages/rx-change.md) request.
+The checks it runs depend on the request:
 
-The schedule checks depend on what the prescriber sends.
+* a NewRx, or a response that lets the pharmacy fill the prescription: the medication code checks below and, for compounds, the [compound schedule checks](../prescribing/compound-medications.md#schedule-checks)
+* a denied response, a pending response, or an approved prior-authorization change response: only `medication-has-multiple-dea-schedules` and `dea-schedule-coding-system-is-not-supported`
 
-* For a NewRx or a response that lets the pharmacy fill a prescription, the module validates the medication's schedule. For a compound, it also [checks the ingredient schedules](../prescribing/compound-medications.md#schedule-checks).
-* For a denial, a pending response, or approval of a prior-authorization change request, it checks the medication code for duplicate schedules and unsupported schedule codings.
+When EPCS is disabled (`EPCS_MODE=disabled`), the module rejects a controlled prescription with `epcs-disabled`.
+It does not reject a denied response this way.
 
-If a schedule check fails, the module returns `422` with the error message in `OperationOutcome.issue[].details.text`.
-If a NewRx group includes a prescription the module already sent, it returns `202` and gives the reason for each failure in `failures[].reason`.
+A request that fails a check returns `422` with an `OperationOutcome`.
+
+A group submission returns `202` instead when the module sent some prescriptions of the group in an earlier submission.
+Its `failures[].reason` holds the error code of each prescription that the module did not send.
 
 <details>
 
-<summary>Medication schedule errors</summary>
+<summary>Error Responses</summary>
 
-* `medication-has-multiple-dea-schedules` means the medication code has multiple schedule extensions, or one extension has multiple codings under the DEA schedule system.
-* `dea-schedule-coding-system-is-not-supported` means the extension contains codings but none supplies a `code` under the DEA schedule system.
-* `controlled-substance-missing-dea-schedule` means the schedule code for a controlled prescription is blank.
-* `controlled-substance-invalid-dea-schedule` means the schedule code falls outside `I` through `V`.
+* The medication code (`Medication.code` or `MedicationRequest.medicationCodeableConcept`):
+  * `medication-has-multiple-dea-schedules`: the code has more than one schedule extension, or more than one coding under `http://terminology.hl7.org/CodeSystem/v2-0477` in one extension.
+  * `dea-schedule-coding-system-is-not-supported`: a schedule extension has codings, and none of them is a coding under `http://terminology.hl7.org/CodeSystem/v2-0477` that has a code.
+  * `controlled-substance-invalid-dea-schedule`: the schedule is not one of `I` to `V`.
 
 </details>
