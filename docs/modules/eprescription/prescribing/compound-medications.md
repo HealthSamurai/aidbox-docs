@@ -9,11 +9,14 @@ The module treats a `Medication` as a compound when either of these is true:
 * its `http://aidbox.app/ePrescription/FHIRSchema/medication-is-compound` extension has `valueBoolean: true`
 * it has `ingredient` entries and `Medication.code` has no National Drug Code (NDC) coding
 
+## Ingredient NDCs
+
+Store an 11-digit NDC for each scheduled ingredient as a coding under `http://hl7.org/fhir/sid/ndc` in its `itemCodeableConcept`.
+
 ## Ingredient Schedules
 
 Store the schedule of each scheduled ingredient in the [DEA schedule extension](../epcs/dea-schedules.md#store-a-dea-schedule) of its `Medication.ingredient.itemCodeableConcept`.
 
-The ingredients decide the schedule of a compound.
 A prescription whose compound has at least one scheduled ingredient is a [controlled prescription](../epcs/dea-schedules.md).
 Its schedule is the strictest ingredient schedule.
 `I` is the strictest and `V` the least strict, so a compound with a Schedule II and a Schedule IV ingredient follows the rules of Schedule II.
@@ -78,13 +81,6 @@ Only an active ingredient can have a schedule, so leave the extension out of an 
 ```
 
 </details>
-
-## Ingredient NDCs
-
-Each scheduled ingredient of a compound needs an 11-digit NDC.
-Store it as a coding under `http://hl7.org/fhir/sid/ndc` in the ingredient's `itemCodeableConcept`.
-
-The module sends every 11-digit ingredient NDC to the pharmacy in `CompoundIngredient/ItemNumber`, whether or not the ingredient has a schedule.
 
 ## Compound Checks
 
