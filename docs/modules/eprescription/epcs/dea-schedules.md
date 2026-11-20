@@ -67,4 +67,22 @@ A request that fails a check returns `422` with an `OperationOutcome`.
   * `dea-schedule-coding-system-is-not-supported`: a schedule extension has codings, and none of them is a coding under `http://terminology.hl7.org/CodeSystem/v2-0477` that has a code.
   * `controlled-substance-invalid-dea-schedule`: the schedule is not one of `I` to `V`.
 
+Example response for `controlled-substance-invalid-dea-schedule`:
+
+```json
+{
+  "resourceType": "OperationOutcome",
+  "issue": [
+    {
+      "severity": "error",
+      "code": "invalid",
+      "details": {
+        "text": "Controlled substance DEASchedule must be one of I, II, III, IV, V"
+      },
+      "diagnostics": "null"
+    }
+  ]
+}
+```
+
 </details>

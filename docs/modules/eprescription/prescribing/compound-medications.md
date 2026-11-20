@@ -84,10 +84,6 @@ Only an active ingredient can have a schedule, so leave the extension out of an 
 
 ## Compound Checks
 
-The module runs these checks together with the [schedule checks](../epcs/dea-schedules.md#schedule-checks) when you send a [NewRx](newrx-message.md) or a response that lets the pharmacy fill the prescription.
-A request that fails a check returns `422` with an `OperationOutcome`.
-The issue's `diagnostics` holds a JSON object whose `in` field points to the `Medication` (`["Medication"]`) or to the ingredient (`["Medication", "ingredient", <index>]`).
-
 <details>
 
 <summary>Error Responses</summary>
@@ -103,5 +99,23 @@ The issue's `diagnostics` holds a JSON object whose `in` field points to the `Me
 * A scheduled ingredient of a compound:
   * `controlled-compound-ingredient-missing-ndc`: the ingredient has no coding under `http://hl7.org/fhir/sid/ndc`.
   * `controlled-compound-ingredient-invalid-ndc`: the ingredient's NDC coding has no code, or its code does not have 11 digits.
+
+Example response for `controlled-compound-ingredient-missing-ndc` on the first ingredient of the compound above:
+
+```json
+{
+  "resourceType": "OperationOutcome",
+  "issue": [
+    {
+      "severity": "error",
+      "code": "invalid",
+      "details": {
+        "text": "Compound ingredient with a DEASchedule must include an NDC"
+      },
+      "diagnostics": "{\"in\":[\"Medication\",\"ingredient\",0],\"resourceType\":\"Medication\",\"id\":\"compound-example\"}"
+    }
+  ]
+}
+```
 
 </details>
