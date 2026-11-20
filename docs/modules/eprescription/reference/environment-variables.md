@@ -21,8 +21,8 @@ Here is a full list of environment variables used by the module:
 
 
 
-* `EPCS_MODE` – `full` enables controlled-substance prescribing, default is **disabled**. See [Enable EPCS](../epcs/enable-epcs.md).
-* `EPCS_PROOF_SECRET` – Required when `EPCS_MODE` is `full`. Secret the module uses to detect a change to a controlled prescription between marking it ready to sign and signing it
+* `EPCS_MODE` – Accepts `disabled` (default) or `full`. Set to `full` to enable controlled-substance prescribing. See [Enable EPCS](../epcs/enable-epcs.md).
+* `EPCS_PROOF_SECRET` – Required when `EPCS_MODE` is `full`.
 
 
 
