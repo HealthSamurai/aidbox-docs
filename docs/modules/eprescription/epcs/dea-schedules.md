@@ -13,16 +13,12 @@ For a [compound medication](../prescribing/compound-medications.md), the module 
 Store the schedule in the `http://aidbox.app/ePrescription/FHIRSchema/medication-dea-schedule` extension of the medication code:
 
 * `MedicationRequest.medicationCodeableConcept` for a prescription without a `Medication` resource
-* `Medication.code` for a `Medication` that is not a [compound](../prescribing/compound-medications.md)
+* `Medication.code`
 * `Medication.ingredient.itemCodeableConcept` for each scheduled ingredient of a compound (see [Ingredient Schedules](../prescribing/compound-medications.md#ingredient-schedules))
-
-The extension's `valueCodeableConcept` holds one coding under `http://terminology.hl7.org/CodeSystem/v2-0477` with one of the codes `I`, `II`, `III`, `IV`, or `V`.
-Give each medication code at most one schedule extension.
-An extension that holds only `text` stores no schedule.
 
 <details>
 
-<summary>Schedule extension</summary>
+<summary>Schedule extension example</summary>
 
 ```json
 {
@@ -60,19 +56,14 @@ The module sends each schedule in `DEASchedule/Code` as its NCI Thesaurus (NCIt)
 
 ## Schedule Checks
 
-The module checks the schedules when you send a [NewRx](../prescribing/newrx-message.md) or respond to a [renewal](../prescribing/pharmacy-initiated-messages/rx-renewal.md) or [change](../prescribing/pharmacy-initiated-messages/rx-change.md) request.
-The checks it runs depend on the request:
+The module checks the schedules when you send these requests:
 
-* a NewRx, or a response that lets the pharmacy fill the prescription: every check in the Error Responses list below, plus the [compound checks](../prescribing/compound-medications.md#compound-checks)
+* a [NewRx](../prescribing/newrx-message.md), or a [renewal](../prescribing/pharmacy-initiated-messages/rx-renewal.md) or [change](../prescribing/pharmacy-initiated-messages/rx-change.md) response that lets the pharmacy fill the prescription: every check in the Error Responses list below
 * a denied response, a pending response, or an approved prior-authorization change response: only `medication-has-multiple-dea-schedules` and `dea-schedule-coding-system-is-not-supported`
 
 When EPCS is disabled (`EPCS_MODE=disabled`), the module rejects a controlled prescription with `epcs-disabled`, including a compound with a scheduled ingredient.
-It does not reject a denied response this way.
 
 A request that fails a check returns `422` with an `OperationOutcome`.
-
-A group submission returns `202` instead when the module sent some prescriptions of the group in an earlier submission.
-Its `failures[].reason` holds the error code of each prescription that the module did not send.
 
 <details>
 
