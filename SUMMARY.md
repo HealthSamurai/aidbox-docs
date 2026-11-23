@@ -153,6 +153,7 @@
 * [Recommended environment variables](configuration/recommended-envs.md)
 * [Settings](configuration/settings.md)
 * [Configure Aidbox and Multibox](configuration/configure-aidbox-and-multibox.md)
+* [Secrets](configuration/secrets.md)
 * [External Secrets](configuration/secret-files.md)
 * [Init Bundle](configuration/init-bundle.md)
 * [Migrations](configuration/migrations.md)

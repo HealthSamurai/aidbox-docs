@@ -10,6 +10,8 @@ description: >-
 This functionality is available starting from version 2602.
 {% endhint %}
 
+For an overview of every secret Aidbox uses, see [Secrets](secrets.md).
+
 Aidbox can reference secrets stored as files on the filesystem instead of keeping them in the database. A JSON vault config file maps named secrets to file paths and controls which resources can access each secret. The actual values are never persisted or returned through the API.
 
 ## How it works
