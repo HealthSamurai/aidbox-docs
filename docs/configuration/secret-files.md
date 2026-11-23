@@ -10,6 +10,8 @@ description: >-
 This functionality is available starting from version 2602.
 {% endhint %}
 
+For an overview of every secret Aidbox uses, see [Secrets](secrets.md).
+
 Aidbox can reference secrets stored as files on the filesystem instead of keeping them in the database. A JSON vault config file maps named secrets to file paths and controls which resources can access each secret. The actual values are never persisted or returned through the API.
 
 ## How it works
@@ -158,6 +160,23 @@ The following fields support secret references via the extension pattern:
 | **AidboxTopicDestination** | `parameter.saslJaasConfig`             | SASL JAAS configuration for Kafka authentication |
 | **AidboxTopicDestination** | `parameter.sslKeystoreKey`             | SSL keystore private key for Kafka connection    |
 | **AidboxTopicDestination** | `parameter.header`                     | HTTP header value for webhook requests (e.g. Authorization token) |
+| **AidboxTopicDestination** | `parameter.password`                   | Password for NATS, ClickHouse, RabbitMQ, and AMQP 1.0 destinations |
+| **AidboxTopicDestination** | `parameter.serviceAccountKey`          | Service account key for the BigQuery destination |
+| **AidboxTopicDestination** | `parameter.awsAccessKeyId`, `parameter.awsSecretAccessKey` | AWS credentials for the Data Lakehouse destination |
+| **SDCConfig**              | `<service>.auth.client-secret`         | OAuth client secret for an external service (`form-store`, `data-store`, `term-server`, `dtr-service`) |
+| **SDCConfig**              | `<service>.auth.client-id`             | OAuth client ID for the same services            |
+
+Topic destinations distributed as separate modules resolve every parameter through the vault, starting from these module versions:
+
+| Module | Version |
+|---|---|
+| NATS (`topic-destination-nats`) | 2604.1 |
+| BigQuery (`topic-destination-bigquery`) | 2603.1 |
+| Data Lakehouse (`topic-destination-deltalake`) | 2605.0 |
+| ClickHouse (`topic-destination-clickhouse`) | TBD |
+| RabbitMQ and AMQP 1.0 (`topic-destination-amqp`) | TBD |
+
+The AWS EventBridge and AWS SNS destinations don't support secret references. Omit `accessKeyId` and `secretAccessKey`, and they use the AWS default credentials chain (IAM role, IRSA, or Pod Identity) instead.
 
 ## Delivering secrets to the filesystem
 

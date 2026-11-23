@@ -56,5 +56,6 @@ The following are **not** implemented in Aidbox. Rely on operational measures or
 
 * [All settings (CORS, CSP)](../reference/all-settings.md) — `security.cors.*`, `security.content-security-policy-header`
 * [Audit and Logging](audit-and-logging.md)
+* [Secrets](../configuration/secrets.md): which secrets Aidbox uses and how to rotate them
 * [User management](identity-management/user-management.md) — password and lockout
 * [Prohibit user to login](../tutorials/security-access-control-tutorials/prohibit-user-to-login.md) — manual lockout via `User.inactive`

@@ -1,0 +1,171 @@
+---
+description: >-
+  Which secrets Aidbox uses, where it keeps them, and how it protects
+  and rotates them: settings, resource fields, and external secret files.
+---
+
+# Secrets
+
+Aidbox keeps secrets in three places:
+
+* [Settings](#secrets-in-settings): credentials and keys you pass as environment variables, such as the database password or the JWT signing key.
+* [Resource fields](#secrets-in-resources): values stored in the database inside resources, such as a `Client` secret or an `AwsAccount` access key.
+* [External secret files](#keep-secrets-out-of-the-database): files that Aidbox reads at runtime, so the value never reaches the database.
+
+## Secrets in settings
+
+Aidbox marks the settings below as sensitive. For a sensitive setting, Aidbox:
+
+* masks the value in the Admin UI and in the settings API;
+* leaves the value out of error messages when it can't parse it;
+* accepts the value only from an environment variable and rejects attempts to store it in the database.
+
+{% hint style="warning" %}
+The settings export endpoint (`/api/v1/settings/export`) returns sensitive values in plaintext. It is off by default. Keep [`BOX_EXPORT_SETTINGS_ENDPOINT`](../reference/all-settings.md#export-settings-endpoint) set to `false` in production.
+{% endhint %}
+
+The [settings reference](../reference/all-settings.md) lists the deprecated environment variable names and the details for each setting.
+
+### Bootstrap credentials
+
+| Environment variable     | Purpose                                                                                    |
+| ------------------------ | ------------------------------------------------------------------------------------------ |
+| `BOX_ROOT_CLIENT_SECRET` | Secret of the `root` client, which has full access to the API.                             |
+| `BOX_ADMIN_PASSWORD`     | Password of the `admin` user for the Admin UI.                                             |
+
+Set both in every environment. See [Recommended environment variables](recommended-envs.md).
+
+### Database
+
+| Setting                                                                                                            | Environment variable                          | Purpose                                                                 |
+| ------------------------------------------------------------------------------------------------------------------ | --------------------------------------------- | ----------------------------------------------------------------------- |
+| [`db.password`](../reference/all-settings.md#db.password)                                                          | `BOX_DB_PASSWORD`                             | Password of the database user.                                          |
+| `db.maintenance.password`                                                                                          | `BOX_DB_MAINTENANCE_PASSWORD`                 | Password of the user that creates the database and runs maintenance. Falls back to `BOX_DB_PASSWORD`. |
+| [`db.ro-replica.password`](../reference/all-settings.md#db.ro-replica.password)                                    | `BOX_DB_RO_REPLICA_PASSWORD`                  | Password for the read-only replica.                                     |
+| [`db.databricks-client-secret`](../reference/all-settings.md#db.databricks-client-secret)                          | `BOX_DB_DATABRICKS_CLIENT_SECRET`             | OAuth client secret for Databricks Lakebase authentication.             |
+| [`db.ro-replica.databricks-client-secret`](../reference/all-settings.md#db.ro-replica.databricks-client-secret)    | `BOX_DB_RO_REPLICA_DATABRICKS_CLIENT_SECRET`  | The same for the read-only replica.                                     |
+
+### Token signing and encryption keys
+
+| Setting                                                                                  | Environment variable              | Purpose                                                                                                 |
+| ---------------------------------------------------------------------------------------- | --------------------------------- | ------------------------------------------------------------------------------------------------------- |
+| [`security.auth.keys.private`](../reference/all-settings.md#security.auth.keys.private)  | `BOX_SECURITY_AUTH_KEYS_PRIVATE`  | RSA private key that signs the JWTs Aidbox issues (RS256). Pair it with `BOX_SECURITY_AUTH_KEYS_PUBLIC`. |
+| [`security.auth.keys.secret`](../reference/all-settings.md#security.auth.keys.secret)    | `BOX_SECURITY_AUTH_KEYS_SECRET`   | Shared secret for HS256 JWTs.                                                                           |
+| [`security.encrypt-secret`](../reference/all-settings.md#security.encrypt-secret)        | `BOX_SECURITY_ENCRYPT_SECRET`     | Key for the [Encryption API](../api/other/encryption-api.md) and for resource fields that Aidbox encrypts. |
+
+### Email providers
+
+| Setting                                                                                  | Environment variable                    | Purpose                          |
+| ---------------------------------------------------------------------------------------- | --------------------------------------- | -------------------------------- |
+| [`provider.default.password`](../reference/all-settings.md#provider.default.password)    | `BOX_MODULE_PROVIDER_DEFAULT_PASSWORD`  | Password of the default provider. |
+| [`provider.smtp.password`](../reference/all-settings.md#provider.smtp.password)          | `BOX_MODULE_PROVIDER_SMTP_PASSWORD`     | SMTP password.                   |
+| [`provider.mailgun.password`](../reference/all-settings.md#provider.mailgun.password)    | `BOX_MODULE_PROVIDER_MAILGUN_PASSWORD`  | Mailgun password.                |
+| [`provider.postmark.api-key`](../reference/all-settings.md#provider.postmark.api-key)    | `BOX_MODULE_PROVIDER_POSTMARK_API_KEY`  | Postmark API key.                |
+| [`provider.sendgrid.api-key`](../reference/all-settings.md#provider.sendgrid.api-key)    | `BOX_MODULE_PROVIDER_SENDGRID_API_KEY`  | SendGrid API key.                |
+
+{% hint style="warning" %}
+Aidbox doesn't mark the Postmark and SendGrid API keys as sensitive, so the Admin UI shows them in plaintext. Limit access to the Admin UI settings page if you use these providers.
+{% endhint %}
+
+### Observability
+
+| Setting                                                                                            | Environment variable                    | Purpose                                         |
+| -------------------------------------------------------------------------------------------------- | --------------------------------------- | ----------------------------------------------- |
+| [`observability.datadog.api-key`](../reference/all-settings.md#observability.datadog.api-key)      | `BOX_OBSERVABILITY_DATADOG_API_KEY`     | Datadog API key for log shipping.               |
+| [`observability.elasticsearch.auth`](../reference/all-settings.md#observability.elasticsearch.auth) | `BOX_OBSERVABILITY_ELASTICSEARCH_AUTH` | Elasticsearch credentials as `<user>:<password>`. |
+
+### Modules and integrations
+
+| Setting                                                                                                                                        | Environment variable                                          | Purpose                                              |
+| ---------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------- | ---------------------------------------------------- |
+| [`module.subscriptions.pubsub.service-account.private-key`](../reference/all-settings.md#module.subscriptions.pubsub.service-account.private-key) | `BOX_MODULE_SUBSCRIPTIONS_PUBSUB_SERVICE_ACCOUNT_PRIVATE_KEY` | GCP service account key for Pub/Sub subscriptions.   |
+| [`module.webpush.private-key`](../reference/all-settings.md#module.webpush.private-key)                                                        | `BOX_MODULE_WEBPUSH_PRIVATE_KEY`                              | Private key for web push notifications.              |
+| [`module.health-cards-links.issuer-private-key`](../reference/all-settings.md#module.health-cards-links.issuer-private-key)                    | `BOX_MODULE_HEALTH_CARDS_LINKS_ISSUER_PRIVATE_KEY`            | Issuer key that signs SMART Health Cards.            |
+| [`module.sdc.openai-api-key`](../reference/all-settings.md#module.sdc.openai-api-key)                                                          | `BOX_MODULE_SDC_OPENAI_API_KEY`                               | OpenAI API key for Formbox AI features.              |
+| [`modules.sdc.gemini-api-key`](../reference/all-settings.md#modules.sdc.gemini-api-key)                                                        | `BOX_SDC_GEMINI_API_KEY`                                      | Gemini API key for Formbox.                          |
+| [`module.sdc.twilio-auth-token`](../reference/all-settings.md#module.sdc.twilio-auth-token)                                                    | `BOX_MODULE_SDC_TWILIO_AUTH_TOKEN`                            | Twilio auth token for Formbox outbound voice calls.  |
+| [`module.sdc.dtr.client-secret`](../reference/all-settings.md#module.sdc.dtr.client-secret)                                                    | `BOX_MODULE_SDC_DTR_CLIENT_SECRET`                            | Client secret for the Da Vinci DTR service.          |
+
+Formbox also takes API keys for ElevenLabs, Deepgram, and Cartesia (`BOX_MODULE_SDC_ELEVENLABS_API_KEY`, `BOX_MODULE_SDC_DEEPGRAM_API_KEY`, `BOX_MODULE_SDC_CARTESIA_API_KEY`).
+
+## Secrets in resources
+
+### Values Aidbox hashes or encrypts
+
+Aidbox transforms these fields before it saves the resource:
+
+| Field                                                                 | What Aidbox stores                                                             |
+| --------------------------------------------------------------------- | ------------------------------------------------------------------------------ |
+| `User.password`                                                       | An scrypt hash.                                                                |
+| `Client.secret`                                                       | A SHA-256 hash.                                                                |
+| `Session.access_token`, `Session.refresh_token`, `Session.authorization_code` | A SHA-256 hash.                                                        |
+| `SDCConfig` `auth.client-secret` (form store, data store, terminology server, DTR service) | A value encrypted with [`security.encrypt-secret`](../reference/all-settings.md#security.encrypt-secret). |
+
+Aidbox can't recover a hashed value, only compare a submitted one against it. To change a client secret or a password, write a new value.
+
+To keep the `Client` and `SDCConfig` secrets out of the database entirely, use [External Secrets](secret-files.md).
+
+### Values Aidbox stores as you send them
+
+These fields hold credentials for external systems, and Aidbox saves them in the database unchanged:
+
+| Resource                                         | Fields                                                                                              |
+| ------------------------------------------------ | --------------------------------------------------------------------------------------------------- |
+| [`AwsAccount`](../file-storage/aws-s3.md)        | `secret-access-key`                                                                                 |
+| [`GcpServiceAccount`](../file-storage/gcp-cloud-storage.md) | `private-key`                                                                            |
+| [`AzureAccount`](../file-storage/azure-blob-storage.md) | `key`, `clientSecret`                                                                         |
+| `IdentityProvider`                               | `client.secret`, `client.private-key`, `client.certificate`                                         |
+| `TokenIntrospector`                              | `jwt.secret`, `jwt.keys.k`, `introspection_endpoint.authorization`                                  |
+| `AidboxTopicDestination`                         | Kafka `saslJaasConfig` and `sslKeystoreKey`, webhook `header`, and the credentials of module destinations: `password` (NATS, ClickHouse, RabbitMQ, AMQP 1.0), `serviceAccountKey` (BigQuery), AWS keys (Data Lakehouse, EventBridge, SNS) |
+
+Restrict read access to these resource types with [access policies](../access-control/authorization/README.md). To keep these values out of the database:
+
+* For `IdentityProvider`, `TokenIntrospector`, and `AidboxTopicDestination`, use [External Secrets](secret-files.md). For module destinations, check the minimum module version in [Supported resources](secret-files.md#supported-resources). AWS EventBridge and SNS destinations don't support secret references, so omit their AWS keys and use the AWS default credentials chain.
+* For cloud storage accounts, External Secrets don't apply. Use the keyless mode instead: the [default credentials chain](../file-storage/aws-s3.md#default-credentials-setup) for AWS (omit `access-key-id`), [Workload Identity](../file-storage/gcp-cloud-storage.md) for GCP, or [workload identity](../file-storage/azure-blob-storage.md#workload-identity) for Azure. Aidbox then gets credentials from the cloud platform and stores no key.
+
+## Keep secrets out of the database
+
+[External Secrets](secret-files.md) let a resource field point to a file instead of holding the value:
+
+1. You mount the secret as a file, for example from a Kubernetes Secret or a vault CSI driver.
+2. A vault config file, set with `BOX_VAULT_CONFIG`, maps a secret name to the file path and to the resources that may use it.
+3. The resource stores only the secret name in a `secret-reference` extension. Aidbox reads the file when it needs the value and never returns the value through the API.
+
+External Secrets also hold the keys for [field-level encryption](storage-and-api-configuration/field-level-encryption.md), with `"kind": "encryption"` in the vault config.
+
+See the [Azure Key Vault](../tutorials/other-tutorials/azure-key-vault-external-secrets.md) and [HashiCorp Vault](../tutorials/other-tutorials/hashicorp-vault-external-secrets.md) tutorials for end-to-end setups.
+
+## Rotate secrets
+
+| Secret                                              | How to rotate                                                                                                                                                                       |
+| --------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Settings                                            | Change the environment variable and restart Aidbox. Aidbox reads sensitive settings only from environment variables, so a new value takes effect after the restart.                  |
+| JWT signing keys                                    | Tokens signed with the old key stop validating after the restart, so clients have to get new tokens.                                                                                |
+| `security.encrypt-secret`                           | Re-encrypt every value stored with the old key. See [Rotating `security.encrypt-secret`](#rotating-security-encrypt-secret).                                                         |
+| `Client.secret`, `User.password`                    | Write a new value to the resource.                                                                                                                                                  |
+| External secret files                               | Replace the file. Aidbox notices the new modification time and uses the new value without a restart.                                                                                |
+| Field-level encryption keys                         | Add the new key next to the old one, as described in [Key rotation](storage-and-api-configuration/field-level-encryption.md#key-rotation).                                           |
+
+### Rotating `security.encrypt-secret`
+
+`security.encrypt-secret` is a single symmetric key, so Aidbox can't keep the old and the new key side by side the way [field-level encryption](storage-and-api-configuration/field-level-encryption.md#key-rotation) can. The moment you change the key, every value encrypted with the old one becomes unreadable: Aidbox can no longer decrypt it, and the [Encryption API](../api/other/encryption-api.md) returns an error for ciphertext produced with a different key.
+
+Plan the rotation so you can re-encrypt those values:
+
+1. **Find what the key protects.** This includes the encrypted `SDCConfig` fields (`auth.client-secret` of the form store, data store, terminology server, and DTR service), any ciphertext you created through the Encryption API, and any other field Aidbox encrypts with this key.
+2. **Collect the plaintext.** Aidbox stores only the ciphertext, so you need the original secret from your own records — you can't recover it from Aidbox once the key changes.
+3. **Change the key and restart.** Set the new `BOX_SECURITY_ENCRYPT_SECRET` and restart Aidbox. Sensitive settings come only from environment variables, so the new key takes effect on restart.
+4. **Write the plaintext back.** Re-save each affected resource with the plaintext secret so Aidbox encrypts it with the new key. For `SDCConfig`, write the `auth.client-secret` fields again; if the config points at [external FHIR servers](https://www.health-samurai.io/docs/formbox/aidbox-ui-builder-alpha/external-fhir-servers-as-a-data-backend#authentication), update their credentials too.
+
+{% hint style="info" %}
+To avoid re-encrypting on every rotation, keep these secrets in [External Secrets](secret-files.md) instead. Aidbox reads them from the vault at runtime and never encrypts them with `security.encrypt-secret`, so rotating the key leaves them untouched.
+{% endhint %}
+
+## Recommendations
+
+* Pass secrets as environment variables from your orchestrator's secret store, such as Kubernetes Secrets. Don't commit them to `docker-compose.yaml` or Helm values files.
+* Use [External Secrets](secret-files.md) for credentials in resources where Aidbox supports it, and keyless cloud credentials for storage accounts.
+* Generate long random values for `BOX_ROOT_CLIENT_SECRET`, `BOX_ADMIN_PASSWORD`, and `BOX_SECURITY_AUTH_KEYS_SECRET`.
+* Give the database user only the privileges Aidbox needs, and use a separate maintenance user if your platform allows it.
+* Keep the settings export endpoint off.
+* See [Security hardening](../access-control/security-hardening.md) for related recommendations.
