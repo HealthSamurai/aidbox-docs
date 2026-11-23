@@ -116,11 +116,11 @@ These fields hold credentials for external systems, and Aidbox saves them in the
 | [`AzureAccount`](../file-storage/azure-blob-storage.md) | `key`, `clientSecret`                                                                         |
 | `IdentityProvider`                               | `client.secret`, `client.private-key`, `client.certificate`                                         |
 | `TokenIntrospector`                              | `jwt.secret`, `jwt.keys.k`, `introspection_endpoint.authorization`                                  |
-| `AidboxTopicDestination`                         | Kafka `saslJaasConfig` and `sslKeystoreKey`, webhook `header`                                       |
+| `AidboxTopicDestination`                         | Kafka `saslJaasConfig` and `sslKeystoreKey`, webhook `header`, and the credentials of module destinations: `password` (NATS, ClickHouse, RabbitMQ, AMQP 1.0), `serviceAccountKey` (BigQuery), AWS keys (Data Lakehouse, EventBridge, SNS) |
 
 Restrict read access to these resource types with [access policies](../access-control/authorization/README.md). To keep these values out of the database:
 
-* For `IdentityProvider`, `TokenIntrospector`, and `AidboxTopicDestination`, use [External Secrets](secret-files.md).
+* For `IdentityProvider`, `TokenIntrospector`, and `AidboxTopicDestination`, use [External Secrets](secret-files.md). For module destinations, check the minimum module version in [Supported resources](secret-files.md#supported-resources). AWS EventBridge and SNS destinations don't support secret references, so omit their AWS keys and use the AWS default credentials chain.
 * For cloud storage accounts, External Secrets don't apply. Use the keyless mode instead: the [default credentials chain](../file-storage/aws-s3.md#default-credentials-setup) for AWS (omit `access-key-id`), [Workload Identity](../file-storage/gcp-cloud-storage.md) for GCP, or [workload identity](../file-storage/azure-blob-storage.md#workload-identity) for Azure. Aidbox then gets credentials from the cloud platform and stores no key.
 
 ## Keep secrets out of the database
