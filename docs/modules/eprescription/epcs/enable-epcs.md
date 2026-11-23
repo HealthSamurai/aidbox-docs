@@ -34,6 +34,7 @@ Each location where practitioners prescribe controlled substances needs an admin
 
 1. Appoint the administrator with [Bootstrap the First Administrator](access-management/bootstrap-the-first-administrator.md).
 2. Ask the administrator to nominate the approver with an [access-change request](access-management/access-change-requests.md#request-a-change).
+   The nominee must be [DEA-qualified](access-management/access-change-requests.md#dea-qualification) at the location.
 3. Ask the nominee to accept the request as the [first approver](access-management/access-change-requests.md#first-approver).
 4. Check that [Location Compliance Status](access-management/location-compliance-status.md) returns `compliant: true` for the location.
 
@@ -46,6 +47,28 @@ For each practitioner who prescribes controlled substances, at each location whe
 3. Ask the administrator to create a [prescribing nomination](access-management/access-change-requests.md#prescribing-nomination) for the practitioner.
 4. Ask an approver other than the nominating administrator to give [second-person approval](access-management/access-change-requests.md#second-person-approval) before it [expires](access-management/access-change-requests.md#expiration).
 5. Signed in as the practitioner, check that [`GET /e-prescription/access/epcs/permissions/mine`](access-management/list-permissions.md#list-your-own-permissions) returns `epcs-prescribing` at the location.
+
+## Register the Prescriber for Controlled Prescriptions
+
+For each `PractitionerRole` that prescribes controlled substances:
+
+1. Add the `ControlledSubstance` service level to the `PractitionerRole`:
+
+   ```json
+   {
+     "meta": {
+       "tag": [
+         {
+           "system": "urn:app:aidbox:e-prescriptions:surescripts:serviceLevel",
+           "code": "ControlledSubstance"
+         }
+       ]
+     }
+   }
+   ```
+
+   Keep the service levels the role already has.
+2. Send the updated role to the Surescripts directory with an [UpdateProviderLocation message](../directory/updateproviderlocation-message.md).
 
 ## Verify the Setup
 
