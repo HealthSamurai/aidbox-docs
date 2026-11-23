@@ -103,6 +103,8 @@ Aidbox transforms these fields before it saves the resource:
 
 Aidbox can't recover a hashed value, only compare a submitted one against it. To change a client secret or a password, write a new value.
 
+To keep the `Client` and `SDCConfig` secrets out of the database entirely, use [External Secrets](secret-files.md).
+
 ### Values Aidbox stores as you send them
 
 These fields hold credentials for external systems, and Aidbox saves them in the database unchanged:

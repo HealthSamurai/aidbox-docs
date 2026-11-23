@@ -160,6 +160,8 @@ The following fields support secret references via the extension pattern:
 | **AidboxTopicDestination** | `parameter.saslJaasConfig`             | SASL JAAS configuration for Kafka authentication |
 | **AidboxTopicDestination** | `parameter.sslKeystoreKey`             | SSL keystore private key for Kafka connection    |
 | **AidboxTopicDestination** | `parameter.header`                     | HTTP header value for webhook requests (e.g. Authorization token) |
+| **SDCConfig**              | `<service>.auth.client-secret`         | OAuth client secret for an external service (`form-store`, `data-store`, `term-server`, `dtr-service`) |
+| **SDCConfig**              | `<service>.auth.client-id`             | OAuth client ID for the same services            |
 
 ## Delivering secrets to the filesystem
 
