@@ -5,7 +5,7 @@ description: Electronic Prescribing of Controlled Substances (EPCS) in the Aidbo
 # EPCS
 
 {% hint style="warning" %}
-The module does not support prescribing controlled substances yet, but we are working on it.
+EPCS is in early access. [Contact us](../../../overview/contact-us.md) before you enable it.
 {% endhint %}
 
 * [Enable EPCS](enable-epcs.md): configure the module and your EHR so that prescribers can sign controlled prescriptions.
