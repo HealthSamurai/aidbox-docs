@@ -141,10 +141,25 @@ See the [Azure Key Vault](../tutorials/other-tutorials/azure-key-vault-external-
 | --------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Settings                                            | Change the environment variable and restart Aidbox. Aidbox reads sensitive settings only from environment variables, so a new value takes effect after the restart.                  |
 | JWT signing keys                                    | Tokens signed with the old key stop validating after the restart, so clients have to get new tokens.                                                                                |
-| `security.encrypt-secret`                           | Aidbox can't decrypt values encrypted with the old key. Write the encrypted `SDCConfig` fields again after you change it.                                                           |
+| `security.encrypt-secret`                           | Re-encrypt every value stored with the old key. See [Rotating `security.encrypt-secret`](#rotating-security-encrypt-secret).                                                         |
 | `Client.secret`, `User.password`                    | Write a new value to the resource.                                                                                                                                                  |
 | External secret files                               | Replace the file. Aidbox notices the new modification time and uses the new value without a restart.                                                                                |
 | Field-level encryption keys                         | Add the new key next to the old one, as described in [Key rotation](storage-and-api-configuration/field-level-encryption.md#key-rotation).                                           |
+
+### Rotating `security.encrypt-secret`
+
+`security.encrypt-secret` is a single symmetric key, so Aidbox can't keep the old and the new key side by side the way [field-level encryption](storage-and-api-configuration/field-level-encryption.md#key-rotation) can. The moment you change the key, every value encrypted with the old one becomes unreadable: Aidbox can no longer decrypt it, and the [Encryption API](../api/other/encryption-api.md) returns an error for ciphertext produced with a different key.
+
+Plan the rotation so you can re-encrypt those values:
+
+1. **Find what the key protects.** This includes the encrypted `SDCConfig` fields (`auth.client-secret` of the form store, data store, terminology server, and DTR service), any ciphertext you created through the Encryption API, and any other field Aidbox encrypts with this key.
+2. **Collect the plaintext.** Aidbox stores only the ciphertext, so you need the original secret from your own records — you can't recover it from Aidbox once the key changes.
+3. **Change the key and restart.** Set the new `BOX_SECURITY_ENCRYPT_SECRET` and restart Aidbox. Sensitive settings come only from environment variables, so the new key takes effect on restart.
+4. **Write the plaintext back.** Re-save each affected resource with the plaintext secret so Aidbox encrypts it with the new key. For `SDCConfig`, write the `auth.client-secret` fields again; if the config points at [external FHIR servers](https://www.health-samurai.io/docs/formbox/aidbox-ui-builder-alpha/external-fhir-servers-as-a-data-backend#authentication), update their credentials too.
+
+{% hint style="info" %}
+To avoid re-encrypting on every rotation, keep these secrets in [External Secrets](secret-files.md) instead. Aidbox reads them from the vault at runtime and never encrypts them with `security.encrypt-secret`, so rotating the key leaves them untouched.
+{% endhint %}
 
 ## Recommendations
 
