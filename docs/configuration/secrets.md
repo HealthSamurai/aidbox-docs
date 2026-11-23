@@ -116,7 +116,10 @@ These fields hold credentials for external systems, and Aidbox saves them in the
 | `TokenIntrospector`                              | `jwt.secret`, `jwt.keys.k`, `introspection_endpoint.authorization`                                  |
 | `AidboxTopicDestination`                         | Kafka `saslJaasConfig` and `sslKeystoreKey`, webhook `header`                                       |
 
-Restrict read access to these resource types with [access policies](../access-control/authorization/README.md). For the `IdentityProvider`, `TokenIntrospector`, `AidboxTopicDestination`, and `Client` fields, you can keep the value out of the database with [External Secrets](secret-files.md).
+Restrict read access to these resource types with [access policies](../access-control/authorization/README.md). To keep these values out of the database:
+
+* For `IdentityProvider`, `TokenIntrospector`, and `AidboxTopicDestination`, use [External Secrets](secret-files.md).
+* For cloud storage accounts, External Secrets don't apply. Use the keyless mode instead: the [default credentials chain](../file-storage/aws-s3.md#default-credentials-setup) for AWS (omit `access-key-id`), [Workload Identity](../file-storage/gcp-cloud-storage.md) for GCP, or [workload identity](../file-storage/azure-blob-storage.md#workload-identity) for Azure. Aidbox then gets credentials from the cloud platform and stores no key.
 
 ## Keep secrets out of the database
 
@@ -144,7 +147,7 @@ See the [Azure Key Vault](../tutorials/other-tutorials/azure-key-vault-external-
 ## Recommendations
 
 * Pass secrets as environment variables from your orchestrator's secret store, such as Kubernetes Secrets. Don't commit them to `docker-compose.yaml` or Helm values files.
-* Use [External Secrets](secret-files.md) for credentials in resources where Aidbox supports it.
+* Use [External Secrets](secret-files.md) for credentials in resources where Aidbox supports it, and keyless cloud credentials for storage accounts.
 * Generate long random values for `BOX_ROOT_CLIENT_SECRET`, `BOX_ADMIN_PASSWORD`, and `BOX_SECURITY_AUTH_KEYS_SECRET`.
 * Give the database user only the privileges Aidbox needs, and use a separate maintenance user if your platform allows it.
 * Keep the settings export endpoint off.
