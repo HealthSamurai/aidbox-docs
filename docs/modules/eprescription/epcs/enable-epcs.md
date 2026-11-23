@@ -52,8 +52,7 @@ For each practitioner who prescribes controlled substances, at each location whe
 
 For each `PractitionerRole` that prescribes controlled substances:
 
-1. Check that the prescriber's records have the data a [NewRx message](../prescribing/newrx-message.md) requires, including the SPI on the `PractitionerRole`, the NPI on the `Practitioner`, and the address and phone number on the `Location`.
-2. Add the `ControlledSubstance` service level to the `PractitionerRole`:
+1. Add the `ControlledSubstance` service level to the `PractitionerRole`:
 
    ```json
    {
@@ -69,15 +68,11 @@ For each `PractitionerRole` that prescribes controlled substances:
    ```
 
    Keep the service levels the role already has.
-3. Send the updated role to the Surescripts directory with an [UpdateProviderLocation message](../directory/updateproviderlocation-message.md).
-
-The module rejects a controlled prescription to a pharmacy whose `Organization` does not have the `ControlledSubstance` service level.
-[Pharmacies Synchronization](../pharmacies-synchronization.md) copies the service levels of each pharmacy from the Surescripts directory.
+2. Send the updated role to the Surescripts directory with an [UpdateProviderLocation message](../directory/updateproviderlocation-message.md).
 
 ## Verify the Setup
 
 Sign in as a practitioner who holds the permission, mark one of their controlled prescriptions ready to sign, and sign it.
-A controlled prescription is one whose medication has a [DEA schedule](dea-schedules.md).
 If the module rejects a step:
 
 * `401`: check that the EHR uses the signed-in user's credentials. If every call from Aidbox returns `401`, check `AIDBOX_RPC_CREDENTIALS` in [Configure the Module](#configure-the-module).
