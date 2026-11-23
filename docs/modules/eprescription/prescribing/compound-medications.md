@@ -9,6 +9,11 @@ The module treats a `Medication` as a compound when either of these is true:
 * its `http://aidbox.app/ePrescription/FHIRSchema/medication-is-compound` extension has `valueBoolean: true`
 * it has `ingredient` entries and `Medication.code` has no National Drug Code (NDC) coding
 
+## Ingredient Descriptions
+
+Give each ingredient a description in `itemCodeableConcept.text`.
+The module sends it to the pharmacy in `CompoundIngredient/CompoundIngredientItemDescription`.
+
 ## Ingredient NDCs
 
 Store an 11-digit NDC for each scheduled ingredient as a coding under `http://hl7.org/fhir/sid/ndc` in its `itemCodeableConcept`.
@@ -92,6 +97,7 @@ Only an active ingredient can have a schedule, so leave the extension out of an 
   * `compound-root-dea-schedule-without-ingredient-schedules`: the code of a compound has a schedule, and no ingredient has one.
   * `compound-root-dea-schedule-mismatch`: the code of a compound has a schedule other than the strictest ingredient schedule.
 * A compound ingredient:
+  * `compound-ingredient-missing-description`: the ingredient has no `itemCodeableConcept.text`.
   * `compound-ingredient-has-multiple-dea-schedules`: the ingredient has more than one schedule extension, or more than one coding under `http://terminology.hl7.org/CodeSystem/v2-0477` in one extension.
   * `compound-ingredient-dea-schedule-coding-system-is-not-supported`: a schedule extension has codings, and none of them is under `http://terminology.hl7.org/CodeSystem/v2-0477`.
   * `compound-ingredient-invalid-dea-schedule`: the schedule is not one of `I` to `V`, or a schedule extension's codings under `http://terminology.hl7.org/CodeSystem/v2-0477` have no code.

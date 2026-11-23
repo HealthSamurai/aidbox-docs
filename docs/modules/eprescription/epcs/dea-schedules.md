@@ -64,8 +64,8 @@ A request that fails a check returns `422` with an `OperationOutcome`.
 
 * The medication code (`Medication.code` or `MedicationRequest.medicationCodeableConcept`):
   * `medication-has-multiple-dea-schedules`: the code has more than one schedule extension, or more than one coding under `http://terminology.hl7.org/CodeSystem/v2-0477` in one extension.
-  * `dea-schedule-coding-system-is-not-supported`: a schedule extension has codings, and none of them is a coding under `http://terminology.hl7.org/CodeSystem/v2-0477` that has a code.
-  * `controlled-substance-invalid-dea-schedule`: the schedule is not one of `I` to `V`.
+  * `dea-schedule-coding-system-is-not-supported`: a schedule extension has codings, and none of them is under `http://terminology.hl7.org/CodeSystem/v2-0477`.
+  * `controlled-substance-invalid-dea-schedule`: the schedule is not one of `I` to `V`, or a schedule extension's codings under `http://terminology.hl7.org/CodeSystem/v2-0477` have no code.
 
 Example response for `controlled-substance-invalid-dea-schedule`:
 
