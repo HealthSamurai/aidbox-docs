@@ -13,6 +13,9 @@ Production-ready configurations with Helm charts, HA setup, and self-signed SSL.
 {% card icon="database" title="Run on managed PostgreSQL" href="run-aidbox-on-managed-postgresql.md" %}
 AWS Aurora, Azure Database, GCP Cloud SQL, Databricks Lakebase. Extensions and user setup.
 {% endcard %}
+{% card icon="globe" title="Run behind a reverse proxy" href="run-aidbox-behind-a-reverse-proxy.md" %}
+Serve Aidbox under a URL path with BOX_WEB_BASE_URL or the X-Original-URI header.
+{% endcard %}
 {% card icon="sliders" title="Inject env variables into Init Bundle" href="how-to-inject-env-variables-into-init-bundle.md" %}
 Inject environment variables with envsubst or sed for secrets and CI/CD pipelines.
 {% endcard %}

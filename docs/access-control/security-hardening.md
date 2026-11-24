@@ -49,7 +49,7 @@ The following are **not** implemented in Aidbox. Rely on operational measures or
 ## Infrastructure recommendations
 
 * **TLS** — Terminate TLS at a reverse proxy or load balancer. Do not expose Aidbox directly to the internet without encryption.
-* **Reverse proxy** — Use nginx, Traefik, or similar to add security headers (HSTS, X-Content-Type-Options, Referrer-Policy), rate limiting, and DDoS mitigation.
+* **Reverse proxy** — Use nginx, Traefik, or similar to add security headers (HSTS, X-Content-Type-Options, Referrer-Policy), rate limiting, and DDoS mitigation. When the proxy serves Aidbox under a URL path, set `X-Original-URI` on every request: see [Run Aidbox behind a reverse proxy](../deployment-and-maintenance/deploy-aidbox/run-aidbox-behind-a-reverse-proxy.md).
 * **Network** — Restrict access to Aidbox and the database to trusted networks where possible.
 
 ## See also
