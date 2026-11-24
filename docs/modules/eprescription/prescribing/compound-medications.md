@@ -128,7 +128,7 @@ Only an active ingredient can have a schedule, so leave the extension out of an 
   * `controlled-compound-ingredient-missing-ndc`: the ingredient has no coding under `http://hl7.org/fhir/sid/ndc`.
   * `controlled-compound-ingredient-invalid-ndc`: the ingredient's NDC coding has no code, or its code does not have 11 digits.
 * A compound with a scheduled ingredient:
-  * `controlled-compound-medication-missing-active-ingredients`: every ingredient has `isActive: false`.
+  * `controlled-compound-medication-missing-active-ingredients`: every ingredient, including each scheduled one, has `isActive: false`.
 
 Example response for `controlled-compound-ingredient-missing-ndc` on the first ingredient of the compound above:
 
