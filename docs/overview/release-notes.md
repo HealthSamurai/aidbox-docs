@@ -15,6 +15,7 @@ description: >-
 **Bug fixes and improvements**
 
 * Fixed PATCH of resources stored in the [FHIR Artifact Registry](../artifact-registry/artifact-registry-overview.md) failing with `500 Resource violates unique constraint`. This affected CodeSystem, ValueSet, and ConceptMap with the `hybrid` or `local` terminology engine, and Library, ViewDefinition, SearchParameter, StructureDefinition, and the other Artifact Registry resources with any engine. The fix covers JSON Patch, FHIRPath Patch, Merge Patch, and PATCH entries in transaction and batch bundles. Before 2605, the same PATCH returned `404` (resource not found).
+* The [CapabilityStatement](../api/rest-api/other/capability-statement.md#software) now has `software`, with `name: Aidbox` and the running Aidbox version. FHIR clients that identify a server by `software.name` showed Aidbox as an unknown server. The TerminologyCapabilities from `GET /fhir/metadata?mode=terminology` carries the same `software` and passes `$validate`: before, it failed the `tcp-2` and `tcp-4` invariants and had an empty `codeSystem` array.
 
 **Changes and deprecations**
 
