@@ -487,25 +487,6 @@ GET /fhir/Patient?_createdAt=2019-01-01
 
 You can use operators `lt,le,gt,ge` like in other date search parameters.
 
-### \_result
-
-By default, the search result is returned as a FHIR Bundle. You can change this behavior by setting `_result=array` and your search result will be returned as JSON array with resources, without the Bundle envelope:
-
-```http
-GET /fhir/Patient?_result=array
-# 200
-- id: pt1
-  resourceType: Patient
-  name:
-  - given: [Adam]
-    family: Smith
-- name:
-  - given: [Andrew]
-    family: John
-  id: pt-1
-  resourceType: Patient
-```
-
 ### \_search-language
 
 `_search-language` is experimental SearchParameter. It can be used to search for a specified language.

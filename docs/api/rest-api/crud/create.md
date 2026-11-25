@@ -117,6 +117,8 @@ A more complex way to create a resource (it requires the knowledge of [search](.
 * **One Match**: The server returns the found resource and `200 OK`
 * **Multiple matches**: The server returns a `412 Precondition Failed` error indicating the client's criteria were not selective enough
 
+With no matches, Aidbox creates the resource with the `id` from the request body, as in a plain `create`. If a resource with that `id` exists, Aidbox returns `409 Conflict` and leaves the existing resource unchanged.
+
 ### `200` OK
 
 Create a patient if there is no patient with the name Bob.

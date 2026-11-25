@@ -43,12 +43,10 @@ Get practitioner by resource `id`:
 
 The full list of FHIR search parameters for Practitioner is found [below](practitioner.md#parameters). Aidbox also offers a selection of query parameters to further refine search results. This includes pagination, full-text search, sorting etc. Refer to the [FHIR API Search docs](../../../rest-api/fhir-search/README.md) for information.
 
-The search results are returned in [Bundles](../../../rest-api/bundle.md) by default. Alternatively, you can specify a `_result` parameter with value `array` to receive resources in a JSON array.
+The search results are returned in [Bundles](../../../rest-api/bundle.md).
 
 Example response:
 
-{% tabs %}
-{% tab title="Bundle" %}
 ```
 GET [base]/fhir/Practitioner?ilike=joh+smit
 ```
@@ -117,57 +115,6 @@ GET [base]/fhir/Practitioner?ilike=joh+smit
 }
 ```
 {% endcode %}
-{% endtab %}
-
-{% tab title="JSON array" %}
-```
-GET [base]/fhir/Practitioner?ilike=joh+smit&_result=array
-```
-
-{% code lineNumbers="true" %}
-```json
-[
-   {
-      "meta":{
-         "versionId":"15043688"
-      },
-      "name":[
-         {
-            "given":[
-               "John"
-            ],
-            "family":"Smith"
-         }
-      ],
-      "birthDate":"1983-03-27",
-      "resourceType":"Practitioner",
-      "active":false,
-      "id":"0399387c-74d9-4b9f-b52f-eff2778775e8",
-      "gender":"male"
-   },
-   {
-      "meta":{
-         "versionId":"27083967"
-      },
-      "name":[
-         {
-            "given":[
-               "John"
-            ],
-            "family":"Smith"
-         }
-      ],
-      "birthDate":"1983-03-27",
-      "resourceType":"Practitioner",
-      "active":true,
-      "id":"24f0943f-93d4-430b-848a-3bb21c27440c",
-      "gender":"male"
-   }
-]
-```
-{% endcode %}
-{% endtab %}
-{% endtabs %}
 
 ### Bulk API
 

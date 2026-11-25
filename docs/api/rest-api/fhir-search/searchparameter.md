@@ -821,7 +821,7 @@ When SearchParameters are not enough, Aidbox has custom APIs to search for resou
 * [Search resource](../aidbox-search.md#search-resource) - use SQL to define `where` and `order-by` parts of SQL statements. Combines with other SearchParameters.
 * [AidboxQuery](../aidbox-search.md#aidboxquery) - use DSL to define search criteria. Does not combine with other SearchParameters.
 * [Dot expressions](../aidbox-search.md#dot-expressions) - an easy way to search without using SearchParameters at all.
-* [Aidbox special search parameters](../aidbox-search.md#aidbox-special-search-parameters) - Aidbox-specific parameters, such as `_explain`, `_timeout`, `_createdAt` and `_result`.
+* [Aidbox special search parameters](../aidbox-search.md#aidbox-special-search-parameters) - Aidbox-specific parameters, such as `_explain`, `_timeout` and `_createdAt`.
 
 {% content-ref url="../aidbox-search.md" %}
 [aidbox-search.md](../aidbox-search.md)
