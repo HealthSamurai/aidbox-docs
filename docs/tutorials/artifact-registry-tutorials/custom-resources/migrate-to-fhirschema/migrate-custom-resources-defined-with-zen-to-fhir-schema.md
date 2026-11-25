@@ -28,6 +28,10 @@ In the following sections, we will describe how to obtain the FHIR Schema from a
 
 You can use a special REST API endpoint to migrate specific Zen definitions to the FHIR schema. The endpoint requires a `Zen namespace` and `symbol` under which the custom resource definition is described. Internally, it attempts to compile the Zen definition to the FHIR schema.
 
+{% hint style="warning" %}
+The `$dump-as-fhir-schema` endpoint is available in Aidbox 2604 and earlier. Aidbox 2605 removed it, and Aidbox 2606 removed Entity/Attribute and Zen support. If you already run 2606 or later, start a separate 2604 instance with an empty database, load your Zen project into it, and call the endpoint there. Do not point an older Aidbox version at a database that a newer version has already migrated.
+{% endhint %}
+
 ```http
 GET /ZenSchema/<zen-namespace>/<zen-definition-symbol>/$dump-as-fhir-schema
 ```

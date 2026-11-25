@@ -28,6 +28,10 @@ In the following sections, we will describe how to obtain the FHIR Schema from a
 
 You can use a special REST API endpoint to migrate specific Entities and their corresponding Attributes to FHIR Schema. The endpoint requires an `entity ID` to process it. Internally, it attempts to compile the entity to FHIR Schema.
 
+{% hint style="warning" %}
+The `$dump-as-fhir-schema` endpoint is available in Aidbox 2604 and earlier. Aidbox 2605 removed it, and Aidbox 2606 removed Entity/Attribute and Zen support. If you already run 2606 or later, start a separate 2604 instance with an empty database, load your Entity and Attribute resources into it, and call the endpoint there. Do not point an older Aidbox version at a database that a newer version has already migrated.
+{% endhint %}
+
 ```http
 GET /Entity/<entity-id>/$dump-as-fhir-schema
 ```
