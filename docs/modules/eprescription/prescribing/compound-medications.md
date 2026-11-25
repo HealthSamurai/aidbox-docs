@@ -94,8 +94,8 @@ Only an active ingredient can have a schedule, so leave the extension out of an 
 <summary>Error Responses</summary>
 
 * The compound's `Medication.code`:
-  * `compound-root-dea-schedule-without-ingredient-schedules`: the code of a compound has a schedule, and no ingredient has one.
-  * `compound-root-dea-schedule-mismatch`: the code of a compound has a schedule other than the strictest ingredient schedule.
+  * `compound-stored-dea-schedule-without-ingredient-schedules`: the code of a compound has a schedule, and no ingredient has one.
+  * `compound-stored-dea-schedule-mismatch`: the code of a compound has a schedule other than the strictest ingredient schedule.
 * A compound ingredient:
   * `compound-ingredient-missing-description`: the ingredient has no `itemCodeableConcept.text`.
   * `compound-ingredient-has-multiple-dea-schedules`: the ingredient has more than one schedule extension, or more than one coding under `http://terminology.hl7.org/CodeSystem/v2-0477` in one extension.
