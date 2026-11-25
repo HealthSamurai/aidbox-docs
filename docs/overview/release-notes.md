@@ -134,6 +134,7 @@ description: >-
     **Changes and deprecations**
 
     * **[`Prefer: return=minimal` on bundles returns the response bundle](../api/batch-transaction.md#control-the-response-size)** — a batch or transaction request with `Prefer: return=minimal` used to return an empty body. It now returns the response bundle without resource bodies, so each entry keeps `response.status`, `location`, `etag`, and `lastModified`, and failed entries keep their `OperationOutcome`. This matches HAPI. Send `Prefer: return=hs-headers-only` for the empty body. Single-resource endpoints are unaffected.
+    * **[The login page hides inactive identity providers](../access-control/authentication/sso-with-external-identity-provider.md#user-experience)**: Aidbox no longer shows a sign-in button for an `IdentityProvider` with `active: false`. Before 2608, the login page ignored `active` and showed every provider. If an SSO button disappeared after an upgrade, set `active` to `true` on that `IdentityProvider` or remove the field. Each button now shows the provider's `title` next to its icon.
 
 ## July 2026 _`2607`_
 

@@ -46,6 +46,8 @@ From the user's perspective, the login process is simple:
 3. After a successful login, they're sent back to Aidbox
 4. Aidbox recognizes them and provides appropriate access
 
+The Aidbox login page shows a `Sign in with <title>` button for every `IdentityProvider` resource. Since 2608, Aidbox skips providers with `active: false`. A provider without the `active` field keeps its button.
+
 
 
 {% hint style="info" %}
