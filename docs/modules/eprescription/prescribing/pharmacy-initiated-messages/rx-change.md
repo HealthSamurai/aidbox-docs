@@ -400,6 +400,7 @@ The module reads the refill count from `MedicationRequest.dispenseRequest.number
 * `approved-with-changes`: a whole number from 0 through 99. When the field is missing, the module sends 0 refills.
 
 For both decisions, the module rejects a count that is not a whole number from 0 through 99 with `medication-request-number-of-repeats-is-invalid`.
+A [schedule limit or DEA schedule error](../../epcs/dea-schedules.md#schedule-checks) reported for the prescription replaces this error.
 
 For a [controlled prescription](../../epcs/dea-schedules.md), `approved`, `approved-with-changes` and `validated` must also meet the [limits of its DEA schedule](../../epcs/dea-schedules.md#schedule-checks), such as 0 refills for Schedule II.
 A `validated` response sends the pharmacy's prescription unchanged, so you cannot change its refill count.

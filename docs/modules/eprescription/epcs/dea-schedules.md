@@ -73,6 +73,7 @@ You can still deny a renewal or change request for a prescription that breaks a 
 
 The schedule limits on the refill count apply only when the prescription sets one.
 Each message page states the refill range it accepts and what the module sends without a count.
+When a refill count breaks a schedule limit, the module reports the schedule limit error and skips the refill range check, even when the count is also outside that range.
 
 When the module reports a DEA schedule error for a prescription, it skips the schedule limits and the refill range check of that prescription, because the schedule they depend on is unknown.
 After you fix the schedule, the module checks them.

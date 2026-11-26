@@ -213,6 +213,7 @@ extension:
 
 For `approved`, `approved-with-changes` and `replace`, set `MedicationRequest.dispenseRequest.numberOfRepeatsAllowed` to a whole number from 0 through 98.
 The module rejects a missing value or a value outside that range with `medication-request-number-of-repeats-is-invalid`.
+A [schedule limit or DEA schedule error](../../epcs/dea-schedules.md#schedule-checks) reported for the prescription replaces this error.
 An RxRenewalResponse counts every dispensing, so the module sends `NumberOfRefills` as `numberOfRepeatsAllowed` plus one, and `NumberOfRefills` holds at most 99.
 
 For a [controlled prescription](../../epcs/dea-schedules.md), the module accepts only `denied` and `replace`.
