@@ -89,6 +89,8 @@ Follow [Azure documentation](https://learn.microsoft.com/en-us/azure/postgresql/
 CREATE USER aidbox WITH CREATEDB ENCRYPTED PASSWORD 'aidboxpass';
 ```
 
+To connect with a managed identity and Microsoft Entra ID tokens instead of a password, see [How to run Aidbox with Azure PostgreSQL managed identity](../../tutorials/other-tutorials/how-to-run-aidbox-with-azure-postgresql-managed-identity.md).
+
 ### Databricks Lakebase
 
 #### Prerequisites
