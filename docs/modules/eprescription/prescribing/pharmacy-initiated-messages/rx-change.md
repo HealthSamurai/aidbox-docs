@@ -396,8 +396,8 @@ specialty:
 
 The module reads the refill count from `MedicationRequest.dispenseRequest.numberOfRepeatsAllowed`:
 
-* `approved`: the count of the option you select, as [Approved](#approved) describes. When that option has no count, leave the field out, and the module sends the response without `NumberOfRefills`.
-* `approved-with-changes`: a whole number from 0 through 99. When the field is missing, the module sends 0 refills.
+* `approved`: set the count of the option you select, as [Approved](#approved) describes. When that option has no count, leave the field out, and the module sends the response without `NumberOfRefills`.
+* `approved-with-changes`: set the count you approve. When the field is missing, the module sends 0 refills.
 
 For both decisions, the module rejects a count that is not a whole number from 0 through 99 with `medication-request-number-of-repeats-is-invalid`.
 A [schedule limit or DEA schedule error](../../epcs/dea-schedules.md#schedule-checks) reported for the prescription replaces this error.

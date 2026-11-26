@@ -56,12 +56,12 @@ The module sends each schedule in `DEASchedule/Code` as its NCI Thesaurus (NCIt)
 
 When EPCS is disabled (`EPCS_MODE=disabled`), the module rejects a controlled prescription with `epcs-disabled`, including a compound with a scheduled ingredient.
 
-The schedule of a controlled prescription sets these limits on it and on its refill count, `MedicationRequest.dispenseRequest.numberOfRepeatsAllowed`:
+The schedule of a controlled prescription decides whether you can prescribe it and limits its refill count (`MedicationRequest.dispenseRequest.numberOfRepeatsAllowed`):
 
 * Schedule I: the module rejects the prescription.
 * Schedule II: the refill count must be 0.
 * Schedule III and IV: the refill count must be at most 5.
-* Schedule V: no limit beyond the refill range of the message.
+* Schedule V: only the refill range of the message applies.
 
 The module checks these limits on every message that lets the pharmacy fill the prescription:
 
@@ -71,12 +71,12 @@ The module checks these limits on every message that lets the pharmacy fill the 
 
 You can still deny a renewal or change request for a prescription that breaks a limit.
 
-The schedule limits on the refill count apply only when the prescription sets one.
-Each message page states the refill range it accepts and what the module sends without a count.
-When a refill count breaks a schedule limit, the module reports the schedule limit error and skips the refill range check, even when the count is also outside that range.
+Each message page states the refill range it accepts and what the module sends when the prescription has no refill count.
+The module skips some of these checks:
 
-When the module reports a DEA schedule error for a prescription, it skips the schedule limits and the refill range check of that prescription, because the schedule they depend on is unknown.
-After you fix the schedule, the module checks them.
+* The prescription has no refill count: the module skips the refill count limits of Schedules II to IV.
+* The refill count breaks a schedule limit: the module reports the schedule limit error and skips the refill range check, even when the count is also outside that range.
+* The module reports a DEA schedule error for the prescription: the module skips the schedule limits and the refill range check, because the schedule they depend on is unknown. It runs them once you fix the schedule.
 
 A request that fails a check returns `422` with an `OperationOutcome`.
 
