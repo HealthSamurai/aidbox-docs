@@ -208,3 +208,16 @@ extension:
       http://aidbox.app/ePrescription/FHIRSchema/medication-request-rx-renewal-decision-note
     valueString: Changed course of therapy, so different medication is required
 ```
+
+### Refill Count
+
+For `approved`, `approved-with-changes` and `replace`, set `MedicationRequest.dispenseRequest.numberOfRepeatsAllowed` to a whole number from 0 through 98.
+The module rejects a missing value or a value outside that range with `medication-request-number-of-repeats-is-invalid`.
+An RxRenewalResponse counts every dispensing, so the module sends `NumberOfRefills` as `numberOfRepeatsAllowed` plus one, and `NumberOfRefills` holds at most 99.
+
+For a [controlled prescription](../../epcs/dea-schedules.md), the module accepts only `denied` and `replace`.
+A `replace` must also meet the [limits of its DEA schedule](../../epcs/dea-schedules.md#schedule-checks):
+
+* Schedule I: the module rejects the `replace`, and you respond with `denied`.
+* Schedule II: `numberOfRepeatsAllowed` must be 0, which the module sends as `NumberOfRefills` 1.
+* Schedule III and IV: `numberOfRepeatsAllowed` must be at most 5, which the module sends as `NumberOfRefills` 6 or less.

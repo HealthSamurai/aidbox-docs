@@ -32,7 +32,10 @@ The following FHIR resources are needed to create a NewRx message:
      * as a reference to resource <sub>_(since 2.0)_</sub>
      * as a reference to `contained` resource
      * as a codeable concept <sub>_(since 2.0)_</sub>
-   * May specify number of refills to specify a number of refills via `dispenseRequest.numberOfRepeatsAllowed`, if not provided - will be 0
+   * May set the number of refills in `dispenseRequest.numberOfRepeatsAllowed`
+     * a whole number from 0 through 99; the module rejects any other value with `medication-request-number-of-repeats-is-invalid`
+     * when the field is missing, the module sends 0 refills
+   * For a [controlled prescription](../epcs/dea-schedules.md), must also meet the [limits of its DEA schedule](../epcs/dea-schedules.md#schedule-checks), such as 0 refills for Schedule II
 2. **Patient** (Required)
    * Patient demographics
    * Must have name, birth date, and address

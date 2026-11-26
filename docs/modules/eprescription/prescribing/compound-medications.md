@@ -20,6 +20,7 @@ Store the schedule of each scheduled ingredient in the [DEA schedule extension](
 A prescription whose compound has at least one scheduled ingredient is a [controlled prescription](../epcs/dea-schedules.md).
 Its schedule is the strictest ingredient schedule.
 `I` is the strictest and `V` the least strict, so a compound with a Schedule II and a Schedule IV ingredient follows the rules of Schedule II.
+These rules include the [schedule limits](../epcs/dea-schedules.md#schedule-checks), so this compound must have a refill count of 0.
 
 A schedule on `Medication.code` of a compound is optional.
 When you store one, it must equal the strictest ingredient schedule.

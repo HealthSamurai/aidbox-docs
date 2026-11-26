@@ -391,3 +391,16 @@ specialty:
     text: Family Medicine
 ...
 ```
+
+### Refill Count
+
+The module reads the refill count from `MedicationRequest.dispenseRequest.numberOfRepeatsAllowed`:
+
+* `approved`: the count of the option you select, as [Approved](#approved) describes. When that option has no count, leave the field out, and the module sends the response without `NumberOfRefills`.
+* `approved-with-changes`: a whole number from 0 through 99. When the field is missing, the module sends 0 refills.
+
+For both decisions, the module rejects a count that is not a whole number from 0 through 99 with `medication-request-number-of-repeats-is-invalid`.
+
+For a [controlled prescription](../../epcs/dea-schedules.md), `approved`, `approved-with-changes` and `validated` must also meet the [limits of its DEA schedule](../../epcs/dea-schedules.md#schedule-checks), such as 0 refills for Schedule II.
+A `validated` response sends the pharmacy's prescription unchanged, so you cannot change its refill count.
+When that prescription breaks a limit, the module rejects `validated`, and you respond with `denied`.
