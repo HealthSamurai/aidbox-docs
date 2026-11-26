@@ -40,16 +40,27 @@ GET <server-domain>/fhir/metadata
 
 <mark style="color:blue;">`GET`</mark> `<your-domain>/fhir/metadata`
 
-#### Path Parameters
+#### Query Parameters
 
-| Name     | Type   | Description                      |
-| -------- | ------ | -------------------------------- |
-| mode     | string | full \| normative \| terminology |
-| \_format | string | json \| yaml \| edn              |
+| Name                       | Type    | Description                                                                                                                       |
+| -------------------------- | ------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| mode                       | string  | `full`, `normative`, or `terminology`. See [Mode](#mode).                                                                         |
+| \_format                   | string  | `json`, `yaml`, or `edn`. In [FHIR compliant mode](../../../reference/all-settings.md#fhir.compliant-mode), the CapabilityStatement is always JSON. |
+| include-custom-resources   | boolean | In FHIR compliant mode, `true` adds custom resources to `rest.resource`. Without it, Aidbox lists core FHIR resource types there.  |
 
 {% tabs %}
 {% tab title="200 " %}
 ```yaml
+resourceType: CapabilityStatement
+name: aidbox
+title: '[a]idbox'
+kind: instance
+software:
+  name: Aidbox
+  version: '2611'
+implementation:
+  description: Aidbox FHIR Server
+format: [json, yaml, edn]
 patchFormat: [json-patch, merge-patch]
 rest:
 - mode: server
@@ -115,45 +126,51 @@ rest:
 {% endtab %}
 {% endtabs %}
 
-The information returned depends on the value of the `mode` parameter:
-
-| `Value`                      | Description                                                                                                                                                                      |
-| ---------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `full` (or mode not present) | A [Capability Statement](http://hl7.org/fhir/2018Sep/capabilitystatement.html) that specifies which resource types and interactions are supported                                |
-| `normative`                  | As above, but only the normative portions of the Capability Statement                                                                                                            |
-| `terminology`                | A [TerminologyCapabilities](http://hl7.org/fhir/2018Sep/terminologycapabilities.html) resource that provides further information about terminologies are supported by the server |
-
-Servers MAY ignore the mode parameter and return a CapabilityStatement resource.
-
-#### Configure CapabilityStatement
-
-You can reconfigure specific parts of CapabilityStatement by creating `AidboxConfig/box` resource:
-
-```yaml
-PUT /fhir/AidboxConfig/box
-
-metadata:
-  # override name and title of CapabilityStatement
-  name: MyFHIRServer
-  title: My FHIR server
-  description: Description of my FHIR server
-  # override CapabilityStatement.rest.service
-  service:
-  - coding:
-    - {system: 'http://hl7.org/fhir/restful-security-service', code: SMART-on-FHIR}
-    text: Very smart!!!
-  # override CapabilityStatement.rest.security
-  security:
-    extension:
-    - url: http://fhir-registry.smarthealthit.org/StructureDefinition/oauth-uris
-      extension:
-      - {url: token, valueUri: 'https://myserver.com/connect/token'}
-      - {url: authorize, valueUri: 'https://myserver.com/connect/token'}
-```
-
 {% hint style="info" %}
 If you want more control over CapabilityStatement, please contact us in the community chat!
 {% endhint %}
+
+### Software
+
+`software` names the product that runs the server, and FHIR clients use `software.name` to identify it:
+
+* `software.name`: `Aidbox`.
+* `software.version`: the running Aidbox version, the same value as `about.version` in [`GET /health`](health-check.md). A release reports its version, such as `2611`. Other builds report the channel and the commit, such as `edge:f303edfec6`.
+
+`implementation.description` describes the installation: `Aidbox FHIR Server`.
+
+### Mode
+
+The `mode` parameter selects the response:
+
+| Value                  | Response                                                                                                                                                                                                                                                                  |
+| ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `full` or no `mode`    | A [CapabilityStatement](https://hl7.org/fhir/R4/capabilitystatement.html) with the resource types and interactions Aidbox supports.                                                                                                                                        |
+| `normative`            | Aidbox ignores this value and returns the full CapabilityStatement.                                                                                                                                                                                                       |
+| `terminology`          | A [TerminologyCapabilities](https://hl7.org/fhir/R4/terminologycapabilities.html) resource that describes the terminology operations, when [`fhir.terminology.engine`](../../../reference/all-settings.md#fhir.terminology.engine) is `hybrid` or `local`. With the `legacy` engine, Aidbox returns the CapabilityStatement. |
+
+The FHIR specification [allows](https://hl7.org/fhir/R4/http.html#capabilities) a server to ignore `mode` and return a CapabilityStatement. Aidbox ignores `mode` on the [organization-scoped](../../../access-control/authorization/scoped-api/organization-based-hierarchical-access-control/README.md) route `GET /Organization/<org-id>/fhir/metadata`.
+
+TerminologyCapabilities carries the same `software` as the CapabilityStatement:
+
+```http
+GET /fhir/metadata?mode=terminology
+```
+
+```yaml
+resourceType: TerminologyCapabilities
+name: Aidbox
+title: Aidbox Terminology Server
+version: 0.0.1
+status: active
+kind: capability
+software:
+  name: Aidbox
+  version: '2611'
+expansion:
+  paging: true
+  ...
+```
 
 ### Notes
 
@@ -184,4 +201,4 @@ To get metadata in the internal Aidbox format, use [`/$metadata?_format=yaml`](h
 | ---- | ------ | -------------------------------------------------------------- |
 | path | string | Path to specific part of metadata (for example Entity.Patient) |
 
-Capability statements can become quite large; servers are encouraged to support the [`_summary`](http://hl7.org/fhir/2018Sep/search.html#summary) and [`_elements`](http://hl7.org/fhir/2018Sep/search.html#elements) parameters on the capabilities interaction, though this is not required. In addition, servers are encouraged to implement the [$subset](http://hl7.org/fhir/2018Sep/capabilitystatement-operation-subset.html) and [$implements](http://hl7.org/fhir/2018Sep/capabilitystatement-operation-implements.html) operations to make it easy for a client to check conformance.
+Capability statements can become quite large; servers are encouraged to support the [`_summary`](https://hl7.org/fhir/R4/search.html#summary) and [`_elements`](https://hl7.org/fhir/R4/search.html#elements) parameters on the capabilities interaction, though this is not required. In addition, servers are encouraged to implement the [$subset](https://hl7.org/fhir/R4/capabilitystatement-operation-subset.html) and [$implements](https://hl7.org/fhir/R4/capabilitystatement-operation-implements.html) operations to make it easy for a client to check conformance.
