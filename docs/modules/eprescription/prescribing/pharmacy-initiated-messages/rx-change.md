@@ -396,7 +396,7 @@ specialty:
 
 The module reads the refill count from `MedicationRequest.dispenseRequest.numberOfRepeatsAllowed`:
 
-* `approved`: set the count of the option you select, as [Approved](#approved) describes. When that option has no count, leave the field out, and the module sends the response without `NumberOfRefills`.
+* `approved`: set the count of the option you select, as [Approved](#approved) describes. SCRIPT requires `NumberOfRefills` in the approved medication, so the module rejects an `approved` response without a count with `medication-request-number-of-repeats-is-invalid`. When the option you select has no count, respond with `approved-with-changes` and set the count you approve.
 * `approved-with-changes`: set the count you approve. When the field is missing, the module sends 0 refills.
 
 For both decisions, the module rejects a count that is not a whole number from 0 through 99 with `medication-request-number-of-repeats-is-invalid`.
