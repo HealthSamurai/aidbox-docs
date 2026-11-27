@@ -53,11 +53,8 @@ It is required that RxChange is preceded by NewRx.
 
 ### Setting a decision
 
-Available decisions are `approved`, `approved-with-changes`, `denied`, `pending` or `validated`.
-Send the decision in the `responseType` field of the `POST /e-prescription/rx/respond-to-change` request body.
-The [request body fields](README.md#responding) are shared with RxRenewal.
-
-Table of compatibility between decisions and request types:
+Send the decision as `responseType` in a [`POST /e-prescription/rx/respond-to-change`](README.md#responding) request.
+The decisions each request code accepts:
 
 | MessageRequestCode | approved | approved-with-changes | denied | pending | validated |
 |--------------------|----------|-----------------------|--------|---------|-----------|
@@ -74,14 +71,15 @@ Table of compatibility between decisions and request types:
 
 <sub>Same as for [RxRenewal](rx-renewal.md#denied).</sub>
 
-`denied` needs the fewest fields.
-Give the denial reason in `reasonCode`, `note` (free text with no length limit), or both:
+A `denied` decision needs a reason in `reasonCode`, `note`, or both.
+The `note` of a `denied` decision has no length limit.
 
-```json
+```http
 POST /e-prescription/rx/respond-to-change
+Content-Type: application/json
 
 {
-  "medicationRequestId": "your-medication-request-id",
+  "medicationRequestId": "<MedicationRequest id>",
   "responseType": "denied",
   "note": "Patient allergy to the proposed product"
 }
@@ -93,11 +91,12 @@ POST /e-prescription/rx/respond-to-change
 
 A `pending` decision requires `reasonCode`, `note` (up to 70 characters), and `expectedPendedResponseDate`:
 
-```json
+```http
 POST /e-prescription/rx/respond-to-change
+Content-Type: application/json
 
 {
-  "medicationRequestId": "your-medication-request-id",
+  "medicationRequestId": "<MedicationRequest id>",
   "responseType": "pending",
   "reasonCode": "HR",
   "note": "Provider is on vacation",
@@ -105,7 +104,7 @@ POST /e-prescription/rx/respond-to-change
 }
 ```
 
-Available reason codes are listed in the table below (same for RxChange case):
+`reasonCode` accepts these codes for `pending`, the same as in RxRenewal:
 
 | reason code | meaning                                                                         |
 |-------------|---------------------------------------------------------------------------------|
@@ -115,20 +114,21 @@ Available reason codes are listed in the table below (same for RxChange case):
 | **HS**      | Patient is currently undergoing acute care and a decision is pending resolution |
 | **HT**      | Provider wishes to delay for reasons not otherwise indicated                    |
 
-
 ### Approved
 
-Use this decision when medication change was allowed unaltered. No changes allowed to the stored **MedicationRequest** and the resources it references.
+Use `approved` when the prescriber accepts one of the pharmacy's suggested options unchanged.
 
-Set `responseType` to `approved`.
+Send the option's medication (`medicationCodeableConcept` or `medicationReference`), `dispenseRequest`, and `dosageInstruction` in [`prescription`](README.md#prescription-fields).
+Set `prescription.authoredOn` to the date of the response.
 
-In `prescription`, send `dispenseRequest`, `dosageInstruction` and the medication (`medicationCodeableConcept` or `medicationReference`) the way they reflect the data from one of the suggested changes.
 <details>
-<summary>What does it mean?</summary>
-When ePrescription module handles incoming RxChangeRequest, it creates a <b>MedicationRequest</b> with contained resources, including another <b>MedicationRequests</b> which represent the options suggested by pharmacy.
-Note that <code>MedicationRequest.medication</code> stored initially is NOT one of the suggested medications, but the currently prescribed medication.
 
-E. g., if contained part of created <b>MedicationRequest</b> looks like this:
+<summary>Example: approve a suggested option</summary>
+
+For an RxChangeRequest, the module creates a `MedicationRequest` that holds each option the pharmacy suggests as a contained `MedicationRequest`.
+The top-level `medicationCodeableConcept` (or `medicationReference`) of that `MedicationRequest` holds the currently prescribed medication.
+
+For example, the module stores two options:
 
 ```yaml
 ...
@@ -162,34 +162,38 @@ contained:
 ...
 ```
 
-then <code>prescription</code> should carry these fields:
+To approve the amoxicillin option, send its fields in `prescription`:
 
-```yaml
-medicationCodeableConcept:
-  text: amoxicillin 400 mg/5 mL oral suspension
-  coding:
-    - {code: '68115002830', system: 'http://hl7.org/fhir/sid/ndc'}
-dispenseRequest:
-  quantity: {code: C48542, value: 150.0, system: 'urn:app:aidbox:e-prescriptions:ncpdp:QuantityUnitOfMeasure'}
-  expectedSupplyDuration: {code: d, unit: days, value: 10, system: 'http://unitsofmeasure.org'}
-  numberOfRepeatsAllowed: 2
-dosageInstruction:
-  - {text: Take 5 mL orally twice daily for 10 days}
+```http
+POST /e-prescription/rx/respond-to-change
+Content-Type: application/json
+
+{
+  "medicationRequestId": "<MedicationRequest id>",
+  "responseType": "approved",
+  "prescription": {
+    "medicationCodeableConcept": {
+      "text": "amoxicillin 400 mg/5 mL oral suspension",
+      "coding": [{"code": "68115002830", "system": "http://hl7.org/fhir/sid/ndc"}]
+    },
+    "dispenseRequest": {
+      "quantity": {"code": "C48542", "value": 150.0, "system": "urn:app:aidbox:e-prescriptions:ncpdp:QuantityUnitOfMeasure"},
+      "expectedSupplyDuration": {"code": "d", "unit": "days", "value": 10, "system": "http://unitsofmeasure.org"},
+      "numberOfRepeatsAllowed": 2
+    },
+    "dosageInstruction": [{"text": "Take 5 mL orally twice daily for 10 days"}],
+    "authoredOn": "2025-12-12"
+  }
+}
 ```
 
 </details>
 
-Set `prescription.authoredOn` to the date of committing the response.
-eRx sets `dispenseRequest.performer` to the pharmacy that initiated the change.
-
 ### ApprovedWithChanges
 
-Means the medication was allowed with a change to any included resource/field of the **MedicationRequest**, except the **Patient**. It is not recommended to change anything but **Medication**/**MedicationRequest**.
-
-Set `responseType` to `approved-with-changes` and send the changed fields in `prescription`, which this decision requires.
-
-Set `prescription.authoredOn` to the date of committing the response.
-eRx sets `dispenseRequest.performer` to the pharmacy that initiated the change.
+Use `approved-with-changes` when the prescriber approves the change but edits the prescription.
+This decision requires [`prescription`](README.md#prescription-fields) with each field the prescriber changes.
+Set `prescription.authoredOn` to the date of the response.
 
 ### Validated
 
