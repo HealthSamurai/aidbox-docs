@@ -211,7 +211,10 @@ extension:
 
 ### Refill Count
 
-For `approved`, `approved-with-changes` and `replace`, `MedicationRequest.dispenseRequest.numberOfRepeatsAllowed` is required: a whole number from 0 through 98.
-An RxRenewalResponse counts the first fill too, so the module sends `numberOfRepeatsAllowed` plus one as `NumberOfRefills`.
+For `approved`, `approved-with-changes` and `replace`, set `MedicationRequest.dispenseRequest.numberOfRepeatsAllowed` (required) to a whole number from 0 through 98.
+The module sends this count plus one as `NumberOfRefills`, because an RxRenewalResponse counts the first fill too.
 
-For a [controlled prescription](../../epcs/dea-schedules.md), the module accepts only `denied` and `replace`, and `replace` must comply with [DEA schedule checks](../../epcs/dea-schedules.md#schedule-checks).
+For a [controlled prescription](../../epcs/dea-schedules.md):
+
+* the module accepts only `denied` and `replace`
+* `replace` must comply with [DEA schedule checks](../../epcs/dea-schedules.md#schedule-checks)
