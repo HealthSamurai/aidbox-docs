@@ -1,5 +1,5 @@
 ---
-description: Store DEA schedules on medications and compound ingredients, and see how the Aidbox ePrescription module classifies a controlled prescription from them and which limits each schedule sets.
+description: Store DEA schedules on medications and compound ingredients, and see how the Aidbox ePrescription module classifies a controlled prescription from them.
 ---
 
 # DEA Schedules
@@ -56,27 +56,18 @@ The module sends each schedule in `DEASchedule/Code` as its NCI Thesaurus (NCIt)
 
 When EPCS is disabled (`EPCS_MODE=disabled`), the module rejects a controlled prescription with `epcs-disabled`, including a compound with a scheduled ingredient.
 
-The schedule of a controlled prescription decides whether you can prescribe it and limits its refill count (`MedicationRequest.dispenseRequest.numberOfRepeatsAllowed`):
+Schedule limits:
 
-* Schedule I: the module rejects the prescription.
-* Schedule II: the refill count must be 0.
-* Schedule III and IV: the refill count must be at most 5.
-* Schedule V: only the refill range of the message applies.
+* Schedule I: not prescribable.
+* Schedule II: `dispenseRequest.numberOfRepeatsAllowed` must be 0.
+* Schedule III and IV: `dispenseRequest.numberOfRepeatsAllowed` must be 5 or less.
+* Schedule V: no limit.
 
-The module checks these limits on every message that lets the pharmacy fill the prescription:
+These limits apply to:
 
-* a [NewRx](../prescribing/newrx-message.md)
-* an [RxRenewal response](../prescribing/pharmacy-initiated-messages/rx-renewal.md#refill-count) with decision `replace`
-* an [RxChange response](../prescribing/pharmacy-initiated-messages/rx-change.md#refill-count) with decision `approved`, `approved-with-changes` or `validated`
-
-You can still deny a renewal or change request for a prescription that breaks a limit.
-
-Each message page states the refill range it accepts and what the module sends when the prescription has no refill count.
-The module skips some of these checks:
-
-* The prescription has no refill count: the module skips the refill count limits of Schedules II to IV.
-* The refill count breaks a schedule limit: the module reports the schedule limit error and skips the refill range check, even when the count is also outside that range.
-* The module reports a DEA schedule error for the prescription: the module skips the schedule limits and the refill range check, because the schedule they depend on is unknown. It runs them once you fix the schedule.
+* [NewRx](../prescribing/newrx-message.md)
+* [RxRenewal response](../prescribing/pharmacy-initiated-messages/rx-renewal.md#refill-count) `replace`
+* [RxChange response](../prescribing/pharmacy-initiated-messages/rx-change.md#refill-count) `approved`, `approved-with-changes` and `validated`
 
 A request that fails a check returns `422` with an `OperationOutcome`.
 

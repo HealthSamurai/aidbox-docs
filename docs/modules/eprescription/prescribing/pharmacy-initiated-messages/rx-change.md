@@ -394,14 +394,9 @@ specialty:
 
 ### Refill Count
 
-The module reads the refill count from `MedicationRequest.dispenseRequest.numberOfRepeatsAllowed`:
+Set the refill count in `MedicationRequest.dispenseRequest.numberOfRepeatsAllowed`:
 
-* `approved`: set the count of the option you select, as [Approved](#approved) describes. SCRIPT requires `NumberOfRefills` in the approved medication, so the module rejects an `approved` response without a count with `medication-request-number-of-repeats-is-invalid`. When the option you select has no count, respond with `approved-with-changes` and set the count you approve.
-* `approved-with-changes`: set the count you approve. When the field is missing, the module sends 0 refills.
+* `approved`: required, the count of the option you select. If that option has no count, use `approved-with-changes`.
+* `approved-with-changes`: optional, a whole number from 0 through 99.
 
-For both decisions, the module rejects a count that is not a whole number from 0 through 99 with `medication-request-number-of-repeats-is-invalid`.
-A [schedule limit or DEA schedule error](../../epcs/dea-schedules.md#schedule-checks) reported for the prescription replaces this error.
-
-For a [controlled prescription](../../epcs/dea-schedules.md), `approved`, `approved-with-changes` and `validated` must also meet the [limits of its DEA schedule](../../epcs/dea-schedules.md#schedule-checks), such as 0 refills for Schedule II.
-A `validated` response sends the pharmacy's prescription unchanged, so you cannot change its refill count.
-When that prescription breaks a limit, the module rejects `validated`, and you respond with `denied`.
+For `approved`, `approved-with-changes` and `validated`, the prescription must comply with [DEA schedule checks](../../epcs/dea-schedules.md#schedule-checks).
