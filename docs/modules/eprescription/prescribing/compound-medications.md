@@ -9,9 +9,15 @@ The module treats a `Medication` as a compound when either of these is true:
 * its `http://aidbox.app/ePrescription/FHIRSchema/medication-is-compound` extension has `valueBoolean: true`
 * it has `ingredient` entries and `Medication.code` has no National Drug Code (NDC) coding
 
-## Ingredient NDCs
+## Required Fields
 
-Store an 11-digit NDC for each scheduled ingredient as a coding under `http://hl7.org/fhir/sid/ndc` in its `itemCodeableConcept`.
+A compound `Medication` needs:
+
+* `code.text`: the compound description
+* in each `ingredient`:
+  * `itemCodeableConcept.text`: the ingredient description
+  * a `http://aidbox.app/ePrescription/FHIRSchema/medication-ingredient-quantity` extension with a `valueQuantity`
+  * for a scheduled ingredient, an 11-digit NDC as a coding under `http://hl7.org/fhir/sid/ndc` in `itemCodeableConcept`
 
 ## Ingredient Schedules
 
@@ -68,12 +74,32 @@ Only an active ingredient can have a schedule, so leave the extension out of an 
           }
         ]
       },
+      "extension": [
+        {
+          "url": "http://aidbox.app/ePrescription/FHIRSchema/medication-ingredient-quantity",
+          "valueQuantity": {
+            "value": 0.12,
+            "code": "C48155",
+            "system": "urn:app:aidbox:e-prescriptions:ncpdp:QuantityUnitOfMeasure"
+          }
+        }
+      ],
       "isActive": true
     },
     {
       "itemCodeableConcept": {
         "text": "Oral suspension base"
       },
+      "extension": [
+        {
+          "url": "http://aidbox.app/ePrescription/FHIRSchema/medication-ingredient-quantity",
+          "valueQuantity": {
+            "value": 120,
+            "code": "C28254",
+            "system": "urn:app:aidbox:e-prescriptions:ncpdp:QuantityUnitOfMeasure"
+          }
+        }
+      ],
       "isActive": false
     }
   ]
@@ -89,9 +115,11 @@ Only an active ingredient can have a schedule, so leave the extension out of an 
 <summary>Error Responses</summary>
 
 * The compound's `Medication.code`:
-  * `compound-root-dea-schedule-without-ingredient-schedules`: the code of a compound has a schedule, and no ingredient has one.
-  * `compound-root-dea-schedule-mismatch`: the code of a compound has a schedule other than the strictest ingredient schedule.
+  * `compound-stored-dea-schedule-without-ingredient-schedules`: the code of a compound has a schedule, and no ingredient has one.
+  * `compound-stored-dea-schedule-mismatch`: the code of a compound has a schedule other than the strictest ingredient schedule.
 * A compound ingredient:
+  * `compound-ingredient-missing-description`: the ingredient has no `itemCodeableConcept.text`.
+  * `compound-medication-ingredients-missing-quantity`: an ingredient has no `http://aidbox.app/ePrescription/FHIRSchema/medication-ingredient-quantity` extension.
   * `compound-ingredient-has-multiple-dea-schedules`: the ingredient has more than one schedule extension, or more than one coding under `http://terminology.hl7.org/CodeSystem/v2-0477` in one extension.
   * `compound-ingredient-dea-schedule-coding-system-is-not-supported`: a schedule extension has codings, and none of them is under `http://terminology.hl7.org/CodeSystem/v2-0477`.
   * `compound-ingredient-invalid-dea-schedule`: the schedule is not one of `I` to `V`, or a schedule extension's codings under `http://terminology.hl7.org/CodeSystem/v2-0477` have no code.
