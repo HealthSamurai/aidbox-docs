@@ -240,41 +240,37 @@ Table of available decision:
 | Replace             | ✓                 |                  |                                              |
 | Validated           |                   | ✓                | is only valid for a subset of RxChange cases |
 
-Decision is represented as an extension:
-
-```yaml
-extension:
-  - url: >-
-      http://aidbox.app/ePrescription/FHIRSchema/medication-request-rx-renewal-decision
-#     http://aidbox.app/ePrescription/FHIRSchema/medication-request-rx-change-decision
-    valueCode: denied
-```
-
-<details>
-<summary>Shortcut to change decision</summary>
-In case you need to change an earlier decision (that wasn't yet sent with `/eprescription/rx/respond-to-renewal`), you can use the following patch:
-
-```yaml
-PATCH /fhir/MedicationRequest/your-medication-request-id
-
-- op: replace
-  # Replace with the index of the necessary extension
-  path: '/extension/3'
-  value: { "url": "http://aidbox.app/ePrescription/FHIRSchema/medication-request-rx-renewal-decision", "valueCode": "denied" }
-```
-
-</details>
-
-Once you are ready to submit your decision, call the `/eprescription/rx/respond-to-renewal` (or `/eprescription/rx/respond-to-change`)
-endpoint to commit your decision:
+To submit a decision, call `POST /e-prescription/rx/respond-to-renewal` or `POST /e-prescription/rx/respond-to-change` with the decision in the request body:
 
 ```json
-POST /eprescription/rx/respond-to-renewal
+POST /e-prescription/rx/respond-to-renewal
 
 {
-  "medicationRequestId": "your-medication-request-id"
+  "medicationRequestId": "your-medication-request-id",
+  "responseType": "denied",
+  "note": "Patient must be re-examined"
 }
 ```
+
+The request body accepts these fields:
+- `medicationRequestId` (required): the ID of the `MedicationRequest` that eRx created for the pharmacy request.
+- `responseType` (required): the decision, one of `approved`, `approved-with-changes`, `denied`, `pending`, `replace` (RxRenewal only), or `validated` (RxChange only).
+- `prescription`: the `MedicationRequest` fields the prescriber authorizes in an approval.
+  - Accepted fields: `medicationCodeableConcept` or `medicationReference`, `contained`, `dosageInstruction`, `dispenseRequest`, `substitution`, `note`, `authoredOn`, `priority`, and `reasonReference`.
+  - Omitted fields keep their values from the stored `MedicationRequest`.
+  - Include the complete value of each field you change.
+  - eRx sets `dispenseRequest.performer` to the requesting pharmacy.
+- `note`: the response text, up to 70 characters. A `denied` note has no length limit.
+- `reasonCode`: the reason code of a `denied` or `pending` decision, for example `HR`.
+- `expectedPendedResponseDate`: the date, in `YYYY-MM-DD` format, by which the prescriber expects to decide on a `pending` request.
+- `performer`: the responding prescriber as `PractitionerRole/<id>`.
+  - It defaults to the prescriber the pharmacy addressed.
+  - `denied` and `pending` decisions reject it.
+  - In RxRenewal, only `replace` accepts a different prescriber.
+
+eRx rejects a field that the selected `responseType` does not accept.
+The [RxRenewal](rx-renewal.md) and [RxChange](rx-change.md) pages list the fields each decision needs.
+eRx saves the decision, `note`, `reasonCode`, and `expectedPendedResponseDate` in the decision extensions of the `MedicationRequest`.
 
 HTTP response with status 202 designates that the response was successfully transitioned to Surescripts.
 Surescripts response is reflected in extensions for status and status reason.

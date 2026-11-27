@@ -43,54 +43,35 @@ If the prescriber wishes to send a new prescription to a different pharmacy (oth
 
 <sub>Same as for [RxChange](rx-change.md#denied).</sub>
 
-`denied` is the decision that requires the least amount of steps. Setting it in the extension is the only requirement.
-You can set the denial reason (free text) in decision note extension (
-`http://aidbox.app/ePrescription/FHIRSchema/medication-request-rx-renewal-decision-note`), but this is optional.
+`denied` needs the fewest fields.
+Give the denial reason in `reasonCode`, `note` (free text with no length limit), or both:
+
+```json
+POST /e-prescription/rx/respond-to-renewal
+
+{
+  "medicationRequestId": "your-medication-request-id",
+  "responseType": "denied",
+  "note": "Patient must be re-examined"
+}
+```
 
 ### Pending
 
 <sub>Same as for [RxChange](rx-change.md#pending).</sub>
 
-Before committing the `pending` decision you need to
+A `pending` decision requires `reasonCode`, `note` (up to 70 characters), and `expectedPendedResponseDate`:
 
-Set the decision itself:
+```json
+POST /e-prescription/rx/respond-to-renewal
 
-```yaml
-extension:
-  - url: >-
-      http://aidbox.app/ePrescription/FHIRSchema/medication-request-rx-renewal-decision
-    valueCode: pending
-```
-
-Set the expected pended response date:
-
-```yaml
-extension:
-  - url: >-
-      http://aidbox.app/ePrescription/FHIRSchema/medication-request-rx-renewal-expected-pended-response-date
-    valueDate: '2025-12-12'
-```
-
-Set the decision note (contrarily to `denied` decision, it's required for `pending`):
-
-```yaml
-extension:
-  - url: >-
-      http://aidbox.app/ePrescription/FHIRSchema/medication-request-rx-renewal-decision-note
-    valueString: Provider is on vacation
-```
-
-Set the reason code:
-
-```yaml
-extension:
-  - url: >-
-      http://aidbox.app/ePrescription/FHIRSchema/medication-request-rx-change-decision-reason-code
-    valueCodeableConcept:
-      coding:
-        - code: HR
-          system: urn:app:aidbox:e-prescriptions:surescripts:decision-reason-code
-          display: Provider is unavailable and no one is available to make a decision
+{
+  "medicationRequestId": "your-medication-request-id",
+  "responseType": "pending",
+  "reasonCode": "HR",
+  "note": "Provider is on vacation",
+  "expectedPendedResponseDate": "2025-12-12"
+}
 ```
 
 Available reason codes are listed in the table below (same for RxChange case):
@@ -121,7 +102,7 @@ extension:
       http://aidbox.app/ePrescription/FHIRSchema/medication-request-pharmacy-request-refills
     valueInteger: 1
 ```
-The number of refills approved by the prescriber is taken from `MedicationRequest.dispenseRequest.numberOfRepeatsAllowed`.
+The number of refills approved by the prescriber is taken from `dispenseRequest.numberOfRepeatsAllowed`, which you send in `prescription`.
 
 Usage of `approved` decision expects these values to be equal.
 Usage of `approved-with-changes` decision expects these values to differ.
@@ -131,15 +112,8 @@ Usage of `approved-with-changes` decision expects these values to differ.
 While the e-prescriptions module could prefill fields like `MedicationRequest.dispenseRequest` and `dosageInstruction`,
 the general approach is to let the prescriber do that.
 
-Set the decision:
-
-```yaml
-extension:
-  - url: >-
-      http://aidbox.app/ePrescription/FHIRSchema/medication-request-rx-renewal-decision
-    valueCode: approved
-#   valueCode: approved-with-changes
-```
+Set `responseType` to `approved` or `approved-with-changes`.
+Both decisions require `prescription`.
 
 If during the process of handling incoming renewal request there was a `DetectedIssue` created
 (meaning there were mismatches between incoming and existing data),
@@ -153,30 +127,38 @@ make sure you have resolved the references to implicated contained resources:
 - `Medication` - for medications contained resource is supported, so it's up to you whether to resolve it or leave as
   is - `MedicationRequest.medication`
 
-Set `MedicationRequest.dispenseRequest` and `MedicationRequest.dosageInstruction`.
-Typically, they are the same as in the request for NewRx:
-Make sure you set
+Send `dispenseRequest` and `dosageInstruction` in `prescription`.
+Typically, they are the same as in the request for NewRx.
+Make sure `dispenseRequest` includes `numberOfRepeatsAllowed`.
+eRx sets `dispenseRequest.performer` to the pharmacy of the initial renewal request.
 
-- `MedicationRequest.dispenseRequest.performer` (the pharmacy of initial renewal request)
-- `MedicationRequest.dispenseRequest.numberOfRepeatsAllowed`
+```json
+POST /e-prescription/rx/respond-to-renewal
 
-```yaml
-dispenseRequest:
-  quantity:
-    code: C48542
-    unit: Tablet
-    value: 60
-    system: urn:app:aidbox:e-prescriptions:ncpdp:QuantityUnitOfMeasure
-  performer:
-    reference: Organization/my-pharmacy
-  expectedSupplyDuration:
-    code: d
-    unit: days
-    value: 30
-    system: http://unitsofmeasure.org
-  numberOfRepeatsAllowed: 1
-dosageInstruction:
-  - text: TAKE ONE TABLET TWO TIMES A DAY UNTIL GONE
+{
+  "medicationRequestId": "your-medication-request-id",
+  "responseType": "approved",
+  "prescription": {
+    "dispenseRequest": {
+      "quantity": {
+        "code": "C48542",
+        "unit": "Tablet",
+        "value": 60,
+        "system": "urn:app:aidbox:e-prescriptions:ncpdp:QuantityUnitOfMeasure"
+      },
+      "expectedSupplyDuration": {
+        "code": "d",
+        "unit": "days",
+        "value": 30,
+        "system": "http://unitsofmeasure.org"
+      },
+      "numberOfRepeatsAllowed": 1
+    },
+    "dosageInstruction": [
+      {"text": "TAKE ONE TABLET TWO TIMES A DAY UNTIL GONE"}
+    ]
+  }
+}
 ```
 
 ### Replace
@@ -189,22 +171,21 @@ Note:
  - Edits to the pharmacy are not permitted.
  - **authoredOn** indicates the date of the replacements prescription.
 
-Before committing the `replace` decision you need to
+Set `responseType` to `replace` and send the replacement prescription fields in `prescription`.
+A `note` (up to 70 characters) is optional but recommended:
 
-Set the decision itself:
+```json
+POST /e-prescription/rx/respond-to-renewal
 
-```yaml
-extension:
-  - url: >-
-      http://aidbox.app/ePrescription/FHIRSchema/medication-request-rx-renewal-decision
-    valueCode: replace
-```
-
-Set the decision note (it's not required for `replace` decision but recommended):
-
-```yaml
-extension:
-  - url: >-
-      http://aidbox.app/ePrescription/FHIRSchema/medication-request-rx-renewal-decision-note
-    valueString: Changed course of therapy, so different medication is required
+{
+  "medicationRequestId": "your-medication-request-id",
+  "responseType": "replace",
+  "note": "Changed course of therapy, so different medication is required",
+  "prescription": {
+    "authoredOn": "2025-12-12",
+    "dosageInstruction": [
+      {"text": "Take one tablet morning and evening"}
+    ]
+  }
+}
 ```
