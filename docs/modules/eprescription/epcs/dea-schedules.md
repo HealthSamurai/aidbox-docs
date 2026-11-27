@@ -77,9 +77,14 @@ Example response for `controlled-substance-invalid-dea-schedule`:
       "severity": "error",
       "code": "invalid",
       "details": {
-        "text": "Controlled substance DEASchedule must be one of I, II, III, IV, V"
-      },
-      "diagnostics": "null"
+        "text": "Controlled substance DEASchedule must be one of I, II, III, IV, V",
+        "coding": [
+          {
+            "system": "http://aidbox.app/ePrescription/CodeSystem/error-reason",
+            "code": "controlled-substance-invalid-dea-schedule"
+          }
+        ]
+      }
     }
   ]
 }
