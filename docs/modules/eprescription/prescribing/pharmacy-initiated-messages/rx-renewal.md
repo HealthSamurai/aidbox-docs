@@ -43,57 +43,40 @@ If the prescriber wishes to send a new prescription to a different pharmacy (oth
 
 <sub>Same as for [RxChange](rx-change.md#denied).</sub>
 
-`denied` is the decision that requires the least amount of steps. Setting it in the extension is the only requirement.
-You can set the denial reason (free text) in decision note extension (
-`http://aidbox.app/ePrescription/FHIRSchema/medication-request-rx-renewal-decision-note`), but this is optional.
+A `denied` decision needs a reason in `reasonCode`, `note`, or both.
+The `note` of a `denied` decision has no length limit.
+
+```http
+POST /e-prescription/rx/respond-to-renewal
+Content-Type: application/json
+
+{
+  "medicationRequestId": "<MedicationRequest id>",
+  "responseType": "denied",
+  "note": "Patient must be re-examined"
+}
+```
 
 ### Pending
 
 <sub>Same as for [RxChange](rx-change.md#pending).</sub>
 
-Before committing the `pending` decision you need to
+A `pending` decision requires `reasonCode`, `note` (up to 70 characters), and `expectedPendedResponseDate`:
 
-Set the decision itself:
+```http
+POST /e-prescription/rx/respond-to-renewal
+Content-Type: application/json
 
-```yaml
-extension:
-  - url: >-
-      http://aidbox.app/ePrescription/FHIRSchema/medication-request-rx-renewal-decision
-    valueCode: pending
+{
+  "medicationRequestId": "<MedicationRequest id>",
+  "responseType": "pending",
+  "reasonCode": "HR",
+  "note": "Provider is on vacation",
+  "expectedPendedResponseDate": "<YYYY-MM-DD>"
+}
 ```
 
-Set the expected pended response date:
-
-```yaml
-extension:
-  - url: >-
-      http://aidbox.app/ePrescription/FHIRSchema/medication-request-rx-renewal-expected-pended-response-date
-    valueDate: '2025-12-12'
-```
-
-Set the decision note (contrarily to `denied` decision, it's required for `pending`):
-
-```yaml
-extension:
-  - url: >-
-      http://aidbox.app/ePrescription/FHIRSchema/medication-request-rx-renewal-decision-note
-    valueString: Provider is on vacation
-```
-
-Set the reason code:
-
-```yaml
-extension:
-  - url: >-
-      http://aidbox.app/ePrescription/FHIRSchema/medication-request-rx-change-decision-reason-code
-    valueCodeableConcept:
-      coding:
-        - code: HR
-          system: urn:app:aidbox:e-prescriptions:surescripts:decision-reason-code
-          display: Provider is unavailable and no one is available to make a decision
-```
-
-Available reason codes are listed in the table below (same for RxChange case):
+`pending` reason codes (the same in RxChange):
 
 | reason code | meaning                                                                         |
 |-------------|---------------------------------------------------------------------------------|
@@ -105,106 +88,100 @@ Available reason codes are listed in the table below (same for RxChange case):
 
 ### Approved, ApprovedWithChanges
 
-These decisions are used when prescriber approves the renewal requests.
+Use `approved` or `approved-with-changes` when the prescriber approves the renewal.
+Both decisions require [`prescription`](README.md#prescription-fields).
+Refill counts to compare:
+* refill count the prescriber approves: `prescription.dispenseRequest.numberOfRepeatsAllowed`
+* **PharmacyRequestedRefills**: the `medication-request-pharmacy-request-refills` extension of the `MedicationRequest`
+
+Decision by refill count:
+* `approved`: the counts are equal, or **PharmacyRequestedRefills** is not sent.
+* `approved-with-changes`: the counts differ.
 
 <details>
-<summary>
-Decisions differ by the approved number of refills
-</summary>
 
-The difference between `approved` and `approved-with-changes` is about the allowed number of refills.
+<summary>Example: requested number of refills</summary>
 
-The number of refills requested by the pharmacy is stored in the following extension:
+
 ```yaml
 extension:
   - url: >-
       http://aidbox.app/ePrescription/FHIRSchema/medication-request-pharmacy-request-refills
     valueInteger: 1
 ```
-The number of refills approved by the prescriber is taken from `MedicationRequest.dispenseRequest.numberOfRepeatsAllowed`.
-
-Usage of `approved` decision expects these values to be equal.
-Usage of `approved-with-changes` decision expects these values to differ.
 
 </details>
 
-While the e-prescriptions module could prefill fields like `MedicationRequest.dispenseRequest` and `dosageInstruction`,
-the general approach is to let the prescriber do that.
+If the module created a [`DetectedIssue`](../detected-issue.md) (the incoming data did not match existing records), point these references to existing resources before you respond:
+* `Patient`: `MedicationRequest.subject`
+* `PractitionerRole`: `MedicationRequest.performer`
+* `Practitioner`: `PractitionerRole.practitioner`
+* `Location`: `PractitionerRole.location` or `PractitionerRole.organization`
+* `Organization` (the pharmacy): `MedicationRequest.requester`
 
-Set the decision:
+A contained `Medication` can stay.
+To point to an existing `Medication`, send `medicationReference` in `prescription`.
 
-```yaml
-extension:
-  - url: >-
-      http://aidbox.app/ePrescription/FHIRSchema/medication-request-rx-renewal-decision
-    valueCode: approved
-#   valueCode: approved-with-changes
-```
+Send `dispenseRequest` and `dosageInstruction` in `prescription`.
+In most renewals, these match the [NewRx](../newrx-message.md) message.
 
-If during the process of handling incoming renewal request there was a `DetectedIssue` created
-(meaning there were mismatches between incoming and existing data),
-make sure you have resolved the references to implicated contained resources:
+```http
+POST /e-prescription/rx/respond-to-renewal
+Content-Type: application/json
 
-- `Patient` - `MedicationRequest.subject`
-- `PractitionerRole` - `MedicationRequest.performer`
-- `Practitioner` - `PractitionerRole.practitioner`
-- `Location` - `PractitionerRole.location` or `PractitionerRole.organization`
-- `Pharmacy` - `MedicationRequest.requester`
-- `Medication` - for medications contained resource is supported, so it's up to you whether to resolve it or leave as
-  is - `MedicationRequest.medication`
-
-Set `MedicationRequest.dispenseRequest` and `MedicationRequest.dosageInstruction`.
-Typically, they are the same as in the request for NewRx:
-Make sure you set
-
-- `MedicationRequest.dispenseRequest.performer` (the pharmacy of initial renewal request)
-- `MedicationRequest.dispenseRequest.numberOfRepeatsAllowed`
-
-```yaml
-dispenseRequest:
-  quantity:
-    code: C48542
-    unit: Tablet
-    value: 60
-    system: urn:app:aidbox:e-prescriptions:ncpdp:QuantityUnitOfMeasure
-  performer:
-    reference: Organization/my-pharmacy
-  expectedSupplyDuration:
-    code: d
-    unit: days
-    value: 30
-    system: http://unitsofmeasure.org
-  numberOfRepeatsAllowed: 1
-dosageInstruction:
-  - text: TAKE ONE TABLET TWO TIMES A DAY UNTIL GONE
+{
+  "medicationRequestId": "<MedicationRequest id>",
+  "responseType": "approved",
+  "prescription": {
+    "dispenseRequest": {
+      "quantity": {
+        "code": "C48542",
+        "unit": "Tablet",
+        "value": 60,
+        "system": "urn:app:aidbox:e-prescriptions:ncpdp:QuantityUnitOfMeasure"
+      },
+      "expectedSupplyDuration": {
+        "code": "d",
+        "unit": "days",
+        "value": 30,
+        "system": "http://unitsofmeasure.org"
+      },
+      "numberOfRepeatsAllowed": 1
+    },
+    "dosageInstruction": [
+      {"text": "TAKE ONE TABLET TWO TIMES A DAY UNTIL GONE"}
+    ]
+  }
+}
 ```
 
 ### Replace
 
-The `replace` response is to be used when an approval includes changes outside of what is permissible for `approved` and `approved-with-changes` responses. It should only be used if data elements have been changed from the RenewalRequest and when an `approved` or
-`approved-with-change` response is not appropriate.
+Use `replace` when the new prescription changes data from the RxRenewalRequest beyond what `approved` and `approved-with-changes` allow.
 
-Note:
- - Minor corrections to the patient **birthdate** are allowed as long as it refers to the same patient.  On a `replace` response the data content for the patient information does not have to match exactly as long as it is referring to the same patient. For example, if the **patient.name.\*.given.\*** in the RxRenewalRequest is Bob and the patient **patient.name.\*.given.\*** in the RxRenewalResponse is Robert, there is no difference unless the prescriber believes they are referencing a different patient than the pharmacy or vice versa.
- - Edits to the pharmacy are not permitted.
- - **authoredOn** indicates the date of the replacements prescription.
+Rules for a `replace` decision:
+* The patient data can differ from the RxRenewalRequest as long as it identifies the same patient.
+  For example, a corrected birth date, or `Robert` in `name.given` where the request has `Bob`.
+* You cannot change the pharmacy.
+* `prescription.authoredOn` is the date of the replacement prescription.
+* `performer` can name a different prescriber than the one the pharmacy addressed.
 
-Before committing the `replace` decision you need to
+Send the replacement prescription fields in [`prescription`](README.md#prescription-fields).
+Add the request body `note` (optional, up to 70 characters) to tell the pharmacy why the prescriber replaced the prescription.
 
-Set the decision itself:
+```http
+POST /e-prescription/rx/respond-to-renewal
+Content-Type: application/json
 
-```yaml
-extension:
-  - url: >-
-      http://aidbox.app/ePrescription/FHIRSchema/medication-request-rx-renewal-decision
-    valueCode: replace
-```
-
-Set the decision note (it's not required for `replace` decision but recommended):
-
-```yaml
-extension:
-  - url: >-
-      http://aidbox.app/ePrescription/FHIRSchema/medication-request-rx-renewal-decision-note
-    valueString: Changed course of therapy, so different medication is required
+{
+  "medicationRequestId": "<MedicationRequest id>",
+  "responseType": "replace",
+  "note": "Changed course of therapy, so different medication is required",
+  "prescription": {
+    "authoredOn": "<YYYY-MM-DD>",
+    "dosageInstruction": [
+      {"text": "Take one tablet morning and evening"}
+    ]
+  }
+}
 ```
