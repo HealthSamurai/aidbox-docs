@@ -391,3 +391,12 @@ specialty:
     text: Family Medicine
 ...
 ```
+
+### Refill Count
+
+Set the refill count in `MedicationRequest.dispenseRequest.numberOfRepeatsAllowed`:
+
+* `approved`: required, the count of the option you select. If that option has no count, use `approved-with-changes`.
+* `approved-with-changes`: optional, a whole number from 0 through 99.
+
+For `approved`, `approved-with-changes` and `validated`, the prescription must comply with [DEA schedule checks](../../epcs/dea-schedules.md#schedule-checks).

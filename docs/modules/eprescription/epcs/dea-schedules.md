@@ -56,6 +56,19 @@ The module sends each schedule in `DEASchedule/Code` as its NCI Thesaurus (NCIt)
 
 When EPCS is disabled (`EPCS_MODE=disabled`), the module rejects a controlled prescription with `epcs-disabled`, including a compound with a scheduled ingredient.
 
+Schedule limits:
+
+* Schedule I: not prescribable.
+* Schedule II: `dispenseRequest.numberOfRepeatsAllowed` must be 0.
+* Schedule III and IV: `dispenseRequest.numberOfRepeatsAllowed` must be 5 or less.
+* Schedule V: no limit.
+
+These limits apply to:
+
+* [NewRx](../prescribing/newrx-message.md)
+* [RxRenewal response](../prescribing/pharmacy-initiated-messages/rx-renewal.md#refill-count) `replace`
+* [RxChange response](../prescribing/pharmacy-initiated-messages/rx-change.md#refill-count) `approved`, `approved-with-changes` and `validated`
+
 A request that fails a check returns `422` with an `OperationOutcome`.
 
 <details>
@@ -66,6 +79,10 @@ A request that fails a check returns `422` with an `OperationOutcome`.
   * `medication-has-multiple-dea-schedules`: the code has more than one schedule extension, or more than one coding under `http://terminology.hl7.org/CodeSystem/v2-0477` in one extension.
   * `dea-schedule-coding-system-is-not-supported`: a schedule extension has codings, and none of them is under `http://terminology.hl7.org/CodeSystem/v2-0477`.
   * `controlled-substance-invalid-dea-schedule`: the schedule is not one of `I` to `V`, or a schedule extension's codings under `http://terminology.hl7.org/CodeSystem/v2-0477` have no code.
+* The schedule limits:
+  * `schedule-i-medication-is-not-prescribable`: the prescription has Schedule I.
+  * `schedule-ii-refills-must-be-zero`: a Schedule II prescription has a refill count other than 0.
+  * `schedule-iii-iv-refills-exceed-limit`: a Schedule III or IV prescription has a refill count above 5.
 
 Example response for `controlled-substance-invalid-dea-schedule`:
 
