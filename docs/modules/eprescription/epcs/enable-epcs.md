@@ -37,20 +37,12 @@ The module stores the evidence for controlled prescriptions as Aidbox resources:
 * `DocumentReference`: practitioner log archives
 * `AuditEvent`: the EPCS audit trail
 
-A DEA auditor can't rely on a record that someone could change or delete after the fact.
-The module can't prevent such changes.
-Aidbox grants a request when any one AccessPolicy allows it, and the module's policy applies only to the module's own client, `Client/ePrescription-app`.
-Your policies decide what your users and clients can do with these records.
+To support compliance with DEA requirements, we recommend configuring your Aidbox access policies to prevent users and clients from changing or deleting these evidence resources.
 
-Check every policy that applies to your users and clients, including global policies (policies without a `link`):
+Check every policy that applies to your users and clients.
 
 * Don't grant `PUT`, `PATCH`, or `DELETE` on these four resource types.
-  Aidbox [authorizes each entry](../../../api/batch-transaction.md#access-control) of a transaction or batch bundle as a separate request, so this rule also keeps update and delete entries out of bundles.
 * Grant `$sql`, `$load`, and `$import` only to operators.
-  These endpoints can overwrite any resource.
-
-Your users can still read the records with `GET`.
-These restrictions don't block the module's own writes, because Aidbox authorizes them through the module's policy.
 
 ### If Your EHR Updates Its Own Records
 
@@ -61,29 +53,38 @@ To let it update or delete its own records, keep the grant away from the module'
   Grant writes only for other ids, as in the example below.
 * `Provenance` and `Binary`: the module's records carry no marker that a policy can match.
   Any grant that lets your EHR update or delete its records of these types also lets it change the module's records.
-  Don't grant it, or accept that risk.
+  For these two resource types, we recommend allowing only `POST` for writes so your EHR can create records.
 
-This policy lets your EHR's client update and delete `DocumentReference` resources other than the module's archives.
+<details>
+<summary>Policy example</summary>
+
 Replace `Client/my-ehr` with your client.
-The SQL check also rejects conditional updates and deletes, because their URL has no resource id.
 
 ```yaml
 resourceType: AccessPolicy
-id: ehr-write-own-document-references
+id: ehr-epcs-record-writes
 engine: complex
 link:
   - reference: Client/my-ehr
-and:
+or:
   - engine: matcho
     matcho:
-      request-method:
-        $enum: [put, patch, delete]
-      params:
-        resource/type: DocumentReference
-  - engine: sql
-    sql:
-      query: SELECT COALESCE({{params.resource/id}} NOT LIKE 'practitioner-log-%', false)
+      request-method: post
+      uri: '#^/(fhir/)?(Provenance|Binary)$'
+  - engine: complex
+    and:
+      - engine: matcho
+        matcho:
+          request-method:
+            $enum: [put, patch, delete]
+          params:
+            resource/type: DocumentReference
+      - engine: sql
+        sql:
+          query: SELECT COALESCE({{params.resource/id}} NOT LIKE 'practitioner-log-%', false)
 ```
+
+</details>
 
 ## Appoint the Access Managers
 
