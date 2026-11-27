@@ -229,7 +229,7 @@ If `RelatesToMessageId` is missing from the incoming message, then `MedicationRe
 
 ## Responding
 
-Each `responseType` value and the responses that accept it:
+Decisions by response message:
 
 | `responseType`          | RxRenewalResponse | RxChangeResponse | Comment                                                                               |
 |-------------------------|-------------------|------------------|---------------------------------------------------------------------------------------|
@@ -238,9 +238,9 @@ Each `responseType` value and the responses that accept it:
 | `denied`                | ✓                 | ✓                |                                                                                       |
 | `pending`               | ✓                 | ✓                |                                                                                       |
 | `replace`               | ✓                 |                  |                                                                                       |
-| `validated`             |                   | ✓                | Only for request code `U`                                                             |
+| `validated`             |                   | ✓                | For request code `U`                                                                  |
 
-To send the prescriber's decision to the pharmacy, call the endpoint for the request:
+Endpoint for each request message:
 * RxRenewalRequest: `POST /e-prescription/rx/respond-to-renewal`
 * RxChangeRequest: `POST /e-prescription/rx/respond-to-change`
 
@@ -255,18 +255,19 @@ Content-Type: application/json
 }
 ```
 
-The request body has these fields:
+Request body fields:
 * `medicationRequestId` (required): the ID of the `MedicationRequest` that the module created for the pharmacy's request.
 * `responseType` (required): one of the decisions in the table above.
 * `prescription`: the [prescription fields](#prescription-fields) that the decision sets.
 * `note`: text for the pharmacy, up to 70 characters.
   A `denied` note has no length limit.
+  To annotate the prescription itself, use `prescription.note`.
 * `reasonCode`: the reason code of a `denied` or `pending` decision, such as `HR` for `pending`.
 * `expectedPendedResponseDate`: the date (`YYYY-MM-DD`) by which the prescriber plans to decide on a `pending` request.
 * `performer`: the responding prescriber as `PractitionerRole/<id>`.
   Without it, the module uses the prescriber the pharmacy addressed.
   `denied` and `pending` do not accept `performer`.
-  In an RxRenewalResponse, only `replace` accepts a different prescriber.
+  In an RxRenewalResponse, `replace` is the one decision that accepts a different prescriber.
 
 The module rejects a field that the `responseType` does not accept.
 The [RxRenewal](rx-renewal.md) and [RxChange](rx-change.md) pages list the fields each decision needs.
@@ -275,15 +276,15 @@ The [RxRenewal](rx-renewal.md) and [RxChange](rx-change.md) pages list the field
 
 <summary>Response</summary>
 
-`202 Accepted` means the module sent the response to Surescripts.
-If you submit the same decision again while it is sent or sending, the module returns `202 Accepted` without a second message.
+`202 Accepted` means the module sent the RxRenewalResponse or RxChangeResponse to Surescripts.
+If you repeat the request while the module is sending or has sent the decision, it returns `202 Accepted` again without a second message.
 The module records the reply from Surescripts in the [status and status reason extensions](#statuses).
 
 </details>
 
 ### Prescription fields
 
-`prescription` accepts these `MedicationRequest` fields:
+`MedicationRequest` fields that `prescription` accepts:
 * `medicationCodeableConcept` or `medicationReference`
 * `contained`
 * `dosageInstruction`
@@ -294,7 +295,7 @@ The module records the reply from Surescripts in the [status and status reason e
 * `priority`
 * `reasonReference`
 
-The module applies them to the `MedicationRequest` this way:
+How the module applies `prescription` to the `MedicationRequest`:
 * A field you leave out keeps its current value.
 * A field you send replaces the whole current value, so send the complete value of each field you change.
 * An empty list or object clears the field, except `contained`.

@@ -54,7 +54,7 @@ It is required that RxChange is preceded by NewRx.
 ### Setting a decision
 
 Send the decision as `responseType` in a [`POST /e-prescription/rx/respond-to-change`](README.md#responding) request.
-The decisions each request code accepts:
+Decisions by request code:
 
 | MessageRequestCode | approved | approved-with-changes | denied | pending | validated |
 |--------------------|----------|-----------------------|--------|---------|-----------|
@@ -100,11 +100,11 @@ Content-Type: application/json
   "responseType": "pending",
   "reasonCode": "HR",
   "note": "Provider is on vacation",
-  "expectedPendedResponseDate": "2025-12-12"
+  "expectedPendedResponseDate": "<YYYY-MM-DD>"
 }
 ```
 
-`reasonCode` accepts these codes for `pending`, the same as in RxRenewal:
+`pending` reason codes (the same in RxRenewal):
 
 | reason code | meaning                                                                         |
 |-------------|---------------------------------------------------------------------------------|
@@ -118,15 +118,16 @@ Content-Type: application/json
 
 Use `approved` when the prescriber accepts one of the pharmacy's suggested options unchanged.
 
+When the module receives an RxChangeRequest, it creates a `MedicationRequest`.
+Its top-level `medicationCodeableConcept` (or `medicationReference`) holds the medication of the original prescription.
+Each option the pharmacy suggests is a separate contained `MedicationRequest`.
+
 Send the option's medication (`medicationCodeableConcept` or `medicationReference`), `dispenseRequest`, and `dosageInstruction` in [`prescription`](README.md#prescription-fields).
 Set `prescription.authoredOn` to the date of the response.
 
 <details>
 
 <summary>Example: approve a suggested option</summary>
-
-For an RxChangeRequest, the module creates a `MedicationRequest` that holds each option the pharmacy suggests as a contained `MedicationRequest`.
-The top-level `medicationCodeableConcept` (or `medicationReference`) of that `MedicationRequest` holds the currently prescribed medication.
 
 For example, the module stores two options:
 
@@ -162,7 +163,7 @@ contained:
 ...
 ```
 
-To approve the amoxicillin option, send its fields in `prescription`:
+To approve the amoxicillin option, send these fields in `prescription`:
 
 ```http
 POST /e-prescription/rx/respond-to-change
@@ -182,7 +183,7 @@ Content-Type: application/json
       "numberOfRepeatsAllowed": 2
     },
     "dosageInstruction": [{"text": "Take 5 mL orally twice daily for 10 days"}],
-    "authoredOn": "2025-12-12"
+    "authoredOn": "<YYYY-MM-DD>"
   }
 }
 ```
@@ -191,8 +192,8 @@ Content-Type: application/json
 
 ### ApprovedWithChanges
 
-Use `approved-with-changes` when the prescriber approves the change but edits the prescription.
-This decision requires [`prescription`](README.md#prescription-fields) with each field the prescriber changes.
+Use `approved-with-changes` when the prescriber accepts one of the pharmacy's suggested options with edits.
+Send the option's medication (`medicationCodeableConcept` or `medicationReference`), `dispenseRequest`, and `dosageInstruction` with the prescriber's edits in [`prescription`](README.md#prescription-fields).
 Set `prescription.authoredOn` to the date of the response.
 
 ### Validated

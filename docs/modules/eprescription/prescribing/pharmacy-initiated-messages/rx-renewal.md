@@ -72,11 +72,11 @@ Content-Type: application/json
   "responseType": "pending",
   "reasonCode": "HR",
   "note": "Provider is on vacation",
-  "expectedPendedResponseDate": "2025-12-12"
+  "expectedPendedResponseDate": "<YYYY-MM-DD>"
 }
 ```
 
-`reasonCode` accepts these codes for `pending`, the same as in RxChange:
+`pending` reason codes (the same in RxChange):
 
 | reason code | meaning                                                                         |
 |-------------|---------------------------------------------------------------------------------|
@@ -90,12 +90,18 @@ Content-Type: application/json
 
 Use `approved` or `approved-with-changes` when the prescriber approves the renewal.
 Both decisions require [`prescription`](README.md#prescription-fields).
+Refill counts to compare:
+* refill count the prescriber approves: `prescription.dispenseRequest.numberOfRepeatsAllowed`
+* **PharmacyRequestedRefills**: the `medication-request-pharmacy-request-refills` extension of the `MedicationRequest`
+
+Decision by refill count:
+* `approved`: the counts are equal, or **PharmacyRequestedRefills** is not sent.
+* `approved-with-changes`: the counts differ.
 
 <details>
 
-<summary>Decisions differ by the approved number of refills</summary>
+<summary>Example: requested number of refills</summary>
 
-The pharmacy's requested number of refills is in this extension of the `MedicationRequest`:
 
 ```yaml
 extension:
@@ -104,21 +110,17 @@ extension:
     valueInteger: 1
 ```
 
-The prescriber's approved number of refills is `prescription.dispenseRequest.numberOfRepeatsAllowed`.
-Choose the decision by comparing the two:
-* `approved`: the numbers are equal, or the pharmacy sent no number of refills.
-* `approved-with-changes`: the numbers differ.
-
 </details>
 
-If the module created a `DetectedIssue` (the incoming data did not match existing records), replace these contained resources with existing references before you respond:
+If the module created a [`DetectedIssue`](../detected-issue.md) (the incoming data did not match existing records), point these references to existing resources before you respond:
 * `Patient`: `MedicationRequest.subject`
 * `PractitionerRole`: `MedicationRequest.performer`
 * `Practitioner`: `PractitionerRole.practitioner`
 * `Location`: `PractitionerRole.location` or `PractitionerRole.organization`
 * `Organization` (the pharmacy): `MedicationRequest.requester`
-* `Medication`: `MedicationRequest.medication`.
-  The module also accepts a contained `Medication`, so resolving it is optional.
+
+A contained `Medication` can stay.
+To point to an existing `Medication`, send `medicationReference` in `prescription`.
 
 Send `dispenseRequest` and `dosageInstruction` in `prescription`.
 In most renewals, these match the [NewRx](../newrx-message.md) message.
@@ -155,9 +157,9 @@ Content-Type: application/json
 
 ### Replace
 
-Use `replace` when the new prescription changes data from the RxRenewalRequest that `approved` and `approved-with-changes` do not allow.
+Use `replace` when the new prescription changes data from the RxRenewalRequest beyond what `approved` and `approved-with-changes` allow.
 
-Rules for a `replace` response:
+Rules for a `replace` decision:
 * The patient data can differ from the RxRenewalRequest as long as it identifies the same patient.
   For example, a corrected birth date, or `Robert` in `name.given` where the request has `Bob`.
 * You cannot change the pharmacy.
@@ -165,8 +167,7 @@ Rules for a `replace` response:
 * `performer` can name a different prescriber than the one the pharmacy addressed.
 
 Send the replacement prescription fields in [`prescription`](README.md#prescription-fields).
-A `note` (up to 70 characters) is optional.
-Add one to tell the pharmacy why the prescriber replaced the prescription.
+Add the request body `note` (optional, up to 70 characters) to tell the pharmacy why the prescriber replaced the prescription.
 
 ```http
 POST /e-prescription/rx/respond-to-renewal
@@ -177,7 +178,7 @@ Content-Type: application/json
   "responseType": "replace",
   "note": "Changed course of therapy, so different medication is required",
   "prescription": {
-    "authoredOn": "2025-12-12",
+    "authoredOn": "<YYYY-MM-DD>",
     "dosageInstruction": [
       {"text": "Take one tablet morning and evening"}
     ]
