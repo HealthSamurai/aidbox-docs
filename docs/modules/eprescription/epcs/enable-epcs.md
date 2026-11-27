@@ -28,6 +28,64 @@ After this setup, a prescriber can mark a controlled prescription ready to sign 
    * `POST /e-prescription/rx/new`, `POST /e-prescription/rx/respond-to-renewal`, and `POST /e-prescription/rx/respond-to-change`, which sign prescriptions
    * the EPCS access operations that [Configure Access Policies](access-management/configure-access-policies.md#access-policies) lists
 
+## Protect the EPCS Records
+
+The module stores the evidence for controlled prescriptions as Aidbox resources:
+
+* `Provenance`: signing records, ready-to-sign proofs, and Surescripts message history
+* `Binary`: ready-to-sign proof payloads, archived Surescripts messages, and [practitioner log](practitioner-log.md#archives) payloads
+* `DocumentReference`: practitioner log archives
+* `AuditEvent`: the EPCS audit trail
+
+To support compliance with DEA requirements, we recommend configuring your Aidbox access policies to prevent users and clients from changing or deleting these evidence resources.
+
+Check every policy that applies to your users and clients.
+
+* Don't grant `PUT`, `PATCH`, or `DELETE` on these four resource types.
+* Grant `$sql`, `$load`, and `$import` only to operators.
+
+### If Your EHR Updates Its Own Records
+
+Your EHR can create its own `Provenance`, `Binary`, and `DocumentReference` records with `POST` without touching the module's records.
+To let it update or delete its own records, keep the grant away from the module's records:
+
+* `DocumentReference`: the id of every module record starts with `practitioner-log-`.
+  Grant writes only for other ids, as in the example below.
+* `Provenance` and `Binary`: the module's records carry no marker that a policy can match.
+  Any grant that lets your EHR update or delete its records of these types also lets it change the module's records.
+  For these two resource types, we recommend allowing only `POST` for writes so your EHR can create records.
+
+<details>
+<summary>Policy example</summary>
+
+Replace `Client/my-ehr` with your client.
+
+```yaml
+resourceType: AccessPolicy
+id: ehr-epcs-record-writes
+engine: complex
+link:
+  - reference: Client/my-ehr
+or:
+  - engine: matcho
+    matcho:
+      request-method: post
+      uri: '#^/(fhir/)?(Provenance|Binary)$'
+  - engine: complex
+    and:
+      - engine: matcho
+        matcho:
+          request-method:
+            $enum: [put, patch, delete]
+          params:
+            resource/type: DocumentReference
+      - engine: sql
+        sql:
+          query: SELECT COALESCE({{params.resource/id}} NOT LIKE 'practitioner-log-%', false)
+```
+
+</details>
+
 ## Appoint the Access Managers
 
 Each location where practitioners prescribe controlled substances needs an administrator and an approver who are different users:
