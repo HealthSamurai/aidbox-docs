@@ -450,6 +450,7 @@
       * [Access-Change Requests](modules/eprescription/epcs/access-management/access-change-requests.md)
       * [Location Compliance Status](modules/eprescription/epcs/access-management/location-compliance-status.md)
     * [DEA Schedules](modules/eprescription/epcs/dea-schedules.md)
+    * [EPCS Audit Events](modules/eprescription/epcs/audit-events.md)
     * [Practitioner Log](modules/eprescription/epcs/practitioner-log.md)
   * [Directory](modules/eprescription/directory/README.md)
     * [DirectoryDownload Message](modules/eprescription/directory/directorydownload-message.md)
